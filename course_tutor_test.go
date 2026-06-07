@@ -239,6 +239,31 @@ func TestTutorDoctorLessonHasTeachingPointAndFinalWordCheck(t *testing.T) {
 	}
 }
 
+func TestTutorAnswerSlotFeedbackNamesMissingDetail(t *testing.T) {
+	topic := tutorTestTopicByCode(t, "doctor")
+	template := tutorScenarioTemplateFor(topic, tutorCourseFunctions[0], "en")
+	feedback := tutorAnswerSlotFeedback("Hello. I need to see a doctor, please.", template, "en")
+	if !strings.Contains(strings.ToLower(feedback), "today") {
+		t.Fatalf("feedback should name missing detail today, got %q", feedback)
+	}
+	if !strings.Contains(strings.ToLower(feedback), "doctor") {
+		t.Fatalf("feedback should mention present item doctor, got %q", feedback)
+	}
+}
+
+func TestTutorLessonStepsIncludeFinalCheckBeforeReview(t *testing.T) {
+	steps := tutorLessonSteps("en")
+	var codes []string
+	for _, step := range steps {
+		codes = append(codes, step.Code)
+	}
+	got := strings.Join(codes, "|")
+	want := "words|explain|choice|writing|listening|pronunciation|dialogue|final-check|review"
+	if got != want {
+		t.Fatalf("tutor step codes = %s, want %s", got, want)
+	}
+}
+
 func tutorTestTopicByCode(t *testing.T, code string) tutorTopic {
 	t.Helper()
 	for _, topic := range tutorScenarioCourseTopics {

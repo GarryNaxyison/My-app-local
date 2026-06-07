@@ -573,6 +573,7 @@ func tutorLessonSteps(interfaceLanguage string) []tutorLessonStep {
 		{Code: "listening", Title: "Listening", Summary: "catch details"},
 		{Code: "pronunciation", Title: "Pronunciation", Summary: "repeat aloud"},
 		{Code: "dialogue", Title: "Mini dialogue", Summary: "context"},
+		{Code: "final-check", Title: "Final word check", Summary: "lesson words"},
 		{Code: "review", Title: "SRS", Summary: "memory schedule"},
 	}
 }
@@ -976,6 +977,28 @@ func tutorSummaryForLesson(words []tutorLessonWord, template tutorScenarioTempla
 		WeakItems:   []string{},
 		NextReview:  tutorLocalized(interfaceLanguage, "Choose a review button based on how hard the final check felt.", "Choose a review button based on how hard the final check felt."),
 	}
+}
+
+func tutorAnswerSlotFeedback(answer string, template tutorScenarioTemplate, interfaceLanguage string) string {
+	normalized := strings.ToLower(answer)
+	present := make([]string, 0, 3)
+	missing := make([]string, 0, 3)
+	for _, slot := range []string{template.Item, template.Detail} {
+		slot = strings.TrimSpace(slot)
+		if slot == "" {
+			continue
+		}
+		if strings.Contains(normalized, strings.ToLower(slot)) {
+			present = append(present, slot)
+		} else {
+			missing = append(missing, slot)
+		}
+	}
+	if len(missing) == 0 {
+		return tutorLocalized(interfaceLanguage, "Good: your answer has the required scene words.", "Good: your answer has the required scene words.")
+	}
+	return tutorLocalized(interfaceLanguage, "Good parts: ", "Good parts: ") + strings.Join(present, ", ") + ". " +
+		tutorLocalized(interfaceLanguage, "Add: ", "Add: ") + strings.Join(missing, ", ") + "."
 }
 
 func tutorScenarioSituation(template tutorScenarioTemplate, interfaceLanguage string) string {
