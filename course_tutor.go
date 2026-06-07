@@ -295,6 +295,58 @@ func tutorScenarioTemplateFor(topic tutorTopic, function tutorCourseFunction, in
 		}
 	case "hotel":
 		return tutorBasicScenarioTemplate(topic, "guest", "confirm a reservation", "reservation", "passport", "I have a reservation. Here is my passport, please.", "Receptionist: Good evening. May I see your passport, please?")
+	case "work":
+		return tutorScenarioTemplate{
+			TopicCode:        "work",
+			Role:             "employee",
+			SituationRU:      "Вы на работе. Нужно подтвердить встречу, время, имя и контакт.",
+			SituationEN:      "You are at work: confirm a meeting, time, name, and contact.",
+			RequiredAction:   "confirm a meeting",
+			Item:             "meeting",
+			Detail:           "with Alex at 10",
+			Politeness:       []string{"Could you...?", "please"},
+			ModelAnswer:      "Could you help me confirm the meeting with Alex at 10 and send me the contact, please?",
+			ShortAnswer:      "Meeting at 10.",
+			WrongSceneAnswer: "Can I order coffee?",
+			IncompleteAnswer: "Could you help me with the meeting, please?",
+			DetailPromptRU:   "Что уточняет встречу?",
+			DetailPromptEN:   "What clarifies the meeting?",
+			DetailDistractors: []tutorScenarioChoiceLine{
+				tutorScenarioChoice("for breakfast", "Не эта сцена", "Wrong scene", "Это деталь заказа в кафе, не рабочей встречи.", "This belongs to a cafe order, not a work meeting.", "wrong"),
+				tutorScenarioChoice("my passport", "Не нужно здесь", "Not needed here", "Паспорт не помогает подтвердить рабочую встречу.", "A passport does not help confirm a work meeting.", "wrong"),
+				tutorScenarioChoice("football", "Не связано с задачей", "Unrelated", "Это слово из словаря, а не деталь встречи.", "This is vocabulary, not a meeting detail.", "wrong"),
+			},
+			NextPromptRU:        "Какой следующий шаг звучит естественно?",
+			NextPromptEN:        "Which next step sounds natural?",
+			NextAnswer:          "Thank you. Please send the contact by email.",
+			NextDistractors:     []tutorScenarioChoiceLine{tutorScenarioChoice("I need a ticket.", "Не по сцене", "Wrong scene", "Это транспорт, не рабочая встреча.", "This is transport, not a work meeting.", "wrong"), tutorScenarioChoice("Meeting. Alex. Contact.", "Список слов", "Word list", "Это не звучит как реплика человеку.", "This does not sound like a line to a person.", "wrong"), tutorScenarioChoice("Close the app.", "Пустая реакция", "Empty reaction", "Собеседник ждёт следующий шаг.", "The other person expects a next step.", "wrong")},
+			MiniExplanationRU:   "В рабочей сцене держите один порядок: вежливое начало -> meeting -> время и имя -> contact. Паттерн: Could you help me confirm the meeting with Alex at 10 and send me the contact, please.",
+			MiniExplanationEN:   "In a work scene, keep one order: polite opener -> meeting -> time and name -> contact. Pattern: Could you help me confirm the meeting with Alex at 10 and send me the contact, please.",
+			WritingTaskRU:       "Напишите одну рабочую реплику: подтвердить meeting, назвать Alex at 10 и попросить contact.",
+			WritingTaskEN:       "Write one work reply: confirm the meeting, say Alex at 10, and ask for the contact.",
+			WritingExpected:     []string{"meeting", "Alex", "10", "contact"},
+			ListeningText:       "Could you help me confirm the meeting with Alex at 10 and send me the contact, please?",
+			ListeningQuestionRU: "Какие 2-3 детали важны для встречи?",
+			ListeningQuestionEN: "Which 2-3 details matter for the meeting?",
+			ListeningExpected:   []string{"meeting", "Alex", "10", "contact"},
+			DialogueLines:       []string{"Coworker: Good morning. Which meeting should I confirm?"},
+			DialoguePromptRU:    "Ответьте коллеге: подтвердите meeting with Alex at 10 и попросите contact.",
+			DialoguePromptEN:    "Answer the coworker: confirm the meeting with Alex at 10 and ask for the contact.",
+			DialogueGoalRU:      "Подтвердить meeting, время, имя и contact.",
+			DialogueGoalEN:      "Confirm the meeting, time, name, and contact.",
+			WritingVariants: []tutorScenarioVariantLine{
+				tutorScenarioVariant("Базовый ответ", "Base answer", "Meeting with Alex at 10, please.", "Есть встреча, имя и время, но контакт ещё не запрошен.", "It has the meeting, name, and time, but not the contact yet.", "A1", "минимум", "safe minimum", false),
+				tutorScenarioVariant("Естественно", "Natural answer", "Could you confirm the meeting with Alex at 10, please?", "Звучит как рабочая просьба: есть действие, meeting, имя и время.", "It sounds like a work request: action, meeting, name, and time.", "A2", "живой разговор", "daily conversation", false),
+				tutorScenarioVariant("Сильный вариант", "Stronger answer", "Could you help me confirm the meeting with Alex at 10 and send me the contact, please?", "Закрывает всю задачу: meeting, время, имя и contact.", "It closes the whole task: meeting, time, name, and contact.", "B1", "лучший образец", "best practice model", false),
+				tutorScenarioVariant("Не использовать", "Do not use", "Meeting. Alex. Contact.", "Это список слов, а не ответ человеку.", "This is a word list, not an answer to a person.", "avoid", "не повторять", "avoid", true),
+			},
+			DialogueVariants: []tutorScenarioVariantLine{
+				tutorScenarioVariant("A1", "A1", "The meeting with Alex at 10, please.", "Коротко отвечает на вопрос коллеги.", "Shortly answers the coworker's question.", "A1", "минимум", "safe minimum", false),
+				tutorScenarioVariant("A2", "A2", "Please confirm the meeting with Alex at 10.", "Есть действие, meeting, имя и время.", "It has action, meeting, name, and time.", "A2", "живой разговор", "daily conversation", false),
+				tutorScenarioVariant("B1", "B1", "Please confirm the meeting with Alex at 10 and send me the contact.", "Полный ответ на последнюю реплику: meeting, время, имя и contact.", "A complete answer to the last line: meeting, time, name, and contact.", "B1", "лучший образец", "best practice model", false),
+				tutorScenarioVariant("Не использовать", "Do not use", "Meeting. Alex. Contact.", "Это список слов, а не ответ человеку.", "This is a word list, not an answer to a person.", "avoid", "не повторять", "avoid", true),
+			},
+		}
 	case "doctor":
 		return tutorBasicScenarioTemplate(topic, "patient", "ask for a doctor", "doctor", "today", "Hello. I need to see a doctor today, please.", "Receptionist: Can you come this morning?")
 	case "travel":

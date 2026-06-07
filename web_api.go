@@ -2041,17 +2041,45 @@ func (api *webAPI) handleBugReport(w http.ResponseWriter, r *http.Request) {
 			if len(files) > 1 {
 				photoCaption += fmt.Sprintf("\nScreenshot: %d/%d", index+1, len(files))
 			}
-			if err := api.bot.telegram.sendPhotoFile(r.Context(), telegramOpsRecipientID, path, photoCaption); err != nil {
-				log.Printf("send bug screenshot: %v", err)
-			}
+			api.sendBugReportPhoto(r.Context(), path, photoCaption)
 		}
 	}
 	if photoCount == 0 && api.bot != nil && api.bot.telegram != nil {
-		if err := api.bot.telegram.sendMessage(r.Context(), telegramOpsRecipientID, caption); err != nil {
-			log.Printf("send bug report: %v", err)
-		}
+		api.sendBugReportText(r.Context(), caption)
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "id": reportID, "screenshots": photoCount})
+}
+
+func (api *webAPI) telegramOpsRecipients() []telegramOpsRecipient {
+	if api != nil && len(api.cfg.TelegramOpsRecipients) > 0 {
+		return api.cfg.telegramOpsRecipients()
+	}
+	if api != nil && api.bot != nil && len(api.bot.cfg.TelegramOpsRecipients) > 0 {
+		return api.bot.cfg.telegramOpsRecipients()
+	}
+	return (config{}).telegramOpsRecipients()
+}
+
+func (api *webAPI) sendBugReportText(ctx context.Context, caption string) {
+	if api == nil || api.bot == nil || api.bot.telegram == nil {
+		return
+	}
+	for _, recipient := range api.telegramOpsRecipients() {
+		if err := api.bot.telegram.sendMessageToChat(ctx, recipient.telegramChatIDValue(), caption); err != nil {
+			log.Printf("send bug report to %s: %v", recipient.ChatID, err)
+		}
+	}
+}
+
+func (api *webAPI) sendBugReportPhoto(ctx context.Context, path string, caption string) {
+	if api == nil || api.bot == nil || api.bot.telegram == nil {
+		return
+	}
+	for _, recipient := range api.telegramOpsRecipients() {
+		if err := api.bot.telegram.sendPhotoFileToChat(ctx, recipient.telegramChatIDValue(), path, caption); err != nil {
+			log.Printf("send bug screenshot to %s: %v", recipient.ChatID, err)
+		}
+	}
 }
 
 func (api *webAPI) handleWordGameNext(w http.ResponseWriter, r *http.Request) {

@@ -1119,7 +1119,11 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-context-v2")).toContainText("Could I see the menu?");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Use the lesson goal");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Variant focus");
-  await expect(page.locator(".tutor-context-v2")).toContainText("add one concrete detail");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("add one concrete detail");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Цель:");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Раздел:");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Паттерн A2:");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("В ответе должно быть");
   await page.locator(".tutor-step-v2").first().click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Слова проверены");
   await expect(page.locator(".tutor-result-list-v2")).toContainText("menu");

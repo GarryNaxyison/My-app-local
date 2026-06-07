@@ -4910,18 +4910,8 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
     }
     if (activeStage.id === "explain") {
       return (
-        <div className="tutor-lesson-card-v2">
-          {tutorLesson.scenario ? <p><strong>{copy("tutor_scenario_label", "Scenario")}:</strong> {display(tutorLesson.scenario)}</p> : null}
-          {tutorLesson.can_do ? <p><strong>{copy("tutor_can_do_label", "Can-do")}:</strong> {display(tutorLesson.can_do)}</p> : null}
-          {tutorLesson.focus_skill ? <p><strong>{copy("tutor_focus_label", "Focus")}:</strong> {display(tutorLesson.focus_skill)}</p> : null}
-          <strong>{display(tutorLesson.grammar_title) || copy("tutor_grammar", "Grammar")}</strong>
-          {tutorLesson.grammar ? <p>{display(tutorLesson.grammar)}</p> : null}
-          {tutorLesson.mini_explanation ? <p>{display(tutorLesson.mini_explanation)}</p> : null}
-          {(tutorLesson.success_criteria || []).length ? (
-            <div className="tutor-review-summary-v2">
-              {(tutorLesson.success_criteria || []).map((item) => <span key={item}>{display(item)}</span>)}
-            </div>
-          ) : null}
+        <div className="tutor-lesson-card-v2 tutor-mini-explanation-v2">
+          <p>{display(tutorLesson.mini_explanation || tutorLesson.grammar || tutorLesson.scenario || "")}</p>
         </div>
       );
     }

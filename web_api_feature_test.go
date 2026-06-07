@@ -690,6 +690,82 @@ func TestWebBugReportNotifiesTelegramRecipient(t *testing.T) {
 	}
 }
 
+func TestWebBugReportUsesConfiguredTelegramOpsRecipients(t *testing.T) {
+	api, _, cookie := newTestWebAPI(t)
+	api.cfg.TelegramOpsRecipients = []telegramOpsRecipient{{ChatID: "12345"}, {ChatID: "@poliglot_owner"}}
+	api.bot.cfg = api.cfg
+	oldWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempDir := t.TempDir()
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(oldWD) })
+
+	var chatIDs []any
+	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/sendMessage" {
+			t.Fatalf("unexpected telegram method %s", r.URL.Path)
+		}
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode telegram payload: %v", err)
+		}
+		chatIDs = append(chatIDs, payload["chat_id"])
+		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "result": map[string]any{"message_id": len(chatIDs)}})
+	}))
+	defer telegramServer.Close()
+	api.bot.telegram = &telegramClient{baseURL: telegramServer.URL, http: telegramServer.Client()}
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writer.WriteField("message", "Кнопка отчета не доходит владельцу"); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.WriteField("view", "tutor"); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/bug-report", &body)
+	request.AddCookie(cookie)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	recorder := httptest.NewRecorder()
+	mux := http.NewServeMux()
+	api.register(mux)
+	mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("bug report returned %d: %s", recorder.Code, recorder.Body.String())
+	}
+	if len(chatIDs) != 2 {
+		t.Fatalf("sent bug report to %d chats, want 2: %#v", len(chatIDs), chatIDs)
+	}
+	if chatIDs[0] != float64(12345) || chatIDs[1] != "@poliglot_owner" {
+		t.Fatalf("chat IDs = %#v, want configured recipients", chatIDs)
+	}
+}
+
+func TestConfigFromEnvReadsTelegramOpsRecipients(t *testing.T) {
+	t.Setenv("TELEGRAM_BOT_TOKEN", "bot-token")
+	t.Setenv("OPENROUTER_API_KEY", "openrouter-key")
+	t.Setenv("TELEGRAM_OPS_RECIPIENTS", "12345, @poliglot_owner")
+
+	cfg, err := configFromEnv()
+	if err != nil {
+		t.Fatalf("configFromEnv() error = %v", err)
+	}
+	if len(cfg.TelegramOpsRecipients) != 2 {
+		t.Fatalf("TelegramOpsRecipients = %#v, want 2 recipients", cfg.TelegramOpsRecipients)
+	}
+	if cfg.TelegramOpsRecipients[0].ChatID != "12345" || cfg.TelegramOpsRecipients[1].ChatID != "@poliglot_owner" {
+		t.Fatalf("TelegramOpsRecipients = %#v, want configured ID and username", cfg.TelegramOpsRecipients)
+	}
+}
+
 func TestWebPhrasebookRoutePersistsNoteInSession(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	body := strings.NewReader(`{"id":"note-1","phrase":"Could you repeat?","note":"Polite fallback","source":"manual","language":"en"}`)

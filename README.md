@@ -60,9 +60,12 @@ OPENROUTER_PRONUNCIATION_MODEL=google/gemini-3.1-flash-lite
 OPENROUTER_TTS_MODEL=google/gemini-3.1-flash-tts-preview
 OPENROUTER_TTS_VOICE=Kore
 MAX_VOICE_SECONDS=30
+TELEGRAM_OPS_RECIPIENTS=8140236860,@your_admin_username
 ```
 
 If the explicit `CRYPTO_USDT_*_AMOUNT` values are empty, the bot now asks TonAPI `/v2/rates` for the current USDT/RUB rate using `CRYPTO_TONAPI_BASE_URL`, `CRYPTO_TONAPI_KEY`, and `CRYPTO_USDT_TON_JETTON_MASTER`. `CRYPTO_USDT_RUB_RATE` stays as a fallback when TonAPI is unavailable.
+
+`TELEGRAM_OPS_RECIPIENTS` controls owner/admin Telegram notifications, including web bug reports and payment alerts. Use a comma-separated list of numeric chat IDs and optional `@username` channel/group targets. If the variable is empty, the app falls back to the built-in owner chat ID.
 
 ### Serial Premium Keys
 

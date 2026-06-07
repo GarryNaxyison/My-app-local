@@ -10,6 +10,7 @@ import (
 
 type config struct {
 	TelegramBotToken                  string
+	TelegramOpsRecipients             []telegramOpsRecipient
 	OpenRouterAPIKey                  string
 	OpenRouterModel                   string
 	OpenRouterTranslatorModel         string
@@ -86,6 +87,7 @@ type config struct {
 func configFromEnv() (config, error) {
 	cfg := config{
 		TelegramBotToken:                  strings.TrimSpace(os.Getenv("TELEGRAM_BOT_TOKEN")),
+		TelegramOpsRecipients:             parseTelegramOpsRecipients(os.Getenv("TELEGRAM_OPS_RECIPIENTS")),
 		OpenRouterAPIKey:                  strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY")),
 		OpenRouterModel:                   envOrDefault("OPENROUTER_MODEL", "google/gemini-3.1-flash"),
 		OpenRouterTranslatorModel:         envOrDefault("OPENROUTER_TRANSLATOR_MODEL", envOrDefault("OPENROUTER_MODEL", "google/gemini-3.1-flash")),
@@ -172,6 +174,52 @@ func configFromEnv() (config, error) {
 	}
 
 	return cfg, nil
+}
+
+type telegramOpsRecipient struct {
+	ChatID string
+}
+
+func (cfg config) telegramOpsRecipients() []telegramOpsRecipient {
+	if len(cfg.TelegramOpsRecipients) > 0 {
+		return append([]telegramOpsRecipient{}, cfg.TelegramOpsRecipients...)
+	}
+	return []telegramOpsRecipient{{ChatID: strconv.FormatInt(telegramOpsRecipientID, 10)}}
+}
+
+func parseTelegramOpsRecipients(raw string) []telegramOpsRecipient {
+	parts := strings.FieldsFunc(raw, func(r rune) bool {
+		return r == ',' || r == ';' || r == '\n' || r == '\r' || r == '\t' || r == ' '
+	})
+	recipients := make([]telegramOpsRecipient, 0, len(parts))
+	seen := map[string]bool{}
+	for _, part := range parts {
+		chatID := normalizeTelegramOpsChatID(part)
+		if chatID == "" || seen[strings.ToLower(chatID)] {
+			continue
+		}
+		seen[strings.ToLower(chatID)] = true
+		recipients = append(recipients, telegramOpsRecipient{ChatID: chatID})
+	}
+	return recipients
+}
+
+func normalizeTelegramOpsChatID(value string) string {
+	value = strings.TrimSpace(value)
+	value = strings.TrimPrefix(value, "https://t.me/")
+	value = strings.TrimPrefix(value, "http://t.me/")
+	value = strings.TrimPrefix(value, "t.me/")
+	value = strings.Trim(value, "/")
+	if value == "" {
+		return ""
+	}
+	if _, err := strconv.ParseInt(value, 10, 64); err == nil {
+		return value
+	}
+	if !strings.HasPrefix(value, "@") {
+		value = "@" + value
+	}
+	return value
 }
 
 func (cfg config) yooKassaEnabled() bool {

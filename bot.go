@@ -2742,7 +2742,37 @@ func (b *bot) notifyOpsPayment(ctx context.Context, source string, user userStat
 		"Amount: " + strings.TrimSpace(amount),
 		"Premium until: " + until.Format("2006-01-02"),
 	}, "\n")
-	_ = b.telegram.sendMessage(ctx, telegramOpsRecipientID, text)
+	b.notifyOpsText(ctx, text)
+}
+
+func (b *bot) notifyOpsText(ctx context.Context, text string) {
+	if b == nil || b.telegram == nil {
+		return
+	}
+	for _, recipient := range b.cfg.telegramOpsRecipients() {
+		if err := b.telegram.sendMessageToChat(ctx, recipient.telegramChatIDValue(), text); err != nil {
+			log.Printf("send ops notification to %s: %v", recipient.ChatID, err)
+		}
+	}
+}
+
+func (b *bot) notifyOpsPhoto(ctx context.Context, photoPath string, caption string) {
+	if b == nil || b.telegram == nil {
+		return
+	}
+	for _, recipient := range b.cfg.telegramOpsRecipients() {
+		if err := b.telegram.sendPhotoFileToChat(ctx, recipient.telegramChatIDValue(), photoPath, caption); err != nil {
+			log.Printf("send ops photo to %s: %v", recipient.ChatID, err)
+		}
+	}
+}
+
+func (recipient telegramOpsRecipient) telegramChatIDValue() any {
+	chatID := strings.TrimSpace(recipient.ChatID)
+	if parsed, err := strconv.ParseInt(chatID, 10, 64); err == nil {
+		return parsed
+	}
+	return chatID
 }
 
 func (b *bot) maybeBeginWebAuth(ctx context.Context, chatID int64, user userState, from telegramUser, text string) (bool, error) {

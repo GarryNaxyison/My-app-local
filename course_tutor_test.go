@@ -181,6 +181,34 @@ func TestTutorScenarioChoicesAreDialogueReplies(t *testing.T) {
 	}
 }
 
+func TestTutorWorkScenarioUsesMeetingSlotsNotRandomVocabulary(t *testing.T) {
+	topic := tutorTestTopicByCode(t, "work")
+	function := tutorCourseFunctions[0]
+	words := []tutorLessonWord{
+		{ID: "en:tax", Word: "tax", Translation: "налог", Level: "A2"},
+		{ID: "en:whatever", Word: "whatever", Translation: "что угодно", Level: "A2"},
+		{ID: "en:meeting", Word: "meeting", Translation: "встреча", Level: "A1"},
+		{ID: "en:contact", Word: "contact", Translation: "контакт", Level: "A2"},
+	}
+
+	mini := tutorMiniExplanation("A2", topic, function, words, "ru")
+	checks := tutorScenarioChecks(words, topic, function, "ru")
+	variants := tutorAnswerVariants(words, topic, function, "en", "ru", false)
+	dialogueVariants := tutorAnswerVariants(words, topic, function, "en", "ru", true)
+
+	combined := strings.ToLower(strings.Join(append([]string{mini}, append(tutorChoiceTexts(checks), tutorVariantTexts(append(variants, dialogueVariants...))...)...), "\n"))
+	for _, want := range []string{"meeting", "alex", "10", "contact"} {
+		if !strings.Contains(combined, want) {
+			t.Fatalf("work tutor scenario misses meeting slot %q:\n%s", want, combined)
+		}
+	}
+	for _, bad := range []string{"tax", "whatever", "i repeat:", "налог /", " / что угодно", "use the lesson goal", "variant focus"} {
+		if strings.Contains(combined, bad) {
+			t.Fatalf("work tutor scenario leaked random vocabulary/service text %q:\n%s", bad, combined)
+		}
+	}
+}
+
 func tutorTestTopicByCode(t *testing.T, code string) tutorTopic {
 	t.Helper()
 	for _, topic := range tutorScenarioCourseTopics {

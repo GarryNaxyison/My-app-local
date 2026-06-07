@@ -252,7 +252,23 @@ func (c *telegramClient) sendMessage(ctx context.Context, chatID int64, text str
 	return c.sendMessageWithCopy(ctx, chatID, text, englishUICopy())
 }
 
+func (c *telegramClient) sendMessageToChat(ctx context.Context, chatID any, text string) error {
+	for _, chunk := range splitTelegramText(text, 3900) {
+		if err := c.call(ctx, "sendMessage", map[string]any{
+			"chat_id": chatID,
+			"text":    chunk,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *telegramClient) sendPhotoFile(ctx context.Context, chatID int64, photoPath string, caption string) error {
+	return c.sendPhotoFileToChat(ctx, chatID, photoPath, caption)
+}
+
+func (c *telegramClient) sendPhotoFileToChat(ctx context.Context, chatID any, photoPath string, caption string) error {
 	file, err := os.Open(photoPath)
 	if err != nil {
 		return err
@@ -261,7 +277,7 @@ func (c *telegramClient) sendPhotoFile(ctx context.Context, chatID int64, photoP
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
-	if err := writer.WriteField("chat_id", strconv.FormatInt(chatID, 10)); err != nil {
+	if err := writer.WriteField("chat_id", fmt.Sprint(chatID)); err != nil {
 		return err
 	}
 	caption = strings.TrimSpace(caption)
