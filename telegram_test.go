@@ -115,6 +115,25 @@ func TestMenuTutorCallbackStartsTutorLesson(t *testing.T) {
 	}
 }
 
+func TestFormatTelegramTutorLessonIncludesTeachingPointAndFinalCheck(t *testing.T) {
+	user := userState{InterfaceLanguage: "en", LearningLanguage: "en", Level: "A1"}
+	lesson, err := buildTutorLessonForSequence(user, 4)
+	if err != nil {
+		t.Fatalf("buildTutorLessonForSequence(doctor): %v", err)
+	}
+	text := formatTelegramTutorLesson(lesson, user)
+	for _, want := range []string{
+		"Hello\\. I need to see a doctor today, please\\.",
+		"Final word check",
+		"doctor",
+		"today",
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("telegram tutor lesson missing %q:\n%s", want, text)
+		}
+	}
+}
+
 func TestAITutorMenuLabelIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
 	for _, language := range interfaceLanguages() {
 		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})

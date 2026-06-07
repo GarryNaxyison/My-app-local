@@ -1108,6 +1108,9 @@ func formatTelegramTutorLesson(lesson tutorLesson, user userState) string {
 	appendTelegramTutorLine(&builder, "🎯", lesson.Goal)
 	appendTelegramTutorLine(&builder, "📍", lesson.Scenario)
 	appendTelegramTutorLine(&builder, "🧩", lesson.MiniExplanation)
+	if strings.TrimSpace(lesson.TeachingPoint.ModelAnswer) != "" {
+		appendTelegramTutorLine(&builder, "Model:", lesson.TeachingPoint.ModelAnswer)
+	}
 	target := strings.TrimSpace(lesson.PronunciationText)
 	if target == "" {
 		target = strings.TrimSpace(lesson.ScenarioSlots.ModelAnswer)
@@ -1115,6 +1118,7 @@ func formatTelegramTutorLesson(lesson tutorLesson, user userState) string {
 	appendTelegramTutorLine(&builder, "🗣", target)
 	appendTelegramTutorChoice(&builder, lesson)
 	appendTelegramTutorDialogue(&builder, lesson)
+	appendTelegramTutorFinalCheck(&builder, lesson)
 	return builder.String()
 }
 
@@ -1187,6 +1191,24 @@ func appendTelegramTutorDialogue(builder *strings.Builder, lesson tutorLesson) {
 			builder.WriteString(escapeMarkdownV2("  " + strings.TrimSpace(variant.Why)))
 		}
 		return
+	}
+}
+
+func appendTelegramTutorFinalCheck(builder *strings.Builder, lesson tutorLesson) {
+	if len(lesson.FinalWordCheck.Items) == 0 {
+		return
+	}
+	builder.WriteString("\n\n")
+	builder.WriteString(escapeMarkdownV2("Final word check"))
+	limit := tutorMinInt(3, len(lesson.FinalWordCheck.Items))
+	for index := 0; index < limit; index++ {
+		item := lesson.FinalWordCheck.Items[index]
+		text := strings.TrimSpace(item.Prompt)
+		if text == "" {
+			continue
+		}
+		builder.WriteString("\n")
+		builder.WriteString(escapeMarkdownV2("- " + text))
 	}
 }
 
