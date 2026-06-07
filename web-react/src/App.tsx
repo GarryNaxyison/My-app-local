@@ -4976,21 +4976,25 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
     if (activeStage.id === "pronunciation") {
       const target = display(tutorLesson.pronunciation_text || tutorLesson.listening_text);
       return (
-        <>
-          <div className="tutor-pronunciation-target-v2">
-            <span>{copy("tutor_pronunciation_target", "Repeat exactly")}</span>
-            <strong>{target}</strong>
-          </div>
-          {target ? <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: target, targetLanguage: user.learning_language }]} /> : null}
-          {!viewingPastStage ? (
-            <div className="tutor-listening-voice-v2">
-              <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
-              <p>{voiceFile ? copy("tutor_voice_ready", "Voice answer is ready for pronunciation check.") : copy("tutor_voice_hint", "Record your repeat for pronunciation scoring.")}</p>
+        <div className="tutor-pronunciation-stage-v2">
+          <div className="tutor-pronunciation-primary-v2">
+            <div className="tutor-pronunciation-target-v2">
+              <span>{copy("tutor_pronunciation_target", "Repeat exactly")}</span>
+              <strong>{target}</strong>
             </div>
-          ) : null}
-          {tutorPronunciation ? <PronunciationReport pronunciation={tutorPronunciation} copy={copy} compact /> : null}
-          {tutorPronunciationCorrection ? <AudioActionRow clips={[{ label: interfaceLocale === "ru" ? "Исправленный образец" : "Corrected model", text: tutorPronunciationCorrection, targetLanguage: user.learning_language }]} /> : null}
-        </>
+            {target ? <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: target, targetLanguage: user.learning_language }]} /> : null}
+            {tutorPronunciationCorrection ? <AudioActionRow clips={[{ label: interfaceLocale === "ru" ? "Исправленный образец" : "Corrected model", text: tutorPronunciationCorrection, targetLanguage: user.learning_language }]} /> : null}
+          </div>
+          <div className="tutor-pronunciation-tools-v2">
+            {!viewingPastStage ? (
+              <div className="tutor-listening-voice-v2">
+                <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+                <p>{voiceFile ? copy("tutor_voice_ready", "Voice answer is ready for pronunciation check.") : copy("tutor_voice_hint", "Record your repeat for pronunciation scoring.")}</p>
+              </div>
+            ) : null}
+            {tutorPronunciation ? <PronunciationReport pronunciation={tutorPronunciation} copy={copy} compact /> : null}
+          </div>
+        </div>
       );
     }
     if (activeStage.id === "dialogue") {

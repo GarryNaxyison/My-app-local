@@ -1167,12 +1167,29 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Произношение");
   await expect(page.locator(".tutor-pronunciation-target-v2")).toContainText("I'd like coffee for breakfast");
+  const pronunciationStage = page.locator(".tutor-pronunciation-stage-v2");
+  await expect(pronunciationStage).toBeVisible();
+  const primaryPanel = page.locator(".tutor-pronunciation-primary-v2");
+  const toolsPanel = page.locator(".tutor-pronunciation-tools-v2");
+  const primaryBox = await primaryPanel.boundingBox();
+  const toolsBox = await toolsPanel.boundingBox();
+  expect(primaryBox, "pronunciation primary panel box").not.toBeNull();
+  expect(toolsBox, "pronunciation tools panel box").not.toBeNull();
+  const viewport = page.viewportSize();
+  if ((viewport?.width || 0) >= 900) {
+    expect(primaryBox?.width || 0).toBeGreaterThan(toolsBox?.width || 0);
+    expect(primaryBox?.height || 0).toBeGreaterThan(180);
+  } else {
+    expect(toolsBox?.y || 0).toBeGreaterThan(primaryBox?.y || 0);
+  }
   await page.locator('.tutor-listening-voice-v2 input[type="file"]').setInputFiles({
     name: "repeat.webm",
     mimeType: "audio/webm",
     buffer: Buffer.from("test-audio"),
   });
   await tutorSubmit.click();
+  await expect(page.locator(".tutor-pronunciation-primary-v2 .tutor-pronunciation-target-v2")).toContainText("I'd like coffee for breakfast");
+  await expect(page.locator(".tutor-pronunciation-tools-v2 .pronunciation-report-v2")).toContainText("67/100");
   await expect(page.locator(".pronunciation-report-v2")).toContainText("67/100");
   await expect(page.locator(".pronunciation-report-v2")).toContainText("Stress is late");
   await expect(page.locator(".pronunciation-report-v2")).toContainText("/f/ -> /v/");
