@@ -598,7 +598,7 @@ func mainMenuInlineKeyboard(copies ...uiCopy) map[string]any {
 			},
 			{
 				{"text": "\U0001F3A7 " + copy.Shadowing, "callback_data": "menu_shadowing"},
-				{"text": "AI Репетитор", "callback_data": "menu_tutor"},
+				{"text": "🤖 " + copy.AITutor, "callback_data": "menu_tutor"},
 			},
 			{
 				{"text": "🌐 " + copy.Tool.WebApp, "url": webAppURL},
@@ -639,7 +639,7 @@ func learningMenuKeyboard(copies ...uiCopy) map[string]any {
 	copy := keyboardCopy(copies)
 	return map[string]any{
 		"inline_keyboard": [][]map[string]any{
-			{{"text": "AI Репетитор", "callback_data": "menu_tutor"}},
+			{{"text": "🤖 " + copy.AITutor, "callback_data": "menu_tutor"}},
 			{{"text": "📝 " + copy.NewLesson, "callback_data": "menu_lesson"}},
 			{{"text": "💬 " + copy.Practice, "callback_data": "menu_practice"}},
 			{{"text": "\U0001F3A7 " + copy.Shadowing, "callback_data": "menu_shadowing"}},

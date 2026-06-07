@@ -64,6 +64,86 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 	}
 }
 
+func TestMenuTutorCallbackStartsTutorLesson(t *testing.T) {
+	var methods []string
+	var payloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		methods = append(methods, r.URL.Path)
+		payloads = append(payloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	store := &jsonStore{
+		path:  filepath.Join(t.TempDir(), "users.json"),
+		users: map[int64]userState{},
+	}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		TimezoneSelected:  true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+		Level:             "A1",
+	}
+	store.users[user.TelegramID] = user
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+
+	err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:   "cb-1",
+		From: telegramUser{ID: user.TelegramID, FirstName: user.FirstName},
+		Data: "menu_tutor",
+	})
+	if err != nil {
+		t.Fatalf("handleCallbackQuery(menu_tutor) error = %v", err)
+	}
+	if len(methods) < 2 || methods[0] != "/answerCallbackQuery" || methods[len(methods)-1] != "/sendMessage" {
+		t.Fatalf("expected callback answer and tutor message, got methods=%v payloads=%#v", methods, payloads)
+	}
+	text, _ := payloads[len(payloads)-1]["text"].(string)
+	if strings.Contains(text, ui(user).UnknownButton) {
+		t.Fatalf("menu_tutor fell through to unknown button: %q", text)
+	}
+	if !strings.Contains(text, "AI Репетитор") || !strings.Contains(text, "Паттерн:") || !strings.Contains(text, "Какая реплика лучше") {
+		t.Fatalf("expected rendered tutor lesson, got %q", text)
+	}
+}
+
+func TestAITutorMenuLabelIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
+	for _, language := range interfaceLanguages() {
+		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})
+		if strings.TrimSpace(copy.AITutor) == "" {
+			t.Fatalf("missing AI Tutor label for %s", language.Code)
+		}
+		keyboard := mainMenuInlineKeyboard(copy)
+		rows := keyboard["inline_keyboard"].([][]map[string]any)
+		found := false
+		for _, row := range rows {
+			for _, button := range row {
+				if button["callback_data"] == "menu_tutor" {
+					found = true
+					text, _ := button["text"].(string)
+					if !strings.Contains(text, copy.AITutor) {
+						t.Fatalf("menu_tutor label for %s = %q, want copy label %q", language.Code, text, copy.AITutor)
+					}
+					if language.Code != "ru" && strings.Contains(text, "AI Репетитор") {
+						t.Fatalf("menu_tutor label for %s leaked Russian hardcode: %q", language.Code, text)
+					}
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("missing menu_tutor for %s", language.Code)
+		}
+	}
+}
+
 func TestBottomReplyKeyboardUsesLocalizedButtons(t *testing.T) {
 	copy := ui(userState{InterfaceLanguage: "zh", InterfaceSelected: true})
 	keyboard := bottomReplyKeyboard(copy)

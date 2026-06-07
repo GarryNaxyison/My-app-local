@@ -838,6 +838,8 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.startPractice(ctx, chatID, user)
 	case "menu_shadowing":
 		return b.startShadowing(ctx, chatID, user)
+	case "menu_tutor":
+		return b.startTutorLesson(ctx, chatID, user)
 	case "menu_word_lesson":
 		return b.startWordLesson(ctx, chatID, user)
 	case "menu_word_game":
@@ -1068,6 +1070,124 @@ func (b *bot) startPractice(ctx context.Context, chatID int64, user userState) e
 	return b.telegram.sendMessageWithCopy(ctx, chatID,
 		fmt.Sprintf(systemUI(user).PracticeStarted, language.PracticeDirection, interfaceLanguage.InterfaceName, ui(user).StopButton),
 		ui(user))
+}
+
+func (b *bot) startTutorLesson(ctx context.Context, chatID int64, user userState) error {
+	b.deletePreviousWordPronunciation(ctx, chatID)
+	_ = b.telegram.sendChatAction(ctx, chatID, "typing")
+	lesson, err := b.store.nextTutorLesson(user, func(sequence int) (tutorLesson, error) {
+		return buildTutorLessonForSequence(tutorReusableLessonUser(user), sequence)
+	})
+	if err != nil {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, botRuntimeMessage(user, "lesson_task_failed", err.Error()), ui(user))
+	}
+	copy := ui(user)
+	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, formatTelegramTutorLesson(lesson, user), tutorLessonKeyboard(copy))
+}
+
+func tutorLessonKeyboard(copy uiCopy) map[string]any {
+	return map[string]any{
+		"inline_keyboard": [][]map[string]any{
+			{{"text": "🤖 " + copy.AITutor, "callback_data": "menu_tutor"}},
+			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
+		},
+	}
+}
+
+func formatTelegramTutorLesson(lesson tutorLesson, user userState) string {
+	copy := ui(user)
+	var builder strings.Builder
+	title := strings.TrimSpace(lesson.Title)
+	if title == "" {
+		title = copy.AITutor
+	}
+	builder.WriteString("*" + escapeMarkdownV2(title) + "*")
+	if lesson.LessonNumber > 0 && lesson.CourseSize > 0 {
+		builder.WriteString(" · " + escapeMarkdownV2(fmt.Sprintf("%d/%d", lesson.LessonNumber, lesson.CourseSize)))
+	}
+	appendTelegramTutorLine(&builder, "🎯", lesson.Goal)
+	appendTelegramTutorLine(&builder, "📍", lesson.Scenario)
+	appendTelegramTutorLine(&builder, "🧩", lesson.MiniExplanation)
+	target := strings.TrimSpace(lesson.PronunciationText)
+	if target == "" {
+		target = strings.TrimSpace(lesson.ScenarioSlots.ModelAnswer)
+	}
+	appendTelegramTutorLine(&builder, "🗣", target)
+	appendTelegramTutorChoice(&builder, lesson)
+	appendTelegramTutorDialogue(&builder, lesson)
+	return builder.String()
+}
+
+func appendTelegramTutorLine(builder *strings.Builder, prefix string, text string) {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return
+	}
+	builder.WriteString("\n\n")
+	builder.WriteString(prefix)
+	builder.WriteString(" ")
+	builder.WriteString(escapeMarkdownV2(text))
+}
+
+func appendTelegramTutorChoice(builder *strings.Builder, lesson tutorLesson) {
+	checks := lesson.Checks
+	if len(checks) == 0 && len(lesson.Choice.Options) > 0 {
+		checks = []tutorLessonChoice{lesson.Choice}
+	}
+	if len(checks) == 0 {
+		return
+	}
+	check := checks[0]
+	prompt := strings.TrimSpace(check.Prompt)
+	if prompt == "" {
+		return
+	}
+	builder.WriteString("\n\n")
+	builder.WriteString("✅ ")
+	builder.WriteString(escapeMarkdownV2(prompt))
+	for _, option := range check.Options {
+		text := strings.TrimSpace(option.Text)
+		if text == "" {
+			continue
+		}
+		marker := "•"
+		if option.ID == check.CorrectAnswerID {
+			marker = "→"
+		}
+		builder.WriteString("\n")
+		builder.WriteString(escapeMarkdownV2(marker + " " + text))
+		if option.ID == check.CorrectAnswerID && strings.TrimSpace(option.Why) != "" {
+			builder.WriteString("\n")
+			builder.WriteString(escapeMarkdownV2("  " + strings.TrimSpace(option.Why)))
+		}
+	}
+	if strings.TrimSpace(check.Feedback) != "" {
+		builder.WriteString("\n")
+		builder.WriteString(escapeMarkdownV2(strings.TrimSpace(check.Feedback)))
+	}
+}
+
+func appendTelegramTutorDialogue(builder *strings.Builder, lesson tutorLesson) {
+	if len(lesson.Dialogue) == 0 && len(lesson.DialogueVariants) == 0 {
+		return
+	}
+	builder.WriteString("\n\n")
+	builder.WriteString("💬 ")
+	if len(lesson.Dialogue) > 0 {
+		builder.WriteString(escapeMarkdownV2(strings.TrimSpace(lesson.Dialogue[0])))
+	}
+	for _, variant := range lesson.DialogueVariants {
+		if variant.Avoid || strings.TrimSpace(variant.Text) == "" {
+			continue
+		}
+		builder.WriteString("\n")
+		builder.WriteString(escapeMarkdownV2("→ " + strings.TrimSpace(variant.Text)))
+		if strings.TrimSpace(variant.Why) != "" {
+			builder.WriteString("\n")
+			builder.WriteString(escapeMarkdownV2("  " + strings.TrimSpace(variant.Why)))
+		}
+		return
+	}
 }
 
 func (b *bot) startWordLesson(ctx context.Context, chatID int64, user userState) error {

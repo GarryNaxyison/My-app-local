@@ -19,6 +19,7 @@ type uiCopy struct {
 	Tools            string
 	NewLesson        string
 	Practice         string
+	AITutor          string
 	Shadowing        string
 	LevelTest        string
 	LearnWords       string
@@ -95,7 +96,7 @@ var uiCopies = map[string]uiCopy{
 		MenuButton: "📋 Меню", StopButton: "⏹ Стоп", Back: "◀ Назад", BackMenu: "◀ В меню",
 		MainMenuTitle: "Главное меню", MainMenuBody: "Выбери действие:",
 		Learning: "Учиться", Words: "Слова", Stats: "Прогресс", Settings: "Настройки", Tools: "Инструменты",
-		NewLesson: "Новый урок", Practice: "Практика", LevelTest: "Определить уровень", LearnWords: "Учить слова", WordGame: "Повторяй-ка", Spelling: "Правописание", Vocabulary: "Словарик", Mistakes: "Словарь ошибок", Progress: "Мой прогресс", Leaders: "Лидеры", Limits: "Мои лимиты", BotLanguage: "Язык бота", LearningLanguage: "Язык изучения", Notifications: "Уведомления", Premium: "Premium",
+		NewLesson: "Новый урок", Practice: "Практика", AITutor: "AI Репетитор", LevelTest: "Определить уровень", LearnWords: "Учить слова", WordGame: "Повторяй-ка", Spelling: "Правописание", Vocabulary: "Словарик", Mistakes: "Словарь ошибок", Progress: "Мой прогресс", Leaders: "Лидеры", Limits: "Мои лимиты", BotLanguage: "Язык бота", LearningLanguage: "Язык изучения", Notifications: "Уведомления", Premium: "Premium",
 		ChooseBotLang: "Выбери язык бота", ChooseLearnLang: "Какой язык хочешь изучать?", ChooseTimezone: "Выбери часовой пояс", TimezoneHint: "Я буду присылать ежедневное напоминание примерно в 19:00 по твоему времени.",
 		BotLangSet: "Готово! Язык бота: %s.", LearnLangSet: "Готово! Теперь изучаем: %s.", UnknownButton: "Не понял кнопку. Нажми 📋 Меню.", Stopped: "Остановлено. Нажми 📋 Меню чтобы выбрать следующее действие.",
 		WordQuestion: "Как будет %s:", ChooseAnswer: "Выбери правильный вариант:", Correct: "Правильно!", TryAgain: "Пока не то. Попробуй ещё раз:", NextWord: "Следующее слово", NextPage: "Вперёд ▶", AlreadyLearned: "Это слово уже было в твоем словаре.", AddedToVocab: "Слово добавлено в изученный словарь.", TotalLearned: "Всего изучено слов: %d", WriteWord: "Напиши %s:", Hint: "Подсказка", GoodSpelling: "Отлично, написано верно!",
@@ -123,7 +124,7 @@ func englishUICopy() uiCopy {
 		MenuButton: "📋 Menu", StopButton: "⏹ Stop", Back: "◀ Back", BackMenu: "◀ Menu",
 		MainMenuTitle: "Main Menu", MainMenuBody: "Choose an action:",
 		Learning: "Learn", Words: "Words", Stats: "Progress", Settings: "Settings", Tools: "Tools",
-		NewLesson: "New lesson", Practice: "Practice", Shadowing: "Listening", LevelTest: "Find level", LearnWords: "Learn words", WordGame: "Review", Spelling: "Spelling", Vocabulary: "Vocabulary", Mistakes: "Mistakes", Progress: "My progress", Leaders: "Leaders", Limits: "Limits", BotLanguage: "Bot language", LearningLanguage: "Learning language", Notifications: "Notifications", Premium: "Premium", Referral: "Referrals",
+		NewLesson: "New lesson", Practice: "Practice", AITutor: "AI Tutor", Shadowing: "Listening", LevelTest: "Find level", LearnWords: "Learn words", WordGame: "Review", Spelling: "Spelling", Vocabulary: "Vocabulary", Mistakes: "Mistakes", Progress: "My progress", Leaders: "Leaders", Limits: "Limits", BotLanguage: "Bot language", LearningLanguage: "Learning language", Notifications: "Notifications", Premium: "Premium", Referral: "Referrals",
 		ChooseBotLang: "Choose bot language", ChooseLearnLang: "Which language do you want to learn?", ChooseTimezone: "Choose time zone", TimezoneHint: "I will send daily reminders around 19:00 in your local time.",
 		BotLangSet: "Done. Bot language: %s.", LearnLangSet: "Done. Now learning: %s.", UnknownButton: "I did not understand that button. Press 📋 Menu.", Stopped: "Stopped. Press 📋 Menu to choose the next action.",
 		WordQuestion: "How do you say %s?", ChooseAnswer: "Choose the correct answer:", Correct: "Correct!", TryAgain: "Not quite. Try again:", NextWord: "Next word", NextPage: "Next ▶", AlreadyLearned: "This word is already in your vocabulary.", AddedToVocab: "Word added to your learned vocabulary.", TotalLearned: "Learned words: %d", WriteWord: "Write %s:", Hint: "Hint", GoodSpelling: "Great spelling!",
@@ -270,6 +271,7 @@ func generatedUICopy(code string) (uiCopy, bool) {
 		Tools:            t.Tools,
 		NewLesson:        t.NewLesson,
 		Practice:         t.Practice,
+		AITutor:          aiTutorButtonLabel(code),
 		Shadowing:        t.Listening,
 		LevelTest:        t.Level,
 		LearnWords:       t.LearnWords,
@@ -554,9 +556,41 @@ func shadowingButtonLabel(code string) string {
 	}
 }
 
+func aiTutorButtonLabel(code string) string {
+	switch normalizeInterfaceLanguage(code) {
+	case "ru":
+		return "AI Репетитор"
+	case "es":
+		return "Tutor IA"
+	case "de":
+		return "KI-Tutor"
+	case "fr":
+		return "Tuteur IA"
+	case "it":
+		return "Tutor IA"
+	case "pt":
+		return "Tutor IA"
+	case "pl":
+		return "Tutor AI"
+	case "uk":
+		return "AI-репетитор"
+	case "zh":
+		return "AI 导师"
+	case "ja":
+		return "AIチューター"
+	case "ko":
+		return "AI 튜터"
+	default:
+		return "AI Tutor"
+	}
+}
+
 func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
 	if copy.NextPage == "" {
 		copy.NextPage = englishUICopy().NextPage
+	}
+	if copy.AITutor == "" {
+		copy.AITutor = aiTutorButtonLabel(code)
 	}
 	if copy.Shadowing == "" {
 		copy.Shadowing = shadowingButtonLabel(code)
