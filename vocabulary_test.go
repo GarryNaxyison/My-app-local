@@ -774,6 +774,30 @@ func TestNextUnlearnedWordStartsAtUserLevel(t *testing.T) {
 	}
 }
 
+func TestNextUnlearnedWordSkipsUnsuitableDictionaryEntries(t *testing.T) {
+	for _, word := range []string{"pm", "ice-free"} {
+		if vocabularyWordSuitableForLearning(vocabWord{English: word, Russian: "перевод"}) {
+			t.Fatalf("%q should not be suitable for learning rounds", word)
+		}
+	}
+	if !vocabularyWordSuitableForLearning(vocabWord{English: "apple", Russian: "яблоко"}) {
+		t.Fatal("apple should be suitable for learning rounds")
+	}
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		{English: "pm", Russian: "после полудня", Translations: map[string]string{"ru": "после полудня"}, Level: "A1", FrequencyRank: 1},
+		{English: "ice-free", Russian: "свободный ото льда", Translations: map[string]string{"ru": "свободный ото льда"}, Level: "A1", FrequencyRank: 2},
+		{English: "apple", Russian: "яблоко", Translations: map[string]string{"ru": "яблоко"}, Level: "A1", FrequencyRank: 3},
+	})
+
+	word, ok := nextUnlearnedWord(userState{LearningLanguage: "en", InterfaceLanguage: "ru", Level: "A1"})
+	if !ok {
+		t.Fatal("expected a suitable word")
+	}
+	if word.English != "apple" {
+		t.Fatalf("nextUnlearnedWord() = %q, want apple", word.English)
+	}
+}
+
 func TestNextUnlearnedWordUsesSelectedLanguage(t *testing.T) {
 	user := userState{LearningLanguage: "es", Level: "A1"}
 	word, ok := nextUnlearnedWord(user)

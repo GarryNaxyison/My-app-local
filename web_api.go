@@ -848,7 +848,11 @@ func (api *webAPI) handleAuthTelegramStatus(w http.ResponseWriter, r *http.Reque
 	}
 	account, user, err := store.authenticateTelegramWebAccount(request.CurrentUserID, request.Profile)
 	if err != nil {
-		if errors.Is(err, errWebAccountTGLocked) || errors.Is(err, errWebTelegramUsed) {
+		if errors.Is(err, errWebTelegramUsed) {
+			writeAPIErrorCode(w, http.StatusConflict, "telegram_already_linked", err.Error())
+			return
+		}
+		if errors.Is(err, errWebAccountTGLocked) {
 			writeAPIError(w, http.StatusConflict, err.Error())
 			return
 		}
@@ -897,7 +901,11 @@ func (api *webAPI) handleAuthTelegram(w http.ResponseWriter, r *http.Request) {
 	}
 	account, user, err := store.authenticateTelegramWebAccount(currentUserID, profile)
 	if err != nil {
-		if errors.Is(err, errWebAccountTGLocked) || errors.Is(err, errWebTelegramUsed) {
+		if errors.Is(err, errWebTelegramUsed) {
+			writeAPIErrorCode(w, http.StatusConflict, "telegram_already_linked", err.Error())
+			return
+		}
+		if errors.Is(err, errWebAccountTGLocked) {
 			writeAPIError(w, http.StatusConflict, err.Error())
 			return
 		}
@@ -936,7 +944,11 @@ func (api *webAPI) handleAuthTelegramMerge(w http.ResponseWriter, r *http.Reques
 	}
 	account, user, err := store.authenticateTelegramWebAccountWithChoice(currentUserID, profile, choice)
 	if err != nil {
-		if errors.Is(err, errWebAccountTGLocked) || errors.Is(err, errWebTelegramUsed) {
+		if errors.Is(err, errWebTelegramUsed) {
+			writeAPIErrorCode(w, http.StatusConflict, "telegram_already_linked", err.Error())
+			return
+		}
+		if errors.Is(err, errWebAccountTGLocked) {
 			writeAPIError(w, http.StatusConflict, err.Error())
 			return
 		}
@@ -950,7 +962,11 @@ func (api *webAPI) handleAuthTelegramMerge(w http.ResponseWriter, r *http.Reques
 func (api *webAPI) writeTelegramProgressMergeChallenge(w http.ResponseWriter, store webTelegramAccountStore, currentUserID int64, profile telegramWebProfile) bool {
 	challenge, err := store.telegramWebProgressMergeChallenge(currentUserID, profile)
 	if err != nil {
-		if errors.Is(err, errWebAccountTGLocked) || errors.Is(err, errWebTelegramUsed) {
+		if errors.Is(err, errWebTelegramUsed) {
+			writeAPIErrorCode(w, http.StatusConflict, "telegram_already_linked", err.Error())
+			return true
+		}
+		if errors.Is(err, errWebAccountTGLocked) {
 			writeAPIError(w, http.StatusConflict, err.Error())
 			return true
 		}
@@ -1100,7 +1116,11 @@ func (api *webAPI) handleAuthProfile(w http.ResponseWriter, r *http.Request) {
 		}
 		account, linkedUser, err := telegramStore.authenticateTelegramWebAccount(existingAccount.UserID, profile)
 		if err != nil {
-			if errors.Is(err, errWebAccountTGLocked) || errors.Is(err, errWebTelegramUsed) {
+			if errors.Is(err, errWebTelegramUsed) {
+				writeAPIErrorCode(w, http.StatusConflict, "telegram_already_linked", err.Error())
+				return
+			}
+			if errors.Is(err, errWebAccountTGLocked) {
 				writeAPIError(w, http.StatusConflict, err.Error())
 				return
 			}
@@ -3660,10 +3680,16 @@ func decodeJSONRequest(w http.ResponseWriter, r *http.Request, target any) bool 
 }
 
 func writeAPIError(w http.ResponseWriter, status int, message string) {
+	writeAPIErrorCode(w, status, "", message)
+}
+
+func writeAPIErrorCode(w http.ResponseWriter, status int, code string, message string) {
+	apiError := map[string]any{"message": message}
+	if code != "" {
+		apiError["code"] = code
+	}
 	writeJSON(w, status, map[string]any{
-		"error": map[string]any{
-			"message": message,
-		},
+		"error": apiError,
 	})
 }
 

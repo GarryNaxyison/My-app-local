@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ClipboardEvent } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,11 +54,32 @@ export default function OTPDialog({
   if (!open) return null;
 
   const handleChange = (value: string, index: number) => {
+    if (value.length > 1) {
+      fillDigits(value, index);
+      return;
+    }
     if (!/^\d?$/.test(value)) return;
     const updated = [...otp];
     updated[index] = value;
     setOtp(updated);
     if (value && index < otp.length - 1) document.getElementById(`otp-${index + 1}`)?.focus();
+  };
+
+  const fillDigits = (value: string, startIndex: number) => {
+    const digits = value.replace(/\D/g, "").slice(0, otp.length - startIndex);
+    if (!digits) return;
+    const updated = [...otp];
+    digits.split("").forEach((digit, offset) => {
+      updated[startIndex + offset] = digit;
+    });
+    setOtp(updated);
+    const nextIndex = Math.min(startIndex + digits.length, otp.length - 1);
+    document.getElementById(`otp-${nextIndex}`)?.focus();
+  };
+
+  const handlePaste = (event: ClipboardEvent<HTMLInputElement>, index: number) => {
+    event.preventDefault();
+    fillDigits(event.clipboardData.getData("text"), index);
   };
 
   const handleVerify = async () => {
@@ -115,6 +137,7 @@ export default function OTPDialog({
               id={`otp-${index}`}
               value={digit}
               onChange={(event) => handleChange(event.target.value, index)}
+              onPaste={(event) => handlePaste(event, index)}
               onKeyDown={(event) => {
                 if (event.key === "Backspace" && !digit && index > 0) document.getElementById(`otp-${index - 1}`)?.focus();
               }}

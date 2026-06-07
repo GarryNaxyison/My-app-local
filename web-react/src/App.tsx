@@ -30,6 +30,7 @@ import {
   LayoutDashboard,
   ListChecks,
   MessageCircle,
+  Mic,
   PenLine,
   Play,
   Repeat2,
@@ -1618,7 +1619,7 @@ export function App() {
       if (success) setStatus({ kind: "ok", text: success });
       return payload;
     } catch (error) {
-      const text = error instanceof Error ? error.message : copy("request_failed", "Request failed");
+      const text = localizedAPIError(error, copy);
       setStatus({ kind: "error", text });
       setMessages((current) => [panelMessage(text, "danger", copy("request_failed", "Request failed")), ...current].slice(0, 12));
       return null;
@@ -1640,7 +1641,20 @@ export function App() {
   };
 
   const startTutor = async () => {
-    const payload = await runAction("tutor", () => api<ApiRecord>("/api/tutor/start", { method: "POST", body: {} }), copy("tutor_ready", "Tutor lesson is ready."));
+    const payload = await runAction("tutor", async () => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 30000);
+      try {
+        return await api<ApiRecord>("/api/tutor/start", { method: "POST", body: {}, signal: controller.signal });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          throw new Error(copy("tutor_timeout", "Tutor lesson is taking too long. Try again."));
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }, copy("tutor_ready", "Tutor lesson is ready."));
     if (!payload) return;
     const record = getRecord(payload);
     const lesson = asTutorLesson(record.tutor_lesson);
@@ -2572,6 +2586,14 @@ function localizedAuthError(error: unknown, copy: (key: string, fallback: string
   }
   const message = cleanAppText(error instanceof Error ? error.message : "");
   if (!message || /^(Section|Раздел|Mục):/i.test(message)) return copy("auth_error_failed", "Authentication failed.");
+  return message;
+}
+
+function localizedAPIError(error: unknown, copy: (key: string, fallback: string) => string): string {
+  const code = apiErrorCode(error);
+  if (code) return copy(`auth_error_${code}`, copy("request_failed", "Request failed"));
+  const message = cleanAppText(error instanceof Error ? error.message : "");
+  if (!message || isGenericSectionCopy(message)) return copy("request_failed", "Request failed");
   return message;
 }
 
@@ -5356,7 +5378,7 @@ function RoleplayView({
   );
 }
 
-function PronunciationDashboardView({ messages, mistakes, user, session, startShadowing, setView, copy }: ViewRendererProps) {
+function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, startShadowing, setView, copy }: ViewRendererProps) {
   const p = pronunciationLocale(user);
   const liveReports = useMemo(
     () => messages
@@ -5380,6 +5402,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, startSh
   const reports = mergePronunciationHistory(liveReports, storedReports);
   const latest = reports[0];
   const score = latest?.score || latest?.similarity || latest?.average_confidence || 0;
+  const pronunciationTarget = cleanAppText(latest?.expected || shadowingTarget);
   const problemWords = uniquePronunciationProblems(reports.flatMap((report) => report.problem_words || []));
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
   const tokens = compactPronunciationMap(uniquePronunciationProblems(problemWords.length ? problemWords : fallbackWords), user, copy);
@@ -5399,6 +5422,16 @@ function PronunciationDashboardView({ messages, mistakes, user, session, startSh
           <Button variant="outline" onClick={() => setView("shadowing")}><Play size={16} />{copy("shadowing", "Listening")}</Button>
         </div>
       </section>
+      {pronunciationTarget ? (
+        <section className="v2-panel pronunciation-history-v2">
+          <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
+          <h2>{pronunciationTarget}</h2>
+          <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: pronunciationTarget }]} />
+          <div className="home-insights-v2__actions">
+            <Button onClick={() => setView("shadowing")}><Mic size={16} />{copy("record_and_check", "Record and check")}</Button>
+          </div>
+        </section>
+      ) : null}
       <section className="v2-panel heatmap-panel-v2">
         <span className="eyebrow">{copy("pronunciation_heatmap", "Heatmap")}</span>
         <h2>{copy("weak_words", "Карта произношения")}</h2>
@@ -5723,8 +5756,7 @@ function ChatWorkView({
       <section className="v2-panel composer-panel-v2">
         {isShadowing && shadowingTarget ? (
           <div className="task-box-v2">
-            <span>{copy("shadowing_target", "Target phrase")}</span>
-            <strong>{shadowingTarget}</strong>
+            <span>{copy("spoken_model", "Spoken model")}</span>
             <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget }]} />
             <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
               <ChevronRight size={16} />
@@ -6288,6 +6320,7 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
     });
     return seed;
   }, [mistakes]);
+  const visibleCategories = categories.filter((category) => grouped[category].length > 0);
   const visibleMistakes = activeCategory === "all"
     ? mistakes.map((item, index) => ({ item, index }))
     : grouped[activeCategory];
@@ -6302,6 +6335,9 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
   useEffect(() => {
     setPage(0);
   }, [activeCategory, mistakes.length]);
+  useEffect(() => {
+    if (activeCategory !== "all" && grouped[activeCategory].length === 0) setActiveCategory("all");
+  }, [activeCategory, grouped]);
 
   const startPracticeFor = (item: MistakeItem, index: number) => startMistakePractice(item.index ?? index);
   const trainSimilar = () => {
@@ -6377,7 +6413,7 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
           <button type="button" className={activeCategory === "all" ? "is-active" : ""} onClick={() => setActiveCategory("all")}>
             {copy("all", "All")} <span>{mistakes.length}</span>
           </button>
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <button key={category} type="button" className={activeCategory === category ? "is-active" : ""} onClick={() => setActiveCategory(category)}>
               {mistakeCategoryLabel(category, copy)} <span>{grouped[category].length}</span>
             </button>

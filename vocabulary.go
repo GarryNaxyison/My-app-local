@@ -161,6 +161,22 @@ func normalizeVocabularyWord(language string, word vocabWord) (vocabWord, bool) 
 	return word, true
 }
 
+var vocabularyLearningWordPattern = regexp.MustCompile(`^[\p{L}][\p{L}\p{N}'’]*$`)
+
+func vocabularyWordSuitableForLearning(word vocabWord) bool {
+	text := strings.TrimSpace(word.English)
+	if text == "" || strings.TrimSpace(word.Russian) == "" {
+		return false
+	}
+	if strings.ContainsAny(text, "-‐‑‒–—―_/\\") {
+		return false
+	}
+	if len([]rune(text)) < 3 {
+		return false
+	}
+	return vocabularyLearningWordPattern.MatchString(text)
+}
+
 func cleanDictionaryDisplay(value string) string {
 	value = strings.TrimSpace(value)
 	if value == "" {
@@ -708,6 +724,9 @@ func nextUnlearnedWord(user userState) (vocabWord, bool) {
 	fallbackSeen := 0
 	if err := forEachVocabularyWord(language, func(word vocabWord) bool {
 		if learned[word.ID] || learned[legacyVocabID(word.ID)] {
+			return true
+		}
+		if !vocabularyWordSuitableForLearning(word) {
 			return true
 		}
 		if cefrRank(word.Level) != userRank {

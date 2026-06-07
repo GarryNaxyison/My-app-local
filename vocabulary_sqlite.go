@@ -733,12 +733,12 @@ func sqliteNextUnlearnedWord(user userState) (vocabWord, bool, bool, error) {
 	}
 
 	learnedIDs := sqliteLearnedVocabularyIDs(user, language)
-	id, ok, err := sqliteRandomUnlearnedWordID(db, language, user.Level, learnedIDs, true)
+	word, ok, err := sqliteNextSuitableUnlearnedWord(db, language, user.Level, learnedIDs, true)
 	if err != nil {
 		return vocabWord{}, false, true, err
 	}
 	if !ok {
-		id, ok, err = sqliteRandomUnlearnedWordID(db, language, user.Level, learnedIDs, false)
+		word, ok, err = sqliteNextSuitableUnlearnedWord(db, language, user.Level, learnedIDs, false)
 		if err != nil {
 			return vocabWord{}, false, true, err
 		}
@@ -746,12 +746,27 @@ func sqliteNextUnlearnedWord(user userState) (vocabWord, bool, bool, error) {
 	if !ok {
 		return vocabWord{}, false, true, nil
 	}
-	words, err := sqliteVocabularyWordsByIDs(db, []string{id})
-	if err != nil {
-		return vocabWord{}, false, true, err
+	return word, true, true, nil
+}
+
+func sqliteNextSuitableUnlearnedWord(db *sql.DB, language string, level string, learnedIDs []string, exactLevel bool) (vocabWord, bool, error) {
+	excludedIDs := append([]string(nil), learnedIDs...)
+	for attempts := 0; attempts < 96; attempts++ {
+		id, ok, err := sqliteRandomUnlearnedWordID(db, language, level, excludedIDs, exactLevel)
+		if err != nil || !ok {
+			return vocabWord{}, ok, err
+		}
+		words, err := sqliteVocabularyWordsByIDs(db, []string{id})
+		if err != nil {
+			return vocabWord{}, false, err
+		}
+		word, ok := words[id]
+		if ok && vocabularyWordSuitableForLearning(word) {
+			return word, true, nil
+		}
+		excludedIDs = append(excludedIDs, id)
 	}
-	word, ok := words[id]
-	return word, ok, true, nil
+	return vocabWord{}, false, nil
 }
 
 func sqliteWordOptions(correct vocabWord) ([]vocabWord, bool, error) {

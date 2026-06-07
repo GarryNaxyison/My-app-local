@@ -132,6 +132,39 @@ func TestWebTelegramCodeFlowStartsBotLinkAndVerifiesSiteCode(t *testing.T) {
 	}
 }
 
+func TestWebTelegramCodeFlowReturnsLocalizedCodeWhenTelegramAlreadyLinked(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	linkedAccountHash, err := hashWebPassword("linked-password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.createWebAccount(-99, "linked_user", linkedAccountHash); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := store.authenticateTelegramWebAccount(-99, telegramWebProfile{ID: 1001, FirstName: "Demo", Username: "demo"}); err != nil {
+		t.Fatal(err)
+	}
+
+	start := requestJSON(t, api, cookie, http.MethodPost, "/api/auth/telegram/start", map[string]any{})
+	token, _ := start["token"].(string)
+	request, err := api.bot.webAuth.beginTelegram(token, telegramWebProfile{ID: 1001, FirstName: "Demo", Username: "demo"})
+	if err != nil {
+		t.Fatalf("begin telegram: %v", err)
+	}
+
+	status, payload := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/auth/telegram/status", map[string]any{
+		"token": token,
+		"code":  request.Code,
+	})
+	if status != http.StatusConflict {
+		t.Fatalf("telegram status = %d payload %#v, want conflict", status, payload)
+	}
+	apiError, _ := payload["error"].(map[string]any)
+	if code, _ := apiError["code"].(string); code != "telegram_already_linked" {
+		t.Fatalf("error code = %#v payload %#v, want telegram_already_linked", apiError["code"], payload)
+	}
+}
+
 func TestWebAuthRegisterDotsAndLocalizedErrorCodes(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 
