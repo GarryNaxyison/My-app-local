@@ -1,0 +1,23 @@
+{
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "name": "web-static",
+  "projectType": "application",
+  "root": "web",
+  "sourceRoot": "web",
+  "tags": [
+    "type:frontend",
+    "kind:static-web"
+  ],
+  "targets": {
+    "check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "node --check ../tools/check_encoding_artifacts.mjs"
+        ],
+        "parallel": false,
+        "cwd": "web"
+      }
+    }
+  }
+}

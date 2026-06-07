@@ -1,0 +1,368 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+func TestSendInlineMessageEditsCallbackMessage(t *testing.T) {
+	var method string
+	var payload map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		method = r.URL.Path
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	client := &telegramClient{baseURL: server.URL, http: server.Client()}
+	ctx := contextWithTelegramEditTarget(context.Background(), 42, 77)
+
+	if err := client.sendInlineMessage(ctx, 42, "menu", mainMenuInlineKeyboard()); err != nil {
+		t.Fatalf("sendInlineMessage() error = %v", err)
+	}
+	if method != "/editMessageText" {
+		t.Fatalf("expected editMessageText, got %s", method)
+	}
+	if payload["chat_id"].(float64) != 42 || payload["message_id"].(float64) != 77 {
+		t.Fatalf("unexpected edit target payload: %#v", payload)
+	}
+}
+
+func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
+	keyboard := mainMenuInlineKeyboard(ui(userState{InterfaceLanguage: "ru"}))
+	callbacks := collectCallbackData(t, keyboard)
+	for _, want := range []string{
+		"menu_lesson",
+		"menu_tutor",
+		"menu_practice",
+		"menu_word_lesson",
+		"menu_word_game",
+		"menu_spelling",
+		"menu_vocabulary",
+		"menu_mistakes",
+		"menu_level_test",
+		"menu_progress",
+		"menu_leaderboard",
+		"menu_limits",
+		"menu_tools",
+		"menu_reminders",
+		"menu_settings",
+		"menu_premium",
+		"menu_referral",
+	} {
+		if !callbacks[want] {
+			t.Fatalf("main menu is missing callback %q; got %#v", want, callbacks)
+		}
+	}
+}
+
+func TestBottomReplyKeyboardUsesLocalizedButtons(t *testing.T) {
+	copy := ui(userState{InterfaceLanguage: "zh", InterfaceSelected: true})
+	keyboard := bottomReplyKeyboard(copy)
+	rows := keyboard["keyboard"].([][]map[string]string)
+	if rows[0][0]["text"] != copy.MenuButton {
+		t.Fatalf("expected menu button %q, got %q", copy.MenuButton, rows[0][0]["text"])
+	}
+	if rows[0][1]["text"] != copy.StopButton {
+		t.Fatalf("expected stop button %q, got %q", copy.StopButton, rows[0][1]["text"])
+	}
+}
+
+func TestRuntimeCopyMentionsLocalizedMenuButton(t *testing.T) {
+	copy := ui(userState{InterfaceLanguage: "zh", InterfaceSelected: true})
+	if !strings.Contains(copy.UnknownButton, copy.MenuButton) {
+		t.Fatalf("unknown-button text should reference localized menu button: %q", copy.UnknownButton)
+	}
+	if !strings.Contains(copy.Stopped, copy.MenuButton) {
+		t.Fatalf("stopped text should reference localized menu button: %q", copy.Stopped)
+	}
+	if !strings.Contains(copy.Tool.VoicePremiumRequired, copy.MenuButton) {
+		t.Fatalf("tool text should reference localized menu button: %q", copy.Tool.VoicePremiumRequired)
+	}
+}
+
+func TestCJKToolInlineLabelsAreLocalized(t *testing.T) {
+	user := userState{InterfaceLanguage: "ja", InterfaceSelected: true}
+	copy := ui(user)
+
+	translatorKeyboard := translatorLanguageKeyboard(user, false)
+	rows := translatorKeyboard["inline_keyboard"].([][]map[string]any)
+	if rows[0][0]["text"] != "↤ "+copy.Tool.AutoDetect {
+		t.Fatalf("expected auto-detect label %q, got %q", copy.Tool.AutoDetect, rows[0][0]["text"])
+	}
+
+	mainKeyboard := mainMenuInlineKeyboard(copy)
+	mainRows := mainKeyboard["inline_keyboard"].([][]map[string]any)
+	gotWebApp := false
+	for _, row := range mainRows {
+		for _, button := range row {
+			if text, _ := button["text"].(string); strings.Contains(text, copy.Tool.WebApp) {
+				gotWebApp = true
+			}
+		}
+	}
+	if !gotWebApp {
+		t.Fatalf("main keyboard does not contain localized web app label %q: %#v", copy.Tool.WebApp, mainRows)
+	}
+
+	toolsKeyboard := toolsInlineKeyboard("https://example.test/app", copy)
+	toolRows := toolsKeyboard["inline_keyboard"].([][]map[string]any)
+	for _, row := range toolRows {
+		for _, button := range row {
+			if text, _ := button["text"].(string); strings.Contains(text, copy.Tool.WebApp) {
+				t.Fatalf("tools keyboard should not contain web app label %q: %#v", copy.Tool.WebApp, toolRows)
+			}
+		}
+	}
+}
+
+func TestTranslatorLanguageKeyboardUsesInterfaceLanguageNames(t *testing.T) {
+	user := userState{InterfaceLanguage: "ru", InterfaceSelected: true}
+	keyboard := translatorLanguageKeyboard(user, true)
+	rows := keyboard["inline_keyboard"].([][]map[string]any)
+
+	foundJapanese := false
+	for _, row := range rows {
+		if len(row) != 1 {
+			t.Fatalf("translator language buttons should be one per row: %#v", rows)
+		}
+		if row[0]["text"] == "↦ 日本語 (японский)" {
+			foundJapanese = true
+		}
+	}
+	if !foundJapanese {
+		t.Fatalf("expected Japanese button to include Russian helper name: %#v", rows)
+	}
+
+	englishUser := userState{InterfaceLanguage: "en", InterfaceSelected: true}
+	if got := translatorLanguageDisplayName("ja", englishUser); got != "日本語 (Japanese)" {
+		t.Fatalf("expected English helper name for Japanese, got %q", got)
+	}
+}
+
+func TestMenuAndStopButtonsAreRecognizedForEveryInterfaceLanguage(t *testing.T) {
+	for _, language := range interfaceLanguages() {
+		copy := ui(userState{InterfaceLanguage: language.Code})
+		if !isMenuCommandText(copy.MenuButton) {
+			t.Fatalf("menu button for %s is not recognized: %q", language.Code, copy.MenuButton)
+		}
+		if !isStopCommandText(copy.StopButton) {
+			t.Fatalf("stop button for %s is not recognized: %q", language.Code, copy.StopButton)
+		}
+	}
+}
+
+func TestBackButtonsReturnToMainMenu(t *testing.T) {
+	for name, keyboard := range map[string]map[string]any{
+		"leaderboard": leaderboardMenuKeyboard(ui(userState{InterfaceLanguage: "ru"})),
+		"manualLevel": manualLevelSelectionKeyboard(ui(userState{InterfaceLanguage: "ru"})),
+	} {
+		callbacks := collectCallbackData(t, keyboard)
+		if !callbacks["back_menu"] {
+			t.Fatalf("%s keyboard is missing back_menu callback; got %#v", name, callbacks)
+		}
+		if callbacks["menu_stats"] || callbacks["menu_level_test"] {
+			t.Fatalf("%s keyboard still points to stale submenu; got %#v", name, callbacks)
+		}
+	}
+}
+
+func TestToolModeBackReturnsToToolsMenu(t *testing.T) {
+	callbacks := collectCallbackData(t, backToToolsKeyboard(ui(userState{InterfaceLanguage: "ru"})))
+	if !callbacks["menu_tools"] {
+		t.Fatalf("tool mode back keyboard should return to tools menu; got %#v", callbacks)
+	}
+	if callbacks["back_menu"] {
+		t.Fatalf("tool mode back keyboard should not jump to the main menu; got %#v", callbacks)
+	}
+}
+
+func TestChangingBotLanguageReturnsCompletedUserToMainMenu(t *testing.T) {
+	var methods []string
+	var payloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		methods = append(methods, r.URL.Path)
+		payloads = append(payloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	store := &jsonStore{
+		path:  filepath.Join(t.TempDir(), "users.json"),
+		users: map[int64]userState{},
+	}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		TimezoneSelected:  true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+	}
+	store.users[user.TelegramID] = user
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+
+	ctx := contextWithTelegramEditTarget(context.Background(), 42, 77)
+	if err := b.handleInterfaceLanguageChoice(ctx, 42, user, "ui|en"); err != nil {
+		t.Fatalf("handleInterfaceLanguageChoice() error = %v", err)
+	}
+	if len(methods) != 2 || methods[0] != "/sendMessage" || methods[1] != "/editMessageText" {
+		t.Fatalf("expected language confirmation and edited main menu, got methods=%v payloads=%#v", methods, payloads)
+	}
+	if !strings.Contains(payloads[1]["text"].(string), "Main Menu") {
+		t.Fatalf("expected edited message to be the localized main menu, got %#v", payloads[1]["text"])
+	}
+}
+
+func TestInlineMarkdownFallsBackToPlainTextOnParseError(t *testing.T) {
+	var calls []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		calls = append(calls, payload)
+		if _, ok := payload["parse_mode"]; ok {
+			_, _ = w.Write([]byte(`{"ok":false,"description":"Bad Request: can't parse entities: Character '-' is reserved"}`))
+			return
+		}
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	client := &telegramClient{baseURL: server.URL, http: server.Client()}
+	if err := client.sendInlineMarkdownMessage(context.Background(), 42, "*Top* \\- ok", mainMenuInlineKeyboard()); err != nil {
+		t.Fatalf("sendInlineMarkdownMessage() error = %v", err)
+	}
+	if len(calls) != 2 {
+		t.Fatalf("expected markdown attempt and plain fallback, got %d calls", len(calls))
+	}
+	if _, ok := calls[1]["parse_mode"]; ok {
+		t.Fatalf("fallback should not use MarkdownV2: %#v", calls[1])
+	}
+	if calls[1]["text"] != "Top - ok" {
+		t.Fatalf("unexpected fallback text: %#v", calls[1]["text"])
+	}
+}
+
+func TestBuyCommandOpensPremiumPlanMenu(t *testing.T) {
+	var methods []string
+	var payloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		methods = append(methods, r.URL.Path)
+		payloads = append(payloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	b := &bot{
+		cfg: config{
+			PremiumRubPrice:       300,
+			PremiumStarsPrice:     150,
+			PremiumYearRubPrice:   3000,
+			PremiumYearStarsPrice: 1500,
+		},
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCommand(context.Background(), 42, "/buy", userState{InterfaceLanguage: "en"}); err != nil {
+		t.Fatalf("handleCommand(/buy) error = %v", err)
+	}
+	if len(methods) != 1 || methods[0] != "/sendMessage" {
+		t.Fatalf("expected /buy to open a tariff menu, got methods=%v payloads=%#v", methods, payloads)
+	}
+	replyMarkup, ok := payloads[0]["reply_markup"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected reply markup, got %#v", payloads[0]["reply_markup"])
+	}
+	rows, ok := replyMarkup["inline_keyboard"].([]any)
+	if !ok || len(rows) < 2 {
+		t.Fatalf("expected premium plan rows, got %#v", replyMarkup["inline_keyboard"])
+	}
+	firstRow, ok := rows[0].([]any)
+	if !ok || len(firstRow) == 0 {
+		t.Fatalf("expected first premium plan row, got %#v", rows[0])
+	}
+	firstButton, ok := firstRow[0].(map[string]any)
+	if !ok || firstButton["callback_data"] != "premium_plan|"+premiumMonthlyProduct {
+		t.Fatalf("expected monthly plan callback, got %#v", firstRow[0])
+	}
+}
+
+func TestStartCommandShowsPrivacyPolicyBeforeOnboarding(t *testing.T) {
+	var methods []string
+	var payloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		methods = append(methods, r.URL.Path)
+		payloads = append(payloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	b := &bot{telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+	if err := b.handleCommand(context.Background(), 42, "/start", userState{TelegramID: 42}); err != nil {
+		t.Fatalf("handleCommand(/start) error = %v", err)
+	}
+	if len(methods) != 1 || methods[0] != "/sendMessage" {
+		t.Fatalf("expected a single privacy prompt, got methods=%v payloads=%#v", methods, payloads)
+	}
+	if !strings.Contains(payloads[0]["text"].(string), "Политику обработки персональных данных") {
+		t.Fatalf("expected privacy prompt, got %q", payloads[0]["text"])
+	}
+	replyMarkup, ok := payloads[0]["reply_markup"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected reply markup, got %#v", payloads[0]["reply_markup"])
+	}
+	rows, ok := replyMarkup["inline_keyboard"].([]any)
+	if !ok || len(rows) != 2 {
+		t.Fatalf("expected continue and policy rows, got %#v", replyMarkup["inline_keyboard"])
+	}
+	continueRow := rows[0].([]any)
+	continueButton := continueRow[0].(map[string]any)
+	if continueButton["callback_data"] != "privacy_continue" {
+		t.Fatalf("expected privacy continue callback, got %#v", continueButton)
+	}
+	policyRow := rows[1].([]any)
+	policyButton := policyRow[0].(map[string]any)
+	if policyButton["url"] != privacyPolicyURL {
+		t.Fatalf("expected privacy URL %q, got %#v", privacyPolicyURL, policyButton)
+	}
+}
+
+func collectCallbackData(t *testing.T, keyboard map[string]any) map[string]bool {
+	t.Helper()
+	result := map[string]bool{}
+	rows, ok := keyboard["inline_keyboard"].([][]map[string]any)
+	if !ok {
+		t.Fatalf("unexpected keyboard shape: %#v", keyboard)
+	}
+	for _, row := range rows {
+		for _, button := range row {
+			if callback, ok := button["callback_data"].(string); ok {
+				result[callback] = true
+			}
+		}
+	}
+	return result
+}

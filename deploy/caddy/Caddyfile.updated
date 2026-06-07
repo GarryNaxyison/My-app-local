@@ -1,0 +1,48 @@
+poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+	@deployUpload path /__codex_deploy_upload/*
+	handle @deployUpload {
+		request_body {
+			max_size 450MB
+		}
+		reverse_proxy localhost:19081
+	}
+
+	@webapp path /app /app/* /app/v2 /app/v2/* /login /login/*
+	handle @webapp {
+		reverse_proxy localhost:8080
+	}
+
+	@botapi path /api/* /healthz
+	handle @botapi {
+		reverse_proxy localhost:8080
+	}
+
+	@botcallbacks path /payment/success /payment/success* /tonapi/webhook /tonapi/webhook/* /yookassa/webhook /yookassa/webhook/*
+	handle @botcallbacks {
+		reverse_proxy localhost:8080
+	}
+
+	@siteHtml path / /poliglot-ai.html /privacy.html /terms.html
+	header @siteHtml Cache-Control "no-cache, no-store, must-revalidate"
+	header @siteHtml Pragma "no-cache"
+	header @siteHtml Expires "0"
+
+	@siteScripts path /assets/site-i18n.js /assets/site-phrases.js /assets/privacy-policy-i18n.js
+	header @siteScripts Cache-Control "no-cache, must-revalidate"
+
+	@immutableAssets {
+		path /assets/*
+		not path /assets/site-i18n.js /assets/site-phrases.js /assets/privacy-policy-i18n.js
+	}
+	header @immutableAssets Cache-Control "public, max-age=31536000, immutable"
+
+	handle {
+		root * /var/www/poliglotai
+		try_files {path} /poliglot-ai.html
+		file_server
+	}
+}
+
+api.poliglotai.ru, api.poliglotai.online {
+	reverse_proxy localhost:8080
+}

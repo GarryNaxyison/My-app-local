@@ -1,0 +1,22 @@
+{
+  "name": "Poliglot AI V2",
+  "short_name": "Poliglot AI",
+  "start_url": "/app/v2/",
+  "scope": "/app/v2/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#63d4dc",
+  "description": "Poliglot AI web learning workspace with offline mini-decks.",
+  "icons": [
+    {
+      "src": "/app/assets/brand-logo-mini.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/app/assets/brand-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

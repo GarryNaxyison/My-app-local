@@ -1,0 +1,20 @@
+{
+  "name": "english-coach-bot-workspace",
+  "private": true,
+  "scripts": {
+    "nx": "nx",
+    "build": "nx run english-coach-bot:build",
+    "web:dev": "npm --prefix web-react run dev",
+    "web:build": "npm --prefix web-react run build",
+    "web:preview": "npm --prefix web-react run preview",
+    "site:build": "npm --prefix site-react run build",
+    "test": "nx run english-coach-bot:test",
+    "doctor:tools": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/enable-dev-toolchain.ps1",
+    "test:go": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& ./tools/enable-dev-toolchain.ps1; go test ./...\"",
+    "check": "nx run-many -t test check --all",
+    "graph": "nx graph"
+  },
+  "devDependencies": {
+    "nx": "^21.4.0"
+  }
+}

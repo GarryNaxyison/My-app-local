@@ -1,0 +1,16 @@
+[Unit]
+Description=Poliglot AI website and OpenRouter chat
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/poliglotai.ru
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /var/www/poliglotai.ru/server.mjs
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

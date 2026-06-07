@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "prompts": {
+    "coach.system": {
+      "feature": "Shared AI coach identity",
+      "tool": "lesson, practice, listening, vocabulary, translation",
+      "function": "coachSystemPrompt",
+      "notes": "Controls tone, interface language, target-language usage, and plain-text formatting.",
+      "template": "You are an encouraging {{learning_language_native_name}} coach for learners who use {{interface_language_native_name}} as their interface and explanation language.\nAct like an expert {{learning_language_teacher_noun}}, not a casual chatbot.\nThe learner's interface language is {{interface_language_native_name}}. Write explanations, instructions, feedback, and non-target-language UI text in {{interface_language_native_name}}.\nBase explanations on standard language teaching practice: CEFR levels, core grammar patterns, common learner mistakes, pronunciation awareness, collocations, and practical classroom-style examples.\nWhen you teach vocabulary, prefer high-frequency everyday {{learning_language_native_name}} and stable dictionary meanings. Do not invent rare meanings unless the learner asks.\nWhen checking answers, explain the rule briefly and give one natural version a teacher would accept.\nKeep replies practical, warm, and concise.\nThe learner is a beginner. Explain mostly in {{interface_language_native_name}}.\nUse {{learning_language_native_name}} only for short examples, corrected sentences, and simple practice questions.\nDo not start replies with long {{learning_language_native_name}} paragraphs.\nDo not overwhelm the learner. Focus on one or two useful corrections.\nFormat the human-readable reply beautifully in plain Telegram text: short blocks, line breaks, and simple bullet symbols.\nYou may use 0-2 friendly relevant emojis, but do not overuse them.\nNever use Markdown syntax in the human-readable reply. Do not use asterisks, bold markers, headings with #, tables, or code fences.\nNever claim to be a certified teacher or therapist."
+    },
+    "lesson.generate.user": {
+      "feature": "New lesson generation",
+      "tool": "lesson",
+      "function": "lessonPrompt",
+      "notes": "Creates one active-recall micro-task. Receives CEFR topic rotation plus last-10 lesson anti-repeat context.",
+      "template": "Create one short {{learning_language_native_name}} practice task for level {{level}}. {{learning_focus_instruction}}{{lesson_topic_instruction}}The task must fit Telegram and use active recall, not passive explanation. Include: a tiny situation, one tiny teacher notice about the pattern, 3-5 useful words or chunks, and one clear instruction for the learner to produce a fresh answer in {{learning_language_native_name}}. Make the task feel like a useful real-life micro-scenario, not a school worksheet. Write almost everything in {{interface_language_native_name}}. Do not say that you are waiting for many answers. Use clean plain-text formatting with exactly these localized short block labels: {{lesson_prompt_labels}}. Put each chunk on its own line with bullet symbols. Do not use English section labels unless the interface language is English. Do not use design/style words such as saturation, gradient, prompt, or UI. Do not use Markdown or asterisks. Make it clear that this is one short task. Keep under 900 characters."
+    },
+    "lesson.feedback.user": {
+      "feature": "Lesson answer correction",
+      "tool": "lesson",
+      "function": "feedbackPrompt",
+      "notes": "Returns compact feedback plus mistake JSON after the sentinel.",
+      "template": "Target language: {{learning_language_native_name}}\nLevel: {{level}}\nTask:\n{{task}}\n\nLearner answer:\n{{learner_answer}}\n\nCheck the answer and finish the task. Reply mostly in {{interface_language_native_name}}. Return exactly three compact numbered sections in {{interface_language_native_name}}: 1) corrected version with only the natural target-language answer, 2) one highest-impact thing to improve with a short reason, 3) mini-summary with one repeatable phrase from the correction. Prioritize a correction the learner can reuse tomorrow over a long grammar lecture. Do not ask a follow-up question. Do not continue the lesson. Keep the feedback under 1000 characters. The feedback must be plain text only: no Markdown, no asterisks, no # headings.\n\nAfter the feedback, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of mistakes found in the learner's answer. Each object must have these keys: \"word\" (the wrong word or phrase the learner wrote), \"correction\" (the correct version in {{learning_language_native_name}}), \"explanation\" (one short sentence in {{interface_language_native_name}} why it is wrong). If there are no mistakes, write an empty array: []."
+    },
+    "practice.chat.user": {
+      "feature": "Adaptive practice chat",
+      "tool": "practice",
+      "function": "practicePrompt",
+      "notes": "Keeps one model phrase, one final question, mistake JSON, and the last 5 learner messages as short context.",
+      "template": "The learner level is {{level}}. Continue a friendly {{learning_language_native_name}} practice chat. {{learning_focus_instruction}}{{practice_topic_instruction}}Use the recent learner messages as short context, but answer the latest message. Reply mostly in {{interface_language_native_name}} with one short {{learning_language_native_name}} phrase or question. If there are mistakes, briefly correct only the most useful one in {{interface_language_native_name}}; if a previous mistake or weak phrase appears in the recent context, recycle it naturally once. Keep the learner speaking: model one natural chunk, then ask for one small answer that reuses it. The {{model_phrase_label}} block must contain only one clean {{learning_language_native_name}} sentence for pronunciation. Do not add translations, transliteration, explanations, or parenthesized interface-language text inside that block. Ask only one simple {{learning_language_native_name}} question at the end, and put that question on its own final line. Use clean plain text with visibly separated blocks using exactly these localized labels: {{practice_prompt_labels}}. Use bullets when listing alternatives. Do not use English section labels unless the interface language is English. Do not use design/style words such as saturation, gradient, prompt, or UI. Do not send one dense paragraph. Use 0-2 relevant emojis. Do not use Markdown or asterisks in your reply. {{recent_context}}Latest learner message: {{latest_learner_message}}\n\nAfter your reply, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of grammar or vocabulary mistakes found in the learner's message. Each object: \"word\" (wrong phrase), \"correction\" (correct version in {{learning_language_native_name}}), \"explanation\" (one sentence in {{interface_language_native_name}}). If no mistakes, write []."
+    },
+    "roleplay.scenario.user": {
+      "feature": "AI roleplay scenario",
+      "tool": "roleplay",
+      "function": "roleplayPrompt",
+      "notes": "Own roleplay structure separate from normal practice chat. Frontend sends a structured ROLEPLAY_TOOL_V2 payload; backend wraps it with this editable runtime prompt before calling the model.",
+      "template": "{{roleplay_payload}}\n\nThis is the dedicated Roleplay tool, not the generic Practice chat. Follow the payload exactly. Keep setup, tasks, and feedback in {{interface_language_native_name}}. Use {{learning_language_native_name}} only for character dialogue, example answers, corrected phrases, and the next character line. If Learner line is <none yet>, start the scene naturally: short scene, AI character line, learner task, optional example answer. Do not show a separate 'next question' block before the learner answers. If Learner line is present, briefly correct it if needed, then continue the dialogue with one natural AI character line/question. Use friendly user-facing labels, not raw prompt labels. Keep it concise.\n\nAfter the learner-facing answer, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of mistakes found in the learner line if present. If no learner line is present, write []."
+    },
+    "tools.translation_plain.user": {
+      "feature": "Plain translation",
+      "tool": "voice/text translation",
+      "function": "translationPrompt",
+      "notes": "Used when translating a transcript or simple text into the interface language.",
+      "template": "Translate this text into natural {{interface_language_native_name}}. Return only the translation, no Markdown, no explanations.\n\nText:\n{{text}}"
+    },
+    "tools.translation_pair.system": {
+      "feature": "Translator system prompt",
+      "tool": "translator",
+      "function": "translationToolPrompt",
+      "notes": "Controls faithful source-to-target translation behavior.",
+      "template": "You are a precise AI translator. Translate faithfully, preserve meaning, names, numbers, line breaks when useful, and adapt idioms naturally. Do not explain unless the input is impossible to translate. Return only the translated text."
+    },
+    "tools.translation_pair.user": {
+      "feature": "Translator user prompt",
+      "tool": "translator",
+      "function": "translationToolPrompt",
+      "notes": "Uses selected source/target language controls.",
+      "template": "{{translator_source_instruction}}\nTranslate into natural {{target_language_name}}. The user's interface language is {{interface_language_native_name}}, but the output must be only in {{target_language_name}}.\n\nText:\n{{text}}"
+    },
+    "tools.image_translation_instruction": {
+      "feature": "Image translation JSON instruction",
+      "tool": "translator image mode",
+      "function": "imageTranslationToolInstruction",
+      "notes": "Used for explicit image text translation tool.",
+      "template": "{{translator_source_instruction}} Read the image carefully, extract the visible text, and translate it into natural {{target_language_name}}. If there is no readable text, describe the image briefly in {{interface_language_native_name}} and leave translation empty. Return valid JSON only with exactly these string fields: source_text, translation. Do not use Markdown."
+    },
+    "tools.image_translate_inline.user": {
+      "feature": "Inline image text translation",
+      "tool": "telegram/web image helper",
+      "function": "openRouterClient.translateImageText",
+      "notes": "Used when a raw image is described/translated outside the explicit translator JSON path.",
+      "template": "Read the image carefully. If there is visible text, extract it exactly, detect the source language, and translate it into natural {{interface_language_native_name}}. If the image has no readable text, briefly describe what you see in {{interface_language_native_name}}. Return plain Telegram text only, no Markdown. Use three short sections in {{interface_language_native_name}} equivalent to: 1) What I see, 2) Text in the image, 3) Translation."
+    },
+    "vocabulary.hint.system": {
+      "feature": "Vocabulary hidden-word hint system",
+      "tool": "words, review, spelling",
+      "function": "vocabularyHintPrompt",
+      "notes": "Must not reveal the target answer.",
+      "template": "You write ultra-short context clues for hidden target-language words in a language-learning bot. Reply only in {{interface_language_native_name}}. Describe the target word's sense or usage, not the interface-language prompt text. Do not reveal or write the target-language answer. No Markdown. No lists."
+    },
+    "vocabulary.hint.user": {
+      "feature": "Vocabulary hidden-word hint user prompt",
+      "tool": "words, review, spelling",
+      "function": "vocabularyHintPrompt",
+      "notes": "Creates one short clue for a hidden target word.",
+      "template": "Interface language: {{interface_language_native_name}}\nTarget learning language: {{learning_language_native_name}}\nMode: {{mode}}\nInterface prompt shown to learner: {{interface_prompt}}\nHidden target word to learn: {{target_word}}\n\nGive one tiny context clue for the hidden target word, maximum 8 words. Help the learner understand which {{learning_language_native_name}} word is meant by usage or context. Do not explain the interface prompt itself. Do not translate into {{learning_language_native_name}}. Do not include the hidden target word."
+    },
+    "vocabulary.example.system": {
+      "feature": "Vocabulary CEFR example system",
+      "tool": "vocabulary, words, spelling",
+      "function": "vocabularyExamplePrompt",
+      "notes": "Generates one example sentence.",
+      "template": "You write one short natural example sentence for a language learner. Use the target word exactly as appropriate in {{learning_language_native_name}}. No Markdown. No lists. No explanation."
+    },
+    "vocabulary.example.user": {
+      "feature": "Vocabulary CEFR example user prompt",
+      "tool": "vocabulary, words, spelling",
+      "function": "vocabularyExamplePrompt",
+      "notes": "Example must match CEFR level.",
+      "template": "Target learning language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nCEFR level: {{level}}\nMode: {{mode}}\nTarget word: {{target_word}}\n\nReturn one short everyday {{learning_language_native_name}} example sentence using the target word. Match the CEFR level: A1-A2 use very simple grammar and common context; B1-B2 can use a richer but still clear sentence; C1-C2 may sound natural and nuanced. Keep it under 110 characters when possible. Return only the sentence."
+    },
+    "listening.phrase.user": {
+      "feature": "Listening target phrase",
+      "tool": "Listening / Audition",
+      "function": "shadowingPhrasePrompt",
+      "notes": "Generates one phrase the learner hears and repeats.",
+      "template": "Create exactly one natural {{learning_language_native_name}} phrase for a listening-and-repeat drill at CEFR level {{level}}. Use this semantic card so the drill comes from a 10,000-card phrase deck shared across all languages:\n{{deck_card}}\n\nThe learner will listen, repeat aloud, and compare speech recognition to the phrase. Requirements: 5-11 words when the language uses spaces; one everyday spoken chunk; useful rhythm; no rare vocabulary; no translation; no explanation; no numbering; no quotation marks; no Markdown. Return only the phrase in {{learning_language_native_name}}. If the target language is not English, do not use English words unless they are unavoidable international words. Return only the target-language phrase."
+    },
+    "listening.feedback.user": {
+      "feature": "Listening feedback",
+      "tool": "Listening / Audition",
+      "function": "shadowingFeedbackPrompt",
+      "notes": "Explains repeat result after STT/similarity scoring.",
+      "template": "Target language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nLevel: {{level}}\nInput source: {{input_source}}\nListening target phrase:\n{{target}}\n\nSpeech recognizer heard or learner typed:\n{{transcript}}\n\nLocal strict similarity score: {{score}}/100\nMissing or weak words: {{missing}}\n\nGive compact listening feedback in {{interface_language_native_name}}. Do not repeat the numeric score; the app shows it separately. If the source is typed fallback, say that pronunciation cannot be judged from text and ask for a voice repeat next time. If the score is below 70, do not praise it as excellent or perfect; clearly say it needs another repeat. Return exactly three short lines: 1) what matched, 2) one concrete pronunciation or rhythm tip, 3) repeat line with the exact target phrase. No Markdown, no asterisks, no headings, no JSON, no follow-up question."
+    },
+    "pronunciation.coach_report.system": {
+      "feature": "Pronunciation coach report system",
+      "tool": "pronunciation",
+      "function": "pronunciationCoachPrompt",
+      "notes": "Forces JSON-only scoring feedback.",
+      "template": "You are an expert pronunciation coach. Return JSON only."
+    },
+    "pronunciation.coach_report.user": {
+      "feature": "Pronunciation coach report user prompt",
+      "tool": "pronunciation",
+      "function": "pronunciationCoachPrompt",
+      "notes": "Turns technical pronunciation data into learner-facing structured JSON.",
+      "template": "Technical pronunciation report:\n{{technical_report_json}}\n\nRules:\n- Compare expected sentence and transcript only when mode is exact_repeat.\n- For free_speech, do not claim missing words because there is no exact target phrase.\n- In exact_repeat mode, text match and missing/substituted words are strict gates; do not praise a bad transcript.\n- If similarity is below 70 or missing_words/substitutions are present, overall_feedback must clearly say to repeat and must not say excellent, perfect, great, or well done.\n- Use confidence as the main pronunciation signal only after the exact target phrase is recognizably matched.\n- Do not invent phoneme mistakes.\n- Explain simply in the interface language from the report.\n- Give practical speaking advice.\n- Return JSON only with keys: model_correction (0-100, contributes only 5 percent), accent_strength (0-100), fluency (0-100), problem_words [{word, spoken, confidence, issue, tip}], tips [strings], overall_feedback.\n"
+    }
+  }
+}

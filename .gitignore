@@ -1,0 +1,27 @@
+.env
+.env.local
+tmp/
+.nx/
+test-results/
+node_modules/
+web-react/dist/
+*.tsbuildinfo
+english_coach_data.json
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+activation_keys.txt
+.gocache/
+aibot
+*.exe
+*.test
+*.tei
+kaikki-*.jsonl
+tools/sources/
+*.log
+secrets/
+__pycache__/
+*.pyc
+*.code-workspace
+юкасса вебхук.txt
+.aider*

@@ -1,0 +1,90 @@
+{
+  "comfyBase": "C:\\Users\\Admin\\Documents\\ComfyUI",
+  "diskPlan": {
+    "targetFreeAfterInstallGB": 25,
+    "newEssentialDownloadGB": 24.7,
+    "reason": "Use existing Flux.2 files and download Wan 2.1 480p FP8 scaled instead of fp16/bf16 to keep the chain under the available C: disk budget."
+  },
+  "models": [
+    {
+      "name": "flux2_dev_fp8mixed.safetensors",
+      "relativePath": "models/diffusion_models/flux2_dev_fp8mixed.safetensors",
+      "sizeGB": 33.02,
+      "download": false,
+      "role": "FLUX.2 Dev keyframe generation",
+      "status": "expected-existing"
+    },
+    {
+      "name": "mistral_3_small_flux2_bf16.safetensors",
+      "relativePath": "models/text_encoders/mistral_3_small_flux2_bf16.safetensors",
+      "sizeGB": 33.14,
+      "download": false,
+      "role": "FLUX.2 text encoder",
+      "status": "expected-existing"
+    },
+    {
+      "name": "flux2-vae.safetensors",
+      "relativePath": "models/vae/flux2-vae.safetensors",
+      "sizeGB": 0.31,
+      "download": false,
+      "role": "FLUX.2 VAE",
+      "status": "expected-existing"
+    },
+    {
+      "name": "wan2.1_i2v_480p_14B_fp8_scaled.safetensors",
+      "relativePath": "models/diffusion_models/wan2.1_i2v_480p_14B_fp8_scaled.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_i2v_480p_14B_fp8_scaled.safetensors",
+      "sizeGB": 16.4,
+      "download": true,
+      "role": "Wan 2.1 image-to-video motion"
+    },
+    {
+      "name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "relativePath": "models/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "sizeGB": 6.74,
+      "download": true,
+      "role": "Wan text encoder"
+    },
+    {
+      "name": "wan_2.1_vae.safetensors",
+      "relativePath": "models/vae/wan_2.1_vae.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+      "sizeGB": 0.254,
+      "download": true,
+      "role": "Wan VAE"
+    },
+    {
+      "name": "clip_vision_h.safetensors",
+      "relativePath": "models/clip_vision/clip_vision_h.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors",
+      "sizeGB": 1.26,
+      "download": true,
+      "role": "Wan I2V CLIP Vision / image lock"
+    },
+    {
+      "name": "rife_v4.26.safetensors",
+      "relativePath": "models/frame_interpolation/rife_v4.26.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/frame_interpolation/resolve/main/frame_interpolation/rife_v4.26.safetensors",
+      "sizeGB": 0.023,
+      "download": true,
+      "role": "native frame interpolation smoothing"
+    },
+    {
+      "name": "film_net_fp16.safetensors",
+      "relativePath": "models/frame_interpolation/film_net_fp16.safetensors",
+      "url": "https://huggingface.co/Comfy-Org/frame_interpolation/resolve/main/frame_interpolation/film_net_fp16.safetensors",
+      "sizeGB": 0.069,
+      "download": false,
+      "role": "optional fallback frame interpolation model"
+    },
+    {
+      "name": "RealESRGAN_x4plus.pth",
+      "relativePath": "models/upscale_models/RealESRGAN_x4plus.pth",
+      "sizeGB": 0.064,
+      "download": false,
+      "role": "optional 1080x1920 upscale branch",
+      "status": "expected-existing"
+    }
+  ]
+}
