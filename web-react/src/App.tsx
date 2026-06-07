@@ -207,6 +207,11 @@ type DailyBonusNotice = {
   streak: number;
 };
 
+type XPGainNotice = {
+  xp: number;
+  total?: number;
+};
+
 type MistakeCategory = "grammar" | "word-order" | "vocabulary" | "politeness" | "spelling";
 
 type TelegramCodeRequest = {
@@ -1134,7 +1139,9 @@ function monthDateKeys(offset = 0) {
 }
 
 function dailyGoalComplete(user: UserProfile) {
-  return Number(user.lessons_today || 0) >= 1 && Number(user.practice_today || 0) >= 1 && Number(user.voice_today || 0) >= 1;
+  const voiceLimit = Number(user.voice_limit || 0);
+  const voiceReady = voiceLimit > 0 ? Number(user.voice_today || 0) >= 1 : true;
+  return Number(user.lessons_today || 0) >= 1 && Number(user.practice_today || 0) >= 1 && voiceReady;
 }
 
 function dailyBonusLastClaimedAt(user: UserProfile) {
@@ -1299,6 +1306,7 @@ export function App() {
   const [phrasebook, setPhrasebook] = useState<PhrasebookItem[]>([]);
   const [habitLog, setHabitLog] = useState<Record<string, HabitDay>>({});
   const [dailyBonus, setDailyBonus] = useState<DailyBonusNotice | null>(null);
+  const [xpGain, setXPGain] = useState<XPGainNotice | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [selectedAwardLevel, setSelectedAwardLevel] = useState<number | null>(null);
@@ -1314,6 +1322,8 @@ export function App() {
   const lastPremiumUntilRef = useRef("");
   const viewHistoryReadyRef = useRef(false);
   const suppressHistoryPushRef = useRef(false);
+  const autoDailyBonusClaimRef = useRef("");
+  const xpGainTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -1438,6 +1448,20 @@ export function App() {
   const paymentHistoryKey = `poliglot-payment-history-v2:${accountKey}`;
   const habitKey = `poliglot-habit-v2:${accountKey}`;
 
+  const showXPGain = (xp: number, total?: number) => {
+    const amount = Math.max(0, Math.round(Number(xp || 0)));
+    if (!amount) return;
+    if (xpGainTimerRef.current) window.clearTimeout(xpGainTimerRef.current);
+    setXPGain({ xp: amount, total: Number.isFinite(total) ? Math.round(Number(total)) : undefined });
+    xpGainTimerRef.current = window.setTimeout(() => setXPGain(null), 2600);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (xpGainTimerRef.current) window.clearTimeout(xpGainTimerRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     if (!session?.authenticated) return;
     setPaymentHistory(readPaymentHistory(paymentHistoryKey));
@@ -1518,7 +1542,7 @@ export function App() {
 
   const claimDailyBonus = async () => {
     const todayKey = localDateKey();
-    const current = habitLog[todayKey];
+    const current = habitLog[todayKey] || updateHabitForToday({}, user)[todayKey];
     if (!current?.complete || dailyBonusLocked(current, user)) return;
     const payload = await runAction("daily-bonus", () => api<ApiRecord>("/api/daily/claim", { method: "POST", body: { date: todayKey } }));
     if (!payload) return;
@@ -1543,7 +1567,13 @@ export function App() {
       return next;
     });
     const payloadUser = getPayloadUser(payload);
-    if (payloadUser) setSession((currentSession) => updateSessionUser(currentSession, payloadUser));
+    if (payloadUser) {
+      setSession((currentSession) => updateSessionUser(currentSession, {
+        ...payloadUser,
+        interface_language: user.interface_language || payloadUser.interface_language,
+        learning_language: user.learning_language || payloadUser.learning_language,
+      }));
+    }
   };
 
   useEffect(() => {
@@ -1601,9 +1631,22 @@ export function App() {
     return next;
   };
 
-  const absorbPayload = (payload: unknown) => {
+  const absorbPayload = (payload: unknown, options?: { preserveLanguage?: boolean; suppressXPGain?: boolean }) => {
     const payloadUser = getPayloadUser(payload);
-    if (payloadUser) setSession((current) => updateSessionUser(current, payloadUser));
+    if (!payloadUser) return;
+    const nextUser = options?.preserveLanguage
+      ? {
+          ...payloadUser,
+          interface_language: user.interface_language || payloadUser.interface_language,
+          learning_language: user.learning_language || payloadUser.learning_language,
+        }
+      : payloadUser;
+    const previousXP = Number(user.xp || 0);
+    const nextXP = Number(nextUser.xp || previousXP);
+    if (!options?.suppressXPGain && Number.isFinite(nextXP) && nextXP > previousXP) {
+      showXPGain(nextXP - previousXP, nextXP);
+    }
+    setSession((current) => updateSessionUser(current, nextUser));
   };
 
   const runAction = async (label: string, action: () => Promise<unknown>, success?: string) => {
@@ -1611,7 +1654,7 @@ export function App() {
     setStatus(null);
     try {
       const payload = await action();
-      absorbPayload(payload);
+      absorbPayload(payload, { preserveLanguage: label === "daily-bonus", suppressXPGain: label === "daily-bonus" });
       if (success) setStatus({ kind: "ok", text: success });
       return payload;
     } catch (error) {
@@ -2287,6 +2330,28 @@ export function App() {
     }
   };
 
+  useEffect(() => {
+    if (!session?.authenticated || busy === "daily-bonus") return;
+    const todayKey = localDateKey();
+    const current = habitLog[todayKey] || updateHabitForToday({}, user)[todayKey];
+    if (!current?.complete || dailyBonusLocked(current, user)) return;
+    if (autoDailyBonusClaimRef.current === todayKey) return;
+    autoDailyBonusClaimRef.current = todayKey;
+    void claimDailyBonus();
+  }, [
+    session?.authenticated,
+    busy,
+    habitLog,
+    user.lessons_today,
+    user.practice_today,
+    user.voice_today,
+    user.lesson_limit,
+    user.practice_limit,
+    user.voice_limit,
+    user.daily_bonus_claims,
+    user.daily_bonus_last_claimed_at,
+  ]);
+
   const activateView = (view: ViewId) => {
     view = normalizeView(view);
     setNotFoundPath("");
@@ -2501,6 +2566,13 @@ export function App() {
           />
         ) : null}
         {status ? <StatusBanner kind={status.kind} text={status.text} onClose={() => setStatus(null)} /> : null}
+        {xpGain ? (
+          <div className="xp-gain-pop-v2" role="status" aria-live="polite">
+            <Sparkles size={18} />
+            <strong>+{xpGain.xp} XP</strong>
+            {xpGain.total ? <span>XP {compactNumber(xpGain.total)}</span> : null}
+          </div>
+        ) : null}
         <FunctionRibbon
           nav={nav}
           activeView={activeView}
@@ -5511,44 +5583,39 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
           <span>{user.level || "A1"} · {copy("latest_score", "latest score")}</span>
         </div>
       </section>
-      {practiceResult ? (
-        <section className="v2-panel pronunciation-history-v2 pronunciation-result-window-v2">
-          <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
-          <div className="panel-head">
-            <div>
-              <h2>{cleanAppText(practiceResult.expected || activeTarget)}</h2>
-              <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample}>
-              <ChevronRight size={16} />
-              {copy("next_phrase", "Next phrase")}
-            </Button>
-          </div>
-          <PronunciationReport pronunciation={practiceResult} copy={copy} />
-        </section>
-      ) : (
-        <section className="v2-panel pronunciation-history-v2 pronunciation-practice-v2 pronunciation-work-window-v2">
+      <section className="v2-panel pronunciation-workbench-v2 pronunciation-practice-v2 pronunciation-work-window-v2">
+        <div className="pronunciation-target-primary-v2">
           <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
-          <div className="panel-head">
-            <div>
-              <h2>{activeTarget}</h2>
-              <p>{copy("pronunciation_practice_body", "Послушайте пример, произнесите эту же фразу и отправьте запись на проверку.")}</p>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample}>
-              <ChevronRight size={16} />
-              {copy("next_phrase", "Next phrase")}
-            </Button>
+          <div>
+            <h2>{activeTarget}</h2>
+            <p>{copy("pronunciation_practice_body", "Послушайте пример, произнесите эту же фразу и отправьте запись на проверку.")}</p>
           </div>
           <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: activeTarget, targetLanguage: user.learning_language }]} />
-          <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
-          <div className="home-insights-v2__actions">
-            <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
-              {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
-              {copy("record_and_check", "Record and check")}
-            </Button>
+        </div>
+        <aside className="pronunciation-tools-v2">
+          <div className="pronunciation-tool-card-v2">
+            <span className="eyebrow"><Mic size={15} />{copy("record_and_check", "Record and check")}</span>
+            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+            <div className="home-insights-v2__actions pronunciation-tool-actions-v2">
+              <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
+                {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
+                {copy("record_and_check", "Record and check")}
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample}>
+                <ChevronRight size={16} />
+                {copy("next_phrase", "Next phrase")}
+              </Button>
+            </div>
           </div>
-        </section>
-      )}
+          {practiceResult ? (
+            <div className="pronunciation-tool-card-v2 pronunciation-report-window-v2">
+              <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
+              <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
+              <PronunciationReport pronunciation={practiceResult} copy={copy} />
+            </div>
+          ) : null}
+        </aside>
+      </section>
       <section className="v2-panel heatmap-panel-v2">
         <span className="eyebrow">{copy("pronunciation_heatmap", "Heatmap")}</span>
         <h2>{copy("weak_words", "Карта произношения")}</h2>

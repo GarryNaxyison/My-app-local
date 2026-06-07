@@ -1457,6 +1457,54 @@ test("daily bonus button stays locked when last claim is within 24 hours", async
   expect(dailyClaimCalled).toBe(false);
 });
 
+test("daily bonus is claimed automatically when today's available goal is complete", async ({ page }) => {
+  let dailyClaimCalls = 0;
+  await page.route("**/api/daily/claim", (route) => {
+    dailyClaimCalls += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, claimed: true, claimed_at: new Date().toISOString(), xp: 25, streak: 1, user: { ...sessionPayload.user, xp: 660 } }),
+    });
+  });
+
+  await page.goto("/app/?view=home");
+  await expect(page.locator(".context-display--home")).toBeVisible();
+  await expect.poll(() => dailyClaimCalls).toBe(1);
+  await expect(page.locator(".calendar-rac-cell--today")).toHaveAttribute("data-complete", "true");
+  await expect(page.locator(".habit-calendar-v2__side button").last()).toContainText(/Бонус получен|Bonus claimed/);
+});
+
+test("learning actions show a visible XP gain after profile XP increases", async ({ page }) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const claimedSession = {
+    ...sessionPayload,
+    user: { ...sessionPayload.user, daily_bonus_claims: [today], daily_bonus_last_claimed_at: new Date().toISOString() },
+  };
+  let practiceCalled = false;
+  await page.route("**/api/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(claimedSession) }));
+  await page.route("**/api/practice", (route) => {
+    practiceCalled = true;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        correction: "Could you repeat that, please?",
+        explanation: "Short polite request.",
+        xp: 5,
+        user: { ...claimedSession.user, xp: Number(sessionPayload.user.xp) + 5, xp_current: Number(sessionPayload.user.xp_current) + 5 },
+      }),
+    });
+  });
+
+  await page.goto("/app/?view=practice");
+  await expect(page.locator(".context-display--practice")).toBeVisible();
+  await page.locator(".composer-panel-v2 textarea").fill("Can you repeat?");
+  await page.locator(".composer-panel-v2 textarea").press("Enter");
+  await expect.poll(() => practiceCalled).toBe(true);
+  await expect(page.locator(".xp-gain-pop-v2")).toContainText("+5 XP");
+});
+
 test("payment history shows only confirmed payments", async ({ page }) => {
   await page.goto("/app/?view=premium");
   const history = page.locator(".payment-history-v2");
@@ -1645,24 +1693,56 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   await page.goto("/app/?view=pronunciation");
   await expect(page.locator(".context-display--pronunciation")).toBeVisible();
   await expect(page.locator(".context-display--shadowing")).toHaveCount(0);
-  await expect(page.locator(".pronunciation-work-window-v2")).toBeVisible();
-  await expect(page.locator(".pronunciation-work-window-v2 .audio-wave-button-v2")).toBeVisible();
-  await expect(page.locator(".pronunciation-work-window-v2 .file-controls-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-target-primary-v2 .audio-wave-button-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-tools-v2 .file-controls-v2")).toBeVisible();
   await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
 
-  await page.locator('.pronunciation-work-window-v2 input[type="file"]').setInputFiles({
+  await page.locator('.pronunciation-tools-v2 input[type="file"]').setInputFiles({
     name: "pronunciation.webm",
     mimeType: "audio/webm",
     buffer: Buffer.from("test-audio"),
   });
-  await page.locator(".pronunciation-work-window-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
-  await expect(page.locator(".pronunciation-result-window-v2")).toBeVisible();
-  await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toContainText("67/100");
-  await expect(page.locator(".pronunciation-result-window-v2")).toContainText("Stress is late");
-  await expect(page.locator(".pronunciation-work-window-v2")).toHaveCount(0);
+  await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
+  await expect(page.locator(".pronunciation-target-primary-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toContainText("67/100");
+  await expect(page.locator(".pronunciation-tools-v2")).toContainText("Stress is late");
+  await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
 
-  await page.locator(".pronunciation-result-window-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
-  await expect(page.locator(".pronunciation-work-window-v2")).toBeVisible();
+  await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
+  await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toHaveCount(0);
+});
+
+test("desktop pronunciation workspace makes the target phrase the primary panel", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".context-display--pronunciation")).toBeVisible();
+  await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
+
+  const targetPanel = page.locator(".pronunciation-target-primary-v2");
+  const toolsPanel = page.locator(".pronunciation-tools-v2");
+  await expect(targetPanel).toBeVisible();
+  await expect(toolsPanel).toBeVisible();
+  await expect(targetPanel.locator(".audio-wave-button-v2")).toBeVisible();
+  await expect(toolsPanel.locator(".file-controls-v2")).toBeVisible();
+
+  const targetBox = await targetPanel.boundingBox();
+  const toolsBox = await toolsPanel.boundingBox();
+  expect(targetBox).not.toBeNull();
+  expect(toolsBox).not.toBeNull();
+  expect(targetBox!.width).toBeGreaterThan(toolsBox!.width);
+  expect(targetBox!.height).toBeGreaterThan(240);
+  expect(toolsBox!.x).toBeGreaterThan(targetBox!.x + targetBox!.width - 4);
+
+  await toolsPanel.locator('input[type="file"]').setInputFiles({
+    name: "pronunciation.webm",
+    mimeType: "audio/webm",
+    buffer: Buffer.from("test-audio"),
+  });
+  await toolsPanel.getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
+  await expect(targetPanel).toBeVisible();
+  await expect(toolsPanel.locator(".pronunciation-report-v2")).toContainText("67/100");
   await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
 });
 

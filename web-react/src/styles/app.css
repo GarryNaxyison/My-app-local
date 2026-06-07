@@ -4247,11 +4247,49 @@ select {
   color: #034f2d;
 }
 
+.xp-gain-pop-v2 {
+  position: fixed;
+  top: max(18px, calc(env(safe-area-inset-top) + 14px));
+  left: 50%;
+  z-index: 170;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: calc(100vw - 24px);
+  border: 1px solid color-mix(in srgb, #32d583 58%, var(--line));
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, #32d583 92%, white), color-mix(in srgb, #f3c95f 86%, white));
+  color: #071321;
+  padding: 12px 16px;
+  font-weight: 950;
+  box-shadow: 0 18px 46px color-mix(in srgb, #32d583 28%, transparent);
+  pointer-events: none;
+  animation: xp-gain-pop 2600ms ease both;
+}
+
+.xp-gain-pop-v2 strong,
+.xp-gain-pop-v2 span {
+  white-space: nowrap;
+}
+
+.xp-gain-pop-v2 span {
+  color: #034f2d;
+  font-size: 12px;
+}
+
 @keyframes daily-bonus-pop {
   0% { opacity: 0; transform: translateY(12px) scale(0.9); }
   12% { opacity: 1; transform: translateY(0) scale(1.04); }
   82% { opacity: 1; transform: translateY(0) scale(1); }
   100% { opacity: 0; transform: translateY(-8px) scale(0.96); }
+}
+
+@keyframes xp-gain-pop {
+  0% { opacity: 0; transform: translate(-50%, -12px) scale(0.92); }
+  12% { opacity: 1; transform: translate(-50%, 0) scale(1.04); }
+  78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -10px) scale(0.96); }
 }
 
 @media (max-width: 900px) {
@@ -5104,9 +5142,20 @@ select {
   overflow: auto;
 }
 
-.pronunciation-dashboard-v2,
 .teacher-dashboard-v2 {
   grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+}
+
+.pronunciation-dashboard-v2 {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+}
+
+.pronunciation-hero-v2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
 }
 
 .pronunciation-score-v2 {
@@ -5124,16 +5173,105 @@ select {
   line-height: 1;
 }
 
-.pronunciation-work-window-v2,
-.pronunciation-result-window-v2 {
+.pronunciation-workbench-v2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.72fr);
+  gap: 16px;
+  align-items: stretch;
+  min-height: 360px;
+}
+
+.pronunciation-target-primary-v2 {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  min-width: 0;
+  min-height: 300px;
+  border: 1px solid color-mix(in srgb, var(--primary) 34%, var(--line));
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, transparent), color-mix(in srgb, var(--teal) 10%, transparent)),
+    color-mix(in srgb, var(--surface-strong) 88%, var(--bg));
+  padding: 24px;
+}
+
+.pronunciation-target-primary-v2 > div {
+  display: grid;
+  align-content: center;
+  gap: 12px;
+  min-height: 0;
+}
+
+.pronunciation-target-primary-v2 h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 40px;
+  line-height: 1.14;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.pronunciation-target-primary-v2 p {
+  max-width: 760px;
+  margin: 0;
+  font-size: 15px;
+}
+
+.pronunciation-target-primary-v2 .audio-action-row-v2 {
+  margin-top: 0;
+}
+
+.pronunciation-target-primary-v2 .audio-wave-button-v2 {
+  width: min(100%, 420px);
+}
+
+.pronunciation-tools-v2 {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.pronunciation-tool-card-v2 {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface-strong) 84%, transparent);
+  padding: 16px;
+}
+
+.pronunciation-tool-card-v2 > p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.pronunciation-tool-card-v2 .file-controls-v2 {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.pronunciation-tool-card-v2 .voice-upload-control-v2 {
+  min-width: 0;
+}
+
+.pronunciation-tool-actions-v2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.pronunciation-report-window-v2 .pronunciation-report-v2 {
+  margin-top: 0;
+}
+
+.pronunciation-work-window-v2 {
   align-content: start;
 }
 
 .pronunciation-work-window-v2 .file-controls-v2 {
-  margin-top: 2px;
-}
-
-.pronunciation-result-window-v2 .pronunciation-report-v2 {
   margin-top: 2px;
 }
 
@@ -5777,8 +5915,48 @@ select {
   .offline-deck-grid-v2,
   .dashboard-grid-v2,
   .pronunciation-dashboard-v2,
+  .pronunciation-hero-v2,
+  .pronunciation-workbench-v2,
   .teacher-dashboard-v2 {
     grid-template-columns: 1fr;
+  }
+
+  .pronunciation-workbench-v2 {
+    align-items: start;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pronunciation-target-primary-v2 {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    min-height: 230px;
+    padding: 18px;
+  }
+
+  .pronunciation-target-primary-v2 h2 {
+    font-size: 28px;
+  }
+
+  .pronunciation-tool-card-v2 .file-controls-v2 {
+    grid-template-columns: 1fr;
+  }
+
+  .pronunciation-tools-v2,
+  .pronunciation-tool-card-v2 {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .pronunciation-tool-actions-v2 button {
+    width: 100%;
   }
 
   .referral-terms-v2 {
@@ -6118,6 +6296,8 @@ select {
   .roleplay-view-v2,
   .offline-decks-v2,
   .pronunciation-dashboard-v2,
+  .pronunciation-workbench-v2,
+  .pronunciation-tools-v2,
   .teacher-dashboard-v2,
   .phrasebook-view-v2,
   .phrasebook-list-v2,

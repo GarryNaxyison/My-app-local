@@ -344,6 +344,128 @@ func TestWebLearningFeatureFlows(t *testing.T) {
 	}
 }
 
+func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	responses := []string{
+		"Good correction.\n" + mistakesSentinel + "\n[]",
+		"Good practice.\n" + mistakesSentinel + "\n[]",
+	}
+	call := 0
+	api.bot.openrouter = newOpenRouterClient("test-key", "xp-model", "http://localhost", "test", &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			if req.URL.String() != "https://openrouter.ai/api/v1/chat/completions" {
+				t.Fatalf("unexpected OpenRouter URL: %s", req.URL.String())
+			}
+			if call >= len(responses) {
+				t.Fatalf("unexpected extra OpenRouter call %d", call+1)
+			}
+			body, err := json.Marshal(map[string]any{
+				"choices": []map[string]any{{"message": map[string]any{"content": responses[call]}}},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			call++
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(bytes.NewReader(body)),
+			}, nil
+		}),
+	})
+
+	currentXP := func() int {
+		t.Helper()
+		user, err := store.getOrCreateUser(-42, "tester")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return user.XP
+	}
+	assertXPDelta := func(label string, before int, delta int, payload map[string]any) {
+		t.Helper()
+		want := before + delta
+		if got := currentXP(); got != want {
+			t.Fatalf("%s stored XP = %d, want %d", label, got, want)
+		}
+		userPayload, ok := payload["user"].(map[string]any)
+		if !ok {
+			t.Fatalf("%s response missing user payload: %#v", label, payload)
+		}
+		if got := int(userPayload["xp"].(float64)); got != want {
+			t.Fatalf("%s response user.xp = %d, want %d", label, got, want)
+		}
+	}
+
+	if err := store.saveLesson(-42, "Say that you need help."); err != nil {
+		t.Fatalf("save lesson: %v", err)
+	}
+	before := currentXP()
+	lesson := requestJSON(t, api, cookie, http.MethodPost, "/api/lesson/answer", map[string]any{"text": "I need help"})
+	assertXPDelta("lesson", before, 20, lesson)
+
+	before = currentXP()
+	practice := requestJSON(t, api, cookie, http.MethodPost, "/api/practice", map[string]any{"text": "Can you repeat?"})
+	assertXPDelta("practice", before, 5, practice)
+
+	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/words/next", map[string]any{})
+	user, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	wordID := strings.TrimPrefix(user.Mode, modeWebWordPrefix)
+	if wordID == "" || wordID == user.Mode {
+		t.Fatalf("expected active word mode, got %q", user.Mode)
+	}
+	before = currentXP()
+	word := requestJSON(t, api, cookie, http.MethodPost, "/api/words/answer", map[string]any{"answer_id": wordID})
+	assertXPDelta("word", before, 15, word)
+
+	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/next", map[string]any{})
+	user, err = store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	reviewWordID := strings.TrimPrefix(user.Mode, modeWebWordGamePrefix)
+	if reviewWordID == "" || reviewWordID == user.Mode {
+		t.Fatalf("expected active review mode, got %q", user.Mode)
+	}
+	before = currentXP()
+	review := requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/answer", map[string]any{"answer_id": reviewWordID})
+	assertXPDelta("review", before, 10, review)
+
+	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/spelling/start", map[string]any{})
+	user, err = store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	spellingWordID, _, ok := parseWebSpellingMode(user.Mode)
+	if !ok {
+		t.Fatalf("expected active spelling mode, got %q", user.Mode)
+	}
+	spellingWord, ok := learnedWordByID(user, spellingWordID)
+	if !ok {
+		t.Fatalf("active spelling word not found: %q", spellingWordID)
+	}
+	before = currentXP()
+	spelling := requestJSON(t, api, cookie, http.MethodPost, "/api/spelling/answer", map[string]any{"text": spellingWord.English})
+	assertXPDelta("spelling", before, 7, spelling)
+
+	if err := store.addMistakes(-42, "en", []mistakeEntry{{
+		Language:    "en",
+		Word:        "She go home",
+		Correction:  "She goes home",
+		Explanation: "Present Simple needs -s with she.",
+		AddedAt:     time.Now(),
+	}}); err != nil {
+		t.Fatalf("addMistakes: %v", err)
+	}
+	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/start", map[string]any{"index": 0})
+	before = currentXP()
+	mistake := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": "She goes home"})
+	assertXPDelta("mistake", before, 8, mistake)
+}
+
 func TestWebTranslatorSpeechRequiresPaidAudioBudget(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	api.cfg.OpenRouterTTSModel = "google/gemini-3.1-flash-tts-preview"
