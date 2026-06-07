@@ -266,6 +266,29 @@ type TutorLessonStep = {
   summary?: string;
 };
 
+type TutorTeachingPoint = {
+  title?: string;
+  pattern?: string;
+  scene_order?: string[];
+  explanation?: string;
+  model_answer?: string;
+};
+
+type TutorFinalWordCheck = {
+  prompt?: string;
+  items?: TutorLessonChoice[];
+  required_correct?: number;
+  summary_pass?: string;
+  summary_retry?: string;
+};
+
+type TutorSummaryBlock = {
+  can_say?: string;
+  strong_items?: string[];
+  weak_items?: string[];
+  next_review?: string;
+};
+
 type TutorLesson = {
   id: string;
   title: string;
@@ -283,6 +306,9 @@ type TutorLesson = {
   goal?: string;
   can_do?: string;
   scenario?: string;
+  teaching_point?: TutorTeachingPoint;
+  final_word_check?: TutorFinalWordCheck;
+  tutor_summary?: TutorSummaryBlock;
   steps?: TutorLessonStep[];
   words?: TutorLessonWord[];
   grammar_title?: string;
@@ -334,7 +360,7 @@ function tutorStableShuffle<T>(items: T[], seed: string) {
   return result;
 }
 
-type TutorStageId = "words" | "explain" | "choice" | "writing" | "listening" | "pronunciation" | "dialogue" | "review";
+type TutorStageId = "words" | "explain" | "choice" | "writing" | "listening" | "pronunciation" | "dialogue" | "final-check" | "review";
 type TutorFeedbackTone = "idle" | "success" | "error";
 
 type TurnstileAPI = {
@@ -4546,6 +4572,7 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
   const words = tutorLesson?.words || [];
   const review = tutorLesson?.review || [];
   const srs = tutorLesson?.srs;
+  const display = (value: unknown) => cleanAppText(value).trim();
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [unlockedStageIndex, setUnlockedStageIndex] = useState(0);
   const [wordQuizIndex, setWordQuizIndex] = useState(0);
@@ -4555,6 +4582,9 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
   const [choiceCheckIndex, setChoiceCheckIndex] = useState(0);
   const [choiceCheckResults, setChoiceCheckResults] = useState<Array<{ id: string; answer: string }>>([]);
   const [choiceSelection, setChoiceSelection] = useState("");
+  const [finalCheckIndex, setFinalCheckIndex] = useState(0);
+  const [finalCheckSelection, setFinalCheckSelection] = useState("");
+  const [finalCheckResults, setFinalCheckResults] = useState<Array<{ id: string; answer: string }>>([]);
   const [tutorDraft, setTutorDraft] = useState("");
   const [srsSelection, setSrsSelection] = useState("");
   const [feedback, setFeedback] = useState("");
@@ -4575,6 +4605,9 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
     setChoiceCheckIndex(0);
     setChoiceCheckResults([]);
     setChoiceSelection("");
+    setFinalCheckIndex(0);
+    setFinalCheckSelection("");
+    setFinalCheckResults([]);
     setTutorDraft("");
     setSrsSelection("");
     setFeedback("");
@@ -4624,11 +4657,16 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
       instruction: copy("tutor_dialogue_instruction", "Answer the tutor's line in the target language."),
     },
     {
+      id: "final-check",
+      title: display(tutorLesson?.final_word_check?.prompt) || copy("tutor_step_final_check", "Final word check"),
+      instruction: copy("tutor_final_check_instruction", "Check the lesson words once more before scheduling review."),
+    },
+    {
       id: "review",
       title: copy("tutor_step_review", "Memory review"),
       instruction: copy("tutor_review_instruction", "Choose how hard the lesson felt to schedule review."),
     },
-  ], [copy]);
+  ], [copy, tutorLesson?.final_word_check?.prompt]);
 
   const activeStage = currentStageIndex < tutorStages.length ? tutorStages[currentStageIndex] : null;
   const lessonComplete = Boolean(tutorLesson && unlockedStageIndex >= tutorStages.length);
@@ -4636,7 +4674,6 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
   const viewingPastStage = Boolean(activeStage && currentStageIndex < unlockedStageIndex);
   const completedCount = Math.min(unlockedStageIndex, tutorStages.length);
   const progressPercent = Math.round((completedCount / tutorStages.length) * 100);
-  const display = (value: unknown) => cleanAppText(value).trim();
   const interfaceLocale = languageCode(user.interface_language);
   const localizedTutorTopic = (() => {
     const topic = display(tutorLesson?.topic);
@@ -4656,6 +4693,14 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
   const choiceOptions = useMemo(
     () => tutorStableShuffle(activeChoiceCheck?.options || [], `${tutorLesson?.id || "tutor"}:${activeChoiceCheck?.prompt || "choice"}:${choiceCheckIndex}`),
     [activeChoiceCheck, tutorLesson?.id, choiceCheckIndex],
+  );
+  const finalCheckItems = useMemo(() => {
+    return (tutorLesson?.final_word_check?.items || []).filter((item) => (item.options || []).length && item.correct_answer_id);
+  }, [tutorLesson]);
+  const activeFinalCheck = finalCheckItems[Math.min(finalCheckIndex, Math.max(finalCheckItems.length - 1, 0))];
+  const finalCheckOptions = useMemo(
+    () => tutorStableShuffle(activeFinalCheck?.options || [], `${tutorLesson?.id || "tutor"}:${activeFinalCheck?.prompt || "final"}:${finalCheckIndex}`),
+    [activeFinalCheck, tutorLesson?.id, finalCheckIndex],
   );
   const currentQuizWord = words[wordQuizIndex];
   const wordQuizOptions = useMemo(() => {
@@ -4751,6 +4796,7 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
     setUnlockedStageIndex((index) => Math.max(index, nextStageIndex));
     setCurrentStageIndex(nextStageIndex);
     setChoiceSelection("");
+    setFinalCheckSelection("");
     setTutorDraft("");
     setSrsSelection("");
     setFeedback("");
@@ -4896,6 +4942,38 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
       setFeedbackTone("success");
       return;
     }
+    if (activeStage.id === "final-check") {
+      if (!activeFinalCheck) {
+        advanceTutorStage(display(tutorLesson.final_word_check?.summary_pass) || copy("tutor_final_check_done", "Final word check completed."));
+        return;
+      }
+      if (!finalCheckSelection) {
+        setFeedback(copy("tutor_need_choice", "Choose an answer first."));
+        setFeedbackTone("error");
+        return;
+      }
+      if (finalCheckSelection !== activeFinalCheck.correct_answer_id) {
+        setFeedback(display(tutorLesson.final_word_check?.summary_retry) || copy("tutor_feedback_wrong", "Not yet. Look at the theme words and choose again."));
+        setFeedbackTone("error");
+        return;
+      }
+      const option = finalCheckOptions.find((item) => item.id === finalCheckSelection);
+      const nextResults = [
+        ...finalCheckResults,
+        { id: activeFinalCheck.correct_answer_id || finalCheckSelection, answer: display(option?.text) },
+      ];
+      setFinalCheckResults(nextResults);
+      if (finalCheckIndex + 1 < finalCheckItems.length) {
+        setFinalCheckIndex((index) => index + 1);
+        setFinalCheckSelection("");
+        setFeedback(copy("tutor_word_correct_next", "Correct. Next word."));
+        setFeedbackTone("success");
+        return;
+      }
+      const requiredCorrect = tutorLesson.final_word_check?.required_correct || finalCheckItems.length;
+      advanceTutorStage(`${display(tutorLesson.final_word_check?.summary_pass) || copy("tutor_final_check_done", "Final word check completed.")} ${nextResults.length}/${Math.max(requiredCorrect, 1)}`);
+      return;
+    }
     if (activeStage.id === "review") {
       if (!srsSelection) {
         setFeedback(copy("tutor_need_srs", "Choose a review button first."));
@@ -4915,11 +4993,30 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
     if (pendingAdvanceNote) return copy("tutor_next_step", "Next");
     if (activeStage.id === "words") return copy("tutor_check_answer", "Check answer");
     if (activeStage.id === "choice") return copy("tutor_check_answer", "Check answer");
+    if (activeStage.id === "final-check") return copy("tutor_check_answer", "Check answer");
     if (activeStage.id === "review") return copy("tutor_finish_lesson", "Finish lesson");
     if (activeStage.id === "pronunciation") return copy("tutor_check_pronunciation", "Check pronunciation");
     if (activeStage.id === "writing" || activeStage.id === "listening" || activeStage.id === "dialogue") return copy("send", "Send");
     return copy("tutor_continue", "Continue");
   })();
+
+  const renderTutorSummaryBlock = () => {
+    const summary = tutorLesson?.tutor_summary;
+    if (!summary) return null;
+    const canSay = display(summary.can_say);
+    const strongItems = (summary.strong_items || []).map(display).filter(Boolean);
+    const weakItems = (summary.weak_items || []).map(display).filter(Boolean);
+    const nextReview = display(summary.next_review);
+    if (!canSay && !strongItems.length && !weakItems.length && !nextReview) return null;
+    return (
+      <div className="tutor-review-summary-v2 tutor-summary-block-v2">
+        {canSay ? <span><b>{copy("tutor_summary_can_say", "Can say")}:</b> {canSay}</span> : null}
+        {strongItems.length ? <span><b>{copy("tutor_summary_strong", "Strong words")}:</b> {strongItems.join(", ")}</span> : null}
+        {weakItems.length ? <span><b>{copy("tutor_summary_weak", "Repeat")}:</b> {weakItems.join(", ")}</span> : null}
+        {nextReview ? <span>{nextReview}</span> : null}
+      </div>
+    );
+  };
 
   const renderTutorMaterial = () => {
     if (!tutorLesson || !activeStage) return null;
@@ -4981,9 +5078,33 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
       );
     }
     if (activeStage.id === "explain") {
+      const teachingPoint = tutorLesson.teaching_point;
+      const teachingTitle = display(teachingPoint?.title);
+      const teachingExplanation = display(teachingPoint?.explanation || tutorLesson.mini_explanation || tutorLesson.grammar || tutorLesson.scenario || "");
+      const teachingPattern = display(teachingPoint?.pattern || teachingPoint?.model_answer || tutorLesson.pronunciation_text || "");
+      const teachingModel = display(teachingPoint?.model_answer);
+      const sceneOrder = (teachingPoint?.scene_order || []).map(display).filter(Boolean);
       return (
         <div className="tutor-lesson-card-v2 tutor-mini-explanation-v2">
-          <p>{display(tutorLesson.mini_explanation || tutorLesson.grammar || tutorLesson.scenario || "")}</p>
+          {teachingTitle ? <strong className="tutor-card-title-v2">{teachingTitle}</strong> : null}
+          {teachingExplanation ? <p>{teachingExplanation}</p> : null}
+          {sceneOrder.length ? (
+            <div className="tutor-scene-order-v2" aria-label={copy("tutor_scene_order", "Scene order")}>
+              {sceneOrder.map((item, index) => <span key={`${item}:${index}`}>{item}</span>)}
+            </div>
+          ) : null}
+          {teachingPattern ? (
+            <p className="tutor-pattern-line-v2">
+              <span>Pattern</span>
+              <strong>{teachingPattern}</strong>
+            </p>
+          ) : null}
+          {teachingModel && teachingModel !== teachingPattern ? (
+            <p className="tutor-pattern-line-v2">
+              <span>Model</span>
+              <strong>{teachingModel}</strong>
+            </p>
+          ) : null}
         </div>
       );
     }
@@ -5069,8 +5190,52 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
         </div>
       );
     }
+    if (activeStage.id === "final-check") {
+      if (!activeFinalCheck) {
+        return (
+          <div className="tutor-lesson-card-v2">
+            <p>{display(tutorLesson.final_word_check?.summary_pass) || copy("tutor_final_check_done", "Final word check completed.")}</p>
+          </div>
+        );
+      }
+      return (
+        <>
+          <p className="tutor-task-copy-v2">
+            <strong>{copy("tutor_final_check_progress", "Word check")} {Math.min(finalCheckIndex + 1, Math.max(finalCheckItems.length, 1))}/{Math.max(finalCheckItems.length, 1)}</strong>
+            <span>{display(activeFinalCheck.prompt) || display(tutorLesson.final_word_check?.prompt) || copy("tutor_step_final_check", "Final word check")}</span>
+          </p>
+          <div className="choice-grid-v2 tutor-choice-grid-v2 tutor-final-check-v2">
+            {finalCheckOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={cn(
+                  finalCheckSelection === option.id && "is-selected",
+                  feedbackTone === "error" && finalCheckSelection === option.id && "is-wrong",
+                )}
+                onClick={() => {
+                  setFinalCheckSelection(option.id);
+                  setFeedback("");
+                  setFeedbackTone("idle");
+                }}
+              >
+                {option.label ? <small>{display(option.label)}</small> : null}
+                <span>{display(option.text)}</span>
+                {option.why ? <em>{display(option.why)}</em> : null}
+              </button>
+            ))}
+          </div>
+          {finalCheckResults.length ? (
+            <div className="tutor-result-list-v2" aria-label={copy("tutor_final_check_results", "Final word check results")}>
+              {finalCheckResults.map((item) => <span key={item.id}>{item.answer}</span>)}
+            </div>
+          ) : null}
+        </>
+      );
+    }
     return (
       <>
+        {renderTutorSummaryBlock()}
         {(tutorLesson.review_summary || []).length ? (
           <div className="tutor-review-summary-v2">
             {(tutorLesson.review_summary || []).map((item) => <span key={item}>{display(item)}</span>)}
@@ -5204,7 +5369,8 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
                   <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
                   <div>
                     <strong>{copy("tutor_lesson_complete", "Lesson complete")}</strong>
-                    <p>{copy("tutor_complete_body", "You finished the guided sequence: words, pattern, answer, writing, listening, pronunciation, dialogue, and review.")}</p>
+                    <p>{copy("tutor_complete_body", "You finished the guided sequence: words, pattern, answer, writing, listening, pronunciation, dialogue, final word check, and review.")}</p>
+                    {renderTutorSummaryBlock()}
                     {(tutorLesson.review_summary || []).length ? (
                       <div className="tutor-review-summary-v2">
                         {(tutorLesson.review_summary || []).map((item) => <span key={item}>{display(item)}</span>)}
@@ -5255,7 +5421,7 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
                 ) : null}
                 {feedback ? <p className={cn("tutor-feedback-v2", feedbackTone === "error" && "is-error", feedbackTone === "success" && "is-success")}>{feedback}</p> : null}
                 <Button type="submit" disabled={tutorVoiceChecking}>
-                  {tutorVoiceChecking ? <Spinner size="small" className="button-spinner-v2" /> : activeStage?.id === "choice" ? <Check size={16} /> : activeStage?.id === "review" ? <ListChecks size={16} /> : <ChevronRight size={16} />}
+                  {tutorVoiceChecking ? <Spinner size="small" className="button-spinner-v2" /> : activeStage?.id === "choice" || activeStage?.id === "final-check" ? <Check size={16} /> : activeStage?.id === "review" ? <ListChecks size={16} /> : <ChevronRight size={16} />}
                   <span>{primaryActionLabel}</span>
                 </Button>
               </form>

@@ -246,13 +246,22 @@ async function mockApi(page: Page) {
             politeness: ["Could I...?", "I'd like..., please."],
             model_answer: "Could I see the menu and have coffee for breakfast, please?",
           },
+          teaching_point: {
+            title: "One pattern",
+            pattern: "Could I see the menu and have coffee for breakfast, please?",
+            scene_order: ["action", "coffee", "for breakfast"],
+            explanation: "Scene order: action, then coffee, then for breakfast. Pattern: Could I see the menu and have coffee for breakfast, please.",
+            model_answer: "Could I see the menu and have coffee for breakfast, please?",
+          },
           steps: [
             { code: "words", title: "Новые слова", summary: "слова темы" },
             { code: "explain", title: "Мини-объяснение", summary: "одно правило" },
             { code: "choice", title: "Выбор ответа", summary: "узнать перевод" },
             { code: "writing", title: "Письмо", summary: "собрать фразу" },
             { code: "listening", title: "Аудирование", summary: "повторить вслух" },
+            { code: "pronunciation", title: "Произношение", summary: "произнести модель" },
             { code: "dialogue", title: "Мини-диалог", summary: "контекст" },
+            { code: "final-check", title: "Final word check", summary: "проверить слова" },
             { code: "review", title: "SRS", summary: "расписание памяти" },
           ],
           words: [
@@ -330,6 +339,38 @@ async function mockApi(page: Page) {
             { id: "dialogue:3", label: "B1", text: "Could I see the menu first? I'd like coffee for breakfast, please.", why: "Есть меню, заказ coffee и деталь for breakfast.", level: "B1", use_case: "лучший образец" },
             { id: "dialogue:4", label: "Не использовать", text: "cup / football.", why: "Это список слов, а не ответ человеку.", level: "avoid", use_case: "не повторять", avoid: true },
           ],
+          final_word_check: {
+            prompt: "Final word check",
+            required_correct: 2,
+            summary_pass: "Words checked. Now choose review timing.",
+            summary_retry: "Repeat the weak words before finishing.",
+            items: [
+              {
+                prompt: "Choose the lesson word: coffee",
+                correct_answer_id: "en:coffee",
+                options: [
+                  { id: "en:coffee", text: "coffee", label: "Correct", why: "Key order word." },
+                  { id: "en:menu", text: "menu", label: "Close, but not this", why: "This is another step." },
+                  { id: "en:football", text: "football", label: "Unrelated", why: "Not an order detail.", avoid: true },
+                ],
+              },
+              {
+                prompt: "Choose the lesson word: breakfast",
+                correct_answer_id: "en:breakfast",
+                options: [
+                  { id: "en:breakfast", text: "breakfast", label: "Correct", why: "Key detail." },
+                  { id: "en:football", text: "football", label: "Unrelated", why: "Not an order detail.", avoid: true },
+                  { id: "en:menu", text: "menu", label: "Close, but not this", why: "This is another step." },
+                ],
+              },
+            ],
+          },
+          tutor_summary: {
+            can_say: "Could I see the menu and have coffee for breakfast, please?",
+            strong_items: ["coffee", "for breakfast"],
+            weak_items: [],
+            next_review: "Choose how hard it was to recall the words.",
+          },
           review_summary: ["Сценарий завершён: кафе", "Цель: заказать coffee", "menu - меню", "coffee - кофе"],
           srs: { again: "ошибка: повторить сегодня", hard: "трудно: завтра", good: "верно: через 2 дня", easy: "легко: через неделю" },
           source: "local-a1-a2-course-core",
@@ -1090,7 +1131,7 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-workspace")).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("Еда и заказ");
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
-  await expect(page.locator(".tutor-step-v2")).toHaveCount(8);
+  await expect(page.locator(".tutor-step-v2")).toHaveCount(9);
   await expect(page.locator(".tutor-context-v2")).toContainText("Новые слова");
   await expect(page.locator(".tutor-word-check-v2")).toContainText("menu");
   await expect(page.locator(".tutor-result-list-v2")).toHaveCount(0);
@@ -1115,8 +1156,10 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "завтрак" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Мини-объяснение");
-  await expect(page.locator(".tutor-context-v2")).toContainText("В кафе нужен короткий порядок");
-  await expect(page.locator(".tutor-context-v2")).toContainText("Could I see the menu?");
+  await expect(page.locator(".tutor-context-v2")).toContainText("One pattern");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Scene order: action, then coffee, then for breakfast.");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Could I see the menu and have coffee for breakfast, please?");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("В кафе нужен короткий порядок");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Use the lesson goal");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Variant focus");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("add one concrete detail");
@@ -1209,8 +1252,17 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("ответ подходит");
   await tutorSubmit.click();
+  await expect(page.locator(".tutor-context-v2")).toContainText("Final word check");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Choose the lesson word: coffee");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "coffee" }).click();
+  await tutorSubmit.click();
+  await expect(page.locator(".tutor-context-v2")).toContainText("Choose the lesson word: breakfast");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "breakfast" }).click();
+  await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Повторение");
   await expect(page.locator(".tutor-context-v2")).toContainText("Сценарий заверш");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Could I see the menu and have coffee for breakfast, please?");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Choose how hard it was to recall the words.");
   await page.locator(".tutor-srs button").first().click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Урок завершён");
