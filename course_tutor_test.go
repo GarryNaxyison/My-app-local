@@ -110,6 +110,118 @@ func TestBuildTutorLessonUsesLocalA1A2CourseCore(t *testing.T) {
 	}
 }
 
+func TestTutorCafeScenarioUsesSlotsNotRandomWords(t *testing.T) {
+	topic := tutorTestTopicByCode(t, "food")
+	function := tutorCourseFunctions[0]
+	words := []tutorLessonWord{
+		{ID: "en:menu", Word: "menu", Translation: "меню", Level: "A1"},
+		{ID: "en:football", Word: "football", Translation: "футбол", Level: "A1"},
+		{ID: "en:coffee", Word: "coffee", Translation: "кофе", Level: "A1"},
+		{ID: "en:breakfast", Word: "breakfast", Translation: "завтрак", Level: "A1"},
+	}
+
+	checks := tutorScenarioChecks(words, topic, function, "ru")
+	variants := tutorAnswerVariants(words, topic, function, "en", "ru", false)
+	dialogueVariants := tutorAnswerVariants(words, topic, function, "en", "ru", true)
+
+	combined := strings.ToLower(strings.Join(append(tutorChoiceTexts(checks), tutorVariantTexts(append(variants, dialogueVariants...))...), "\n"))
+	for _, want := range []string{"coffee", "for breakfast", "could i see the menu"} {
+		if !strings.Contains(combined, want) {
+			t.Fatalf("cafe scenario content misses %q:\n%s", want, combined)
+		}
+	}
+	for _, bad := range []string{"have football", "like football", "football for breakfast"} {
+		if strings.Contains(combined, bad) {
+			t.Fatalf("cafe scenario used football as an order/detail via %q:\n%s", bad, combined)
+		}
+	}
+}
+
+func TestTutorRussianMiniExplanationDoesNotLeakServiceCriteria(t *testing.T) {
+	user := userState{TelegramID: 91, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	lesson, err := buildTutorLessonForSequence(user, 1)
+	if err != nil {
+		t.Fatalf("buildTutorLessonForSequence(food) error = %v", err)
+	}
+	visible := strings.Join(append([]string{lesson.MiniExplanation}, lesson.SuccessCriteria...), "\n")
+	for _, bad := range []string{"Use the lesson goal", "Include ", "Variant focus"} {
+		if strings.Contains(visible, bad) {
+			t.Fatalf("visible RU tutor text leaked service criteria %q:\n%s", bad, visible)
+		}
+	}
+	if !strings.Contains(visible, "попросить меню") || !strings.Contains(visible, "coffee") || !strings.Contains(visible, "for breakfast") {
+		t.Fatalf("RU cafe explanation does not expose the scenario pattern:\n%s", visible)
+	}
+}
+
+func TestTutorScenarioChoicesAreDialogueReplies(t *testing.T) {
+	topic := tutorTestTopicByCode(t, "food")
+	function := tutorCourseFunctions[0]
+	words := []tutorLessonWord{
+		{ID: "en:menu", Word: "menu", Translation: "меню", Level: "A1"},
+		{ID: "en:football", Word: "football", Translation: "футбол", Level: "A1"},
+		{ID: "en:coffee", Word: "coffee", Translation: "кофе", Level: "A1"},
+		{ID: "en:breakfast", Word: "breakfast", Translation: "завтрак", Level: "A1"},
+	}
+
+	checks := tutorScenarioChecks(words, topic, function, "ru")
+	if len(checks) < 2 {
+		t.Fatalf("checks = %d, want at least 2 scenario checks", len(checks))
+	}
+	best := tutorCorrectChoiceText(t, checks[0])
+	detail := tutorCorrectChoiceText(t, checks[1])
+	if best != "Could I see the menu and have coffee for breakfast, please?" {
+		t.Fatalf("best cafe reply = %q", best)
+	}
+	if detail != "for breakfast" {
+		t.Fatalf("detail check = %q, want for breakfast", detail)
+	}
+	if strings.Contains(best, " / ") || strings.Contains(detail, ":") {
+		t.Fatalf("correct choices should be dialogue replies/details, got best=%q detail=%q", best, detail)
+	}
+}
+
+func tutorTestTopicByCode(t *testing.T, code string) tutorTopic {
+	t.Helper()
+	for _, topic := range tutorScenarioCourseTopics {
+		if topic.Code == code {
+			return topic
+		}
+	}
+	t.Fatalf("topic %q not found", code)
+	return tutorTopic{}
+}
+
+func tutorChoiceTexts(checks []tutorLessonChoice) []string {
+	var texts []string
+	for _, check := range checks {
+		texts = append(texts, check.Prompt)
+		for _, option := range check.Options {
+			texts = append(texts, option.Text, option.Label, option.Why)
+		}
+	}
+	return texts
+}
+
+func tutorVariantTexts(variants []tutorAnswerVariant) []string {
+	texts := make([]string, 0, len(variants)*3)
+	for _, variant := range variants {
+		texts = append(texts, variant.Text, variant.Label, variant.Why)
+	}
+	return texts
+}
+
+func tutorCorrectChoiceText(t *testing.T, choice tutorLessonChoice) string {
+	t.Helper()
+	for _, option := range choice.Options {
+		if option.ID == choice.CorrectAnswerID {
+			return option.Text
+		}
+	}
+	t.Fatalf("correct option %q not found in %#v", choice.CorrectAnswerID, choice.Options)
+	return ""
+}
+
 func hasAvoidVariant(variants []tutorAnswerVariant) bool {
 	for _, variant := range variants {
 		if variant.Avoid {

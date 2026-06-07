@@ -217,26 +217,35 @@ async function mockApi(page: Page) {
       contentType: "application/json",
       body: JSON.stringify({
         tutor_lesson: {
-          id: "tutor-en-a1-hotel",
+          id: "tutor-en-a1-food",
           title: "AI Репетитор",
           level: "A1",
-          topic: "Отель и поездка",
+          topic: "Еда и заказ",
           variant_code: "detail-upgrade",
           variant_title: "Detail upgrade",
           focus_skill: "add one concrete detail",
           success_criteria: [
-            "Use the lesson goal: confirm a reservation",
-            "Include reservation and one useful detail such as room",
-            "Variant focus: add one concrete detail",
+            "В ответе должно быть: просьба или действие.",
+            "Предмет: coffee.",
+            "Деталь: for breakfast.",
           ],
           lesson_number: 7,
           course_size: 300,
           learning_language: "en",
           interface_language: "ru",
           duration_minutes: 8,
-          goal: "Сценарная задача: заселиться в отель и уточнить номер.",
-          can_do: "После урока вы сможете на уровне A1 подтвердить бронь и попросить номер.",
-          scenario: "Вы на ресепшене отеля: подтвердите бронь, уточните номер и покажите паспорт.",
+          goal: "Сценарная задача: попросить помощь в теме «Еда и заказ».",
+          can_do: "После урока вы сможете на уровне A1 попросить меню, заказать напиток и уточнить время еды.",
+          scenario: "Вы в кафе: нужно попросить меню, заказать напиток и уточнить завтрак или ужин.",
+          scenario_slots: {
+            role: "guest",
+            situation: "Вы в кафе. Нужно попросить меню, заказать напиток и уточнить завтрак или ужин.",
+            required_action: "ask for the menu",
+            item: "coffee",
+            detail: "for breakfast",
+            politeness: ["Could I...?", "I'd like..., please."],
+            model_answer: "Could I see the menu and have coffee for breakfast, please?",
+          },
           steps: [
             { code: "words", title: "Новые слова", summary: "слова темы" },
             { code: "explain", title: "Мини-объяснение", summary: "одно правило" },
@@ -247,22 +256,22 @@ async function mockApi(page: Page) {
             { code: "review", title: "SRS", summary: "расписание памяти" },
           ],
           words: [
-            { id: "en:hotel", word: "hotel", translation: "отель", context: "гостиница", example: "The hotel is near the station.", example_translation: "Смысл в уроке: отель.", level: "A1" },
-            { id: "en:room", word: "room", translation: "номер", context: "комната", example: "Can I have a quiet room?", example_translation: "Смысл в уроке: номер.", level: "A1" },
-            { id: "en:passport", word: "passport", translation: "паспорт", example: "Here is my passport.", example_translation: "Смысл в уроке: паспорт.", level: "A1" },
-            { id: "en:ticket", word: "ticket", translation: "билет", example: "I have a ticket for tomorrow.", example_translation: "Смысл в уроке: билет.", level: "A1" },
+            { id: "en:menu", word: "menu", translation: "меню", context: "список блюд", example: "Could I see the menu?", example_translation: "Смысл в уроке: меню.", level: "A1" },
+            { id: "en:football", word: "football", translation: "футбол", context: "спорт", example: "Football is on TV.", example_translation: "Слово для словаря, не для заказа.", level: "A1" },
+            { id: "en:coffee", word: "coffee", translation: "кофе", example: "I'd like coffee, please.", example_translation: "Смысл в уроке: кофе.", level: "A1" },
+            { id: "en:breakfast", word: "breakfast", translation: "завтрак", example: "Coffee for breakfast, please.", example_translation: "Смысл в уроке: завтрак.", level: "A1" },
           ],
           grammar_title: "Паттерн A1: попросить помощь",
           grammar: "Соберите короткую реплику: вежливое начало + ключевое слово + одна деталь.",
-          mini_explanation: "Мини-объяснение: сцена отеля учит собрать рабочую реплику: запрос, деталь и следующий шаг.",
+          mini_explanation: "В кафе нужен короткий порядок: попросить меню, затем заказать coffee, затем уточнить for breakfast. Паттерн: Could I see the menu? I'd like coffee for breakfast, please.",
           choice: {
             prompt: "Какая реплика лучше подходит к сценарию?",
             correct_answer_id: "scenario:correct",
             options: [
-              { id: "scenario:wrong:0", text: "hotel / room", label: "Просто перевод", why: "Перевод не решает задачу собеседника.", avoid: true },
-              { id: "scenario:correct", text: "I have a reservation. Can I have a room?", label: "Рабочая реплика", why: "Есть действие, деталь и понятная цель.", quality: "correct" },
-              { id: "scenario:wrong:1", text: "Yes. No. Maybe.", label: "Пустая реакция", why: "Собеседник ждёт действие или деталь.", avoid: true },
-              { id: "scenario:wrong:2", text: "I repeat: hotel, room.", label: "Повтор слов", why: "Повтор слов не звучит как ответ.", avoid: true },
+              { id: "scenario:wrong:0", text: "Coffee.", label: "Слишком коротко", why: "Нет вежливости и детали.", avoid: true },
+              { id: "scenario:correct", text: "Could I see the menu and have coffee for breakfast, please?", label: "Рабочая реплика", why: "Есть просьба, заказ и деталь.", quality: "correct" },
+              { id: "scenario:wrong:1", text: "I need a ticket.", label: "Не по сцене", why: "Это не кафе.", avoid: true },
+              { id: "scenario:wrong:2", text: "Could I see the menu, please?", label: "Похоже, но неполно", why: "Хорошо, но ещё нет заказа.", avoid: true },
             ],
           },
           checks: [
@@ -271,21 +280,21 @@ async function mockApi(page: Page) {
               correct_answer_id: "scenario:correct",
               feedback: "Верно: это реплика из сценария, а не просто перевод слова.",
               options: [
-                { id: "scenario:wrong:0", text: "hotel / room", label: "Просто перевод", why: "Перевод не решает задачу собеседника.", avoid: true },
-                { id: "scenario:correct", text: "I have a reservation. Can I have a room?", label: "Рабочая реплика", why: "Есть действие, деталь и понятная цель.", quality: "correct" },
-                { id: "scenario:wrong:1", text: "Yes. No. Maybe.", label: "Пустая реакция", why: "Собеседник ждёт действие или деталь.", avoid: true },
-                { id: "scenario:wrong:2", text: "I repeat: hotel, room.", label: "Повтор слов", why: "Повтор слов не звучит как ответ.", avoid: true },
+                { id: "scenario:wrong:0", text: "Coffee.", label: "Слишком коротко", why: "Нет вежливости и детали.", avoid: true },
+                { id: "scenario:correct", text: "Could I see the menu and have coffee for breakfast, please?", label: "Рабочая реплика", why: "Есть просьба, заказ и деталь.", quality: "correct" },
+                { id: "scenario:wrong:1", text: "I need a ticket.", label: "Не по сцене", why: "Это не кафе.", avoid: true },
+                { id: "scenario:wrong:2", text: "Could I see the menu, please?", label: "Похоже, но неполно", why: "Хорошо, но ещё нет заказа.", avoid: true },
               ],
             },
             {
-              prompt: "Какую деталь нужно назвать при заселении?",
+              prompt: "Что уточняет заказ?",
               correct_answer_id: "detail:correct",
-              feedback: "Верно: паспорт двигает диалог дальше.",
+              feedback: "Верно: это уточняет заказ.",
               options: [
-                { id: "detail:wrong:0", text: "отель", label: "Просто перевод", why: "Нужна деталь для заселения.", avoid: true },
-                { id: "detail:correct", text: "passport: паспорт", label: "Рабочая деталь", why: "Паспорт двигает диалог дальше.", quality: "correct" },
-                { id: "detail:wrong:1", text: "Не отвечать и ждать", label: "Пустая реакция", why: "Диалог остановится.", avoid: true },
-                { id: "detail:wrong:2", text: "билет", label: "Не та сцена", why: "Билет не нужен на ресепшене.", avoid: true },
+                { id: "detail:wrong:0", text: "at the airport", label: "Не эта сцена", why: "Это не кафе.", avoid: true },
+                { id: "detail:correct", text: "for breakfast", label: "Верно", why: "Эта деталь уточняет заказ.", quality: "correct" },
+                { id: "detail:wrong:1", text: "my passport", label: "Не нужно в кафе", why: "Паспорт не нужен для кофе.", avoid: true },
+                { id: "detail:wrong:2", text: "football", label: "Не связано с задачей", why: "Это слово из словаря, а не деталь заказа.", avoid: true },
               ],
             },
             {
@@ -293,35 +302,35 @@ async function mockApi(page: Page) {
               correct_answer_id: "next:correct",
               feedback: "Верно: это закрывает шаг.",
               options: [
-                { id: "next:wrong:0", text: "Закрыть приложение", label: "Пустая реакция", why: "Следующий шаг не сделан.", avoid: true },
-                { id: "next:wrong:1", text: "Повторить список слов", label: "Повтор слов", why: "Это не завершает шаг.", avoid: true },
-                { id: "next:correct", text: "Here is my passport. Thank you.", label: "Рабочая реплика", why: "Документ показан, шаг закрыт.", quality: "correct" },
-                { id: "next:wrong:2", text: "Выбрать случайный перевод", label: "Не ответ", why: "Так нельзя сказать собеседнику.", avoid: true },
+                { id: "next:wrong:0", text: "I need a passport.", label: "Не по сцене", why: "Это не нужно в кафе.", avoid: true },
+                { id: "next:wrong:1", text: "Coffee. Football.", label: "Список слов", why: "Это не ответ официанту.", avoid: true },
+                { id: "next:correct", text: "Thank you. That is all for now.", label: "Рабочая реплика", why: "Заказ закрыт.", quality: "correct" },
+                { id: "next:wrong:2", text: "Close the app.", label: "Пустая реакция", why: "Собеседник ждёт завершения заказа.", avoid: true },
               ],
             },
           ],
-          writing_task: "Напишите одну рабочую реплику для сценария отеля. Используйте «hotel» и «room».",
-          writing_expected: ["hotel", "room"],
+          writing_task: "Напишите одну живую реплику для кафе: вежливое начало, заказ coffee и деталь for breakfast.",
+          writing_expected: ["coffee", "for breakfast"],
           answer_variants: [
-            { id: "writing:1", label: "Базовый ответ", text: "I have a reservation.", why: "Коротко и достаточно для старта.", level: "A1", use_case: "минимум" },
-            { id: "writing:2", label: "Естественно", text: "I have a reservation and need a quiet room.", why: "Добавлена полезная деталь про номер.", level: "A2", use_case: "живой разговор" },
-            { id: "writing:3", label: "Сильный вариант", text: "Good evening. I have a reservation and need a quiet room for one night.", why: "Есть вежливое начало, задача, деталь и срок.", level: "B1", use_case: "лучший образец" },
-            { id: "writing:4", label: "Частая слабая ошибка", text: "hotel, room, passport.", why: "Это список слов, а не реплика.", level: "avoid", use_case: "не повторять", avoid: true },
+            { id: "writing:1", label: "Базовый ответ", text: "Coffee for breakfast, please.", why: "Есть заказ coffee и деталь for breakfast.", level: "A1", use_case: "минимум" },
+            { id: "writing:2", label: "Естественно", text: "I'd like coffee for breakfast, please.", why: "Есть вежливость, заказ и деталь.", level: "A2", use_case: "живой разговор" },
+            { id: "writing:3", label: "Сильный вариант", text: "Could I see the menu first? I'd like coffee for breakfast, please.", why: "Есть меню, заказ coffee и деталь for breakfast.", level: "B1", use_case: "лучший образец" },
+            { id: "writing:4", label: "Не использовать", text: "cup / football.", why: "Это список слов, а не ответ человеку.", level: "avoid", use_case: "не повторять", avoid: true },
           ],
           listening_task: "Прослушайте модель и напишите, какие 2-3 ключевые детали вы услышали.",
-          listening_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
-          listening_question: "Какие 2-3 детали важны в аудио?",
-          listening_expected: ["reservation", "room", "passport"],
-          dialogue: ["Receptionist: Good evening. Do you have a reservation?", "Guest: Yes, I have a reservation under Ivan Petrov.", "Receptionist: May I see your passport, please?"],
-          dialogue_prompt: "Ответьте как гость: подтвердите бронь и предложите паспорт.",
-          dialogue_goal: "Подтвердить бронь и показать документ.",
+          listening_text: "Good morning. Could I see the menu? I'd like coffee for breakfast, please.",
+          listening_question: "Какие 2-3 детали важны в заказе?",
+          listening_expected: ["menu", "coffee", "breakfast"],
+          dialogue: ["Server: Good morning. Would you like breakfast or dinner?"],
+          dialogue_prompt: "Ответьте официанту: выберите breakfast и закажите coffee.",
+          dialogue_goal: "Заказать coffee и уточнить for breakfast.",
           dialogue_variants: [
-            { id: "dialogue:1", label: "Базовый ответ", text: "Yes, here is my passport.", why: "Ответ закрывает просьбу.", level: "A1", use_case: "минимум" },
-            { id: "dialogue:2", label: "Естественно", text: "Yes, here is my passport. The reservation is under Ivan Petrov.", why: "Добавлена нужная деталь брони.", level: "A2", use_case: "живой разговор" },
-            { id: "dialogue:3", label: "Сильный вариант", text: "Yes, here is my passport. The reservation is under Ivan Petrov, and I need a quiet room.", why: "Документ, бронь и запрос собраны в одну реплику.", level: "B1", use_case: "лучший образец" },
-            { id: "dialogue:4", label: "Частая слабая ошибка", text: "passport, reservation, room.", why: "Это список слов, а не ответ ресепшену.", level: "avoid", use_case: "не повторять", avoid: true },
+            { id: "dialogue:1", label: "A1", text: "Coffee for breakfast, please.", why: "Есть заказ coffee и деталь for breakfast.", level: "A1", use_case: "минимум" },
+            { id: "dialogue:2", label: "A2", text: "I'd like coffee for breakfast, please.", why: "Звучит вежливо и отвечает официанту.", level: "A2", use_case: "живой разговор" },
+            { id: "dialogue:3", label: "B1", text: "Could I see the menu first? I'd like coffee for breakfast, please.", why: "Есть меню, заказ coffee и деталь for breakfast.", level: "B1", use_case: "лучший образец" },
+            { id: "dialogue:4", label: "Не использовать", text: "cup / football.", why: "Это список слов, а не ответ человеку.", level: "avoid", use_case: "не повторять", avoid: true },
           ],
-          review_summary: ["Сценарий завершён: отель", "Цель: подтвердить бронь", "hotel - отель", "room - номер"],
+          review_summary: ["Сценарий завершён: кафе", "Цель: заказать coffee", "menu - меню", "coffee - кофе"],
           srs: { again: "ошибка: повторить сегодня", hard: "трудно: завтра", good: "верно: через 2 дня", easy: "легко: через неделю" },
           source: "local-a1-a2-course-core",
         },
@@ -503,31 +512,31 @@ async function mockApi(page: Page) {
   );
   await page.route("**/api/shadowing/answer", (route) => {
     const body = route.request().postData() || "";
-    const isTutorListening = body.includes("Good evening") || body.includes("reservation");
+    const isTutorListening = body.includes("Good morning") || body.includes("coffee");
     return route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        transcript: isTutorListening ? "reservation room passport" : "Could you repeat that please",
+        transcript: isTutorListening ? "menu coffee breakfast" : "Could you repeat that please",
         pronunciation: {
           score: 67,
           accent_strength: 42,
           fluency: 74,
-          stress: "Stress is late on reservation.",
+          stress: "Stress is late on coffee.",
           rhythm: "Rhythm has one long pause.",
           intonation: "Intonation rises naturally.",
           feedback: "Good rhythm. Work on endings.",
           problem_words: [
-            { word: "reservation", confidence: 0.42, issue: "low_confidence", tip: "Stress the middle syllable." },
-            { word: "reservation", confidence: 0.39, issue: "low_confidence", tip: "Stress the middle syllable." },
+            { word: "coffee", confidence: 0.42, issue: "low_confidence", tip: "Keep the first syllable clear." },
+            { word: "breakfast", confidence: 0.39, issue: "low_confidence", tip: "Do not drop the final sound." },
             { word: "please", confidence: 0.28, issue: "missing", tip: "" },
           ],
           phoneme_issues: [
-            { word: "reservation", expected_sound: "/z/", heard_sound: "/s/", confidence: 0.58, tip: "Voice the middle sound." },
+            { word: "coffee", expected_sound: "/f/", heard_sound: "/v/", confidence: 0.58, tip: "Keep /f/ unvoiced." },
           ],
-          corrected_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
+          corrected_text: "Good morning. Could I see the menu? I'd like coffee for breakfast, please.",
         },
-        correction_audio_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
+        correction_audio_text: "Good morning. Could I see the menu? I'd like coffee for breakfast, please.",
       }),
     });
   });
@@ -536,26 +545,26 @@ async function mockApi(page: Page) {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        transcript: "reservation room passport",
+        transcript: "menu coffee breakfast",
         pronunciation: {
           score: 67,
           accent_strength: 42,
           fluency: 74,
-          stress: "Stress is late on reservation.",
+          stress: "Stress is late on coffee.",
           rhythm: "Rhythm has one long pause.",
           intonation: "Intonation rises naturally.",
           feedback: "Good rhythm. Work on endings.",
           problem_words: [
-            { word: "reservation", confidence: 0.42, issue: "low_confidence", tip: "Stress the middle syllable." },
-            { word: "reservation", confidence: 0.39, issue: "low_confidence", tip: "Stress the middle syllable." },
+            { word: "coffee", confidence: 0.42, issue: "low_confidence", tip: "Keep the first syllable clear." },
+            { word: "breakfast", confidence: 0.39, issue: "low_confidence", tip: "Do not drop the final sound." },
             { word: "please", confidence: 0.28, issue: "missing", tip: "" },
           ],
           phoneme_issues: [
-            { word: "reservation", expected_sound: "/z/", heard_sound: "/s/", confidence: 0.58, tip: "Voice the middle sound." },
+            { word: "coffee", expected_sound: "/f/", heard_sound: "/v/", confidence: 0.58, tip: "Keep /f/ unvoiced." },
           ],
-          corrected_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
+          corrected_text: "Good morning. Could I see the menu? I'd like coffee for breakfast, please.",
         },
-        correction_audio_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
+        correction_audio_text: "Good morning. Could I see the menu? I'd like coffee for breakfast, please.",
       }),
     }),
   );
@@ -1075,81 +1084,89 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".password-card-v2")).toContainText("Пароли совпадают");
 });
 
-test("AI Tutor opens one guided lesson context on web and mobile", async ({ page }) => {
+test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", async ({ page }) => {
   await page.goto("/app/?view=tutor");
   await expect(page.locator('.function-ribbon [data-view="tutor"]')).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("AI Репетитор");
-  await expect(page.locator(".tutor-workspace")).toContainText("Отель и поездка");
+  await expect(page.locator(".tutor-workspace")).toContainText("Еда и заказ");
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
   await expect(page.locator(".tutor-step-v2")).toHaveCount(8);
   await expect(page.locator(".tutor-context-v2")).toContainText("Новые слова");
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("hotel");
+  await expect(page.locator(".tutor-word-check-v2")).toContainText("menu");
   await expect(page.locator(".tutor-result-list-v2")).toHaveCount(0);
   await expect(page.locator(".tutor-word-grid--compact")).toHaveCount(0);
-  await expect(page.locator(".tutor-choice-grid-v2 button").first()).not.toContainText("отель");
+  await expect(page.locator(".tutor-choice-grid-v2 button").first()).not.toContainText("меню");
 
   const tutorSubmit = page.locator(".tutor-context-v2 .tutor-composer-v2 button").last();
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "номер" }).click();
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "футбол" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("Пока нет");
   await expect(page.locator(".tutor-word-check-v2")).toContainText("1/4");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "отель" }).click();
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "меню" }).click();
   await tutorSubmit.click();
-  await expect(page.locator(".tutor-result-list-v2")).toContainText("hotel");
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("room");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "номер" }).click();
+  await expect(page.locator(".tutor-result-list-v2")).toContainText("menu");
+  await expect(page.locator(".tutor-word-check-v2")).toContainText("football");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "футбол" }).click();
   await tutorSubmit.click();
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("passport");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "паспорт" }).click();
+  await expect(page.locator(".tutor-word-check-v2")).toContainText("coffee");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "кофе" }).click();
   await tutorSubmit.click();
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("ticket");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "билет" }).click();
+  await expect(page.locator(".tutor-word-check-v2")).toContainText("breakfast");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "завтрак" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Мини-объяснение");
+  await expect(page.locator(".tutor-context-v2")).toContainText("В кафе нужен короткий порядок");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Could I see the menu?");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Use the lesson goal");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Variant focus");
   await expect(page.locator(".tutor-context-v2")).toContainText("add one concrete detail");
   await page.locator(".tutor-step-v2").first().click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Слова проверены");
-  await expect(page.locator(".tutor-result-list-v2")).toContainText("hotel");
+  await expect(page.locator(".tutor-result-list-v2")).toContainText("menu");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Мини-объяснение");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Выбор ответа");
   await expect(page.locator(".tutor-context-v2")).toContainText("Вопрос 1/3");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "hotel / room" }).click();
+  await expect(page.locator(".tutor-choice-grid-v2")).toContainText("Could I see the menu and have coffee for breakfast, please?");
+  await expect(page.locator(".tutor-choice-grid-v2")).toContainText("I need a ticket.");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "Coffee." }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("Пока нет");
   await expect(page.locator(".tutor-choice-grid-v2 button.is-correct")).toHaveCount(0);
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "I have a reservation" }).click();
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "Could I see the menu and have coffee" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Вопрос 2/3");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "passport: паспорт" }).click();
+  await expect(page.locator(".tutor-choice-grid-v2")).toContainText("for breakfast");
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "for breakfast" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Вопрос 3/3");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "Here is my passport" }).click();
+  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "Thank you. That is all for now." }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Письмо");
   await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Варианты ответа");
   await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Сильный вариант");
-  await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Частая слабая ошибка");
-  await page.locator(".tutor-answer-variant-v2").filter({ hasText: "Good evening" }).click();
-  await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue(/Good evening\. I have a reservation/);
-  await page.locator(".tutor-context-v2 textarea").fill("I have a hotel room.");
+  await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Не использовать");
+  await expect(page.locator(".tutor-answer-variants-v2")).not.toContainText("have football");
+  await page.locator(".tutor-answer-variant-v2").filter({ hasText: "Could I see the menu first" }).click();
+  await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue(/Could I see the menu first\?/);
+  await page.locator(".tutor-context-v2 textarea").fill("Coffee for breakfast, please.");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("Хорошо");
   await expect(page.locator(".tutor-context-v2")).toContainText("Письмо");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Аудирование");
-  await expect(page.locator(".tutor-context-v2")).toContainText("Какие 2-3 детали важны");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Какие 2-3 детали важны в заказе");
   await expect(page.locator(".tutor-listening-voice-v2 .file-controls-v2")).toHaveCount(0);
   await expect(page.locator(".tutor-context-v2 .audio-wave-button-v2")).toContainText("Аудио задания");
-  await expect(page.locator(".tutor-context-v2")).not.toContainText("Can I have a quiet room");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("I'd like coffee for breakfast");
   await expect(page.locator(".tutor-context-v2 textarea")).toHaveAttribute("placeholder", /2-3/);
-  await page.locator(".tutor-context-v2 textarea").fill("reservation room passport");
+  await page.locator(".tutor-context-v2 textarea").fill("menu coffee breakfast");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("ключевые детали");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Произношение");
-  await expect(page.locator(".tutor-pronunciation-target-v2")).toContainText("Can I have a quiet room");
+  await expect(page.locator(".tutor-pronunciation-target-v2")).toContainText("I'd like coffee for breakfast");
   await page.locator('.tutor-listening-voice-v2 input[type="file"]').setInputFiles({
     name: "repeat.webm",
     mimeType: "audio/webm",
@@ -1158,15 +1175,16 @@ test("AI Tutor opens one guided lesson context on web and mobile", async ({ page
   await tutorSubmit.click();
   await expect(page.locator(".pronunciation-report-v2")).toContainText("67/100");
   await expect(page.locator(".pronunciation-report-v2")).toContainText("Stress is late");
-  await expect(page.locator(".pronunciation-report-v2")).toContainText("/z/ -> /s/");
+  await expect(page.locator(".pronunciation-report-v2")).toContainText("/f/ -> /v/");
   await expect(page.locator(".tutor-context-v2 .audio-wave-button-v2").filter({ hasText: "Исправленный образец" })).toBeVisible();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Мини-диалог");
-  await expect(page.locator(".tutor-context-v2")).toContainText("Receptionist: Good evening");
-  await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Yes, here is my passport");
-  await page.locator(".tutor-answer-variant-v2").filter({ hasText: "quiet room" }).click();
-  await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue(/quiet room/);
-  await page.locator(".tutor-context-v2 textarea").fill("Yes, I have a reservation. Here is my passport.");
+  await expect(page.locator(".tutor-dialogue")).toContainText("Would you like breakfast or dinner?");
+  await expect(page.locator(".tutor-answer-variants-v2")).toContainText("I'd like coffee for breakfast, please.");
+  await expect(page.locator(".tutor-answer-variants-v2")).not.toContainText("have football");
+  await page.locator(".tutor-answer-variant-v2").filter({ hasText: "Could I see the menu first" }).click();
+  await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue(/coffee for breakfast/);
+  await page.locator(".tutor-context-v2 textarea").fill("I'd like coffee for breakfast, please.");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("ответ подходит");
   await tutorSubmit.click();

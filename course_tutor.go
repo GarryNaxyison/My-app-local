@@ -50,6 +50,16 @@ type tutorAnswerVariant struct {
 	Avoid   bool   `json:"avoid,omitempty"`
 }
 
+type tutorScenarioSlots struct {
+	Role           string   `json:"role"`
+	Situation      string   `json:"situation"`
+	RequiredAction string   `json:"required_action"`
+	Item           string   `json:"item"`
+	Detail         string   `json:"detail"`
+	Politeness     []string `json:"politeness,omitempty"`
+	ModelAnswer    string   `json:"model_answer"`
+}
+
 type tutorLessonSRS struct {
 	Again string `json:"again"`
 	Hard  string `json:"hard"`
@@ -80,6 +90,7 @@ type tutorLesson struct {
 	Goal              string               `json:"goal"`
 	CanDo             string               `json:"can_do"`
 	Scenario          string               `json:"scenario"`
+	ScenarioSlots     tutorScenarioSlots   `json:"scenario_slots,omitempty"`
 	Steps             []tutorLessonStep    `json:"steps"`
 	Words             []tutorLessonWord    `json:"words"`
 	GrammarTitle      string               `json:"grammar_title"`
@@ -133,6 +144,65 @@ type tutorCourseVariant struct {
 	ConstraintEN string
 }
 
+type tutorScenarioChoiceLine struct {
+	Text    string
+	LabelRU string
+	LabelEN string
+	WhyRU   string
+	WhyEN   string
+	Quality string
+}
+
+type tutorScenarioVariantLine struct {
+	LabelRU   string
+	LabelEN   string
+	Text      string
+	WhyRU     string
+	WhyEN     string
+	Level     string
+	UseCaseRU string
+	UseCaseEN string
+	Avoid     bool
+}
+
+type tutorScenarioTemplate struct {
+	TopicCode           string
+	Role                string
+	SituationRU         string
+	SituationEN         string
+	RequiredAction      string
+	Item                string
+	Detail              string
+	Politeness          []string
+	ModelAnswer         string
+	ShortAnswer         string
+	WrongSceneAnswer    string
+	IncompleteAnswer    string
+	DetailPromptRU      string
+	DetailPromptEN      string
+	DetailDistractors   []tutorScenarioChoiceLine
+	NextPromptRU        string
+	NextPromptEN        string
+	NextAnswer          string
+	NextDistractors     []tutorScenarioChoiceLine
+	MiniExplanationRU   string
+	MiniExplanationEN   string
+	WritingTaskRU       string
+	WritingTaskEN       string
+	WritingExpected     []string
+	ListeningText       string
+	ListeningQuestionRU string
+	ListeningQuestionEN string
+	ListeningExpected   []string
+	DialogueLines       []string
+	DialoguePromptRU    string
+	DialoguePromptEN    string
+	DialogueGoalRU      string
+	DialogueGoalEN      string
+	WritingVariants     []tutorScenarioVariantLine
+	DialogueVariants    []tutorScenarioVariantLine
+}
+
 const tutorCourseSize = 300
 
 var tutorScenarioCourseTopics = []tutorTopic{
@@ -173,6 +243,135 @@ var tutorCourseTopics = []tutorTopic{
 	{Code: "doctor", TitleRU: "Врач и самочувствие", TitleEN: "Doctor and health", Words: []string{"doctor", "hospital", "pain", "medicine", "water", "help", "today", "tomorrow", "morning"}},
 }
 
+func tutorScenarioTemplateFor(topic tutorTopic, function tutorCourseFunction, interfaceLanguage string) tutorScenarioTemplate {
+	switch topic.Code {
+	case "food":
+		return tutorScenarioTemplate{
+			TopicCode:           "food",
+			Role:                "guest",
+			SituationRU:         "Вы в кафе. Нужно попросить меню, заказать напиток и уточнить завтрак или ужин.",
+			SituationEN:         "You are in a cafe: ask for the menu, order a drink, and clarify breakfast or dinner.",
+			RequiredAction:      "ask for the menu",
+			Item:                "coffee",
+			Detail:              "for breakfast",
+			Politeness:          []string{"Could I...?", "I'd like..., please."},
+			ModelAnswer:         "Could I see the menu and have coffee for breakfast, please?",
+			ShortAnswer:         "Coffee.",
+			WrongSceneAnswer:    "I need a ticket.",
+			IncompleteAnswer:    "Could I see the menu, please?",
+			DetailPromptRU:      "Что уточняет заказ?",
+			DetailPromptEN:      "What clarifies the order?",
+			DetailDistractors:   []tutorScenarioChoiceLine{tutorScenarioChoice("at the airport", "Не эта сцена", "Wrong scene", "Это не кафе.", "This is not the cafe scene.", "wrong"), tutorScenarioChoice("my passport", "Не нужно в кафе", "Not needed here", "Паспорт не нужен для заказа кофе.", "A passport is not needed for a coffee order.", "wrong"), tutorScenarioChoice("football", "Не связано с задачей", "Unrelated", "Это слово из словаря, а не деталь заказа.", "This is vocabulary, not an order detail.", "wrong")},
+			NextPromptRU:        "Какой следующий шаг звучит естественно?",
+			NextPromptEN:        "Which next step sounds natural?",
+			NextAnswer:          "Thank you. That is all for now.",
+			NextDistractors:     []tutorScenarioChoiceLine{tutorScenarioChoice("I need a passport.", "Не по сцене", "Wrong scene", "Это не нужно в кафе.", "This is not needed in a cafe.", "wrong"), tutorScenarioChoice("Coffee. Football.", "Список слов", "Word list", "Это не ответ официанту.", "This is not an answer to the server.", "wrong"), tutorScenarioChoice("Close the app.", "Пустая реакция", "Empty reaction", "Собеседник ждёт завершения заказа.", "The other person expects you to finish the order.", "wrong")},
+			MiniExplanationRU:   "В кафе нужен короткий порядок: попросить меню, затем заказать coffee, затем уточнить for breakfast. Паттерн: Could I see the menu? I'd like coffee for breakfast, please.",
+			MiniExplanationEN:   "In a cafe: ask for the menu, then order coffee, then clarify for breakfast. Pattern: Could I see the menu? I'd like coffee for breakfast, please.",
+			WritingTaskRU:       "Напишите одну живую реплику для кафе: вежливое начало, заказ coffee и деталь for breakfast.",
+			WritingTaskEN:       "Write one live cafe reply: polite opener, coffee order, and the detail for breakfast.",
+			WritingExpected:     []string{"coffee", "for breakfast"},
+			ListeningText:       "Good morning. Could I see the menu? I'd like coffee for breakfast, please.",
+			ListeningQuestionRU: "Какие 2-3 детали важны в заказе?",
+			ListeningQuestionEN: "Which 2-3 details matter in the order?",
+			ListeningExpected:   []string{"menu", "coffee", "breakfast"},
+			DialogueLines:       []string{"Server: Good morning. Would you like breakfast or dinner?"},
+			DialoguePromptRU:    "Ответьте официанту: выберите breakfast и закажите coffee.",
+			DialoguePromptEN:    "Answer the server: choose breakfast and order coffee.",
+			DialogueGoalRU:      "Заказать coffee и уточнить for breakfast.",
+			DialogueGoalEN:      "Order coffee and clarify for breakfast.",
+			WritingVariants: []tutorScenarioVariantLine{
+				tutorScenarioVariant("Базовый ответ", "Base answer", "Coffee for breakfast, please.", "Есть заказ coffee и деталь for breakfast.", "It has the coffee order and the detail for breakfast.", "A1", "минимум", "safe minimum", false),
+				tutorScenarioVariant("Естественно", "Natural answer", "I'd like coffee for breakfast, please.", "Звучит естественно: есть вежливость, заказ и деталь.", "Natural: it has politeness, order, and detail.", "A2", "живой разговор", "daily conversation", false),
+				tutorScenarioVariant("Сильный вариант", "Stronger answer", "Could I see the menu first? I'd like coffee for breakfast, please.", "Есть просьба о меню, заказ coffee и деталь for breakfast.", "It asks for the menu and includes the coffee order with the breakfast detail.", "B1", "лучший образец", "best practice model", false),
+				tutorScenarioVariant("Не использовать", "Do not use", "cup / football.", "Это список слов, а не ответ человеку.", "This is a word list, not an answer to a person.", "avoid", "не повторять", "avoid", true),
+			},
+			DialogueVariants: []tutorScenarioVariantLine{
+				tutorScenarioVariant("A1", "A1", "Coffee for breakfast, please.", "Хорошо: есть заказ coffee и деталь for breakfast.", "Good: it has coffee and for breakfast.", "A1", "минимум", "safe minimum", false),
+				tutorScenarioVariant("A2", "A2", "I'd like coffee for breakfast, please.", "Хорошо: звучит вежливо и закрывает вопрос официанта.", "Good: it sounds polite and answers the server's question.", "A2", "живой разговор", "daily conversation", false),
+				tutorScenarioVariant("B1", "B1", "Could I see the menu first? I'd like coffee for breakfast, please.", "Сильнее: есть меню, заказ coffee и деталь for breakfast.", "Stronger: it includes the menu, coffee, and for breakfast.", "B1", "лучший образец", "best practice model", false),
+				tutorScenarioVariant("Не использовать", "Do not use", "cup / football.", "Это список слов, а не ответ человеку.", "This is a word list, not an answer to a person.", "avoid", "не повторять", "avoid", true),
+			},
+		}
+	case "hotel":
+		return tutorBasicScenarioTemplate(topic, "guest", "confirm a reservation", "reservation", "passport", "I have a reservation. Here is my passport, please.", "Receptionist: Good evening. May I see your passport, please?")
+	case "doctor":
+		return tutorBasicScenarioTemplate(topic, "patient", "ask for a doctor", "doctor", "today", "Hello. I need to see a doctor today, please.", "Receptionist: Can you come this morning?")
+	case "travel":
+		return tutorBasicScenarioTemplate(topic, "traveler", "buy a ticket", "ticket", "tomorrow", "I'd like a ticket for tomorrow, please.", "Clerk: Do you need a ticket for today or tomorrow?")
+	case "services":
+		return tutorBasicScenarioTemplate(topic, "customer", "ask for service help", "help", "passport", "I need help with my number. Here is my passport, please.", "Agent: What document do you have?")
+	default:
+		return tutorBasicScenarioTemplate(topic, "learner", function.CanDoEN, "help", "today", "Could you help me with this today, please?", "Assistant: What detail should I write?")
+	}
+}
+
+func tutorBasicScenarioTemplate(topic tutorTopic, role string, action string, item string, detail string, modelAnswer string, lastTutorLine string) tutorScenarioTemplate {
+	situationRU := topic.ScenarioRU
+	if strings.TrimSpace(situationRU) == "" {
+		situationRU = "Сцена: " + topic.TitleRU + "."
+	}
+	situationEN := topic.ScenarioEN
+	if strings.TrimSpace(situationEN) == "" {
+		situationEN = "Scene: " + topic.TitleEN + "."
+	}
+	return tutorScenarioTemplate{
+		TopicCode:           topic.Code,
+		Role:                role,
+		SituationRU:         situationRU,
+		SituationEN:         situationEN,
+		RequiredAction:      action,
+		Item:                item,
+		Detail:              detail,
+		Politeness:          []string{"Could I...?", "please"},
+		ModelAnswer:         modelAnswer,
+		ShortAnswer:         item + ".",
+		WrongSceneAnswer:    "I need a coffee.",
+		IncompleteAnswer:    "Could you help me, please?",
+		DetailPromptRU:      "Какая деталь двигает сцену дальше?",
+		DetailPromptEN:      "Which detail moves the scene forward?",
+		DetailDistractors:   []tutorScenarioChoiceLine{tutorScenarioChoice("at the cafe", "Не эта сцена", "Wrong scene", "Это из другой сцены.", "This belongs to another scene.", "wrong"), tutorScenarioChoice("football", "Не связано с задачей", "Unrelated", "Это не помогает собеседнику.", "This does not help the other person.", "wrong"), tutorScenarioChoice("say nothing", "Пустая реакция", "Empty reaction", "Диалог остановится.", "The dialogue stops.", "wrong")},
+		NextPromptRU:        "Какой следующий шаг звучит естественно?",
+		NextPromptEN:        "Which next step sounds natural?",
+		NextAnswer:          "Thank you. What is the next step?",
+		NextDistractors:     []tutorScenarioChoiceLine{tutorScenarioChoice("Repeat the word list.", "Список слов", "Word list", "Это не реплика.", "This is not a reply.", "wrong"), tutorScenarioChoice("Close the app.", "Пустая реакция", "Empty reaction", "Собеседник ждёт ответ.", "The other person expects an answer.", "wrong"), tutorScenarioChoice("I need a coffee.", "Не по сцене", "Wrong scene", "Это другая ситуация.", "This is another situation.", "wrong")},
+		MiniExplanationRU:   fmt.Sprintf("Порядок сцены: действие, затем %s, затем деталь %s. Паттерн: %s", item, detail, modelAnswer),
+		MiniExplanationEN:   fmt.Sprintf("Scene order: action, then %s, then detail %s. Pattern: %s", item, detail, modelAnswer),
+		WritingTaskRU:       fmt.Sprintf("Напишите одну рабочую реплику: используйте %s и деталь %s.", item, detail),
+		WritingTaskEN:       fmt.Sprintf("Write one usable reply: use %s and the detail %s.", item, detail),
+		WritingExpected:     []string{item, detail},
+		ListeningText:       modelAnswer,
+		ListeningQuestionRU: "Какие 2-3 детали важны в аудио?",
+		ListeningQuestionEN: "Which 2-3 details matter in the audio?",
+		ListeningExpected:   []string{item, detail},
+		DialogueLines:       []string{lastTutorLine},
+		DialoguePromptRU:    "Ответьте на последнюю реплику одной живой фразой.",
+		DialoguePromptEN:    "Answer the last line with one live reply.",
+		DialogueGoalRU:      fmt.Sprintf("Использовать %s и деталь %s.", item, detail),
+		DialogueGoalEN:      fmt.Sprintf("Use %s and the detail %s.", item, detail),
+		WritingVariants: []tutorScenarioVariantLine{
+			tutorScenarioVariant("Базовый ответ", "Base answer", item+".", "Слишком коротко, но предмет понятен.", "Short, but the item is clear.", "A1", "минимум", "safe minimum", false),
+			tutorScenarioVariant("Естественно", "Natural answer", modelAnswer, "Есть предмет и деталь.", "It has the item and detail.", "A2", "живой разговор", "daily conversation", false),
+			tutorScenarioVariant("Сильный вариант", "Stronger answer", "Could you help me? "+modelAnswer, "Есть вежливое начало, предмет и деталь.", "It has a polite opener, item, and detail.", "B1", "лучший образец", "best practice model", false),
+			tutorScenarioVariant("Не использовать", "Do not use", item+" / football.", "Это список слов, а не ответ человеку.", "This is a word list, not an answer to a person.", "avoid", "не повторять", "avoid", true),
+		},
+		DialogueVariants: []tutorScenarioVariantLine{
+			tutorScenarioVariant("A1", "A1", modelAnswer, "Ответ закрывает последнюю реплику.", "The reply answers the last line.", "A1", "минимум", "safe minimum", false),
+			tutorScenarioVariant("A2", "A2", "Yes. "+modelAnswer, "Звучит естественнее и остаётся коротко.", "It sounds more natural and stays short.", "A2", "живой разговор", "daily conversation", false),
+			tutorScenarioVariant("B1", "B1", "Yes, thank you. "+modelAnswer, "Есть подтверждение, вежливость и нужная деталь.", "It has confirmation, politeness, and the needed detail.", "B1", "лучший образец", "best practice model", false),
+			tutorScenarioVariant("Не использовать", "Do not use", item+" / football.", "Это список слов, а не ответ человеку.", "This is a word list, not an answer to a person.", "avoid", "не повторять", "avoid", true),
+		},
+	}
+}
+
+func tutorScenarioChoice(text string, labelRU string, labelEN string, whyRU string, whyEN string, quality string) tutorScenarioChoiceLine {
+	return tutorScenarioChoiceLine{Text: text, LabelRU: labelRU, LabelEN: labelEN, WhyRU: whyRU, WhyEN: whyEN, Quality: quality}
+}
+
+func tutorScenarioVariant(labelRU string, labelEN string, text string, whyRU string, whyEN string, level string, useCaseRU string, useCaseEN string, avoid bool) tutorScenarioVariantLine {
+	return tutorScenarioVariantLine{LabelRU: labelRU, LabelEN: labelEN, Text: text, WhyRU: whyRU, WhyEN: whyEN, Level: level, UseCaseRU: useCaseRU, UseCaseEN: useCaseEN, Avoid: avoid}
+}
+
 func buildTutorLesson(user userState) (tutorLesson, error) {
 	return buildTutorLessonForSequence(user, tutorLessonSequence(user))
 }
@@ -202,6 +401,7 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		words = words[:8]
 	}
 
+	scenarioTemplate := tutorScenarioTemplateFor(topic, courseFunction, interfaceLanguage)
 	review := selectTutorReviewWords(user, interfaceLanguage, language, 3)
 	checks := tutorScenarioChecks(words, topic, courseFunction, interfaceLanguage)
 	choice := checks[0]
@@ -225,7 +425,7 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		VariantCode:       variant.Code,
 		VariantTitle:      tutorVariantTitle(variant, interfaceLanguage),
 		FocusSkill:        tutorVariantFocus(variant, interfaceLanguage),
-		SuccessCriteria:   tutorSuccessCriteria(words, courseFunction, variant, interfaceLanguage),
+		SuccessCriteria:   tutorSuccessCriteria(topic, courseFunction, variant, interfaceLanguage),
 		LessonNumber:      lessonNumber,
 		CourseSize:        tutorCourseSize,
 		LearningLanguage:  language,
@@ -234,6 +434,7 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		Goal:              tutorLessonGoal(topic, courseFunction, interfaceLanguage) + " " + tutorVariantFocusLine(variant, interfaceLanguage),
 		CanDo:             tutorCanDo(level, topic, courseFunction, interfaceLanguage),
 		Scenario:          tutorTopicScenario(topic, interfaceLanguage) + " " + tutorVariantConstraint(variant, interfaceLanguage),
+		ScenarioSlots:     tutorScenarioSlotsFromTemplate(scenarioTemplate, interfaceLanguage),
 		Steps:             tutorLessonSteps(interfaceLanguage),
 		Words:             words,
 		GrammarTitle:      tutorScenarioGrammarTitle(level, courseFunction, interfaceLanguage),
@@ -242,7 +443,7 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		Choice:            choice,
 		Checks:            checks,
 		WritingTask:       tutorWritingTask(first, second, topic, courseFunction, interfaceLanguage),
-		WritingExpected:   []string{first.Word, second.Word},
+		WritingExpected:   tutorScenarioExpectedWords(scenarioTemplate),
 		AnswerVariants:    tutorAnswerVariants(words, topic, courseFunction, language, interfaceLanguage, false),
 		ListeningTask:     tutorListeningTask(topic, courseFunction, interfaceLanguage),
 		ListeningText:     listeningText,
@@ -530,13 +731,102 @@ func tutorVariantConstraint(variant tutorCourseVariant, interfaceLanguage string
 	return variant.ConstraintEN
 }
 
-func tutorSuccessCriteria(words []tutorLessonWord, function tutorCourseFunction, variant tutorCourseVariant, interfaceLanguage string) []string {
-	first := tutorWordOrFallback(words, 0, "key word").Word
-	second := tutorWordOrFallback(words, 1, "detail").Word
+func tutorScenarioSlotsFromTemplate(template tutorScenarioTemplate, interfaceLanguage string) tutorScenarioSlots {
+	return tutorScenarioSlots{
+		Role:           template.Role,
+		Situation:      tutorScenarioSituation(template, interfaceLanguage),
+		RequiredAction: template.RequiredAction,
+		Item:           template.Item,
+		Detail:         template.Detail,
+		Politeness:     append([]string{}, template.Politeness...),
+		ModelAnswer:    template.ModelAnswer,
+	}
+}
+
+func tutorScenarioExpectedWords(template tutorScenarioTemplate) []string {
+	expected := make([]string, 0, 3)
+	for _, item := range template.WritingExpected {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			expected = append(expected, item)
+		}
+	}
+	if len(expected) == 0 {
+		expected = append(expected, template.Item, template.Detail)
+	}
+	return expected
+}
+
+func tutorScenarioSituation(template tutorScenarioTemplate, interfaceLanguage string) string {
+	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" && strings.TrimSpace(template.SituationRU) != "" {
+		return template.SituationRU
+	}
+	return template.SituationEN
+}
+
+func tutorScenarioChoiceOption(prefix string, index int, line tutorScenarioChoiceLine, interfaceLanguage string) tutorChoiceOption {
+	ru := normalizeInterfaceLanguage(interfaceLanguage) == "ru"
+	label := line.LabelEN
+	why := line.WhyEN
+	if ru {
+		label = line.LabelRU
+		why = line.WhyRU
+	}
+	if label == "" {
+		label = tutorWeakOptionLabel(index, interfaceLanguage)
+	}
+	if why == "" {
+		why = tutorWeakOptionWhy(index, interfaceLanguage)
+	}
+	quality := line.Quality
+	if quality == "" {
+		quality = "weak"
+	}
+	return tutorChoiceOption{
+		ID:      fmt.Sprintf("%s:wrong:%d", prefix, index),
+		Text:    line.Text,
+		Label:   label,
+		Why:     why,
+		Skill:   prefix,
+		Quality: quality,
+		Avoid:   true,
+	}
+}
+
+func tutorScenarioVariantToAnswer(prefix string, index int, variant tutorScenarioVariantLine, interfaceLanguage string) tutorAnswerVariant {
+	ru := normalizeInterfaceLanguage(interfaceLanguage) == "ru"
+	label := variant.LabelEN
+	why := variant.WhyEN
+	useCase := variant.UseCaseEN
+	if ru {
+		label = variant.LabelRU
+		why = variant.WhyRU
+		useCase = variant.UseCaseRU
+	}
+	return tutorAnswerVariant{
+		ID:      fmt.Sprintf("%s:%d", prefix, index+1),
+		Label:   label,
+		Text:    variant.Text,
+		Why:     why,
+		Level:   variant.Level,
+		UseCase: useCase,
+		Avoid:   variant.Avoid,
+	}
+}
+
+func tutorSuccessCriteria(topic tutorTopic, function tutorCourseFunction, variant tutorCourseVariant, interfaceLanguage string) []string {
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
+	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" {
+		return []string{
+			"В ответе должно быть: просьба или действие.",
+			"Предмет: " + template.Item + ".",
+			"Деталь: " + template.Detail + ".",
+		}
+	}
 	return []string{
-		"Use the lesson goal: " + function.CanDoEN,
-		"Include " + first + " and one useful detail such as " + second,
-		"Variant focus: " + tutorVariantFocus(variant, interfaceLanguage),
+		"Answer checklist: request or action.",
+		"Item: " + template.Item + ".",
+		"Detail: " + template.Detail + ".",
 	}
 }
 
@@ -609,39 +899,74 @@ func tutorScenarioChecks(words []tutorLessonWord, topic tutorTopic, function tut
 	if len(words) < 4 {
 		return []tutorLessonChoice{tutorChoiceFromWords(words, interfaceLanguage)}
 	}
-	first := words[0]
-	second := words[tutorMinInt(1, len(words)-1)]
-	third := words[tutorMinInt(2, len(words)-1)]
-	fourth := words[tutorMinInt(3, len(words)-1)]
-	ru := normalizeInterfaceLanguage(interfaceLanguage) == "ru"
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	promptBestLine := tutorLocalized(interfaceLanguage, "Какая реплика лучше подходит к сценарию?", "Which line best fits the scenario?")
-	promptDetail := tutorLocalized(interfaceLanguage, "Какую деталь нужно назвать в этом диалоге?", "Which detail do you need to give in this dialogue?")
-	promptNext := tutorLocalized(interfaceLanguage, "Какой следующий шаг звучит естественно?", "Which next step sounds natural?")
+	promptDetail := tutorLocalized(interfaceLanguage, template.DetailPromptRU, template.DetailPromptEN)
+	promptNext := tutorLocalized(interfaceLanguage, template.NextPromptRU, template.NextPromptEN)
 	feedback := tutorLocalized(interfaceLanguage, "Верно: это реплика из сценария, а не просто перевод слова.", "Correct: this is a scenario line, not just a word translation.")
 
-	bestLine := tutorCheckLine(topic, first, second, ru)
-	detailLine := tutorCheckDetailLine(topic, second, third, ru)
-	nextLine := tutorCheckNextLine(topic, third, fourth, ru)
 	return []tutorLessonChoice{
 		{
-			Prompt:          promptBestLine,
-			Options:         tutorCheckOptions("scenario", bestLine, tutorDistractorLines(topic, first, second, ru), interfaceLanguage),
+			Prompt: promptBestLine,
+			Options: tutorScenarioCheckOptions("scenario", tutorChoiceOption{
+				ID:      "scenario:correct",
+				Text:    template.ModelAnswer,
+				Label:   tutorLocalized(interfaceLanguage, "Рабочая реплика", "Usable line"),
+				Why:     tutorLocalized(interfaceLanguage, "Есть просьба, предмет и деталь. Такую фразу можно сказать в реальном диалоге.", "It has a request, item, and detail. You can say it in a real dialogue."),
+				Skill:   "scenario",
+				Quality: "correct",
+			}, []tutorScenarioChoiceLine{
+				tutorScenarioChoice(template.ShortAnswer, "Слишком коротко", "Too short", "Нет вежливости и детали.", "It lacks politeness and detail.", "weak"),
+				tutorScenarioChoice(template.WrongSceneAnswer, "Не по сцене", "Wrong scene", "Это не решает текущую ситуацию.", "This does not solve the current situation.", "weak"),
+				tutorScenarioChoice(template.IncompleteAnswer, "Похоже, но неполно", "Close, but incomplete", "Хорошо, но ещё нет обязательной детали.", "Good, but the required detail is missing.", "weak"),
+			}, interfaceLanguage),
 			CorrectAnswerID: "scenario:correct",
 			Feedback:        feedback,
 		},
 		{
-			Prompt:          promptDetail,
-			Options:         tutorCheckOptions("detail", detailLine, []string{first.Translation, fourth.Translation, tutorLocalized(interfaceLanguage, "Не отвечать и ждать", "Say nothing and wait")}, interfaceLanguage),
+			Prompt: promptDetail,
+			Options: tutorScenarioCheckOptions("detail", tutorChoiceOption{
+				ID:      "detail:correct",
+				Text:    template.Detail,
+				Label:   tutorLocalized(interfaceLanguage, "Верно", "Correct"),
+				Why:     tutorLocalized(interfaceLanguage, "Эта деталь уточняет реплику и помогает собеседнику ответить.", "This detail clarifies the line and helps the other person respond."),
+				Skill:   "detail",
+				Quality: "correct",
+			}, template.DetailDistractors, interfaceLanguage),
 			CorrectAnswerID: "detail:correct",
 			Feedback:        tutorLocalized(interfaceLanguage, "Верно: вы выбрали деталь, которая двигает диалог дальше.", "Correct: you picked the detail that moves the dialogue forward."),
 		},
 		{
-			Prompt:          promptNext,
-			Options:         tutorCheckOptions("next", nextLine, tutorNextDistractors(topic, ru), interfaceLanguage),
+			Prompt: promptNext,
+			Options: tutorScenarioCheckOptions("next", tutorChoiceOption{
+				ID:      "next:correct",
+				Text:    template.NextAnswer,
+				Label:   tutorLocalized(interfaceLanguage, "Рабочая реплика", "Usable line"),
+				Why:     tutorLocalized(interfaceLanguage, "Это естественно закрывает следующий шаг сцены.", "This naturally closes the next step of the scene."),
+				Skill:   "next",
+				Quality: "correct",
+			}, template.NextDistractors, interfaceLanguage),
 			CorrectAnswerID: "next:correct",
 			Feedback:        tutorLocalized(interfaceLanguage, "Верно: это закрывает шаг и готовит ваш ответ.", "Correct: this closes the step and prepares your answer."),
 		},
 	}
+}
+
+func tutorScenarioCheckOptions(prefix string, correct tutorChoiceOption, distractors []tutorScenarioChoiceLine, interfaceLanguage string) []tutorChoiceOption {
+	options := []tutorChoiceOption{correct}
+	seen := map[string]bool{strings.ToLower(strings.TrimSpace(correct.Text)): true}
+	for index, distractor := range distractors {
+		key := strings.ToLower(strings.TrimSpace(distractor.Text))
+		if key == "" || seen[key] {
+			continue
+		}
+		seen[key] = true
+		options = append(options, tutorScenarioChoiceOption(prefix, index, distractor, interfaceLanguage))
+		if len(options) >= 4 {
+			break
+		}
+	}
+	return options
 }
 
 func tutorCheckOptions(prefix string, correct string, distractors []string, interfaceLanguage string) []tutorChoiceOption {
@@ -796,76 +1121,39 @@ func tutorScenarioGrammarBody(level string, languageName string, topic tutorTopi
 }
 
 func tutorMiniExplanation(level string, topic tutorTopic, function tutorCourseFunction, words []tutorLessonWord, interfaceLanguage string) string {
-	first := ""
-	second := ""
-	if len(words) > 0 {
-		first = words[0].Word
-	}
-	if len(words) > 1 {
-		second = words[1].Word
-	}
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" {
-		return fmt.Sprintf("Мини-объяснение: сцена «%s» учит %s. Слова «%s» и «%s» нужны не для угадывания перевода, а чтобы собрать рабочую реплику: запрос, деталь и следующий шаг.", tutorTopicTitle(topic, interfaceLanguage), function.CanDoRU, first, second)
+		return template.MiniExplanationRU
 	}
-	return fmt.Sprintf("Mini explanation: the %s scene trains you to %s. Use \"%s\" and \"%s\" to build a usable line: request, detail, and next step.", tutorTopicTitle(topic, interfaceLanguage), function.CanDoEN, first, second)
+	return template.MiniExplanationEN
 }
 
 func tutorWritingTask(first tutorLessonWord, second tutorLessonWord, topic tutorTopic, function tutorCourseFunction, interfaceLanguage string) string {
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" {
-		return fmt.Sprintf("Напишите одну рабочую реплику для сценария «%s». Используйте «%s» и по возможности «%s».", tutorTopicTitle(topic, interfaceLanguage), first.Word, second.Word)
+		return template.WritingTaskRU
 	}
-	return fmt.Sprintf("Write one usable line for the \"%s\" scenario. Use \"%s\" and, if possible, \"%s\".", tutorTopicTitle(topic, interfaceLanguage), first.Word, second.Word)
+	return template.WritingTaskEN
 }
 
 func tutorAnswerVariants(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string, dialogue bool) []tutorAnswerVariant {
-	first := tutorWordOrFallback(words, 0, "reservation")
-	second := tutorWordOrFallback(words, 1, "room")
-	third := tutorWordOrFallback(words, 2, "passport")
-	fourth := tutorWordOrFallback(words, 3, "today")
-	ru := normalizeInterfaceLanguage(interfaceLanguage) == "ru"
-	canDo := function.CanDoEN
-	if ru {
-		canDo = function.CanDoRU
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
+	lines := template.WritingVariants
+	prefix := "writing"
+	if dialogue {
+		lines = template.DialogueVariants
+		prefix = "dialogue"
 	}
-
-	lines := tutorVariantLines(topic, language, first, second, third, fourth, dialogue)
-	labels := []string{"Base answer", "Natural answer", "Stronger answer", "Common weak answer"}
-	why := []string{
-		"Short, clear, and enough for the task.",
-		"Sounds like a real line because it adds one useful detail.",
-		"Best model: polite opener, task, detail, and next step.",
-		"Too thin: it names words but does not solve the conversation.",
-	}
-	useCases := []string{"safe minimum", "daily conversation", "best practice model", "avoid"}
-	if ru {
-		labels = []string{"Базовый ответ", "Естественно", "Сильный вариант", "Частая слабая ошибка"}
-		why = []string{
-			"Коротко и достаточно для задачи.",
-			"Звучит как живая реплика, потому что добавлена полезная деталь.",
-			"Лучший образец: вежливое начало, задача, деталь и следующий шаг.",
-			"Слишком тонко: слова названы, но разговорная задача не решена.",
-		}
-		useCases = []string{"минимум без риска", "живой разговор", "лучший образец", "не повторять"}
-	}
-
 	variants := make([]tutorAnswerVariant, 0, len(lines))
 	seen := map[string]bool{}
 	for index, line := range lines {
-		line = strings.TrimSpace(line)
-		key := strings.ToLower(line)
-		if line == "" || seen[key] {
+		line.Text = strings.TrimSpace(line.Text)
+		key := strings.ToLower(line.Text)
+		if line.Text == "" || seen[key] {
 			continue
 		}
 		seen[key] = true
-		variants = append(variants, tutorAnswerVariant{
-			ID:      fmt.Sprintf("%s:%d", map[bool]string{true: "dialogue", false: "writing"}[dialogue], index+1),
-			Label:   labels[tutorMinInt(index, len(labels)-1)],
-			Text:    line,
-			Why:     why[tutorMinInt(index, len(why)-1)] + " " + tutorLocalized(interfaceLanguage, "Цель урока: "+canDo+".", "Lesson goal: "+canDo+"."),
-			Level:   []string{"A1", "A2", "B1", "avoid"}[tutorMinInt(index, 3)],
-			UseCase: useCases[tutorMinInt(index, len(useCases)-1)],
-			Avoid:   index == len(lines)-1,
-		})
+		variants = append(variants, tutorScenarioVariantToAnswer(prefix, index, line, interfaceLanguage))
 	}
 	return variants
 }
@@ -962,78 +1250,16 @@ func tutorListeningTask(topic tutorTopic, function tutorCourseFunction, interfac
 }
 
 func tutorListeningBlock(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string) (string, string, []string) {
-	first := tutorWordOrFallback(words, 0, "reservation")
-	second := tutorWordOrFallback(words, 1, "room")
-	third := tutorWordOrFallback(words, 2, "passport")
-	fourth := tutorWordOrFallback(words, 3, "today")
-	if normalizeLearningLanguage(language) != "en" {
-		text := strings.Join([]string{first.Word, second.Word, third.Word, fourth.Word}, ". ")
-		question := tutorLocalized(interfaceLanguage, "Какие ключевые слова вы услышали?", "Which key words did you hear?")
-		return text + ".", question, []string{first.Word, second.Word, third.Word}
-	}
-	var text string
-	switch topic.Code {
-	case "hotel":
-		text = fmt.Sprintf("Good evening. I have a %s. Can I have a quiet %s for one night? Here is my %s.", first.Word, second.Word, third.Word)
-	case "doctor":
-		text = fmt.Sprintf("Hello. I have %s in the morning. Can I see a %s %s?", first.Word, second.Word, fourth.Word)
-	case "food":
-		text = fmt.Sprintf("Hello. Can I see the %s? I would like %s and %s, please.", first.Word, second.Word, third.Word)
-	case "travel":
-		text = fmt.Sprintf("Hello. I need a %s to the %s for %s. What time does it leave?", first.Word, second.Word, fourth.Word)
-	default:
-		text = fmt.Sprintf("Hello. I need help with %s. My detail is %s, and the next step is %s.", first.Word, second.Word, third.Word)
-	}
-	question := tutorLocalized(interfaceLanguage, "Какие 2-3 детали важны в аудио?", "Which 2-3 details matter in the audio?")
-	return text, question, []string{first.Word, second.Word, third.Word}
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
+	question := tutorLocalized(interfaceLanguage, template.ListeningQuestionRU, template.ListeningQuestionEN)
+	return template.ListeningText, question, append([]string{}, template.ListeningExpected...)
 }
 
 func tutorScenarioDialogue(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string) ([]string, string, string) {
-	first := tutorWordOrFallback(words, 0, "reservation")
-	second := tutorWordOrFallback(words, 1, "room")
-	third := tutorWordOrFallback(words, 2, "passport")
-	if normalizeLearningLanguage(language) != "en" {
-		lines := []string{
-			fmt.Sprintf("Tutor: %s?", tutorTopicTitle(topic, interfaceLanguage)),
-			fmt.Sprintf("Learner: %s / %s.", first.Word, second.Word),
-			fmt.Sprintf("Tutor: %s?", third.Word),
-		}
-		prompt := tutorLocalized(interfaceLanguage, "Ответьте одной короткой репликой с 1-2 словами урока.", "Answer with one short line using 1-2 lesson words.")
-		return lines, prompt, tutorCanDo("A1", topic, function, interfaceLanguage)
-	}
-	var lines []string
-	var prompt string
-	switch topic.Code {
-	case "hotel":
-		lines = []string{
-			"Receptionist: Good evening. Do you have a reservation?",
-			fmt.Sprintf("Guest: Yes, I have a %s under Ivan Petrov.", first.Word),
-			fmt.Sprintf("Receptionist: May I see your %s, please?", third.Word),
-		}
-		prompt = fmt.Sprintf("Answer as the guest: confirm the %s and offer the %s.", first.Word, third.Word)
-	case "doctor":
-		lines = []string{
-			"Receptionist: Hello. How can I help?",
-			fmt.Sprintf("Patient: I have %s and I need a %s.", first.Word, second.Word),
-			"Receptionist: Can you come this morning?",
-		}
-		prompt = "Answer as the patient: say yes/no and give one detail."
-	case "food":
-		lines = []string{
-			"Server: Hello. What would you like?",
-			fmt.Sprintf("Guest: Can I see the %s, please?", first.Word),
-			fmt.Sprintf("Server: Sure. Would you like %s or %s?", second.Word, third.Word),
-		}
-		prompt = "Answer as the guest: choose one item and say please."
-	default:
-		lines = []string{
-			"Assistant: Hello. How can I help?",
-			fmt.Sprintf("Learner: I need help with %s.", first.Word),
-			fmt.Sprintf("Assistant: What detail should I write: %s or %s?", second.Word, third.Word),
-		}
-		prompt = "Answer with the correct detail and one next step."
-	}
-	return lines, tutorLocalized(interfaceLanguage, "Ответьте на последнюю реплику на изучаемом языке.", prompt), tutorCanDo("A1", topic, function, interfaceLanguage)
+	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
+	prompt := tutorLocalized(interfaceLanguage, template.DialoguePromptRU, template.DialoguePromptEN)
+	goal := tutorLocalized(interfaceLanguage, template.DialogueGoalRU, template.DialogueGoalEN)
+	return append([]string{}, template.DialogueLines...), prompt, goal
 }
 
 func tutorReviewSummary(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, interfaceLanguage string) []string {
