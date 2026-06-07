@@ -1,5 +1,6 @@
 ﻿import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ClipboardEvent } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import type { LucideProps } from "lucide-react";
@@ -291,6 +292,7 @@ type TutorLesson = {
   listening_text?: string;
   listening_question?: string;
   listening_expected?: string[];
+  pronunciation_text?: string;
   dialogue?: string[];
   dialogue_prompt?: string;
   dialogue_goal?: string;
@@ -578,15 +580,17 @@ function normalizeView(value: string | null): ViewId {
   return "home";
 }
 
+const appLoginPath = "/app/login";
+
 function isAuthStandaloneRoute() {
   const path = location.pathname.replace(/\/+$/, "").toLowerCase();
-  return document.documentElement.dataset.authStandalone === "true" || path === "/login" || path === "/app/login";
+  return document.documentElement.dataset.authStandalone === "true" || path === "/login" || path === appLoginPath;
 }
 
 function currentNotFoundPath() {
   if (isAuthStandaloneRoute()) return "";
   const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase() || "/";
-  const allowedPaths = new Set(["/", "/app"]);
+  const allowedPaths = new Set(["/", "/app", "/app/mobile", "/app/desktop"]);
   const view = new URLSearchParams(location.search).get("view");
   if (!allowedPaths.has(normalizedPath) || (view && !isKnownViewValue(view))) {
     return `${location.pathname}${location.search}`;
@@ -683,8 +687,8 @@ const roleplayGenericDescriptions: Record<string, string> = {
 };
 
 const pronunciationLocales: Record<string, Record<string, string>> = {
-  en: { title: "Pronunciation", body: "Weak words, difficult sounds, and score history from listening and voice answers.", heatmap: "Pronunciation heatmap", weak: "Weak words and sounds", history: "Score history", noData: "No voice data yet", hint: "Start Listening and send a voice answer.", latest: "latest score", repeat: "Try again" },
-  ru: { title: "Произношение", body: "Слабые слова, сложные звуки и история оценок из аудирования и голосовых ответов.", heatmap: "Карта произношения", weak: "Слабые слова и звуки", history: "История прогресса", noData: "Пока нет голосовых данных", hint: "Запустите аудирование и отправьте голос.", latest: "последняя оценка", repeat: "Повторить" },
+  en: { title: "Pronunciation", body: "A standalone pronunciation workout: listen to the model, record or upload your voice, and get a score with weak sounds.", heatmap: "Pronunciation heatmap", weak: "Weak words and sounds", history: "Score history", noData: "No voice data yet", hint: "Record or upload the phrase above.", latest: "latest score", repeat: "Try again" },
+  ru: { title: "Произношение", body: "Самостоятельная тренировка произношения: послушайте образец, запишите или загрузите голос и получите оценку по словам и звукам.", heatmap: "Карта произношения", weak: "Слабые слова и звуки", history: "История прогресса", noData: "Пока нет голосовых данных", hint: "Запишите или загрузите фразу выше.", latest: "последняя оценка", repeat: "Повторить" },
   es: { title: "PronunciaciГіn", body: "Palabras dГ©biles, sonidos difГ­ciles e historial de puntuaciГіn de escucha y respuestas de voz.", heatmap: "Mapa de pronunciaciГіn", weak: "Palabras y sonidos dГ©biles", history: "Historial de puntuaciГіn", noData: "AГєn no hay datos de voz", hint: "Inicia escucha y envГ­a una respuesta de voz.", latest: "Гєltima puntuaciГіn", repeat: "Repetir" },
   de: { title: "Aussprache", body: "Schwache WГ¶rter, schwierige Laute und Bewertungsverlauf aus Listening und Sprachantworten.", heatmap: "Aussprache-Karte", weak: "Schwache WГ¶rter und Laute", history: "Bewertungsverlauf", noData: "Noch keine Sprachdaten", hint: "Starte Listening und sende eine Sprachantwort.", latest: "letzte Bewertung", repeat: "Wiederholen" },
   fr: { title: "Prononciation", body: "Mots faibles, sons difficiles et historique des scores issus de l'Г©coute et des rГ©ponses vocales.", heatmap: "Carte de prononciation", weak: "Mots et sons faibles", history: "Historique des scores", noData: "Pas encore de donnГ©es vocales", hint: "Lance l'Г©coute et envoie une rГ©ponse vocale.", latest: "dernier score", repeat: "RГ©essayer" },
@@ -1329,8 +1333,8 @@ export function App() {
       window.location.reload();
     };
     navigator.serviceWorker.addEventListener("controllerchange", reloadWhenControlled);
-    navigator.serviceWorker
-      .register("/app/offline-deck-sw.js", { updateViaCache: "none" })
+      navigator.serviceWorker
+        .register("/app/offline-deck-sw.js", { updateViaCache: "none" })
       .then((registration) => {
         registration.update().catch(() => undefined);
         if (registration.waiting) {
@@ -1431,24 +1435,20 @@ export function App() {
   const accountKey = asText(session?.account?.login || user.telegram_account?.id || "guest", "guest");
   const onboardingKey = `poliglot-onboarding-v2:${accountKey}`;
   const paymentHistoryKey = `poliglot-payment-history-v2:${accountKey}`;
-  const phrasebookKey = `poliglot-phrasebook-v2:${accountKey}`;
   const habitKey = `poliglot-habit-v2:${accountKey}`;
 
   useEffect(() => {
     if (!session?.authenticated) return;
     setPaymentHistory(readPaymentHistory(paymentHistoryKey));
     const serverPhrasebook = normalizePhrasebookItems(user.phrasebook);
-    const localPhrasebook = readPhrasebook(phrasebookKey);
-    const mergedPhrasebook = normalizePhrasebookItems([...serverPhrasebook, ...localPhrasebook]);
-    setPhrasebook(mergedPhrasebook);
-    localStorage.setItem(phrasebookKey, JSON.stringify(mergedPhrasebook));
+    setPhrasebook(serverPhrasebook);
     const serverHabitLog = normalizeHabitLogValue(user.habit_log);
     const localHabitLog = readHabitLog(habitKey);
     const mergedHabitLog = { ...localHabitLog, ...serverHabitLog };
     setHabitLog(mergedHabitLog);
     localStorage.setItem(habitKey, JSON.stringify(mergedHabitLog));
     if (!localStorage.getItem(onboardingKey)) setOnboardingOpen(true);
-  }, [session?.authenticated, paymentHistoryKey, phrasebookKey, habitKey, onboardingKey, user.phrasebook, user.habit_log]);
+  }, [session?.authenticated, paymentHistoryKey, habitKey, onboardingKey, user.phrasebook, user.habit_log]);
 
   useEffect(() => {
     if (!session?.authenticated) return;
@@ -1486,39 +1486,33 @@ export function App() {
       };
       setPhrasebook((current) => {
         const next = normalizePhrasebookItems([item, ...current.filter((entry) => entry.phrase.toLowerCase() !== cleaned.toLowerCase())]);
-        localStorage.setItem(phrasebookKey, JSON.stringify(next));
         setStatus({ kind: "ok", text: copy("phrase_saved", "Фраза добавлена в phrasebook") });
         return next;
       });
       void api<ApiRecord>("/api/phrasebook", { method: "POST", body: item })
         .then((payload) => {
           const next = normalizePhrasebookItems(payload.items);
-          if (next.length) {
-            setPhrasebook(next);
-            localStorage.setItem(phrasebookKey, JSON.stringify(next));
-          }
+          setPhrasebook(next);
         })
         .catch(() => undefined);
     },
-    [phrasebookKey, user.learning_language],
+    [user.learning_language],
   );
 
   const removePhrase = useCallback(
     (id: string) => {
       setPhrasebook((current) => {
         const next = current.filter((item) => item.id !== id);
-        localStorage.setItem(phrasebookKey, JSON.stringify(next));
         return next;
       });
       void api<ApiRecord>(`/api/phrasebook?id=${encodeURIComponent(id)}`, { method: "DELETE" })
         .then((payload) => {
           const next = normalizePhrasebookItems(payload.items);
           setPhrasebook(next);
-          localStorage.setItem(phrasebookKey, JSON.stringify(next));
         })
         .catch(() => undefined);
     },
-    [phrasebookKey],
+    [],
   );
 
   const claimDailyBonus = async () => {
@@ -1642,6 +1636,7 @@ export function App() {
   };
 
   const startTutor = async () => {
+    setTutorLesson(null);
     const payload = await runAction("tutor", async () => {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 30000);
@@ -2282,7 +2277,7 @@ export function App() {
       await logout();
     } finally {
       setSession(null);
-      location.replace("/login");
+      location.replace(appLoginPath);
     }
   };
 
@@ -2368,7 +2363,7 @@ export function App() {
     return <AuthStandaloneView session={session} theme={theme} setTheme={setTheme} onAuthenticated={setSession} />;
   }
   if (!session?.authenticated || !session.user) {
-    location.replace("/login");
+    location.replace(appLoginPath);
     return <LoadingScreen theme={theme} />;
   }
 
@@ -3447,7 +3442,7 @@ function FunctionRibbon({
       <nav
         ref={ribbonRef}
         className="function-ribbon"
-        aria-label="V2 function ribbon"
+        aria-label="Web function ribbon"
         onWheel={(event) => {
           if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
             event.currentTarget.scrollLeft += event.deltaY;
@@ -4012,17 +4007,25 @@ function BugReportDialog({
 }) {
   const [message, setMessage] = useState("");
   const [screenshots, setScreenshots] = useState<File[]>([]);
-  const canSend = message.trim().length >= 8;
+  const canSend = message.trim().length >= 8 || screenshots.length > 0;
   const addScreenshotFiles = (files: File[]) => {
     const imageFiles = files.filter((file) => file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|svg|heic|heif)$/i.test(file.name));
     if (!imageFiles.length) return;
     setScreenshots((current) => [...current, ...imageFiles].slice(0, 5));
   };
+  const addClipboardScreenshots = (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const files = Array.from(event.clipboardData.files || []);
+    const itemFiles = Array.from(event.clipboardData.items || [])
+      .filter((item) => item.kind === "file")
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file));
+    addScreenshotFiles([...files, ...itemFiles]);
+  };
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSend) return;
     const form = new FormData();
-    form.set("message", message.trim());
+    form.set("message", message.trim() || copy("bug_report_image_only", "Скриншот или изображение без текста."));
     form.set("view", activeView);
     form.set("user_agent", navigator.userAgent);
     screenshots.forEach((file) => form.append("screenshot", file));
@@ -4048,7 +4051,7 @@ function BugReportDialog({
               <textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
-                onPaste={(event) => addScreenshotFiles(Array.from(event.clipboardData.files || []))}
+                onPaste={addClipboardScreenshots}
                 placeholder={copy("problem_description_placeholder", "Например: в roleplay не открылась карточка диалога...")}
                 rows={5}
               />
@@ -4058,7 +4061,7 @@ function BugReportDialog({
               <span>{screenshotLabel}</span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.bmp,.svg,.heic,.heif"
                 multiple
                 onChange={(event) => addScreenshotFiles(Array.from(event.target.files || []))}
               />
@@ -4066,7 +4069,7 @@ function BugReportDialog({
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" onClick={onClose}>{copy("back", "Назад")}</Button>
+              <Button type="button" variant="outline" onClick={onClose}>{copy("bug_report_close", "Закрыть")}</Button>
             </DialogClose>
             <Button type="submit" disabled={!canSend || busy === "bug-report"}>
               {busy === "bug-report" ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={16} />}
@@ -4144,7 +4147,7 @@ function OnboardingDialog({
             <span className="eyebrow">{copy("onboarding_kicker", "Старт обучения")}</span>
             <DialogTitle className="onboarding-dialog-v2__title">{copy("onboarding_title", "Соберём ваш план на неделю")}</DialogTitle>
             <DialogDescription className="onboarding-dialog-v2__description">
-              {copy("onboarding_description", "Выберите цель, уровень, язык и формат занятий. V2 сразу покажет главный шаг на сегодня.")}
+              {copy("onboarding_description", "Выберите цель, уровень, язык и формат занятий. Web сразу покажет главный шаг на сегодня.")}
             </DialogDescription>
 
             <div className="onboarding-dialog-v2__section">
@@ -4774,8 +4777,8 @@ function TutorView({ user, tutorLesson, voiceFile, imageFile, setVoiceFile, setI
         setFeedback("");
         setFeedbackTone("idle");
         try {
-          const target = display(tutorLesson.listening_text);
-          const record = await apiForm<ApiRecord>("/api/shadowing/answer", buildShadowingForm("", voiceFile, target));
+          const target = display(tutorLesson.pronunciation_text || tutorLesson.listening_text);
+          const record = await apiForm<ApiRecord>("/api/pronunciation/check", buildShadowingForm("", voiceFile, target));
           const transcript = recordField(record, ["transcript", "text"]);
           const pronunciation = pronunciationFrom(record);
           setTutorPronunciation(pronunciation);
@@ -4963,7 +4966,7 @@ function TutorView({ user, tutorLesson, voiceFile, imageFile, setVoiceFile, setI
       );
     }
     if (activeStage.id === "pronunciation") {
-      const target = display(tutorLesson.listening_text);
+      const target = display(tutorLesson.pronunciation_text || tutorLesson.listening_text);
       return (
         <>
           <div className="tutor-pronunciation-target-v2">
@@ -5302,7 +5305,7 @@ function HomeView(props: ViewRendererProps) {
         ) : null}
       </section>
       <section className="v2-panel learning-lab-v2">
-        <span className="eyebrow"><Sparkles size={15} />{copy("v2_learning_lab", "V2 learning lab")}</span>
+        <span className="eyebrow"><Sparkles size={15} />{copy("v2_learning_lab", "Новые функции")}</span>
         <h2>{copy("v2_learning_lab_title", "Новые обучающие режимы")}</h2>
         <div className="learning-lab-v2__grid">
           <button type="button" onClick={() => setView("tutor")}><Sparkles size={18} /><strong>{copy("ai_tutor", "AI Tutor")}</strong><span>{copy("tutor_short_hint", "One guided lesson: words, grammar, listening, writing, dialogue, and review")}</span></button>
@@ -5453,7 +5456,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   const reports = mergePronunciationHistory(liveReports, storedReports);
   const latest = reports[0];
   const score = latest?.score || latest?.similarity || latest?.average_confidence || 0;
-  const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || shadowingTarget || pronunciationPracticeFallback(user, copy));
+  const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || pronunciationPracticeFallback(user, copy));
   const problemWords = uniquePronunciationProblems(reports.flatMap((report) => report.problem_words || []));
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
   const tokens = compactPronunciationMap(uniquePronunciationProblems(problemWords.length ? problemWords : fallbackWords), user, copy);
@@ -5667,7 +5670,7 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
       <section className="v2-panel offline-hero-v2">
         <span className="eyebrow"><WifiOff size={15} />{copy("offline_decks", "Offline decks")}</span>
         <h2>{copy("offline_decks_title", "PWA mini-decks для повторения")}</h2>
-        <p>{copy("offline_decks_body", "Мини-колоды сохраняются в браузере и доступны без Telegram. Service worker кэширует V2-shell.")}</p>
+        <p>{copy("offline_decks_body", "Мини-колоды сохраняются в браузере и доступны без Telegram. Service worker кэширует web shell.")}</p>
         <div className="home-insights-v2__actions">
           <Button onClick={() => void refreshDeck()} disabled={busy === "vocabulary" || busy === "mistakes"}><Repeat2 size={16} />{copy("refresh_deck", "Обновить колоду")}</Button>
           <Button variant="outline" onClick={() => downloadDeck("txt")} disabled={!visibleDeck.length}><Download size={16} />TXT</Button>
@@ -5833,6 +5836,7 @@ function ChatWorkView({
         {isShadowing && shadowingTarget ? (
           <div className="task-box-v2">
             <span>{copy("spoken_model", "Spoken model")}</span>
+            <strong>{shadowingTarget}</strong>
             <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget }]} />
             <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
               <ChevronRight size={16} />

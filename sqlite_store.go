@@ -1487,6 +1487,43 @@ func (s *sqliteStore) assignTutorLessonTx(tx *sql.Tx, telegramID int64, lessonID
 	return rows > 0, nil
 }
 
+func (s *sqliteStore) referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error) {
+	if telegramID == 0 {
+		return nil, nil
+	}
+	if limit <= 0 || limit > 500 {
+		limit = 100
+	}
+	rows, err := s.db.Query(
+		`SELECT telegram_id, first_name, level, xp, referral_level_rewarded, created_at, updated_at
+		FROM users
+		WHERE invited_by = ?
+		ORDER BY created_at DESC
+		LIMIT ?`,
+		telegramID,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []referralInviteeEntry
+	for rows.Next() {
+		var user userState
+		var rewarded int
+		var createdAt, updatedAt string
+		if err := rows.Scan(&user.TelegramID, &user.FirstName, &user.Level, &user.XP, &rewarded, &createdAt, &updatedAt); err != nil {
+			return nil, err
+		}
+		user.InvitedBy = telegramID
+		user.ReferralLevelRewarded = rewarded != 0
+		user.CreatedAt = parseDBTime(createdAt)
+		user.UpdatedAt = parseDBTime(updatedAt)
+		items = append(items, referralInviteeFromUser(user))
+	}
+	return items, rows.Err()
+}
+
 func (s *sqliteStore) incrementPractice(telegramID int64) error {
 	return s.updateUser(telegramID, func(user *userState) {
 		user.PracticeCount++

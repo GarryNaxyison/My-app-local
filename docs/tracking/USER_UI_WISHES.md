@@ -6,7 +6,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 
 - Auth and registration system messages must be localized through the same 35-language V2 layer as the rest of the app. Backend auth errors should carry stable codes, and the login UI must never show generic fallback labels such as `Раздел`, `Section`, or `Mục` instead of the real error.
 - Web logins may contain a dot inside the login (`friend.name`), but may not start with a dot, hyphen, or underscore. The error for an invalid start character must clearly explain the login rule in the selected interface language.
-- Installed PWA/mobile browser app must always converge to the current web interface after deploy. The `/app/v2` shell, manifest, and service worker need no-store headers, and the service worker should try network first for the app shell/assets while keeping cache only as offline fallback.
+- Installed PWA/mobile browser app must always converge to the current web interface after deploy. The `/app` shell, manifest, and service worker need no-store headers, and the service worker should try network first for the app shell/assets while keeping cache only as offline fallback.
 - Dashboard/Progress statistic labels must stay specific, not collapse to the generic `Statistics` word; Premium/Platinum plan names must not repeat `Premium Premium`; the Phrasebook second input must say `Note or translation`. These labels need static localization and regression coverage for all 35 interface languages.
 - Desktop function-ribbon and mobile bottom-menu ordering must be stored per backend user account, not only in browser `localStorage`, so the layout follows the user across reloads/devices.
 - Wrong answers in Spelling must also become Mistakes dictionary entries; Lessons, Practice, and Spelling should all feed the same repair flow.
@@ -37,14 +37,14 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - AI-repaired vocabulary translations must be durable: save them into the runtime SQLite cache and also back into the matching `vocabulary_words*.json` file so future SQLite rebuilds do not lose them.
 - CEFR level controls must expose the full `A1/A2/B1/B2/C1/C2` range everywhere, including first-run onboarding and Settings. Learn Words should use the exact selected level first and only fallback inside the paired band.
 - Mobile horizontal menu drag must feel physical: the dragged tile stays visible as a floating preview, neighboring tiles open a smooth before/after gap, edge auto-scroll works, and the tile lands in the intended spot with the order saved after reload.
-- The 35-language web regression must check required V2 labels on desktop and mobile, including auth, navigation, view titles/subtitles/actions, settings, notes, and mobile/menu labels.
+- The 35-language web regression must check required web labels on desktop and mobile, including auth, navigation, view titles/subtitles/actions, settings, notes, and mobile/menu labels.
 - Telegram localization must cover the main menu, learning actions, word learning/review prompts, settings, and tool prompts for all 35 interface languages. New interface languages must not be added as aliases to English.
 - Tagalog and other Latin-script languages still need natural local wording even when English words are commonly understood; avoid leaving exact English strings such as `Settings`, `Notes`, or `Review` in required UI labels.
 - After any interface-language expansion, run `go test ./...`, `npm --prefix web-react run build`, and `npm --prefix web-react run e2e` before deployment.
 
-## 2026-05-28 V2-Only Shell / Vocabulary Fallback
+## 2026-05-28 Web Shell / Vocabulary Fallback
 
-- The old HTML web app is removed. Do not recreate `web/index.html`; `/app/v1` should redirect to `/app/v2/`, and public links should use `/app/v2/`.
+- The public web app lives at `/app` with desktop and mobile shells. `web/index.html` is the active React build output, `/app/v1` and `/app/v2` should redirect to `/app`, and public links should use `/app/`.
 - Learn Words, Review, Spelling, Vocabulary cards, and Telegram word study should stay responsive, but exact interface-language source prompts are now stricter than the old instant fallback rule: check SQLite first, translate/persist missing prompts through the guarded vocabulary OpenRouter path when configured, and only show the closest dictionary prompt if that path is unavailable or fails.
 - Missing word translations should be saved once into local SQLite (`vocabulary_ai_translations` and `vocabulary_translations`) so later requests do not ask the model again.
 - The OpenRouter word-translation prompt must behave like a professional dictionary lookup: strict JSON, common meaning, part of speech/CEFR/topic aware, up to three short native-language equivalents, no target word, no transliteration, no examples.
@@ -69,7 +69,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 
 ## 2026-05-27 Login / Auth Notes
 
-- The public login routes `/login`, `/app/login`, and `/app/v2/login` should use the React V2 standalone auth screen, not the old legacy login layout.
+- The public login routes `/login` and `/app/login` should use the React standalone auth screen, not the old legacy login layout.
 - Login must keep the current backend behavior: login/password auth, registration, Cloudflare Turnstile when enabled, and Telegram six-digit OTP through the existing popup flow.
 - Standalone auth copy must be localized through `web-react/src/lib/i18n.ts` for all 35 supported interface languages. Do not leave English fallback text visible in Russian or other non-English locales.
 - The login page must not show the V2 app header, ribbon, bottom navigation, or in-app menu while the user is unauthenticated.
@@ -103,7 +103,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - Lesson start output must show the actual task text when the API returns `prompt`, `question`, or `task`; do not leave the user with only a generic "lesson created" message.
 - Practice and Roleplay result cards must render useful `correction` and `explanation` fields, not only audio/model text.
 - Mobile edit-mode animation may make icons feel floating, but the actual plus/X tap target must stay stable and clickable.
-- V2 is now the only active web app; `/app/v1` is a compatibility redirect to `/app/v2/`, not a legacy shell.
+- `/app` is the active web app; `/app/v1` and `/app/v2` are compatibility redirects to `/app`, not separate shells.
 
 ## 2026-05-26 V2 Payments / Referrals / Mobile Editing Notes
 
@@ -165,7 +165,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - AI roleplay scenarios must be visible as real selectable blocks: restaurant, work, travel, exam, and small talk. Starting a scenario should enter the normal Practice conversation flow.
 - Pronunciation needs a dashboard, not only a result block: current score, weak words/sounds heatmap, score history, retry, and Listening entry point.
 - Clicking Pronunciation/Pronounce must open the pronunciation dashboard itself. It must not auto-start Listening/Audition; Listening should only start from an explicit retry/listening button inside the dashboard.
-- Offline/PWA mini-decks must save useful vocabulary/mistake cards in the browser and keep a deployable service worker/manifest for `/app/v2`.
+- Offline/PWA mini-decks must save useful vocabulary/mistake cards in the browser and keep a deployable service worker/manifest for `/app`.
 - Teacher/admin dashboard can start as a current-account dashboard, but it should expose progress, activity, Premium/payment status, referrals, leaderboard, and problem topics.
 
 ## 2026-05-23 V2 Mobile Navigation / Live QA Notes
@@ -350,7 +350,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - The landing should sell the real product without overload: Daily route, Roleplay, Pronunciation, Photo/translation, Offline/PWA, Notes/mistakes, Telegram sync, and progress.
 - The first landing viewport should feel unique to Poliglot AI by combining the app's dark glass visual language with a Three.js anomalous-matter shader and animated CTA buttons.
 - Public Privacy and Terms language selectors must stay readable in dark theme.
-- Mobile and desktop Playwright tests must cover the public landing shader, header theme toggle/no-`/app/v2` link, legal dark theme, V2 mobile Back behavior, and active Roleplay choose-another-scenario control.
+- Mobile and desktop Playwright tests must cover the public landing shader, header theme toggle/no-`/app/v2` link, legal dark theme, mobile Back behavior, and active Roleplay choose-another-scenario control.
 - Deploy/startup must keep the site alive while large vocabulary indexes are created; dictionary optimization can run in the background, but `/healthz` and the web app should respond quickly after restart.
 
 ## 2026-05-28 Vocabulary / Mobile Scroll / Landing Notes

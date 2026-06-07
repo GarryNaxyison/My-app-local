@@ -7,7 +7,7 @@ poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
 		reverse_proxy localhost:19081
 	}
 
-	@webapp path /app /app/* /app/v2 /app/v2/* /login /login/*
+	@webapp path /app /app/* /login /login/*
 	handle @webapp {
 		reverse_proxy localhost:8080
 	}

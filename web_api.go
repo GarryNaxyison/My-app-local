@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/url"
@@ -145,6 +146,10 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/login", api.handleWebLogin)
 	mux.HandleFunc("/app", api.handleWebApp)
 	mux.HandleFunc("/app/login", api.handleWebLogin)
+	mux.HandleFunc("/app/v1", api.handleWebVersionRedirect)
+	mux.HandleFunc("/app/v1/", api.handleWebVersionRedirect)
+	mux.HandleFunc("/app/v2", api.handleWebVersionRedirect)
+	mux.HandleFunc("/app/v2/", api.handleWebVersionRedirect)
 	mux.HandleFunc("/manifest.webmanifest", api.handleWebManifest)
 	mux.HandleFunc("/app/manifest.webmanifest", api.handleWebManifest)
 	mux.HandleFunc("/offline-deck-sw.js", api.handleWebOfflineDeckServiceWorker)
@@ -169,6 +174,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/auth/logout", api.handleAuthLogout)
 	mux.HandleFunc("/api/session", api.handleSession)
 	mux.HandleFunc("/api/settings", api.handleSettings)
+	mux.HandleFunc("/api/navigation-layout", api.handleNavigationLayout)
 	mux.HandleFunc("/api/leaderboard", api.handleLeaderboard)
 	mux.HandleFunc("/api/tutor/start", api.handleTutorStart)
 	mux.HandleFunc("/api/lesson/start", api.handleLessonStart)
@@ -350,6 +356,17 @@ func (api *webAPI) handleWebApp(w http.ResponseWriter, r *http.Request) {
 
 func (api *webAPI) handleWebLogin(w http.ResponseWriter, r *http.Request) {
 	api.writeWebAppWithMode(w, r, webAppShellFromRequest(r), true)
+}
+
+func (api *webAPI) handleWebVersionRedirect(w http.ResponseWriter, r *http.Request) {
+	target := "/app"
+	if strings.HasSuffix(strings.TrimRight(strings.ToLower(r.URL.Path), "/"), "/login") {
+		target = "/app/login"
+	}
+	if r.URL.RawQuery != "" {
+		target += "?" + r.URL.RawQuery
+	}
+	http.Redirect(w, r, target, http.StatusMovedPermanently)
 }
 
 func (api *webAPI) handleWebManifest(w http.ResponseWriter, r *http.Request) {
@@ -632,7 +649,7 @@ func (api *webAPI) handleAuthRegister(w http.ResponseWriter, r *http.Request) {
 	}
 	login, err := normalizeWebLogin(req.Login)
 	if err != nil {
-		writeAPIError(w, http.StatusBadRequest, err.Error())
+		writeAPIErrorCode(w, http.StatusBadRequest, webLoginValidationCode(req.Login), err.Error())
 		return
 	}
 	if err := validateWebPassword(req.Password); err != nil {
@@ -1303,6 +1320,13 @@ func (api *webAPI) handleSession(w http.ResponseWriter, r *http.Request) {
 		api.writeCurrentUserError(w, err)
 		return
 	}
+	if err := api.bot.store.recordHabitLogin(user.TelegramID); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName); err == nil {
+		user = refreshed
+	}
 	api.writeSession(w, user)
 }
 
@@ -1340,6 +1364,31 @@ func (api *webAPI) handleSettings(w http.ResponseWriter, r *http.Request) {
 			writeAPIError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+	}
+	refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	api.writeSession(w, refreshed)
+}
+
+func (api *webAPI) handleNavigationLayout(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req navigationLayout
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	if err := api.bot.store.setNavigationLayout(user.TelegramID, req); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
 	}
 	refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
 	if err != nil {
@@ -1463,6 +1512,9 @@ func (api *webAPI) handleLessonAnswer(w http.ResponseWriter, r *http.Request) {
 	}
 	feedback, mistakesJSON := splitFeedbackAndMistakes(raw)
 	entries := parseMistakesJSON(mistakesJSON, time.Now().UTC())
+	if len(entries) == 0 && strings.TrimSpace(mistakesJSON) == "" {
+		entries = api.extractWebMistakes(r.Context(), user, language, interfaceLanguage, "lesson answer", user.LastLessonPrompt, text, feedback)
+	}
 	if err := api.bot.store.addMistakes(user.TelegramID, user.LearningLanguage, entries); err != nil {
 		log.Printf("addMistakes (web lesson) for %d: %v", user.TelegramID, err)
 	}
@@ -1548,6 +1600,9 @@ func (api *webAPI) handlePractice(w http.ResponseWriter, r *http.Request) {
 	}
 	reply, mistakesJSON := splitFeedbackAndMistakes(raw)
 	entries := parseMistakesJSON(mistakesJSON, time.Now().UTC())
+	if len(entries) == 0 && strings.TrimSpace(mistakesJSON) == "" {
+		entries = api.extractWebMistakes(r.Context(), user, language, interfaceLanguage, "practice message", practiceMessage, input.text, reply)
+	}
 	if err := api.bot.store.addMistakes(user.TelegramID, user.LearningLanguage, entries); err != nil {
 		log.Printf("addMistakes (web practice) for %d: %v", user.TelegramID, err)
 	}
@@ -1577,6 +1632,18 @@ func (api *webAPI) handlePractice(w http.ResponseWriter, r *http.Request) {
 		"promoted_to":           promotedTo,
 		"user":                  api.userDTO(refreshed),
 	})
+}
+
+func (api *webAPI) extractWebMistakes(ctx context.Context, user userState, language learningLanguage, interfaceLanguage learningLanguage, source string, task string, learnerAnswer string, feedback string) []mistakeEntry {
+	if api == nil || api.bot == nil || api.bot.openrouter == nil {
+		return nil
+	}
+	raw, err := api.bot.openrouter.complete(ctx, mistakeExtractionPrompt(language, interfaceLanguage, source, task, learnerAnswer, feedback), 0.1, 500)
+	if err != nil {
+		log.Printf("extract web mistakes for %d: %v", user.TelegramID, err)
+		return nil
+	}
+	return parseMistakesJSON(raw, time.Now().UTC())
 }
 
 func (api *webAPI) handleLevelTestStart(w http.ResponseWriter, r *http.Request) {
@@ -1931,9 +1998,13 @@ func (api *webAPI) handleBugReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	message := strings.TrimSpace(r.FormValue("message"))
-	if len([]rune(message)) < 8 {
+	files := bugReportUploadFiles(r)
+	if len([]rune(message)) < 8 && len(files) == 0 {
 		writeAPIError(w, http.StatusBadRequest, "Describe the problem in more detail.")
 		return
+	}
+	if message == "" && len(files) > 0 {
+		message = "Image attachment only."
 	}
 	view := strings.TrimSpace(r.FormValue("view"))
 	userAgent := strings.TrimSpace(r.FormValue("user_agent"))
@@ -1942,7 +2013,6 @@ func (api *webAPI) handleBugReport(w http.ResponseWriter, r *http.Request) {
 	if err := appendBugReportFile(reportID, user, view, message, userAgent); err != nil {
 		log.Printf("write bug report: %v", err)
 	}
-	files := r.MultipartForm.File["screenshot"]
 	photoCount := 0
 	for index, header := range files {
 		if header.Size > webMaxImageUploadBytes {
@@ -2192,17 +2262,23 @@ func (api *webAPI) handleSpellingAnswer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if req.GiveUp {
+		entry := spellingMistakeEntry(user, word, time.Now().UTC())
+		if err := api.bot.store.addMistakes(user.TelegramID, user.LearningLanguage, []mistakeEntry{entry}); err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		if err := api.bot.store.setMode(user.TelegramID, modeWebSpellingSkipPrefix+word.ID); err != nil {
 			writeAPIError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]any{
-			"correct":     false,
-			"gave_up":     true,
-			"word_id":     word.ID,
-			"word":        word.English,
-			"translation": learnedWordTranslation(word, user.InterfaceLanguage),
-			"context":     learnedWordContext(word, user.InterfaceLanguage),
+			"correct":        false,
+			"gave_up":        true,
+			"word_id":        word.ID,
+			"word":           word.English,
+			"correct_answer": word.English,
+			"translation":    learnedWordTranslation(word, user.InterfaceLanguage),
+			"context":        learnedWordContext(word, user.InterfaceLanguage),
 			"example": api.bot.vocabularyExample(r.Context(), user, vocabWord{
 				ID:       word.ID,
 				Language: word.Language,
@@ -2254,11 +2330,12 @@ func (api *webAPI) handleSpellingAnswer(w http.ResponseWriter, r *http.Request) 
 	}
 	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
 	writeJSON(w, http.StatusOK, map[string]any{
-		"correct":     true,
-		"word_id":     word.ID,
-		"word":        word.English,
-		"translation": learnedWordTranslation(word, user.InterfaceLanguage),
-		"context":     learnedWordContext(word, user.InterfaceLanguage),
+		"correct":        true,
+		"word_id":        word.ID,
+		"word":           word.English,
+		"correct_answer": word.English,
+		"translation":    learnedWordTranslation(word, user.InterfaceLanguage),
+		"context":        learnedWordContext(word, user.InterfaceLanguage),
 		"example": api.bot.vocabularyExample(r.Context(), user, vocabWord{
 			ID:       word.ID,
 			Language: word.Language,
@@ -2304,9 +2381,12 @@ func (api *webAPI) handleMistakes(w http.ResponseWriter, r *http.Request) {
 	if end > len(mistakes) {
 		end = len(mistakes)
 	}
+	items := webMistakeDTOsNewestFirst(mistakes)
+	pageItems := items[start:end]
 	writeJSON(w, http.StatusOK, map[string]any{
 		"empty":       len(mistakes) == 0,
-		"items":       webMistakeDTOs(mistakes, start, end),
+		"items":       items,
+		"page_items":  pageItems,
 		"page":        page,
 		"total_pages": totalPages,
 		"total":       len(mistakes),
@@ -2704,6 +2784,16 @@ func (api *webAPI) handleToolTranslatorSpeech(w http.ResponseWriter, r *http.Req
 		writeAPIError(w, http.StatusBadRequest, "Текст для озвучки слишком длинный.")
 		return
 	}
+	copy := ui(user)
+	if !user.isPremium(time.Now()) {
+		writeAPIError(w, http.StatusPaymentRequired, copy.Tool.VoicePremiumRequired)
+		return
+	}
+	voiceLimit := voiceLimitFor(user)
+	if user.VoiceToday >= voiceLimit {
+		writeAPIError(w, http.StatusTooManyRequests, fmt.Sprintf(copy.Tool.VoiceLimitReached, user.VoiceToday, voiceLimit))
+		return
+	}
 	targetCode := normalizeTranslatorTarget(req.TargetLanguage)
 	if targetCode == "" {
 		targetCode = defaultTranslatorTarget(user)
@@ -2711,6 +2801,10 @@ func (api *webAPI) handleToolTranslatorSpeech(w http.ResponseWriter, r *http.Req
 	sum := sha256.Sum256([]byte(api.cfg.OpenRouterTTSModel + "|" + api.cfg.OpenRouterTTSVoice + "|" + targetCode + "|" + text))
 	cacheKey := "translator|" + fmt.Sprintf("%x", sum[:])
 	if audio, ok := api.cachedPronunciation(cacheKey); ok {
+		if err := api.bot.store.incrementVoice(user.TelegramID); err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		writeToolAudio(w, "translation.mp3", audio)
 		return
 	}
@@ -2720,6 +2814,10 @@ func (api *webAPI) handleToolTranslatorSpeech(w http.ResponseWriter, r *http.Req
 		return
 	}
 	api.cachePronunciation(cacheKey, audio)
+	if err := api.bot.store.incrementVoice(user.TelegramID); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeToolAudio(w, "translation.mp3", audio)
 }
 
@@ -2782,6 +2880,46 @@ func webWordOptionsDTO(options []vocabWord) []webWordOptionDTO {
 		dto = append(dto, webWordOptionDTO{ID: option.ID, Text: option.English})
 	}
 	return dto
+}
+
+func spellingMistakeEntry(user userState, word learnedWordEntry, now time.Time) mistakeEntry {
+	prompt := strings.TrimSpace(learnedWordTranslation(word, user.InterfaceLanguage))
+	if prompt == "" || normalizeAnswer(prompt) == normalizeAnswer(word.English) {
+		prompt = "spelling: " + strings.TrimSpace(word.English)
+	}
+	return mistakeEntry{
+		Language:    normalizeLearningLanguage(user.LearningLanguage),
+		Word:        prompt,
+		Correction:  strings.TrimSpace(word.English),
+		Explanation: "Spelling practice needs another review.",
+		AddedAt:     now,
+	}
+}
+
+func webMistakeDTOsNewestFirst(mistakes []mistakeEntry) []webMistakeDTO {
+	indices := make([]int, 0, len(mistakes))
+	for index := range mistakes {
+		indices = append(indices, index)
+	}
+	sort.SliceStable(indices, func(i, j int) bool {
+		left := mistakes[indices[i]].AddedAt
+		right := mistakes[indices[j]].AddedAt
+		if left.Equal(right) {
+			return indices[i] > indices[j]
+		}
+		if left.IsZero() {
+			return false
+		}
+		if right.IsZero() {
+			return true
+		}
+		return left.After(right)
+	})
+	items := make([]webMistakeDTO, 0, len(indices))
+	for _, index := range indices {
+		items = append(items, webMistakeDTOFromEntry(mistakes[index], index))
+	}
+	return items
 }
 
 func webMistakeDTOs(mistakes []mistakeEntry, start int, end int) []webMistakeDTO {
@@ -3035,8 +3173,16 @@ func imageUploadMime(filename string, data []byte) string {
 	}
 	lowerName := strings.ToLower(strings.TrimSpace(filename))
 	switch {
+	case strings.HasSuffix(lowerName, ".gif"):
+		return "image/gif"
+	case strings.HasSuffix(lowerName, ".bmp"):
+		return "image/bmp"
 	case strings.HasSuffix(lowerName, ".webp"):
 		return "image/webp"
+	case strings.HasSuffix(lowerName, ".heic"):
+		return "image/heic"
+	case strings.HasSuffix(lowerName, ".heif"):
+		return "image/heif"
 	case strings.HasSuffix(lowerName, ".svg"):
 		return "image/svg+xml"
 	case strings.HasSuffix(lowerName, ".png"):
@@ -3046,6 +3192,15 @@ func imageUploadMime(filename string, data []byte) string {
 	default:
 		return mimeType
 	}
+}
+
+func bugReportUploadFiles(r *http.Request) []*multipart.FileHeader {
+	if r == nil || r.MultipartForm == nil {
+		return nil
+	}
+	files := append([]*multipart.FileHeader{}, r.MultipartForm.File["screenshot"]...)
+	files = append(files, r.MultipartForm.File["attachment"]...)
+	return files
 }
 
 func bugReportCaption(reportID string, user userState, view string, message string, userAgent string) string {
@@ -3211,6 +3366,7 @@ func (api *webAPI) handlePremiumStarsPayment(w http.ResponseWriter, r *http.Requ
 	writeJSON(w, http.StatusOK, map[string]any{
 		"sent":    true,
 		"message": webPremiumStarsMessage(user, "sent"),
+		"bot_url": api.premiumStarsBotURL(req.Product),
 	})
 }
 
@@ -3566,6 +3722,14 @@ func (api *webAPI) writeAnonymousSession(w http.ResponseWriter) {
 func (api *webAPI) userDTO(user userState) map[string]any {
 	level, title, currentXP, neededXP := knowledgeLevel(user.XP)
 	lessonLimit, practiceLimit := limitsFor(user)
+	var referralInvitees []referralInviteeEntry
+	if api != nil && api.bot != nil && api.bot.store != nil {
+		var err error
+		referralInvitees, err = api.bot.store.referralInvitees(user.TelegramID, 100)
+		if err != nil {
+			log.Printf("load referral invitees for %d: %v", user.TelegramID, err)
+		}
+	}
 	premiumUntil := ""
 	if !user.PremiumUntil.IsZero() {
 		premiumUntil = user.PremiumUntil.Format(time.RFC3339)
@@ -3574,10 +3738,20 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 	if !user.CreatedAt.IsZero() {
 		createdAt = user.CreatedAt.Format(time.RFC3339)
 	}
+	var telegramAccount any
+	if user.TelegramID > 0 {
+		name := strings.TrimSpace(user.FirstName)
+		telegramAccount = map[string]any{
+			"id":    user.TelegramID,
+			"name":  name,
+			"label": telegramAccountLabel(user.TelegramID, name),
+		}
+	}
 	return map[string]any{
 		"interface_language":         user.InterfaceLanguage,
 		"learning_language":          user.LearningLanguage,
 		"telegram_linked":            user.TelegramID > 0,
+		"telegram_account":           telegramAccount,
 		"created_at":                 createdAt,
 		"level":                      user.Level,
 		"plan":                       planName(user),
@@ -3590,6 +3764,7 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"referral_balance_usdt":      formatUSDTFromKopecks(user.ReferralBalanceKopecks),
 		"referral_withdraw_min":      formatRubKopecks(referralWithdrawalMinKopecks),
 		"referral_withdraw_min_usdt": formatUSDTFromKopecks(referralWithdrawalMinKopecks),
+		"referral_invitees":          referralInvitees,
 		"invited_by":                 user.InvitedBy,
 		"xp":                         user.XP,
 		"xp_level":                   level,
@@ -3608,6 +3783,8 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"learned_words":              len(learnedWordsForLanguage(user)),
 		"mistakes":                   len(mistakesForLanguage(user)),
 		"phrasebook":                 user.Phrasebook,
+		"habit_log":                  user.HabitLog,
+		"navigation_layout":          normalizeNavigationLayout(user.NavigationLayout),
 	}
 }
 
@@ -3626,6 +3803,20 @@ func webLeaderboardDTO(entries []leaderboardEntry) []map[string]any {
 		})
 	}
 	return result
+}
+
+func telegramAccountLabel(id int64, name string) string {
+	name = strings.TrimSpace(name)
+	if name != "" && id != 0 {
+		return name + " (" + strconv.FormatInt(id, 10) + ")"
+	}
+	if id != 0 {
+		return "Telegram " + strconv.FormatInt(id, 10)
+	}
+	if name != "" {
+		return name
+	}
+	return ""
 }
 
 func webLanguageLeaderboardDTO(entries []languageLeaderboardEntry) []map[string]any {
@@ -3716,13 +3907,25 @@ func webPremiumStarsMessage(user userState, key string) string {
 	return en[key]
 }
 
+func (api *webAPI) premiumStarsBotURL(product string) string {
+	botName := strings.TrimPrefix(strings.TrimSpace(api.cfg.WebTelegramLoginBot), "@")
+	if botName == "" {
+		return ""
+	}
+	return "https://t.me/" + url.PathEscape(botName) + "?start=" + url.QueryEscape("buy_"+strings.TrimSpace(product))
+}
+
 func webLanguageDTOs(languages []learningLanguage) []webLanguageDTO {
 	result := make([]webLanguageDTO, 0, len(languages))
 	for _, language := range languages {
+		nativeName := strings.TrimSpace(language.InterfaceName)
+		if nativeName == "" {
+			nativeName = strings.TrimSpace(language.NativeName)
+		}
 		result = append(result, webLanguageDTO{
 			Code:          language.Code,
 			Name:          language.Name,
-			NativeName:    language.NativeName,
+			NativeName:    nativeName,
 			InterfaceName: language.InterfaceName,
 		})
 	}
@@ -3896,6 +4099,24 @@ func decodeJSONRequest(w http.ResponseWriter, r *http.Request, target any) bool 
 
 func writeAPIError(w http.ResponseWriter, status int, message string) {
 	writeAPIErrorCode(w, status, "", message)
+}
+
+func webLoginValidationCode(login string) string {
+	login = strings.TrimSpace(login)
+	if len(login) < 3 || len(login) > 32 {
+		return "invalid_login_length"
+	}
+	first := login[0]
+	if first == '.' || first == '-' || first == '_' {
+		return "invalid_login_start"
+	}
+	for _, ch := range strings.ToLower(login) {
+		ok := ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9' || ch == '_' || ch == '-' || ch == '.'
+		if !ok {
+			return "invalid_login_chars"
+		}
+	}
+	return "invalid_login"
 }
 
 func writeAPIErrorCode(w http.ResponseWriter, status int, code string, message string) {

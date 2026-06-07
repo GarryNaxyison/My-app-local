@@ -80,9 +80,17 @@ func TestPremiumOnlyLimits(t *testing.T) {
 }
 
 func TestPremiumInvoiceDescriptionIsComplete(t *testing.T) {
-	b := &bot{cfg: config{MaxVoiceSeconds: 30}}
+	maxVoiceSeconds := 30
+	b := &bot{cfg: config{MaxVoiceSeconds: maxVoiceSeconds}}
 	description := b.premiumInvoiceDescription(userState{InterfaceLanguage: "ru"}, premiumPlan{Tier: "premium"})
-	for _, want := range []string{"50 уроков", "200 сообщений", "6 голосовых", "30 секунд", "голос в текст", "картинки"} {
+	for _, want := range []string{
+		fmt.Sprintf("%d уроков", premiumLessonLimit),
+		fmt.Sprintf("%d сообщений", premiumPracticeLimit),
+		fmt.Sprintf("%d голосовых", premiumVoiceLimit),
+		fmt.Sprintf("%d секунд", maxVoiceSeconds),
+		"голос в текст",
+		"картинки",
+	} {
 		if !strings.Contains(description, want) {
 			t.Fatalf("premium invoice description is missing %q: %q", want, description)
 		}

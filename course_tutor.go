@@ -94,6 +94,7 @@ type tutorLesson struct {
 	ListeningText     string               `json:"listening_text"`
 	ListeningQuestion string               `json:"listening_question,omitempty"`
 	ListeningExpected []string             `json:"listening_expected,omitempty"`
+	PronunciationText string               `json:"pronunciation_text,omitempty"`
 	Dialogue          []string             `json:"dialogue"`
 	DialoguePrompt    string               `json:"dialogue_prompt,omitempty"`
 	DialogueGoal      string               `json:"dialogue_goal,omitempty"`
@@ -247,6 +248,7 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		ListeningText:     listeningText,
 		ListeningQuestion: listeningQuestion,
 		ListeningExpected: listeningExpected,
+		PronunciationText: tutorPronunciationLine(words, topic, language),
 		Dialogue:          dialogue,
 		DialoguePrompt:    dialoguePrompt,
 		DialogueGoal:      dialogueGoal,
@@ -1049,6 +1051,55 @@ func tutorReviewSummary(words []tutorLessonWord, topic tutorTopic, function tuto
 		summary = append(summary, fmt.Sprintf("%s - %s", word.Word, word.Translation))
 	}
 	return summary
+}
+
+func tutorPronunciationLine(words []tutorLessonWord, topic tutorTopic, language string) string {
+	if normalizeLearningLanguage(language) != "en" {
+		for _, word := range words {
+			example := strings.TrimSpace(word.Example)
+			if example != "" {
+				return example
+			}
+		}
+		return strings.TrimSpace(strings.Join(tutorLessonWordTexts(words, 4), " "))
+	}
+	word := func(index int, fallback string) string {
+		if index >= 0 && index < len(words) && strings.TrimSpace(words[index].Word) != "" {
+			return strings.TrimSpace(words[index].Word)
+		}
+		return fallback
+	}
+	switch topic.Code {
+	case "hotel":
+		return "I have a reservation and I need a quiet room, please."
+	case "doctor":
+		return "I have pain here and I need to see a doctor today."
+	case "food":
+		return "Could I have the menu and a glass of water, please?"
+	case "transport":
+		return "I need a ticket for the next train, please."
+	case "work":
+		return "Can we check the meeting time and the main task?"
+	case "study":
+		return "Could you help me with this lesson question today?"
+	default:
+		return fmt.Sprintf("Please help me with %s and %s today.", word(0, "this"), word(1, "practice"))
+	}
+}
+
+func tutorLessonWordTexts(words []tutorLessonWord, limit int) []string {
+	out := make([]string, 0, tutorMinInt(limit, len(words)))
+	for _, word := range words {
+		text := strings.TrimSpace(word.Word)
+		if text == "" {
+			continue
+		}
+		out = append(out, text)
+		if len(out) >= limit {
+			break
+		}
+	}
+	return out
 }
 
 func tutorScenarioExample(word string, translation string, interfaceLanguage string, topic tutorTopic, language string) (string, string) {

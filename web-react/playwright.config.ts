@@ -13,7 +13,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run preview -- --strictPort",
-    url: "http://127.0.0.1:4174/app/v2/",
+    url: "http://127.0.0.1:4174/app/",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

@@ -200,7 +200,14 @@ async function mockApi(page: Page) {
   ];
   let wordRoundIndex = 0;
 
-  await page.route("**/app/assets/**", (route) => route.fulfill({ status: 200, contentType: "image/png", body: png }));
+  await page.route("**/app/assets/**", (route) => {
+    const request = route.request();
+    const assetPath = new URL(request.url()).pathname.toLowerCase();
+    if (request.resourceType() === "image" || /\.(avif|gif|ico|jpe?g|png|svg|webp)$/.test(assetPath)) {
+      return route.fulfill({ status: 200, contentType: "image/png", body: png });
+    }
+    return route.continue();
+  });
   await page.route("**/api/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
   await page.route("**/api/settings", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
   await page.route("**/api/navigation-layout", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
@@ -524,6 +531,34 @@ async function mockApi(page: Page) {
       }),
     });
   });
+  await page.route("**/api/pronunciation/check", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        transcript: "reservation room passport",
+        pronunciation: {
+          score: 67,
+          accent_strength: 42,
+          fluency: 74,
+          stress: "Stress is late on reservation.",
+          rhythm: "Rhythm has one long pause.",
+          intonation: "Intonation rises naturally.",
+          feedback: "Good rhythm. Work on endings.",
+          problem_words: [
+            { word: "reservation", confidence: 0.42, issue: "low_confidence", tip: "Stress the middle syllable." },
+            { word: "reservation", confidence: 0.39, issue: "low_confidence", tip: "Stress the middle syllable." },
+            { word: "please", confidence: 0.28, issue: "missing", tip: "" },
+          ],
+          phoneme_issues: [
+            { word: "reservation", expected_sound: "/z/", heard_sound: "/s/", confidence: 0.58, tip: "Voice the middle sound." },
+          ],
+          corrected_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
+        },
+        correction_audio_text: "Good evening. I have a reservation. Can I have a quiet room for one night? Here is my passport.",
+      }),
+    }),
+  );
   await page.route("**/api/daily/claim", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, claimed: true, xp: 25, streak: 1, user: { ...sessionPayload.user, xp: 660 } }) }),
   );
@@ -945,7 +980,7 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   }
 });
 
-test("main V2 screens do not expose mojibake or fallback labels across interface languages", async ({ page }) => {
+test("main web screens do not expose mojibake or fallback labels across interface languages", async ({ page }) => {
   test.setTimeout(300_000);
   const views = ["home", "roleplay", "pronunciation", "offline", "mistakes", "leaderboard", "spelling", "tools", "dashboard"] as const;
   const fallbackFragments: Array<string | RegExp> = [
@@ -971,7 +1006,7 @@ test("main V2 screens do not expose mojibake or fallback labels across interface
   for (const code of appLocaleCodes.filter((locale) => locale !== "en")) {
     await useInterfaceLanguage(page, code);
     for (const view of views) {
-      await page.goto(`/app/v2/?view=${view}`);
+      await page.goto(`/app/?view=${view}`);
       await expect(page.locator(".context-display")).toBeVisible();
       const text = await page.locator("body").innerText();
       if (code !== "ru") expect(text, `${code}.${view} mojibake`).not.toMatch(broadMojibakePattern);
@@ -1017,7 +1052,7 @@ test("menu labels for spelling progress and mistakes are localized in every non-
 });
 
 test("today plan and settings password helper copy stay localized", async ({ page }) => {
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await expect(page.locator(".home-plan-v2")).toContainText("План обучения на сегодня");
   await expect(page.locator(".home-plan-v2")).toContainText("Сначала закрываем одну ошибку");
   await expect(page.locator(".weekly-plan-v2")).toContainText("Словарная база");
@@ -1028,7 +1063,7 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".learning-lab-v2")).toContainText("AI Репетитор");
   await expect(page.locator(".learning-lab-v2")).not.toContainText("Раздел");
 
-  await page.goto("/app/v2/?view=settings");
+  await page.goto("/app/?view=settings");
   await expect(page.locator(".password-card-v2")).toContainText("Смена пароля");
   await page.locator(".password-card-v2 input").nth(0).fill("old-password");
   await page.locator(".password-card-v2 input").nth(1).fill("short");
@@ -1041,7 +1076,7 @@ test("today plan and settings password helper copy stay localized", async ({ pag
 });
 
 test("AI Tutor opens one guided lesson context on web and mobile", async ({ page }) => {
-  await page.goto("/app/v2/?view=tutor");
+  await page.goto("/app/?view=tutor");
   await expect(page.locator('.function-ribbon [data-view="tutor"]')).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("Отель и поездка");
@@ -1142,7 +1177,7 @@ test("AI Tutor opens one guided lesson context on web and mobile", async ({ page
   await expect(page.locator(".tutor-context-v2")).toContainText("Урок завершён");
 
   await useInterfaceLanguage(page, "de");
-  await page.goto("/app/v2/?view=tutor");
+  await page.goto("/app/?view=tutor");
   await expect(page.locator(".tutor-context-v2")).toContainText("Neue Wörter");
   await expect(page.locator(".tutor-context-v2")).toContainText("Tutor-Kontext");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Новые слова");
@@ -1150,7 +1185,7 @@ test("AI Tutor opens one guided lesson context on web and mobile", async ({ page
 
   await useInterfaceLanguage(page, "ru");
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await expect(page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]')).toContainText("AI Репетитор");
   await page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]').click();
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
@@ -1158,7 +1193,7 @@ test("AI Tutor opens one guided lesson context on web and mobile", async ({ page
 
 test("auth registration shows localized password rules", async ({ page }) => {
   await mockAnonymousAuth(page);
-  await page.goto("/app/v2/login");
+  await page.goto("/app/login");
   await page.locator(".sign-in-page-v2 p a").last().click();
   await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_password_hint"));
   await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_password_confirm_hint"));
@@ -1191,7 +1226,7 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
     }),
   );
 
-  await page.goto("/app/v2/?view=premium");
+  await page.goto("/app/?view=premium");
   await page.locator(".plan-card-v2 button").first().click();
   await expect(page.locator(".v2-payment-modal")).toBeVisible();
   await page.locator(".payment-method-button-v2").filter({ hasText: "Telegram Stars" }).click();
@@ -1214,7 +1249,7 @@ test("auth login page uses React sign-in component, Cloudflare slot and current 
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) });
   });
 
-  await page.goto("/app/v2/login");
+  await page.goto("/app/login");
   await expect(page.locator(".sign-in-page-v2")).toBeVisible();
   await expect(page.locator(".sign-in-page-v2")).not.toContainText("Раздел");
   await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_subtitle"));
@@ -1275,7 +1310,7 @@ test("auth Telegram button opens existing 6 digit OTP flow", async ({ page }) =>
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) });
   });
 
-  await page.goto("/app/v2/login");
+  await page.goto("/app/login");
   const telegramIcon = await page.locator(".auth-social-icon-v2").boundingBox();
   expect(telegramIcon).not.toBeNull();
   expect(telegramIcon!.width).toBeLessThanOrEqual(24);
@@ -1298,7 +1333,7 @@ test("auth Telegram button opens existing 6 digit OTP flow", async ({ page }) =>
 
 test("desktop Today has no top quick buttons, has compact quests and a green streak", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop layout assertion");
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await expect(page.locator(".context-display--home")).toBeVisible();
   await expectNoMojibake(page);
 
@@ -1321,7 +1356,7 @@ test("desktop Today has no top quick buttons, has compact quests and a green str
 
 test("desktop ribbon right arrow stays inside the app frame", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop layout assertion");
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   const app = await page.locator(".v2-app").boundingBox();
   const rightArrow = await page.locator(".function-ribbon-shell .ribbon-morph-arrow").last().boundingBox();
   expect(app).not.toBeNull();
@@ -1335,7 +1370,7 @@ test("desktop ribbon right arrow stays inside the app frame", async ({ page, isM
 });
 
 test("browser back navigates inside app history instead of leaving the app", async ({ page, isMobile }) => {
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await expect(page.locator(".context-display--home")).toBeVisible();
   const practiceNav = isMobile ? page.locator('.mobile-bottom-nav-v2 [data-view="practice"]') : page.locator('.function-chip[data-view="practice"]');
   await practiceNav.click();
@@ -1347,7 +1382,7 @@ test("browser back navigates inside app history instead of leaving the app", asy
 });
 
 test("unknown app route renders localized 404 without leaving shell", async ({ page }) => {
-  await page.goto("/app/v2/?view=unknown-section");
+  await page.goto("/app/?view=unknown-section");
   await expect(page.locator(".context-display--not-found")).toBeVisible();
   await expect(page.getByText("Страница не найдена")).toBeVisible();
   await page.getByRole("button", { name: /На главный экран|Go home/ }).click();
@@ -1375,7 +1410,7 @@ test("daily bonus button stays locked when last claim is within 24 hours", async
     dailyClaimCalled = true;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, claimed: false }) });
   });
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   const claimButton = page.locator(".habit-calendar-v2__side button").last();
   await expect(claimButton).toBeDisabled();
   await expect(claimButton).toContainText(/Бонус получен|Bonus claimed/);
@@ -1384,7 +1419,7 @@ test("daily bonus button stays locked when last claim is within 24 hours", async
 });
 
 test("payment history shows only confirmed payments", async ({ page }) => {
-  await page.goto("/app/v2/?view=premium");
+  await page.goto("/app/?view=premium");
   const history = page.locator(".payment-history-v2");
   await expect(history).toBeVisible();
   await expect(history.getByText("300 RUB")).toBeVisible();
@@ -1397,7 +1432,7 @@ test("payment history shows only confirmed payments", async ({ page }) => {
 
 test("mobile payment requisites modal stays above bottom navigation and scrolls", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile payment layout assertion");
-  await page.goto("/app/v2/?view=premium");
+  await page.goto("/app/?view=premium");
   await page.locator(".plan-card-v2 button").first().click();
   await expect(page.locator(".v2-payment-modal")).toBeVisible();
   await page.getByRole("button", { name: /TON|USDT/ }).click();
@@ -1424,7 +1459,7 @@ test("mobile onboarding dialog scrolls and keeps actions reachable", async ({ pa
     localStorage.setItem("poliglot-test-show-onboarding", "1");
     localStorage.removeItem("poliglot-onboarding-v2:demor22");
   });
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   const dialog = page.locator(".onboarding-dialog-v2");
   await expect(dialog).toBeVisible();
   await expect(dialog.locator('select').first()).toContainText("C2");
@@ -1451,7 +1486,7 @@ test("mobile onboarding dialog scrolls and keeps actions reachable", async ({ pa
 
 test("offline deck paginates by 10 and exports the full deck", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop download assertion");
-  await page.goto("/app/v2/?view=offline");
+  await page.goto("/app/?view=offline");
   await expect(page.getByText("Оффлайн-карточки для повторения")).toBeVisible();
   await page.getByRole("button", { name: /Обновить колоду/ }).click();
   await expect(page.locator(".offline-deck-grid-v2 article")).toHaveCount(10);
@@ -1489,7 +1524,7 @@ test("offline notes group paginates by 10 like vocabulary", async ({ page }) => 
     localStorage.setItem("poliglot-offline-deck-v2", JSON.stringify(mixedDeck));
   });
 
-  await page.goto("/app/v2/?view=offline");
+  await page.goto("/app/?view=offline");
   await expect(page.locator(".context-display--offline")).toBeVisible();
   await page.locator(".offline-group-tabs-v2 button").filter({ hasText: ru("phrasebook", "Заметки") }).click();
   await expect(page.locator(".offline-deck-grid-v2 article")).toHaveCount(10);
@@ -1531,7 +1566,7 @@ test("offline notes group paginates by 10 like vocabulary", async ({ page }) => 
 });
 
 test("referral block shows invited users, level 3 status, earnings and pagination", async ({ page }) => {
-  await page.goto("/app/v2/?view=referral");
+  await page.goto("/app/?view=referral");
   await expect(page.locator(".context-display--referral")).toBeVisible();
   await expect(page.getByText("Кто перешёл по ссылке")).toBeVisible();
   await expect(page.locator(".referral-invitees-v2__rows article")).toHaveCount(10);
@@ -1543,14 +1578,14 @@ test("referral block shows invited users, level 3 status, earnings and paginatio
 });
 
 test("linked Telegram account hides Send code in settings", async ({ page }) => {
-  await page.goto("/app/v2/?view=settings");
+  await page.goto("/app/?view=settings");
   await expect(page.locator(".context-display--settings")).toBeVisible();
   await expect(page.getByText("Telegram ID 185156683")).toBeVisible();
   await expect(page.getByRole("button", { name: /Send code|Отправить код/ })).toHaveCount(0);
 });
 
 test("pronunciation map is compact and removes repeated advice", async ({ page }) => {
-  await page.goto("/app/v2/?view=shadowing");
+  await page.goto("/app/?view=shadowing");
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await page.locator("textarea").fill("Could you repeat that please");
   await page.locator("textarea").press("Enter");
@@ -1568,7 +1603,7 @@ test("pronunciation map is compact and removes repeated advice", async ({ page }
 });
 
 test("learn words shows varied wrong answer options across rounds", async ({ page }) => {
-  await page.goto("/app/v2/?view=words");
+  await page.goto("/app/?view=words");
   await expect(page.locator(".context-display--words")).toBeVisible();
   await expect(page.locator(".choice-grid-v2 button")).toHaveCount(4);
   const firstOptions = await page.locator(".choice-grid-v2 button").allInnerTexts();
@@ -1591,7 +1626,18 @@ test("learn words shows varied wrong answer options across rounds", async ({ pag
 });
 
 test("learn words result shows target word and saves word pair to notes", async ({ page, isMobile }) => {
-  await page.goto("/app/v2/?view=words");
+  let savedItem: Record<string, unknown> | null = null;
+  await page.route("**/api/phrasebook**", async (route) => {
+    const request = route.request();
+    if (request.method() === "POST") {
+      savedItem = request.postDataJSON();
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: [savedItem, ...phrasebookSeed] }) });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await page.goto("/app/?view=words");
   await expect(page.locator(".context-display--words")).toBeVisible();
   await expect(page.locator(".choice-grid-v2 button")).toHaveCount(4);
   const options = await page.locator(".choice-grid-v2 button").allInnerTexts();
@@ -1624,13 +1670,12 @@ test("learn words result shows target word and saves word pair to notes", async 
   }
 
   await saveChip.click();
-  const stored = await page.evaluate(() => localStorage.getItem("poliglot-phrasebook-v2:demor22") || "");
-  expect(stored).toContain(targetWord);
-  expect(stored).toContain(targetTranslation);
+  await expect.poll(() => String(savedItem?.phrase || "")).toContain(targetWord);
+  expect(String(savedItem?.translation || savedItem?.note || "")).toContain(targetTranslation);
 });
 
 test("spelling result shows the correct target-language word", async ({ page }) => {
-  await page.goto("/app/v2/?view=spelling");
+  await page.goto("/app/?view=spelling");
   await expect(page.locator(".context-display--spelling")).toBeVisible();
   await page.locator(".trainer-display input").fill("clear");
   await page.locator(".trainer-display button", { hasText: ru("check", "Check") }).click();
@@ -1639,7 +1684,7 @@ test("spelling result shows the correct target-language word", async ({ page }) 
 });
 
 test("spelling wrong attempt does not reveal the correct answer", async ({ page }) => {
-  await page.goto("/app/v2/?view=spelling");
+  await page.goto("/app/?view=spelling");
   await expect(page.locator(".context-display--spelling")).toBeVisible();
   await page.locator(".trainer-display input").fill("cler");
   await page.locator(".trainer-display button", { hasText: ru("check", "Check") }).click();
@@ -1652,7 +1697,7 @@ test("spelling wrong attempt does not reveal the correct answer", async ({ page 
 
 test("mobile spelling result stays readable above bottom menu", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=spelling");
+  await page.goto("/app/?view=spelling");
   await expect(page.locator(".context-display--spelling")).toBeVisible();
   await page.locator(".trainer-display input").fill("clear");
   await page.locator(".trainer-display button", { hasText: ru("check", "Check") }).click();
@@ -1667,7 +1712,7 @@ test("mobile spelling result stays readable above bottom menu", async ({ page, i
 
 test("mobile header controls and editable nav rail reorder work", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await page.evaluate(() => localStorage.removeItem("poliglot-mobile-nav-rail-v2:demor22"));
   await page.reload();
   await expect(page.locator(".v2-topbar")).toBeHidden();
@@ -1794,7 +1839,7 @@ test("mobile header controls and editable nav rail reorder work", async ({ page,
 
 test("desktop function ribbon reorder persists after reload", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop ribbon assertion");
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await expect(page.locator(".function-ribbon-shell")).toBeVisible();
   await page.evaluate(() => localStorage.removeItem("poliglot-function-ribbon-v2:demor22"));
   await page.reload();
@@ -1818,7 +1863,7 @@ test("desktop function ribbon reorder persists after reload", async ({ page, isM
 
 test("mobile lesson keeps output readable and phrase save inside input controls", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=lesson");
+  await page.goto("/app/?view=lesson");
   await expect(page.locator(".context-display--lesson")).toBeVisible();
   await expect(page.getByText("Say that you have a reservation.")).toBeVisible();
   await expect(page.locator(".phrase-quick-save-v2")).toBeVisible();
@@ -1854,7 +1899,7 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
 
 test("mobile roleplay session has readable scenario, dialogue and input without overlap", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=roleplay");
+  await page.goto("/app/?view=roleplay");
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
   await page.locator(".roleplay-grid-v2 button").first().click();
   await expect(page.locator(".roleplay-view-v2--session")).toBeVisible();
@@ -1878,7 +1923,7 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
 
 test("mobile roleplay scenario cards expand and scroll above bottom menu", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=roleplay");
+  await page.goto("/app/?view=roleplay");
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, node.scrollHeight));
 
@@ -1920,7 +1965,7 @@ test("mobile roleplay scenario cards expand and scroll above bottom menu", async
 });
 
 test("shadowing uses one compact work panel with the sample audio inside the task", async ({ page }) => {
-  await page.goto("/app/v2/?view=home");
+  await page.goto("/app/?view=home");
   await page.locator(".home-plan-v2__steps button").filter({ hasText: appCopy("ru", "today_plan_listen_title") }).click();
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await expect(page.locator(".chat-workspace--single")).toBeVisible();
@@ -1931,7 +1976,7 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
 
 test("mobile listening panel stays above bottom menu", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=shadowing");
+  await page.goto("/app/?view=shadowing");
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toBeVisible();
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, node.scrollHeight));
@@ -1944,7 +1989,7 @@ test("mobile listening panel stays above bottom menu", async ({ page, isMobile }
 
 test("mobile practice and tools keep input controls visible and tools selectable", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=practice");
+  await page.goto("/app/?view=practice");
   await expect(page.locator(".context-display--practice")).toBeVisible();
   await expect(page.locator(".mobile-quick-controls-v2")).toHaveCount(0);
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, node.scrollHeight));
@@ -1973,7 +2018,7 @@ test("mobile practice and tools keep input controls visible and tools selectable
   expect(practiceSave!.y).toBeGreaterThanOrEqual(practiceFileControls!.y + practiceFileControls!.height - 2);
   expect(practiceSend!.x + practiceSend!.width).toBeLessThanOrEqual((await page.locator(".composer-textarea-shell-v2").boundingBox())!.x + (await page.locator(".composer-textarea-shell-v2").boundingBox())!.width + 2);
 
-  await page.goto("/app/v2/?view=tools");
+  await page.goto("/app/?view=tools");
   await expect(page.locator(".context-display--tools")).toBeVisible();
   await expect(page.locator(".tool-switch-v2 button")).toHaveCount(3);
   await expect(page.locator(".tools-work-v2 .composer-panel-v2 textarea:visible")).toHaveCount(0);
@@ -1994,7 +2039,7 @@ test("mobile practice and tools keep input controls visible and tools selectable
 
 test("mobile mistakes dictionary paginates after ten cards", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=mistakes");
+  await page.goto("/app/?view=mistakes");
   await expect(page.locator(".context-display--mistakes")).toBeVisible();
   await expect(page.locator(".mistake-pagination-v2")).toBeVisible();
   await expect(page.locator(".mistake-list-card-v2")).toHaveCount(10);
@@ -2006,7 +2051,7 @@ test("mobile mistakes dictionary paginates after ten cards", async ({ page, isMo
 
 test("mobile phrasebook list can scroll below the bottom menu", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=phrasebook");
+  await page.goto("/app/?view=phrasebook");
   await expect(page.locator(".context-display--phrasebook")).toBeVisible();
   await page.getByRole("button", { name: /Добавить пример|Add example/ }).click();
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, node.scrollHeight));
@@ -2046,7 +2091,7 @@ test("mobile phrasebook paginates notes after ten cards", async ({ page, isMobil
     }
     await route.fallback();
   });
-  await page.goto("/app/v2/?view=phrasebook");
+  await page.goto("/app/?view=phrasebook");
   await expect(page.locator(".context-display--phrasebook")).toBeVisible();
   await expect(page.locator(".phrasebook-pagination-v2")).toBeVisible();
   await expect(page.locator(".phrasebook-card-v2")).toHaveCount(10);
@@ -2058,7 +2103,7 @@ test("mobile phrasebook paginates notes after ten cards", async ({ page, isMobil
 
 test("mobile award details open in the current viewport", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=awards");
+  await page.goto("/app/?view=awards");
   await expect(page.locator(".context-display--awards")).toBeVisible();
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, 420));
   await page.locator(".award-tile-v2.is-unlocked").nth(4).click();
@@ -2083,7 +2128,7 @@ test("phrasebook loads from session and save calls persistent API", async ({ pag
     }
     await route.fallback();
   });
-  await page.goto("/app/v2/?view=phrasebook");
+  await page.goto("/app/?view=phrasebook");
   await expect(page.getByText("I have a reservation under the name Ivan Petrov.")).toBeVisible();
   await page.getByRole("button", { name: /Добавить пример|Add sample/ }).click();
   await expect.poll(() => savedPhrase).toContain("Could you say that again");
@@ -2092,7 +2137,7 @@ test("phrasebook loads from session and save calls persistent API", async ({ pag
 test("main mobile and desktop views have scrollable output without mojibake", async ({ page, isMobile }) => {
   const views = isMobile ? ["home", "offline", "referral", "settings", "tools"] : ["home", "offline", "premium", "referral", "settings"];
   for (const view of views) {
-    await page.goto(`/app/v2/?view=${view}`);
+    await page.goto(`/app/?view=${view}`);
     await expect(page.locator(`.context-display--${view}`)).toBeVisible();
     await expectNoMojibake(page);
     const metrics = await page.locator(".context-display").evaluate((node) => ({
@@ -2104,7 +2149,7 @@ test("main mobile and desktop views have scrollable output without mojibake", as
 });
 
 test("regression: chat messages show sender first and full-width text below it", async ({ page }) => {
-  await page.goto("/app/v2/?view=lesson");
+  await page.goto("/app/?view=lesson");
   await expect(page.locator(".chat-interface__group").first()).toBeVisible();
   const metrics = await page.locator(".chat-interface__group").first().evaluate((group) => {
     const meta = group.querySelector(".chat-interface__meta") as HTMLElement | null;
@@ -2126,13 +2171,13 @@ test("regression: chat messages show sender first and full-width text below it",
 test("regression: mobile awards header stays compact and mistakes open as list then practice screen", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
 
-  await page.goto("/app/v2/?view=awards");
+  await page.goto("/app/?view=awards");
   await expect(page.locator(".awards-summary-v2")).toBeVisible();
   const awardsHeader = await page.locator(".awards-summary-v2").boundingBox();
   expect(awardsHeader).not.toBeNull();
   expect(awardsHeader!.height).toBeLessThanOrEqual(180);
 
-  await page.goto("/app/v2/?view=mistakes");
+  await page.goto("/app/?view=mistakes");
   await expect(page.locator(".mistake-layout-v2")).toBeVisible();
   await expect(page.locator(".mistake-dictionary-v2")).toBeVisible();
   await expect(page.locator(".mistake-practice-v2")).toHaveCount(0);
@@ -2173,7 +2218,7 @@ test("regression: mobile cards expand to fit text in leaderboard notes and offli
     expect(panelBox!.y + panelBox!.height).toBeGreaterThanOrEqual(lastItemBox!.y + lastItemBox!.height - 2);
   };
 
-  await page.goto("/app/v2/?view=leaderboard");
+  await page.goto("/app/?view=leaderboard");
   await expect(page.locator(".context-display--leaderboard")).toBeVisible();
   await expect(page.locator(".context-display--leaderboard h2")).toContainText("Общий");
   await expect(page.locator(".leaderboard-select-v2")).toContainText("Общий");
@@ -2192,21 +2237,21 @@ test("regression: mobile cards expand to fit text in leaderboard notes and offli
   expect(leaderboardClippedText).toEqual([]);
   await expectPanelWrapsLastItem(".context-display--leaderboard .data-display", ".leaderboard-row-v2");
 
-  await page.goto("/app/v2/?view=roleplay");
+  await page.goto("/app/?view=roleplay");
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
   await expectNoCardOverflow(".roleplay-grid-v2 button");
   await expectPanelWrapsLastItem(".context-display--roleplay .roleplay-view-v2", ".roleplay-grid-v2 button");
 
-  await page.goto("/app/v2/?view=phrasebook");
+  await page.goto("/app/?view=phrasebook");
   await expect(page.locator(".context-display--phrasebook")).toBeVisible();
   await expectNoCardOverflow(".phrasebook-card-v2");
 
-  await page.goto("/app/v2/?view=vocabulary");
+  await page.goto("/app/?view=vocabulary");
   await expect(page.locator(".context-display--vocabulary")).toBeVisible();
   await expect(page.getByText("самолётостроение")).toBeVisible();
   await expectNoCardOverflow(".vocabulary-card-v2");
 
-  await page.goto("/app/v2/?view=level");
+  await page.goto("/app/?view=level");
   await expect(page.locator(".context-display--level")).toBeVisible();
   await expect(page.locator(".level-answer-skip-v2")).toHaveText("Skip");
   await expect(page.locator(".level-answer-skip-v2")).not.toHaveText("Раздел");
@@ -2217,13 +2262,13 @@ test("regression: mobile cards expand to fit text in leaderboard notes and offli
   expect(skipTextFits).toBe(true);
   await expectNoCardOverflow(".trainer-display");
 
-  await page.goto("/app/v2/?view=offline");
+  await page.goto("/app/?view=offline");
   await expect(page.locator(".context-display--offline")).toBeVisible();
   await expectNoCardOverflow(".offline-deck-grid-v2 article");
 });
 
 test("regression: leaderboard language selector opens above the panel", async ({ page }) => {
-  await page.goto("/app/v2/?view=leaderboard");
+  await page.goto("/app/?view=leaderboard");
   await expect(page.locator(".context-display--leaderboard")).toBeVisible();
   const select = page.locator(".context-display--leaderboard .leaderboard-select-v2").first();
   await expect(select).toBeVisible();
@@ -2236,7 +2281,7 @@ test("regression: leaderboard language selector opens above the panel", async ({
 
 test("regression: mobile leaderboard stays readable above bottom menu", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
-  await page.goto("/app/v2/?view=leaderboard");
+  await page.goto("/app/?view=leaderboard");
   await expect(page.locator(".context-display--leaderboard")).toBeVisible();
   await expect(page.locator(".leaderboard-row-v2")).toHaveCount(10);
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, node.scrollHeight));

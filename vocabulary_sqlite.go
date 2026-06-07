@@ -936,6 +936,13 @@ func sqliteRandomUnlearnedWordID(db *sql.DB, language string, level string, lear
 		exclude[id] = true
 		exclude[legacyVocabID(id)] = true
 	}
+	preferredWhereSQL := whereSQL + ` AND (LOWER(w.topic) = ? OR LOWER(w.source) LIKE ?)`
+	preferredArgs := append([]any{}, args...)
+	preferredArgs = append(preferredArgs, "multilingual-core", "%multilingual core%")
+	id, ok, err := sqliteRandomVocabularyIDFromCachedWhere(db, cacheKey+"|preferred", preferredWhereSQL, preferredArgs, exclude)
+	if err != nil || ok {
+		return id, ok, err
+	}
 	return sqliteRandomVocabularyIDFromCachedWhere(db, cacheKey, whereSQL, args, exclude)
 }
 

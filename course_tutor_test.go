@@ -30,8 +30,11 @@ func TestBuildTutorLessonUsesLocalA1A2CourseCore(t *testing.T) {
 	if len(lesson.Words) < 4 {
 		t.Fatalf("lesson words = %d, want at least 4", len(lesson.Words))
 	}
-	if lesson.Grammar == "" || lesson.WritingTask == "" || lesson.ListeningText == "" || len(lesson.Dialogue) == 0 {
+	if lesson.Grammar == "" || lesson.WritingTask == "" || lesson.ListeningText == "" || lesson.PronunciationText == "" || len(lesson.Dialogue) == 0 {
 		t.Fatalf("lesson is missing required sections: %#v", lesson)
+	}
+	if lesson.PronunciationText == lesson.ListeningText {
+		t.Fatalf("pronunciation text should be a standalone target, got same text as listening: %q", lesson.PronunciationText)
 	}
 	if len(lesson.Steps) < 7 {
 		t.Fatalf("lesson steps = %d, want full guided flow", len(lesson.Steps))
@@ -78,7 +81,7 @@ func TestBuildTutorLessonUsesLocalA1A2CourseCore(t *testing.T) {
 	if len(lesson.ReviewSummary) < 3 {
 		t.Fatalf("review summary is too thin: %#v", lesson.ReviewSummary)
 	}
-	for _, text := range []string{lesson.Title, lesson.Topic, lesson.Goal, lesson.CanDo, lesson.Scenario, lesson.GrammarTitle, lesson.Grammar, lesson.MiniExplanation, lesson.WritingTask, lesson.ListeningTask, lesson.ListeningQuestion, lesson.DialoguePrompt} {
+	for _, text := range []string{lesson.Title, lesson.Topic, lesson.Goal, lesson.CanDo, lesson.Scenario, lesson.GrammarTitle, lesson.Grammar, lesson.MiniExplanation, lesson.WritingTask, lesson.ListeningTask, lesson.ListeningQuestion, lesson.PronunciationText, lesson.DialoguePrompt} {
 		if text == "" || !tutorLooksClean(text) {
 			t.Fatalf("visible tutor text is not clean: %q", text)
 		}

@@ -58,12 +58,12 @@ func TestWebGeneratedVisualAssets(t *testing.T) {
 	}
 }
 
-func TestWebAppV2ShellAndPWAEntrypointsAreNoCache(t *testing.T) {
+func TestWebAppShellAndPWAEntrypointsAreNoCache(t *testing.T) {
 	api := newWebAPI(config{WebAPISessionSecret: "test-session-secret"}, nil)
 	mux := http.NewServeMux()
 	api.register(mux)
 
-	for _, target := range []string{"/app/v2/", "/app/v2/manifest.webmanifest", "/app/v2/offline-deck-sw.js"} {
+	for _, target := range []string{"/app", "/app/manifest.webmanifest", "/app/offline-deck-sw.js"} {
 		request := httptest.NewRequest(http.MethodGet, target, nil)
 		recorder := httptest.NewRecorder()
 		mux.ServeHTTP(recorder, request)
@@ -721,6 +721,75 @@ func TestWebPhrasebookRoutePersistsNoteInSession(t *testing.T) {
 	}
 }
 
+func TestWebSessionIncludesReferralInviteesFromSQLite(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	invitee, err := store.getOrCreateUser(-77, "invited learner")
+	if err != nil {
+		t.Fatal(err)
+	}
+	invitee.InvitedBy = -42
+	invitee.XP = 520
+	invitee.Level = "A2"
+	invitee.ReferralLevelRewarded = true
+	if err := store.saveUser(invitee); err != nil {
+		t.Fatal(err)
+	}
+
+	session := requestJSON(t, api, cookie, http.MethodGet, "/api/session", nil)
+	sessionUser, _ := session["user"].(map[string]any)
+	invitees, _ := sessionUser["referral_invitees"].([]any)
+	if len(invitees) != 1 {
+		t.Fatalf("expected one referral invitee from sqlite, got %#v", sessionUser)
+	}
+	first, _ := invitees[0].(map[string]any)
+	if first["name"] != "invited learner" || first["reached_level_3"] != true {
+		t.Fatalf("unexpected invitee payload: %#v", first)
+	}
+}
+
+func TestWebBugReportAcceptsImageOnlyAttachment(t *testing.T) {
+	api, _, cookie := newTestWebAPI(t)
+	oldWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tempDir := t.TempDir()
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(oldWD) })
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writer.WriteField("view", "practice"); err != nil {
+		t.Fatal(err)
+	}
+	part, err := writer.CreateFormFile("screenshot", "clipboard.heic")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := part.Write([]byte{1, 2, 3, 4, 5, 6, 7, 8}); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/bug-report", &body)
+	request.AddCookie(cookie)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	recorder := httptest.NewRecorder()
+	mux := http.NewServeMux()
+	api.register(mux)
+	mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("image-only bug report returned %d: %s", recorder.Code, recorder.Body.String())
+	}
+	if _, err := os.Stat(filepath.Join("tmp", "bug-reports", "bug-reports.jsonl")); err != nil {
+		t.Fatalf("bug report file was not saved: %v", err)
+	}
+}
+
 func TestWebBugReportSendsScreenshotAsTelegramPhoto(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	oldWD, err := os.Getwd()
@@ -797,7 +866,7 @@ func TestWebBugReportSendsScreenshotAsTelegramPhoto(t *testing.T) {
 	}
 }
 
-func TestWebAppRoutesServeV2AndRedirectLegacyV1(t *testing.T) {
+func TestWebAppRoutesServeWebAndRedirectVersionedPaths(t *testing.T) {
 	api := newWebAPI(config{WebAPISessionSecret: "test-session-secret"}, nil)
 	mux := http.NewServeMux()
 	api.register(mux)
@@ -808,22 +877,24 @@ func TestWebAppRoutesServeV2AndRedirectLegacyV1(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("GET /app returned %d", recorder.Code)
 	}
-	if body := recorder.Body.String(); !strings.Contains(body, `<div id="root">`) || !strings.Contains(body, `poliglot-boot`) || !strings.Contains(body, `/app/v2/assets/`) {
+	if body := recorder.Body.String(); !strings.Contains(body, `<div id="root">`) || !strings.Contains(body, `poliglot-boot`) || !strings.Contains(body, `/app/assets/`) {
 		sample := body
 		if len(sample) > 220 {
 			sample = sample[:220]
 		}
-		t.Fatalf("/app should serve the React V2 shell, got: %s", sample)
+		t.Fatalf("/app should serve the React web shell, got: %s", sample)
 	}
 
-	request = httptest.NewRequest(http.MethodGet, "/app/v1", nil)
-	recorder = httptest.NewRecorder()
-	mux.ServeHTTP(recorder, request)
-	if recorder.Code != http.StatusMovedPermanently {
-		t.Fatalf("GET /app/v1 returned %d", recorder.Code)
-	}
-	if location := recorder.Header().Get("Location"); location != "/app/v2/" {
-		t.Fatalf("/app/v1 should redirect to /app/v2/, got %q", location)
+	for _, legacyPath := range []string{"/app/v1", "/app/v2"} {
+		request = httptest.NewRequest(http.MethodGet, legacyPath+"?view=home", nil)
+		recorder = httptest.NewRecorder()
+		mux.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusMovedPermanently {
+			t.Fatalf("GET %s returned %d", legacyPath, recorder.Code)
+		}
+		if location := recorder.Header().Get("Location"); location != "/app?view=home" {
+			t.Fatalf("%s should redirect to /app preserving query, got %q", legacyPath, location)
+		}
 	}
 }
 

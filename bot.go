@@ -924,13 +924,13 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.telegram.sendInlineMessage(ctx, chatID, ui(user).Tool.TargetLanguage, translatorLanguageKeyboard(user, true))
 	case "translator_swap":
 		return b.swapTranslatorLanguages(ctx, chatID, user)
-	case "buy_premium", "buy_premium_month":
+	case "buy_premium", "buy_premium_month", "buy_" + premiumMonthlyProduct:
 		return b.sendPremiumPaymentOptions(ctx, chatID, user, premiumMonthlyProduct)
-	case "buy_premium_year":
+	case "buy_premium_year", "buy_" + premiumYearlyProduct:
 		return b.sendPremiumPaymentOptions(ctx, chatID, user, premiumYearlyProduct)
-	case "buy_platinum_month":
+	case "buy_platinum_month", "buy_" + platinumMonthlyProduct:
 		return b.sendPremiumPaymentOptions(ctx, chatID, user, platinumMonthlyProduct)
-	case "buy_platinum_year":
+	case "buy_platinum_year", "buy_" + platinumYearlyProduct:
 		return b.sendPremiumPaymentOptions(ctx, chatID, user, platinumYearlyProduct)
 	case "buy_yookassa", "buy_yookassa_month":
 		return b.sendYooKassaPayment(ctx, chatID, user, premiumMonthlyProduct)

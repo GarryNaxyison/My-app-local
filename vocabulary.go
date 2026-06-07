@@ -701,6 +701,22 @@ func wordMatchesLearningLevel(word vocabWord, level string) bool {
 	return false
 }
 
+func preferredLearningWord(word vocabWord) bool {
+	topic := strings.ToLower(strings.TrimSpace(word.Topic))
+	source := strings.ToLower(strings.TrimSpace(word.Source))
+	return topic == "multilingual-core" || strings.Contains(source, "multilingual core")
+}
+
+func appendVocabularyPoolCandidate(pool []vocabWord, seen int, limit int, word vocabWord) []vocabWord {
+	if len(pool) < limit {
+		return append(pool, word)
+	}
+	if index := vocabularyRandomIntn(seen); index < limit {
+		pool[index] = word
+	}
+	return pool
+}
+
 func nextUnlearnedWord(user userState) (vocabWord, bool) {
 	if word, ok, used, err := sqliteNextUnlearnedWord(user); used {
 		if err != nil {
@@ -719,9 +735,13 @@ func nextUnlearnedWord(user userState) (vocabWord, bool) {
 	}
 	const poolLimit = 768
 	exactPool := make([]vocabWord, 0, 96)
+	preferredExactPool := make([]vocabWord, 0, 96)
 	fallbackPool := make([]vocabWord, 0, 96)
+	preferredFallbackPool := make([]vocabWord, 0, 96)
 	exactSeen := 0
+	preferredExactSeen := 0
 	fallbackSeen := 0
+	preferredFallbackSeen := 0
 	if err := forEachVocabularyWord(language, func(word vocabWord) bool {
 		if learned[word.ID] || learned[legacyVocabID(word.ID)] {
 			return true
@@ -732,26 +752,32 @@ func nextUnlearnedWord(user userState) (vocabWord, bool) {
 		if cefrRank(word.Level) != userRank {
 			if wordMatchesLearningLevel(word, user.Level) {
 				fallbackSeen++
-				if len(fallbackPool) < poolLimit {
-					fallbackPool = append(fallbackPool, word)
-				} else if index := vocabularyRandomIntn(fallbackSeen); index < poolLimit {
-					fallbackPool[index] = word
+				fallbackPool = appendVocabularyPoolCandidate(fallbackPool, fallbackSeen, poolLimit, word)
+				if preferredLearningWord(word) {
+					preferredFallbackSeen++
+					preferredFallbackPool = appendVocabularyPoolCandidate(preferredFallbackPool, preferredFallbackSeen, poolLimit, word)
 				}
 			}
 			return true
 		}
 		exactSeen++
-		if len(exactPool) < poolLimit {
-			exactPool = append(exactPool, word)
-		} else if index := vocabularyRandomIntn(exactSeen); index < poolLimit {
-			exactPool[index] = word
+		exactPool = appendVocabularyPoolCandidate(exactPool, exactSeen, poolLimit, word)
+		if preferredLearningWord(word) {
+			preferredExactSeen++
+			preferredExactPool = appendVocabularyPoolCandidate(preferredExactPool, preferredExactSeen, poolLimit, word)
 		}
 		return true
 	}); err != nil {
 		panic(err)
 	}
+	if len(preferredExactPool) > 0 {
+		return preferredExactPool[vocabularyRandomIntn(len(preferredExactPool))], true
+	}
 	if len(exactPool) > 0 {
 		return exactPool[vocabularyRandomIntn(len(exactPool))], true
+	}
+	if len(preferredFallbackPool) > 0 {
+		return preferredFallbackPool[vocabularyRandomIntn(len(preferredFallbackPool))], true
 	}
 	if len(fallbackPool) > 0 {
 		return fallbackPool[vocabularyRandomIntn(len(fallbackPool))], true

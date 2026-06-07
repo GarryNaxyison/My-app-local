@@ -59,6 +59,19 @@ type navigationLayout struct {
 	MobileRail     []string `json:"mobile_rail,omitempty"`
 }
 
+type referralInviteeEntry struct {
+	ID            int64     `json:"id"`
+	Name          string    `json:"name"`
+	Level         string    `json:"level"`
+	XPLevel       int       `json:"xp_level"`
+	XP            int       `json:"xp"`
+	ReachedLevel3 bool      `json:"reached_level_3"`
+	LevelRewarded bool      `json:"level_rewarded"`
+	Earned        string    `json:"earned"`
+	EarnedUSDT    string    `json:"earned_usdt"`
+	JoinedAt      time.Time `json:"joined_at"`
+}
+
 type userState struct {
 	TelegramID              int64                    `json:"telegram_id"`
 	FirstName               string                   `json:"first_name"`
@@ -179,6 +192,7 @@ type store interface {
 	removeMistake(telegramID int64, language string, word string, correction string) error
 	clearMistakes(telegramID int64, language string) error
 	nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error)
+	referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error)
 	leaderboard(limit int) []leaderboardEntry
 	languageLeaderboard(language string, limit int) []languageLeaderboardEntry
 	dueReminderUsers(now time.Time, limit int) ([]reminderTarget, error)
@@ -602,6 +616,28 @@ func (s *jsonStore) removePhrasebookEntry(telegramID int64, id string) ([]phrase
 		result = append([]phrasebookEntry(nil), user.Phrasebook...)
 	})
 	return result, err
+}
+
+func (s *jsonStore) referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if limit <= 0 {
+		limit = 100
+	}
+	var items []referralInviteeEntry
+	for _, user := range s.users {
+		if user.InvitedBy != telegramID {
+			continue
+		}
+		items = append(items, referralInviteeFromUser(user))
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		return items[i].JoinedAt.After(items[j].JoinedAt)
+	})
+	if len(items) > limit {
+		items = items[:limit]
+	}
+	return items, nil
 }
 
 func (s *jsonStore) extendPremium(telegramID int64, chargeID string, duration time.Duration, tier string) (time.Time, error) {
@@ -1048,6 +1084,32 @@ func recordHabitDay(user *userState, now time.Time, login bool) habitDayEntry {
 	user.HabitLog[date] = day
 	user.HabitLog = normalizeHabitLog(user.HabitLog, now)
 	return day
+}
+
+func referralInviteeFromUser(user userState) referralInviteeEntry {
+	level, _, _, _ := knowledgeLevel(user.XP)
+	joinedAt := user.CreatedAt
+	if joinedAt.IsZero() {
+		joinedAt = user.UpdatedAt
+	}
+	earned := "0 RUB"
+	earnedUSDT := "0"
+	if user.ReferralLevelRewarded {
+		earned = "7 days Premium"
+		earnedUSDT = "0"
+	}
+	return referralInviteeEntry{
+		ID:            user.TelegramID,
+		Name:          strings.TrimSpace(user.FirstName),
+		Level:         user.Level,
+		XPLevel:       level,
+		XP:            user.XP,
+		ReachedLevel3: referralLevelReached(user.XP),
+		LevelRewarded: user.ReferralLevelRewarded,
+		Earned:        earned,
+		EarnedUSDT:    earnedUSDT,
+		JoinedAt:      joinedAt,
+	}
 }
 
 func normalizeNavigationLayout(layout navigationLayout) navigationLayout {

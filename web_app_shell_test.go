@@ -31,14 +31,8 @@ func TestPrepareWebAppHTMLCanMarkStandaloneLogin(t *testing.T) {
 	}
 }
 
-func TestWebAppV1HTMLIsRemovedAfterV2Promotion(t *testing.T) {
-	if _, err := os.Stat(filepath.Join("web", "index.html")); !os.IsNotExist(err) {
-		t.Fatalf("legacy web/index.html should be removed, stat err=%v", err)
-	}
-}
-
-func TestWebAppV2HTMLLoadsBuiltReactApp(t *testing.T) {
-	html, err := os.ReadFile(filepath.Join("web", "v2", "index.html"))
+func TestWebAppHTMLLoadsBuiltReactApp(t *testing.T) {
+	html, err := os.ReadFile(filepath.Join("web", "index.html"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,12 +41,12 @@ func TestWebAppV2HTMLLoadsBuiltReactApp(t *testing.T) {
 		`<div id="root">`,
 		`poliglot-boot`,
 		`type="module"`,
-		`/app/v2/assets/`,
+		`/app/assets/`,
 		`.css`,
 		`.js`,
 	} {
 		if !strings.Contains(page, want) {
-			t.Fatalf("React v2 web app shell is missing %q", want)
+			t.Fatalf("React web app shell is missing %q", want)
 		}
 	}
 	for _, forbidden := range []string{
@@ -61,7 +55,7 @@ func TestWebAppV2HTMLLoadsBuiltReactApp(t *testing.T) {
 		`showActivationKeyNotice`,
 	} {
 		if strings.Contains(page, forbidden) {
-			t.Fatalf("React v2 web app shell still contains legacy inline marker %q", forbidden)
+			t.Fatalf("React web app shell still contains legacy inline marker %q", forbidden)
 		}
 	}
 }
@@ -333,7 +327,7 @@ func TestPrivacyPolicyAssetCoversTwentyLocalesAndBotConsent(t *testing.T) {
 	}
 }
 
-func TestWebAssetContentTypesCoverReactV2Build(t *testing.T) {
+func TestWebAssetContentTypesCoverReactBuild(t *testing.T) {
 	cases := map[string]string{
 		"index.js":   "text/javascript; charset=utf-8",
 		"index.css":  "text/css; charset=utf-8",

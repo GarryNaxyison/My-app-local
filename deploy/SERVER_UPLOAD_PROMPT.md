@@ -23,10 +23,10 @@ Token storage: /opt/aibot/deploy-upload/deploy-upload.env, key DEPLOY_UPLOAD_TOK
    - deploy_react_server.sh
 
 Пример upload:
-curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\aibot-linux-amd64-v2-auth-privacy-awards https://poliglotai.ru/__codex_deploy_upload/aibot-linux-amd64
+curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\aibot-linux-amd64-current-web https://poliglotai.ru/__codex_deploy_upload/aibot-linux-amd64
 curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\poliglot-app-web-20260528-current.tgz https://poliglotai.ru/__codex_deploy_upload/poliglot-app-web.tgz
 curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\poliglot-public-site-20260528-current.tgz https://poliglotai.ru/__codex_deploy_upload/poliglot-public-site.tgz
-curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\Caddyfile.deploy.v2-auth-privacy-awards https://poliglotai.ru/__codex_deploy_upload/Caddyfile.deploy
+curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\Caddyfile.deploy.current-web https://poliglotai.ru/__codex_deploy_upload/Caddyfile.deploy
 curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file tmp\deploy_react_server.sh https://poliglotai.ru/__codex_deploy_upload/deploy_react_server.sh
 
 После upload запускай стандартный deploy:
@@ -34,7 +34,7 @@ tmp\putty\plink.exe -batch -hostkey "SHA256:SCw7oIAHX/xB9QJueAc9L7OvbXtDyVqA++ci
 
 После deploy всегда проверяй:
 - https://poliglotai.ru/healthz
-- https://poliglotai.ru/app/v2/
+- https://poliglotai.ru/app/
 - https://poliglotai.ru/poliglot-ai.html
 - https://poliglotai.ru/__codex_deploy_upload/healthz
 

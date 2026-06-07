@@ -7,12 +7,22 @@ import tailwindcss from "@tailwindcss/vite";
 function localAppAssets() {
   const assetsRoot = path.resolve(__dirname, "../web/assets");
   const contentTypes: Record<string, string> = {
+    ".avif": "image/avif",
+    ".css": "text/css; charset=utf-8",
+    ".gif": "image/gif",
+    ".ico": "image/x-icon",
+    ".js": "text/javascript; charset=utf-8",
     ".png": "image/png",
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
+    ".map": "application/json; charset=utf-8",
+    ".mjs": "text/javascript; charset=utf-8",
     ".webp": "image/webp",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
     ".svg": "image/svg+xml",
     ".json": "application/json; charset=utf-8",
+    ".wasm": "application/wasm",
   };
 
   const middleware = (req: any, res: any, next: () => void) => {
