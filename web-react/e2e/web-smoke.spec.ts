@@ -1602,6 +1602,48 @@ test("pronunciation map is compact and removes repeated advice", async ({ page }
   await expect(page.locator(".pronunciation-history-v2__rows > div")).toHaveCount(1);
 });
 
+test("pronunciation is a standalone sample, voice input, result and next sample flow", async ({ page }) => {
+  await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".context-display--pronunciation")).toBeVisible();
+  await expect(page.locator(".context-display--shadowing")).toHaveCount(0);
+  await expect(page.locator(".pronunciation-work-window-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-work-window-v2 .audio-wave-button-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-work-window-v2 .file-controls-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
+
+  await page.locator('.pronunciation-work-window-v2 input[type="file"]').setInputFiles({
+    name: "pronunciation.webm",
+    mimeType: "audio/webm",
+    buffer: Buffer.from("test-audio"),
+  });
+  await page.locator(".pronunciation-work-window-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
+  await expect(page.locator(".pronunciation-result-window-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toContainText("67/100");
+  await expect(page.locator(".pronunciation-result-window-v2")).toContainText("Stress is late");
+  await expect(page.locator(".pronunciation-work-window-v2")).toHaveCount(0);
+
+  await page.locator(".pronunciation-result-window-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
+  await expect(page.locator(".pronunciation-work-window-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
+});
+
+test("AI Tutor failed start stops loading loop and shows retry", async ({ page }) => {
+  let tutorStartCalls = 0;
+  await page.route("**/api/tutor/start", (route) => {
+    tutorStartCalls += 1;
+    return route.fulfill({
+      status: 500,
+      contentType: "application/json",
+      body: JSON.stringify({ error: "No tutor lesson available" }),
+    });
+  });
+
+  await page.goto("/app/?view=tutor");
+  await expect(page.locator(".tutor-loading-panel")).toContainText(/No tutor lesson available|Не удалось/);
+  await expect(page.locator(".tutor-loading-panel").getByRole("button", { name: /Retry|Повторить/ })).toBeVisible();
+  expect(tutorStartCalls).toBe(1);
+});
+
 test("learn words shows varied wrong answer options across rounds", async ({ page }) => {
   await page.goto("/app/?view=words");
   await expect(page.locator(".context-display--words")).toBeVisible();

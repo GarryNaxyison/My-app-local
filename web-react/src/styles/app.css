@@ -193,8 +193,27 @@ select {
 .tutor-loading-panel {
   min-height: 260px;
   display: grid;
+  gap: 12px;
   place-items: center;
   text-align: center;
+}
+
+.tutor-loading-panel h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.tutor-loading-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.tutor-loading-panel.is-error {
+  align-content: center;
+}
+
+.tutor-loading-panel.is-error > svg {
+  color: var(--rose);
 }
 
 .tutor-section {
@@ -5057,6 +5076,19 @@ select {
   display: block;
   font-size: 34px;
   line-height: 1;
+}
+
+.pronunciation-work-window-v2,
+.pronunciation-result-window-v2 {
+  align-content: start;
+}
+
+.pronunciation-work-window-v2 .file-controls-v2 {
+  margin-top: 2px;
+}
+
+.pronunciation-result-window-v2 .pronunciation-report-v2 {
+  margin-top: 2px;
 }
 
 .heatmap-panel-v2,

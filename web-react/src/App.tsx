@@ -1276,6 +1276,7 @@ export function App() {
   const [wordResult, setWordResult] = useState<TrainerResult | null>(null);
   const [wordGameResult, setWordGameResult] = useState<TrainerResult | null>(null);
   const [tutorLesson, setTutorLesson] = useState<TutorLesson | null>(null);
+  const [tutorLoadError, setTutorLoadError] = useState("");
   const [spellingChallenge, setSpellingChallenge] = useState<SpellingChallenge | null>(null);
   const [spellingResult, setSpellingResult] = useState<TrainerResult | null>(null);
   const [levelQuestion, setLevelQuestion] = useState<LevelQuestion | null>(null);
@@ -1615,6 +1616,7 @@ export function App() {
       return payload;
     } catch (error) {
       const text = localizedAPIError(error, copy);
+      if (label === "tutor") setTutorLoadError(text);
       setStatus({ kind: "error", text });
       setMessages((current) => [panelMessage(text, "danger", copy("request_failed", "Request failed")), ...current].slice(0, 12));
       return null;
@@ -1637,6 +1639,7 @@ export function App() {
 
   const startTutor = async () => {
     setTutorLesson(null);
+    setTutorLoadError("");
     const payload = await runAction("tutor", async () => {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 30000);
@@ -1655,9 +1658,12 @@ export function App() {
     const record = getRecord(payload);
     const lesson = asTutorLesson(record.tutor_lesson);
     if (!lesson) {
-      setStatus({ kind: "error", text: copy("request_failed", "Request failed") });
+      const text = copy("request_failed", "Request failed");
+      setTutorLoadError(text);
+      setStatus({ kind: "error", text });
       return;
     }
+    setTutorLoadError("");
     setTutorLesson(lesson);
     setMessages((current) => [
       panelMessage(
@@ -2381,6 +2387,7 @@ export function App() {
     setImageFile,
     setView: activateView,
     tutorLesson,
+    tutorLoadError,
     startTutor,
     startLesson,
     submitLesson: () => submitLearningAnswer("lesson"),
@@ -4353,6 +4360,7 @@ type ViewRendererProps = {
   setImageFile: (file: File | null) => void;
   setView: (view: ViewId) => void;
   tutorLesson: TutorLesson | null;
+  tutorLoadError: string;
   startTutor: () => Promise<void>;
   startLesson: () => Promise<void>;
   submitLesson: () => Promise<void>;
@@ -4458,10 +4466,10 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, tutorLesson, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
+function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
   useEffect(() => {
-    if (!tutorLesson && !busy) void startTutor();
-  }, [Boolean(tutorLesson), Boolean(busy)]);
+    if (!tutorLesson && !busy && !tutorLoadError) void startTutor();
+  }, [Boolean(tutorLesson), Boolean(busy), tutorLoadError]);
 
   const words = tutorLesson?.words || [];
   const review = tutorLesson?.review || [];
@@ -5046,9 +5054,23 @@ function TutorView({ user, tutorLesson, voiceFile, imageFile, setVoiceFile, setI
       </section>
 
       {!tutorLesson ? (
-        <section className="v2-panel tutor-loading-panel">
-          <Spinner size="large" show />
-          <p>{copy("tutor_loading_body", "Building a local A1-A2 lesson from the course vocabulary.")}</p>
+        <section className={cn("v2-panel tutor-loading-panel", tutorLoadError && "is-error")}>
+          {tutorLoadError ? (
+            <>
+              <AlertCircle size={34} />
+              <h3>{copy("tutor_start_failed", "Не удалось собрать урок")}</h3>
+              <p>{tutorLoadError}</p>
+              <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
+                {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <Repeat2 size={16} />}
+                {copy("retry", "Повторить")}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Spinner size="large" show />
+              <p>{copy("tutor_loading_body", "Building a local A1-A2 lesson from the course vocabulary.")}</p>
+            </>
+          )}
         </section>
       ) : (
         <div className="tutor-session-v2">
@@ -5470,13 +5492,19 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
     const record = await submitPronunciation(activeTarget);
     const result = pronunciationFrom(record || {});
     if (result) {
-      setPracticeResult(result);
+      const resultWithTarget = { ...result, expected: result.expected || activeTarget };
+      setPracticeResult(resultWithTarget);
       setStoredReports((current) => {
-        const merged = mergePronunciationHistory([result], current);
+        const merged = mergePronunciationHistory([resultWithTarget], current);
         localStorage.setItem(storageKey, JSON.stringify(merged));
         return merged;
       });
     }
+  };
+  const nextPronunciationSample = () => {
+    setPracticeResult(null);
+    setVoiceFile(null);
+    setPronunciationTarget(pronunciationPracticeFallback(user, copy, true));
   };
   return (
     <div className="pronunciation-dashboard-v2">
@@ -5489,28 +5517,44 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
           <span>{user.level || "A1"} · {copy("latest_score", "latest score")}</span>
         </div>
       </section>
-      <section className="v2-panel pronunciation-history-v2 pronunciation-practice-v2">
-        <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
-        <div className="panel-head">
-          <div>
-            <h2>{activeTarget}</h2>
-            <p>{copy("pronunciation_practice_body", "Послушайте пример, произнесите эту же фразу и отправьте запись на проверку.")}</p>
+      {practiceResult ? (
+        <section className="v2-panel pronunciation-history-v2 pronunciation-result-window-v2">
+          <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
+          <div className="panel-head">
+            <div>
+              <h2>{cleanAppText(practiceResult.expected || activeTarget)}</h2>
+              <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample}>
+              <ChevronRight size={16} />
+              {copy("next_phrase", "Next phrase")}
+            </Button>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={() => setPronunciationTarget(pronunciationPracticeFallback(user, copy, true))}>
-            <ChevronRight size={16} />
-            {copy("next_phrase", "Next phrase")}
-          </Button>
-        </div>
-        <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: activeTarget, targetLanguage: user.learning_language }]} />
-        <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
-        <div className="home-insights-v2__actions">
-          <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
-            {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
-            {copy("record_and_check", "Record and check")}
-          </Button>
-        </div>
-        {practiceResult ? <PronunciationReport pronunciation={practiceResult} copy={copy} /> : null}
-      </section>
+          <PronunciationReport pronunciation={practiceResult} copy={copy} />
+        </section>
+      ) : (
+        <section className="v2-panel pronunciation-history-v2 pronunciation-practice-v2 pronunciation-work-window-v2">
+          <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
+          <div className="panel-head">
+            <div>
+              <h2>{activeTarget}</h2>
+              <p>{copy("pronunciation_practice_body", "Послушайте пример, произнесите эту же фразу и отправьте запись на проверку.")}</p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample}>
+              <ChevronRight size={16} />
+              {copy("next_phrase", "Next phrase")}
+            </Button>
+          </div>
+          <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: activeTarget, targetLanguage: user.learning_language }]} />
+          <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+          <div className="home-insights-v2__actions">
+            <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
+              {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
+              {copy("record_and_check", "Record and check")}
+            </Button>
+          </div>
+        </section>
+      )}
       <section className="v2-panel heatmap-panel-v2">
         <span className="eyebrow">{copy("pronunciation_heatmap", "Heatmap")}</span>
         <h2>{copy("weak_words", "Карта произношения")}</h2>
