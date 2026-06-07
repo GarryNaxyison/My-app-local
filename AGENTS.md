@@ -1,5 +1,9 @@
 # Project Agent Instructions
 
+## Primary Workspace
+
+Work in this repository by default: `E:\PROJECTS\New project\My app local`. Treat the parent folder `E:\PROJECTS\New project` as a container unless the user explicitly asks to work there.
+
 ## Universal MCP Startup
 
 At the start of this or any future project, verify or start the MCP connections described in `MCP_STARTUP.md`: Figma, 21st.dev Magic, Ref, shadcn, Nx MCP, Linux/Ubuntu access when server work may be needed, and any project-specific MCP from Codex config.
