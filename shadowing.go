@@ -887,3 +887,77 @@ func (api *webAPI) handleShadowingAnswer(w http.ResponseWriter, r *http.Request)
 		"user":                  api.userDTO(refreshed),
 	})
 }
+
+func (api *webAPI) handlePronunciationCheck(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, webMaxVoiceUploadBytes+webMaxMultipartOverhead)
+	if err := r.ParseMultipartForm(webMaxVoiceUploadBytes); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "Could not read pronunciation form.")
+		return
+	}
+	if r.MultipartForm != nil {
+		defer r.MultipartForm.RemoveAll()
+	}
+	target := sanitizeShadowingPhrase(r.FormValue("target"))
+	if target == "" {
+		writeAPIError(w, http.StatusBadRequest, "target is required")
+		return
+	}
+	voiceBytes, voiceName, err := readOptionalUploadedFile(r, "voice", webMaxVoiceUploadBytes)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	if len(voiceBytes) == 0 {
+		writeAPIError(w, http.StatusBadRequest, "Record or upload audio for pronunciation check.")
+		return
+	}
+	if !api.bot.shadowingConfigured() {
+		writeAPIError(w, http.StatusServiceUnavailable, shadowingUnavailableText(user))
+		return
+	}
+	if !user.isPremium(time.Now()) {
+		writeAPIError(w, http.StatusPaymentRequired, ui(user).Tool.VoicePremiumRequired)
+		return
+	}
+	voiceLimit := voiceLimitFor(user)
+	if user.VoiceToday >= voiceLimit {
+		writeAPIError(w, http.StatusTooManyRequests, fmt.Sprintf(ui(user).Tool.VoiceLimitReached, user.VoiceToday, voiceLimit))
+		return
+	}
+	format := audioUploadFormat(voiceName, http.DetectContentType(voiceBytes))
+	var assessment pronunciationAssessment
+	var transcription audioTranscription
+	if assessed, detailed, ok := api.bot.assessPronunciationFromAudio(r.Context(), user, voiceBytes, format, target, pronunciationModeExact); ok {
+		assessment = assessed
+		transcription = detailed
+	} else {
+		detailed, err := api.bot.transcribeLearningVoice(r.Context(), user, voiceBytes, format, target)
+		if err != nil {
+			writeAPIError(w, http.StatusBadGateway, fmt.Sprintf(ui(user).Tool.VoiceTranscribeFailed, err.Error()))
+			return
+		}
+		transcription = detailed
+		assessment = api.bot.buildPronunciationAssessment(r.Context(), user, target, detailed, pronunciationModeExact)
+	}
+	if err := api.bot.store.incrementVoice(user.TelegramID); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"target":                target,
+		"transcript":            strings.TrimSpace(transcription.Text),
+		"from_voice":            true,
+		"pronunciation":         pronunciationAssessmentDTO(&assessment),
+		"correction_audio_text": shadowingCorrectionAudioText(target, &assessment),
+		"user":                  api.userDTO(refreshed),
+	})
+}

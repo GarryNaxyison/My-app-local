@@ -690,6 +690,37 @@ func TestWebBugReportNotifiesTelegramRecipient(t *testing.T) {
 	}
 }
 
+func TestWebPhrasebookRoutePersistsNoteInSession(t *testing.T) {
+	api, _, cookie := newTestWebAPI(t)
+	body := strings.NewReader(`{"id":"note-1","phrase":"Could you repeat?","note":"Polite fallback","source":"manual","language":"en"}`)
+	request := httptest.NewRequest(http.MethodPost, "/api/phrasebook", body)
+	request.AddCookie(cookie)
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	mux := http.NewServeMux()
+	api.register(mux)
+	mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("phrasebook returned %d: %s", recorder.Code, recorder.Body.String())
+	}
+
+	user, err := api.bot.store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(user.Phrasebook) != 1 || user.Phrasebook[0].Note != "Polite fallback" {
+		t.Fatalf("phrasebook note was not persisted: %#v", user.Phrasebook)
+	}
+	session := api.sessionPayload(user)
+	sessionUser, ok := session["user"].(map[string]any)
+	if !ok {
+		t.Fatalf("session user has unexpected shape: %#v", session["user"])
+	}
+	if _, ok := sessionUser["phrasebook"]; !ok {
+		t.Fatalf("session user does not include phrasebook: %#v", sessionUser)
+	}
+}
+
 func TestWebBugReportSendsScreenshotAsTelegramPhoto(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	oldWD, err := os.Getwd()

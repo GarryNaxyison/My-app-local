@@ -170,17 +170,21 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/session", api.handleSession)
 	mux.HandleFunc("/api/settings", api.handleSettings)
 	mux.HandleFunc("/api/leaderboard", api.handleLeaderboard)
+	mux.HandleFunc("/api/tutor/start", api.handleTutorStart)
 	mux.HandleFunc("/api/lesson/start", api.handleLessonStart)
 	mux.HandleFunc("/api/lesson/answer", api.handleLessonAnswer)
 	mux.HandleFunc("/api/practice", api.handlePractice)
 	mux.HandleFunc("/api/shadowing/start", api.handleShadowingStart)
 	mux.HandleFunc("/api/shadowing/answer", api.handleShadowingAnswer)
+	mux.HandleFunc("/api/pronunciation/check", api.handlePronunciationCheck)
 	mux.HandleFunc("/api/level-test/start", api.handleLevelTestStart)
 	mux.HandleFunc("/api/level-test/answer", api.handleLevelTestAnswer)
 	mux.HandleFunc("/api/words/next", api.handleWordNext)
 	mux.HandleFunc("/api/words/answer", api.handleWordAnswer)
 	mux.HandleFunc("/api/words/pronunciation", api.handleWordPronunciation)
 	mux.HandleFunc("/api/vocabulary", api.handleVocabulary)
+	mux.HandleFunc("/api/phrasebook", api.handlePhrasebook)
+	mux.HandleFunc("/api/bug-report", api.handleBugReport)
 	mux.HandleFunc("/api/word-game/next", api.handleWordGameNext)
 	mux.HandleFunc("/api/word-game/answer", api.handleWordGameAnswer)
 	mux.HandleFunc("/api/spelling/start", api.handleSpellingStart)
@@ -1370,6 +1374,33 @@ func (api *webAPI) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (api *webAPI) handleTutorStart(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	lesson, err := api.bot.store.nextTutorLesson(user, func(sequence int) (tutorLesson, error) {
+		return buildTutorLessonForSequence(tutorReusableLessonUser(user), sequence)
+	})
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"tutor_lesson": lesson,
+		"user":         api.userDTO(refreshed),
+	})
+}
+
 func (api *webAPI) handleLessonStart(w http.ResponseWriter, r *http.Request) {
 	if !allowMethod(w, r, http.MethodPost) {
 		return
@@ -1827,6 +1858,130 @@ func (api *webAPI) handleVocabulary(w http.ResponseWriter, r *http.Request) {
 		"total_pages": totalPages,
 		"user":        api.userDTO(refreshed),
 	})
+}
+
+func (api *webAPI) handlePhrasebook(w http.ResponseWriter, r *http.Request) {
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	switch r.Method {
+	case http.MethodPost:
+		var req phrasebookEntry
+		if !decodeJSONRequest(w, r, &req) {
+			return
+		}
+		if strings.TrimSpace(req.Language) == "" {
+			req.Language = user.LearningLanguage
+		}
+		if strings.TrimSpace(req.Translation) == "" && strings.TrimSpace(req.Phrase) != "" && api.bot != nil && api.bot.openrouter != nil {
+			model := strings.TrimSpace(api.cfg.OpenRouterTranslatorModel)
+			if model == "" {
+				model = strings.TrimSpace(api.bot.cfg.OpenRouterTranslatorModel)
+			}
+			translation, err := api.bot.openrouter.completeWithModel(
+				r.Context(),
+				model,
+				translationToolPrompt(req.Phrase, normalizeTranslatorSource(req.Language), defaultTranslatorTarget(user), userInterfaceLanguage(user)),
+				0.1,
+				500,
+			)
+			if err == nil {
+				req.Translation = strings.TrimSpace(translation)
+			} else {
+				log.Printf("phrasebook auto-translate: %v", err)
+			}
+		}
+		items, err := api.bot.store.addPhrasebookEntry(user.TelegramID, req)
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"items": items})
+	case http.MethodDelete:
+		id := strings.TrimSpace(r.URL.Query().Get("id"))
+		if id == "" {
+			writeAPIError(w, http.StatusBadRequest, "missing phrasebook id")
+			return
+		}
+		items, err := api.bot.store.removePhrasebookEntry(user.TelegramID, id)
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"items": items})
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (api *webAPI) handleBugReport(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, webMaxImageUploadBytes*5+webMaxMultipartOverhead)
+	if err := r.ParseMultipartForm(webMaxImageUploadBytes); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "bad bug report form")
+		return
+	}
+	message := strings.TrimSpace(r.FormValue("message"))
+	if len([]rune(message)) < 8 {
+		writeAPIError(w, http.StatusBadRequest, "Describe the problem in more detail.")
+		return
+	}
+	view := strings.TrimSpace(r.FormValue("view"))
+	userAgent := strings.TrimSpace(r.FormValue("user_agent"))
+	reportID := "bug-" + time.Now().UTC().Format("20060102-150405.000000000")
+	caption := bugReportCaption(reportID, user, view, message, userAgent)
+	if err := appendBugReportFile(reportID, user, view, message, userAgent); err != nil {
+		log.Printf("write bug report: %v", err)
+	}
+	files := r.MultipartForm.File["screenshot"]
+	photoCount := 0
+	for index, header := range files {
+		if header.Size > webMaxImageUploadBytes {
+			continue
+		}
+		file, err := header.Open()
+		if err != nil {
+			continue
+		}
+		data, readErr := io.ReadAll(io.LimitReader(file, webMaxImageUploadBytes+1))
+		_ = file.Close()
+		if readErr != nil || len(data) == 0 || len(data) > webMaxImageUploadBytes {
+			continue
+		}
+		if !strings.HasPrefix(imageUploadMime(header.Filename, data), "image/") {
+			continue
+		}
+		photoCount++
+		if api.bot != nil && api.bot.telegram != nil {
+			path, err := writeBugReportScreenshot(reportID, index, header.Filename, data)
+			if err != nil {
+				log.Printf("save bug screenshot: %v", err)
+				continue
+			}
+			photoCaption := caption
+			if len(files) > 1 {
+				photoCaption += fmt.Sprintf("\nScreenshot: %d/%d", index+1, len(files))
+			}
+			if err := api.bot.telegram.sendPhotoFile(r.Context(), telegramOpsRecipientID, path, photoCaption); err != nil {
+				log.Printf("send bug screenshot: %v", err)
+			}
+		}
+	}
+	if photoCount == 0 && api.bot != nil && api.bot.telegram != nil {
+		if err := api.bot.telegram.sendMessage(r.Context(), telegramOpsRecipientID, caption); err != nil {
+			log.Printf("send bug report: %v", err)
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "id": reportID, "screenshots": photoCount})
 }
 
 func (api *webAPI) handleWordGameNext(w http.ResponseWriter, r *http.Request) {
@@ -2893,6 +3048,65 @@ func imageUploadMime(filename string, data []byte) string {
 	}
 }
 
+func bugReportCaption(reportID string, user userState, view string, message string, userAgent string) string {
+	parts := []string{
+		"Bug report Poliglot AI",
+		"ID: " + reportID,
+		fmt.Sprintf("From: %s (%d)", strings.TrimSpace(user.FirstName), user.TelegramID),
+	}
+	if view != "" {
+		parts = append(parts, "View: "+view)
+	}
+	if userAgent != "" {
+		parts = append(parts, "User-Agent: "+userAgent)
+	}
+	parts = append(parts, "", message)
+	return strings.Join(parts, "\n")
+}
+
+func appendBugReportFile(reportID string, user userState, view string, message string, userAgent string) error {
+	if err := os.MkdirAll(filepath.Join("tmp", "bug-reports"), 0755); err != nil {
+		return err
+	}
+	payload := map[string]any{
+		"id":          reportID,
+		"telegram_id": user.TelegramID,
+		"first_name":  user.FirstName,
+		"view":        view,
+		"message":     message,
+		"user_agent":  userAgent,
+		"created_at":  time.Now().UTC().Format(time.RFC3339Nano),
+	}
+	line, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	file, err := os.OpenFile(filepath.Join("tmp", "bug-reports", "bug-reports.jsonl"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if _, err := file.Write(append(line, '\n')); err != nil {
+		return err
+	}
+	return nil
+}
+
+func writeBugReportScreenshot(reportID string, index int, filename string, data []byte) (string, error) {
+	if err := os.MkdirAll(filepath.Join("tmp", "bug-reports"), 0755); err != nil {
+		return "", err
+	}
+	ext := strings.ToLower(filepath.Ext(filename))
+	if ext == "" || len(ext) > 8 {
+		ext = ".img"
+	}
+	path := filepath.Join("tmp", "bug-reports", fmt.Sprintf("%s-%02d%s", reportID, index+1, ext))
+	if err := os.WriteFile(path, data, 0644); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
 func (api *webAPI) handleProgress(w http.ResponseWriter, r *http.Request) {
 	if !allowMethod(w, r, http.MethodGet) {
 		return
@@ -3393,6 +3607,7 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"word_game_count":            user.WordGameCount,
 		"learned_words":              len(learnedWordsForLanguage(user)),
 		"mistakes":                   len(mistakesForLanguage(user)),
+		"phrasebook":                 user.Phrasebook,
 	}
 }
 

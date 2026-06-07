@@ -1283,6 +1283,7 @@ export function App() {
   const [mistakeAnswer, setMistakeAnswer] = useState("");
   const [mistakeResult, setMistakeResult] = useState<TrainerResult | null>(null);
   const [shadowingTarget, setShadowingTarget] = useState("");
+  const [pronunciationTarget, setPronunciationTarget] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [leaderboardMeta, setLeaderboardMeta] = useState<LeaderboardMeta>({ language: "", languageName: "" });
   const [leaderboardLanguage, setLeaderboardLanguage] = useState("global");
@@ -1478,7 +1479,7 @@ export function App() {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         phrase: cleaned,
         translation: cleanAppText(recordField(details || {}, ["translation"])),
-        note: source === "manual" ? cleanAppText(recordField(details || {}, ["note", "context"])) : "",
+        note: cleanAppText(recordField(details || {}, ["note", "context"])),
         source,
         language: user.learning_language,
         createdAt: new Date().toISOString(),
@@ -1773,6 +1774,33 @@ export function App() {
     setMessages((current) => [...nextMessages, ...current].slice(0, 12));
     setDraft("");
     setVoiceFile(null);
+  };
+
+  const submitPronunciation = async (target: string) => {
+    const cleanTarget = cleanAppText(target).trim();
+    if (!cleanTarget) {
+      setStatus({ kind: "error", text: copy("pronunciation_target_missing", "Нет фразы для проверки произношения.") });
+      return null;
+    }
+    if (!voiceFile) {
+      setStatus({ kind: "error", text: copy("tutor_need_voice", "Record your voice first.") });
+      return null;
+    }
+    const form = buildShadowingForm("", voiceFile, cleanTarget);
+    const payload = await runAction("pronunciation", () => apiForm<ApiRecord>("/api/pronunciation/check", form), copy("answer_checked", "Answer checked."));
+    if (!payload) return null;
+    const record = getRecord(payload);
+    const responseText = formatLearningRecord(record, copy, copy("pronunciation_checked", "Произношение проверено."));
+    const transcript = asText(record.transcript || copy("voice_message", "Voice message"), "");
+    setMessages((current) => [
+      panelMessage(responseText, "success", copy("pronunciation_feedback", "Проверка произношения"), record, "pronunciation"),
+      userMessage(transcript, copy("you", "You"), "pronunciation"),
+      ...current,
+    ].slice(0, 12));
+    const refreshed = record.user && typeof record.user === "object" ? record.user as UserProfile : null;
+    if (refreshed) setSession((current) => current ? updateSessionUser(current, refreshed) : current);
+    setVoiceFile(null);
+    return record;
   };
 
   const startWord = async () => {
@@ -2367,6 +2395,9 @@ export function App() {
     roleplayResult,
     startShadowing,
     submitShadowing,
+    pronunciationTarget,
+    setPronunciationTarget,
+    submitPronunciation,
     startWord,
     wordChallenge,
     answerWord,
@@ -3043,7 +3074,18 @@ function pronunciationFocusItems(items: PronunciationProblem[], copy: (key: stri
             : copy("word_stress", "ударение");
     return { word, target };
   });
-  return focus.length ? focus : [{ word: copy("no_voice_data", "Пока нет голосовых данных"), target: copy("start_listening_hint", "запустите Listening") }];
+  return focus.length ? focus : [{ word: copy("no_voice_data", "Пока нет голосовых данных"), target: copy("start_pronunciation_hint", "запишите фразу выше") }];
+}
+
+function pronunciationPracticeFallback(user: UserProfile, copy: (key: string, fallback: string) => string, rotate = false) {
+  const phrases = [
+    copy("pronunciation_sample_1", "Could you say that a little slower, please?"),
+    copy("pronunciation_sample_2", "I would like a quiet room for one night."),
+    copy("pronunciation_sample_3", "The reservation is under my name."),
+    copy("pronunciation_sample_4", "Can you help me with this sentence?"),
+  ];
+  const seed = rotate ? Date.now() : tutorStableHash(`${user.learning_language || "en"}:${user.level || "A1"}`);
+  return phrases[Math.abs(seed) % phrases.length];
 }
 
 function pronunciationFallbackForKey(interfaceLanguage: string | undefined, key: string) {
@@ -3971,6 +4013,11 @@ function BugReportDialog({
   const [message, setMessage] = useState("");
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const canSend = message.trim().length >= 8;
+  const addScreenshotFiles = (files: File[]) => {
+    const imageFiles = files.filter((file) => file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|svg|heic|heif)$/i.test(file.name));
+    if (!imageFiles.length) return;
+    setScreenshots((current) => [...current, ...imageFiles].slice(0, 5));
+  };
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!canSend) return;
@@ -4001,6 +4048,7 @@ function BugReportDialog({
               <textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
+                onPaste={(event) => addScreenshotFiles(Array.from(event.clipboardData.files || []))}
                 placeholder={copy("problem_description_placeholder", "Например: в roleplay не открылась карточка диалога...")}
                 rows={5}
               />
@@ -4010,15 +4058,15 @@ function BugReportDialog({
               <span>{screenshotLabel}</span>
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/webp"
+                accept="image/*"
                 multiple
-                onChange={(event) => setScreenshots(Array.from(event.target.files || []))}
+                onChange={(event) => addScreenshotFiles(Array.from(event.target.files || []))}
               />
             </label>
           </DialogBody>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline" onClick={onClose}>{copy("cancel", "Cancel")}</Button>
+              <Button type="button" variant="outline" onClick={onClose}>{copy("back", "Назад")}</Button>
             </DialogClose>
             <Button type="submit" disabled={!canSend || busy === "bug-report"}>
               {busy === "bug-report" ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={16} />}
@@ -4311,6 +4359,9 @@ type ViewRendererProps = {
   roleplayResult: ChatMessage | null;
   startShadowing: () => Promise<void>;
   submitShadowing: () => Promise<void>;
+  pronunciationTarget: string;
+  setPronunciationTarget: (value: string) => void;
+  submitPronunciation: (target: string) => Promise<ApiRecord | null>;
   startWord: () => Promise<void>;
   wordChallenge: WordChallenge | null;
   answerWord: (answerId: string) => Promise<void>;
@@ -5378,7 +5429,7 @@ function RoleplayView({
   );
 }
 
-function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, startShadowing, setView, copy }: ViewRendererProps) {
+function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, pronunciationTarget, setPronunciationTarget, submitPronunciation, voiceFile, imageFile, setVoiceFile, setImageFile, busy, copy }: ViewRendererProps) {
   const p = pronunciationLocale(user);
   const liveReports = useMemo(
     () => messages
@@ -5402,41 +5453,66 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   const reports = mergePronunciationHistory(liveReports, storedReports);
   const latest = reports[0];
   const score = latest?.score || latest?.similarity || latest?.average_confidence || 0;
-  const pronunciationTarget = cleanAppText(latest?.expected || shadowingTarget);
+  const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || shadowingTarget || pronunciationPracticeFallback(user, copy));
   const problemWords = uniquePronunciationProblems(reports.flatMap((report) => report.problem_words || []));
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
   const tokens = compactPronunciationMap(uniquePronunciationProblems(problemWords.length ? problemWords : fallbackWords), user, copy);
   const focusItems = pronunciationFocusItems(tokens, copy);
+  const [practiceResult, setPracticeResult] = useState<PronunciationAssessment | null>(null);
+  useEffect(() => {
+    if (!pronunciationTarget && defaultTarget) setPronunciationTarget(defaultTarget);
+  }, [defaultTarget, pronunciationTarget, setPronunciationTarget]);
+  const activeTarget = cleanAppText(pronunciationTarget || defaultTarget);
+  const checkPronunciation = async () => {
+    const record = await submitPronunciation(activeTarget);
+    const result = pronunciationFrom(record || {});
+    if (result) {
+      setPracticeResult(result);
+      setStoredReports((current) => {
+        const merged = mergePronunciationHistory([result], current);
+        localStorage.setItem(storageKey, JSON.stringify(merged));
+        return merged;
+      });
+    }
+  };
   return (
     <div className="pronunciation-dashboard-v2">
       <section className="v2-panel pronunciation-hero-v2">
         <span className="eyebrow"><Activity size={15} />{copy("pronunciation", p.title)}</span>
         <h2>{copy("pronunciation_dashboard", p.title)}</h2>
-        <p>{copy("pronunciation_dashboard_body", "Короткая карта слабых слов и звуков собирается из Listening и голосовых ответов.")}</p>
+        <p>{copy("pronunciation_dashboard_body", "Карта слабых слов и звуков собирается из ваших голосовых ответов и проверок произношения.")}</p>
         <div className="pronunciation-score-v2">
           <strong>{Math.round(Number(score || 0))}/100</strong>
           <span>{user.level || "A1"} · {copy("latest_score", "latest score")}</span>
         </div>
-        <div className="home-insights-v2__actions">
-          <Button onClick={() => void startShadowing()}><Volume2 size={16} />{copy("try_again", "Повторить")}</Button>
-          <Button variant="outline" onClick={() => setView("shadowing")}><Play size={16} />{copy("shadowing", "Listening")}</Button>
-        </div>
       </section>
-      {pronunciationTarget ? (
-        <section className="v2-panel pronunciation-history-v2">
-          <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
-          <h2>{pronunciationTarget}</h2>
-          <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: pronunciationTarget }]} />
-          <div className="home-insights-v2__actions">
-            <Button onClick={() => setView("shadowing")}><Mic size={16} />{copy("record_and_check", "Record and check")}</Button>
+      <section className="v2-panel pronunciation-history-v2 pronunciation-practice-v2">
+        <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
+        <div className="panel-head">
+          <div>
+            <h2>{activeTarget}</h2>
+            <p>{copy("pronunciation_practice_body", "Послушайте пример, произнесите эту же фразу и отправьте запись на проверку.")}</p>
           </div>
-        </section>
-      ) : null}
+          <Button type="button" variant="outline" size="sm" onClick={() => setPronunciationTarget(pronunciationPracticeFallback(user, copy, true))}>
+            <ChevronRight size={16} />
+            {copy("next_phrase", "Next phrase")}
+          </Button>
+        </div>
+        <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: activeTarget, targetLanguage: user.learning_language }]} />
+        <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+        <div className="home-insights-v2__actions">
+          <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
+            {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
+            {copy("record_and_check", "Record and check")}
+          </Button>
+        </div>
+        {practiceResult ? <PronunciationReport pronunciation={practiceResult} copy={copy} /> : null}
+      </section>
       <section className="v2-panel heatmap-panel-v2">
         <span className="eyebrow">{copy("pronunciation_heatmap", "Heatmap")}</span>
         <h2>{copy("weak_words", "Карта произношения")}</h2>
         <div className="heatmap-grid-v2">
-          {(tokens.length ? tokens : [{ word: copy("no_voice_data", "Пока нет голосовых данных"), issue: copy("start_listening_hint", "Запустите Listening и отправьте голос") }]).map((item, index) => (
+          {(tokens.length ? tokens : [{ word: copy("no_voice_data", "Пока нет голосовых данных"), issue: copy("start_pronunciation_hint", "Запишите фразу выше и отправьте голос") }]).map((item, index) => (
             <PronunciationHeatmapToken key={`${item.word || item.spoken || index}-${index}`} item={item} index={index} user={user} copy={copy} />
           ))}
         </div>
@@ -6239,7 +6315,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
     event.preventDefault();
     const phrase = manualPhrase.trim();
     if (!phrase) return;
-    savePhrase(phrase, "manual", { context: manualNote });
+    savePhrase(phrase, "manual", { note: manualNote });
     setManualPhrase("");
     setManualNote("");
   };
@@ -6290,6 +6366,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
                 <small>{copy(`phrase_source_${item.source || "manual"}`, item.source || "manual")} · {prettyDate(item.createdAt || item.created_at)}</small>
                 <strong>{item.phrase}</strong>
                 {item.translation ? <p>{item.translation}</p> : null}
+                {item.note ? <p>{item.note}</p> : null}
                 <div className="phrasebook-card-v2__actions">
                   <AudioWaveButton label={copy("listen", "Listen")} text={item.phrase} targetLanguage={item.language || user.learning_language} compact />
                   <Button type="button" variant="outline" size="sm" onClick={() => removePhrase(item.id)}>
