@@ -209,6 +209,36 @@ func TestTutorWorkScenarioUsesMeetingSlotsNotRandomVocabulary(t *testing.T) {
 	}
 }
 
+func TestTutorDoctorLessonHasTeachingPointAndFinalWordCheck(t *testing.T) {
+	user := userState{TelegramID: 191, FirstName: "demo", InterfaceLanguage: "en", LearningLanguage: "en", Level: "A1"}
+	lesson, err := buildTutorLessonForSequence(user, 4)
+	if err != nil {
+		t.Fatalf("buildTutorLessonForSequence(doctor) error = %v", err)
+	}
+	if lesson.TeachingPoint.Pattern != "Hello. I need to see a doctor today, please." {
+		t.Fatalf("teaching pattern = %q", lesson.TeachingPoint.Pattern)
+	}
+	wantOrder := []string{"action", "doctor", "today"}
+	if strings.Join(lesson.TeachingPoint.SceneOrder, "|") != strings.Join(wantOrder, "|") {
+		t.Fatalf("scene order = %#v, want %#v", lesson.TeachingPoint.SceneOrder, wantOrder)
+	}
+	if lesson.TeachingPoint.ModelAnswer != "Hello. I need to see a doctor today, please." {
+		t.Fatalf("teaching model answer = %q", lesson.TeachingPoint.ModelAnswer)
+	}
+	if len(lesson.FinalWordCheck.Items) < 3 {
+		t.Fatalf("final word check items = %d, want at least 3", len(lesson.FinalWordCheck.Items))
+	}
+	if lesson.FinalWordCheck.RequiredCorrect < 2 {
+		t.Fatalf("required correct = %d, want at least 2", lesson.FinalWordCheck.RequiredCorrect)
+	}
+	combined := strings.ToLower(strings.Join(tutorChoiceTexts(lesson.FinalWordCheck.Items), "\n"))
+	for _, want := range []string{"doctor", "today"} {
+		if !strings.Contains(combined, want) {
+			t.Fatalf("final word check misses %q:\n%s", want, combined)
+		}
+	}
+}
+
 func tutorTestTopicByCode(t *testing.T, code string) tutorTopic {
 	t.Helper()
 	for _, topic := range tutorScenarioCourseTopics {

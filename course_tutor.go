@@ -60,6 +60,29 @@ type tutorScenarioSlots struct {
 	ModelAnswer    string   `json:"model_answer"`
 }
 
+type tutorTeachingPoint struct {
+	Title       string   `json:"title"`
+	Pattern     string   `json:"pattern"`
+	SceneOrder  []string `json:"scene_order"`
+	Explanation string   `json:"explanation"`
+	ModelAnswer string   `json:"model_answer"`
+}
+
+type tutorFinalWordCheck struct {
+	Prompt          string              `json:"prompt"`
+	Items           []tutorLessonChoice `json:"items"`
+	RequiredCorrect int                 `json:"required_correct"`
+	SummaryPass     string              `json:"summary_pass"`
+	SummaryRetry    string              `json:"summary_retry"`
+}
+
+type tutorSummaryBlock struct {
+	CanSay      string   `json:"can_say"`
+	StrongItems []string `json:"strong_items"`
+	WeakItems   []string `json:"weak_items"`
+	NextReview  string   `json:"next_review"`
+}
+
 type tutorLessonSRS struct {
 	Again string `json:"again"`
 	Hard  string `json:"hard"`
@@ -91,6 +114,9 @@ type tutorLesson struct {
 	CanDo             string               `json:"can_do"`
 	Scenario          string               `json:"scenario"`
 	ScenarioSlots     tutorScenarioSlots   `json:"scenario_slots,omitempty"`
+	TeachingPoint     tutorTeachingPoint   `json:"teaching_point,omitempty"`
+	FinalWordCheck    tutorFinalWordCheck  `json:"final_word_check,omitempty"`
+	TutorSummary      tutorSummaryBlock    `json:"tutor_summary,omitempty"`
 	Steps             []tutorLessonStep    `json:"steps"`
 	Words             []tutorLessonWord    `json:"words"`
 	GrammarTitle      string               `json:"grammar_title"`
@@ -487,6 +513,9 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		CanDo:             tutorCanDo(level, topic, courseFunction, interfaceLanguage),
 		Scenario:          tutorTopicScenario(topic, interfaceLanguage) + " " + tutorVariantConstraint(variant, interfaceLanguage),
 		ScenarioSlots:     tutorScenarioSlotsFromTemplate(scenarioTemplate, interfaceLanguage),
+		TeachingPoint:     tutorTeachingPointFor(scenarioTemplate, interfaceLanguage),
+		FinalWordCheck:    buildTutorFinalWordCheck(words, scenarioTemplate, interfaceLanguage),
+		TutorSummary:      tutorSummaryForLesson(words, scenarioTemplate, courseFunction, interfaceLanguage),
 		Steps:             tutorLessonSteps(interfaceLanguage),
 		Words:             words,
 		GrammarTitle:      tutorScenarioGrammarTitle(level, courseFunction, interfaceLanguage),
@@ -807,6 +836,146 @@ func tutorScenarioExpectedWords(template tutorScenarioTemplate) []string {
 		expected = append(expected, template.Item, template.Detail)
 	}
 	return expected
+}
+
+func tutorTeachingPointFor(template tutorScenarioTemplate, interfaceLanguage string) tutorTeachingPoint {
+	item := strings.TrimSpace(template.Item)
+	detail := strings.TrimSpace(template.Detail)
+	model := strings.TrimSpace(template.ModelAnswer)
+	order := []string{"action"}
+	if item != "" {
+		order = append(order, item)
+	}
+	if detail != "" {
+		order = append(order, detail)
+	}
+	explanation := tutorLocalized(interfaceLanguage, template.MiniExplanationRU, template.MiniExplanationEN)
+	if strings.TrimSpace(explanation) == "" {
+		explanation = fmt.Sprintf("Scene order: %s. Pattern: %s", strings.Join(order, " -> "), model)
+	}
+	return tutorTeachingPoint{
+		Title:       tutorLocalized(interfaceLanguage, "One useful pattern", "One useful pattern"),
+		Pattern:     model,
+		SceneOrder:  order,
+		Explanation: explanation,
+		ModelAnswer: model,
+	}
+}
+
+func buildTutorFinalWordCheck(words []tutorLessonWord, template tutorScenarioTemplate, interfaceLanguage string) tutorFinalWordCheck {
+	items := tutorWordCheckItems(words, template, interfaceLanguage)
+	required := tutorMinInt(len(items), tutorMaxInt(2, len(items)-1))
+	return tutorFinalWordCheck{
+		Prompt:          tutorLocalized(interfaceLanguage, "Final word check: prove you still remember the lesson words.", "Final word check: prove you still remember the lesson words."),
+		Items:           items,
+		RequiredCorrect: required,
+		SummaryPass:     tutorLocalized(interfaceLanguage, "Word check passed. Now schedule the review.", "Word check passed. Now schedule the review."),
+		SummaryRetry:    tutorLocalized(interfaceLanguage, "Repeat the weak words before finishing the lesson.", "Repeat the weak words before finishing the lesson."),
+	}
+}
+
+func tutorWordCheckItems(words []tutorLessonWord, template tutorScenarioTemplate, interfaceLanguage string) []tutorLessonChoice {
+	items := make([]tutorLessonChoice, 0, 4)
+	seen := map[string]bool{}
+	addWord := func(wordText string) {
+		wordText = strings.TrimSpace(wordText)
+		key := strings.ToLower(wordText)
+		if wordText == "" || seen[key] {
+			return
+		}
+		for _, word := range words {
+			if !strings.EqualFold(strings.TrimSpace(word.Word), wordText) {
+				continue
+			}
+			ordered := []tutorLessonWord{word}
+			for _, candidate := range words {
+				if candidate.ID == word.ID || strings.EqualFold(candidate.Word, word.Word) {
+					continue
+				}
+				ordered = append(ordered, candidate)
+			}
+			items = append(items, tutorChoiceFromWords(ordered, interfaceLanguage))
+			seen[key] = true
+			return
+		}
+		items = append(items, tutorSlotWordChoice(wordText, words, interfaceLanguage))
+		seen[key] = true
+	}
+	addWord(template.Item)
+	addWord(template.Detail)
+	for _, word := range words {
+		addWord(word.Word)
+		if len(items) >= 4 {
+			break
+		}
+	}
+	return items
+}
+
+func tutorSlotWordChoice(slot string, words []tutorLessonWord, interfaceLanguage string) tutorLessonChoice {
+	options := []tutorChoiceOption{{
+		ID:      "slot:" + strings.ToLower(strings.ReplaceAll(slot, " ", "-")),
+		Text:    slot,
+		Label:   tutorLocalized(interfaceLanguage, "Scene word", "Scene word"),
+		Why:     tutorLocalized(interfaceLanguage, "This word is required by the scenario pattern.", "This word is required by the scenario pattern."),
+		Skill:   "final-word",
+		Quality: "correct",
+	}}
+	seen := map[string]bool{strings.ToLower(slot): true}
+	for index, word := range words {
+		text := strings.TrimSpace(word.Word)
+		key := strings.ToLower(text)
+		if text == "" || seen[key] {
+			continue
+		}
+		seen[key] = true
+		options = append(options, tutorChoiceOption{
+			ID:      fmt.Sprintf("slot:wrong:%d", index),
+			Text:    text,
+			Label:   tutorWeakOptionLabel(index, interfaceLanguage),
+			Why:     tutorWeakOptionWhy(index, interfaceLanguage),
+			Skill:   "final-word",
+			Quality: "weak",
+			Avoid:   true,
+		})
+		if len(options) >= 4 {
+			break
+		}
+	}
+	return tutorLessonChoice{
+		Prompt:          tutorLocalized(interfaceLanguage, "Choose the scene word: ", "Choose the scene word: ") + slot,
+		Options:         options,
+		CorrectAnswerID: options[0].ID,
+		Feedback:        tutorLocalized(interfaceLanguage, "Correct: this word belongs to the lesson pattern.", "Correct: this word belongs to the lesson pattern."),
+	}
+}
+
+func tutorSummaryForLesson(words []tutorLessonWord, template tutorScenarioTemplate, function tutorCourseFunction, interfaceLanguage string) tutorSummaryBlock {
+	strong := make([]string, 0, 4)
+	seen := map[string]bool{}
+	add := func(value string) {
+		value = strings.TrimSpace(value)
+		key := strings.ToLower(value)
+		if value == "" || seen[key] {
+			return
+		}
+		seen[key] = true
+		strong = append(strong, value)
+	}
+	add(template.Item)
+	add(template.Detail)
+	for _, word := range words {
+		if len(strong) >= 4 {
+			break
+		}
+		add(word.Word)
+	}
+	return tutorSummaryBlock{
+		CanSay:      strings.TrimSpace(template.ModelAnswer),
+		StrongItems: strong,
+		WeakItems:   []string{},
+		NextReview:  tutorLocalized(interfaceLanguage, "Choose a review button based on how hard the final check felt.", "Choose a review button based on how hard the final check felt."),
+	}
 }
 
 func tutorScenarioSituation(template tutorScenarioTemplate, interfaceLanguage string) string {
