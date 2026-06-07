@@ -18,6 +18,10 @@ When `bash` is not available in `PATH`, invoke it explicitly from PowerShell:
 & 'C:\Program Files\Git\bin\bash.exe' -lc "git status --short"
 ```
 
+## GitHub Sync
+
+After verified file changes in this repository, commit and push them to the configured GitHub remote. The expected remote is `https://github.com/GarryNaxyison/My-app-local.git`. If push authentication is missing or fails, report that clearly.
+
 ## Nx MCP Startup
 
 For this workspace, start Nx MCP as a standalone Streamable HTTP server when a persistent MCP endpoint is needed:
