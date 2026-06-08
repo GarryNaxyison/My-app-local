@@ -21,7 +21,6 @@ type sqliteVocabularyRuntime struct {
 }
 
 var vocabularySQLiteRuntime sqliteVocabularyRuntime
-var vocabularyJSONPersistMu sync.Mutex
 
 func initializeVocabularyRuntime(cfg config) (*sql.DB, error) {
 	db, err := openSQLiteDatabase("VOCABULARY_DATABASE_PATH", cfg.VocabularyDatabasePath)
@@ -239,7 +238,7 @@ func sqliteVocabularySourceFresh(db *sql.DB, language string, path string, info 
 	if err != nil {
 		return false, err
 	}
-	if sizeBytes != info.Size() || wordCount <= 0 {
+	if sizeBytes != info.Size() || modTimeUnix != info.ModTime().Unix() || wordCount <= 0 {
 		return false, nil
 	}
 	var storedCount int
@@ -918,84 +917,6 @@ func sqliteVocabularyAITranslationSet(word vocabWord, targetLanguage string, mod
 		return err
 	}
 	invalidateSQLiteVocabularyIDCache()
-	if err := persistVocabularyTranslationToJSON(word, targetLanguage, value); err != nil {
-		return err
-	}
-	return nil
-}
-
-func persistVocabularyTranslationToJSON(word vocabWord, targetLanguage string, value string) error {
-	language := normalizeLearningLanguage(word.Language)
-	targetLanguage = normalizeInterfaceLanguage(targetLanguage)
-	value = cleanDictionaryDisplay(value)
-	if language == "" || targetLanguage == "" || value == "" || targetLanguage == language {
-		return nil
-	}
-	path, ok := vocabularyPath(language)
-	if !ok {
-		return nil
-	}
-
-	vocabularyJSONPersistMu.Lock()
-	defer vocabularyJSONPersistMu.Unlock()
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("read vocabulary json %s: %w", path, err)
-	}
-	var rows []vocabWord
-	if err := json.Unmarshal(data, &rows); err != nil {
-		return fmt.Errorf("parse vocabulary json %s: %w", path, err)
-	}
-	targetID := strings.TrimSpace(word.ID)
-	if targetID == "" {
-		targetID = makeVocabID(language, word.English)
-	}
-	changed := false
-	for index := range rows {
-		rowID := strings.TrimSpace(rows[index].ID)
-		if rowID == "" {
-			rowID = makeVocabID(language, rows[index].English)
-		}
-		if rowID != targetID && !sameDictionaryText(rows[index].English, word.English) {
-			continue
-		}
-		if rows[index].Translations == nil {
-			rows[index].Translations = map[string]string{}
-		}
-		if cleanDictionaryDisplay(rows[index].Translations[targetLanguage]) != value {
-			rows[index].Translations[targetLanguage] = value
-			changed = true
-		}
-		if targetLanguage == "ru" && cleanDictionaryDisplay(rows[index].Russian) != value {
-			rows[index].Russian = value
-			changed = true
-		}
-		if rows[index].ID == "" && strings.TrimSpace(word.ID) != "" {
-			rows[index].ID = targetID
-			changed = true
-		}
-		if rows[index].Language == "" && language != "" {
-			rows[index].Language = language
-			changed = true
-		}
-		break
-	}
-	if !changed {
-		return nil
-	}
-	payload, err := json.Marshal(rows)
-	if err != nil {
-		return fmt.Errorf("encode vocabulary json %s: %w", path, err)
-	}
-	tmpPath := path + ".tmp"
-	if err := os.WriteFile(tmpPath, payload, 0o644); err != nil {
-		return fmt.Errorf("write vocabulary json %s: %w", tmpPath, err)
-	}
-	if err := os.Rename(tmpPath, path); err != nil {
-		_ = os.Remove(tmpPath)
-		return fmt.Errorf("replace vocabulary json %s: %w", path, err)
-	}
 	return nil
 }
 

@@ -107,7 +107,7 @@ The web API also applies per-IP and per-session request limits, and the browser 
 
 ### Low-memory server mode
 
-For a 1 GB VPS, keep multilingual vocabulary JSON files on disk instead of embedding them into the binary. The app imports those JSON files into indexed SQLite vocabulary tables in `VOCABULARY_DATABASE_PATH` on startup, then uses SQLite for hot lookups. JSON files remain the source/fallback format.
+For a 1 GB VPS, keep multilingual vocabulary JSON files on disk instead of embedding them into the binary. The app imports those JSON files into indexed SQLite vocabulary tables in `VOCABULARY_DATABASE_PATH` on startup, then uses SQLite for hot lookups. JSON files remain read-only seed files for import/rebuilds.
 
 Recommended Linux `.env` values:
 
@@ -125,6 +125,8 @@ go build -ldflags "-s -w" -o aibot .
 Deploy the `data/vocabulary/vocabulary_words*.json` files together with the `aibot` binary in `VOCABULARY_DIR`.
 
 On the first production start, allow extra time for the SQLite vocabulary import. Later starts skip the import unless a vocabulary JSON file changes size or modification time. The vocabulary database is separate from `DATABASE_PATH`, so user-data backups stay small and the static dictionary can be regenerated.
+
+AI-filled vocabulary is mutable runtime data. Preserve `VOCABULARY_DATABASE_PATH` (`vocabulary.sqlite` by default) during deploys and include it in production backups, or export the `vocabulary_ai_words` and `vocabulary_ai_translations` tables before replacing the database. These tables prevent repeated AI token spending after restart, JSON reimport, or deploy.
 
 По умолчанию данные хранятся в SQLite-файле `english_coach.sqlite`. Если рядом есть старый `english_coach_data.json`, пустая SQLite-база импортирует его при первом запуске.
 

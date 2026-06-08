@@ -160,7 +160,7 @@ func TestSQLiteVocabularyRuntimeImportsAndFindsWords(t *testing.T) {
 	}
 }
 
-func TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges(t *testing.T) {
+func TestSQLiteVocabularySourceFreshDetectsMTimeOnlyChanges(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("VOCABULARY_DIR", dir)
 	path := filepath.Join(dir, "vocabulary_words.json")
@@ -202,8 +202,8 @@ func TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !fresh {
-		t.Fatal("expected mtime-only vocabulary changes to stay fresh")
+	if fresh {
+		t.Fatal("expected mtime-only vocabulary changes to require reimport")
 	}
 }
 
@@ -699,7 +699,7 @@ func TestVocabularyPromptRejectsDictionaryValueThatLeaksAnswer(t *testing.T) {
 	}
 }
 
-func TestSQLiteVocabularyAITranslationPersistsToJSONDictionary(t *testing.T) {
+func TestSQLiteVocabularyAITranslationDoesNotMutateJSONSeed(t *testing.T) {
 	word := vocabWord{
 		ID:       "en:creating",
 		Language: "en",
@@ -711,29 +711,27 @@ func TestSQLiteVocabularyAITranslationPersistsToJSONDictionary(t *testing.T) {
 		Level: "A2",
 	}
 	configureSQLiteVocabularyForTest(t, []vocabWord{word})
-	if err := sqliteVocabularyAITranslationSet(word, "ru", "test-model", "prompt", "создание; сотворение"); err != nil {
-		t.Fatal(err)
-	}
 	path, ok := vocabularyPath("en")
 	if !ok {
 		t.Fatal("missing English vocabulary path")
 	}
-	data, err := os.ReadFile(path)
+	before, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var rows []vocabWord
-	if err := json.Unmarshal(data, &rows); err != nil {
+	if err := sqliteVocabularyAITranslationSet(word, "ru", "test-model", "prompt", "создание; сотворение"); err != nil {
 		t.Fatal(err)
 	}
-	if len(rows) != 1 {
-		t.Fatalf("JSON rows = %d, want 1", len(rows))
+	after, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if got := cleanDictionaryDisplay(rows[0].Translations["ru"]); got != "создание; сотворение" {
-		t.Fatalf("JSON translations[ru] = %q, want AI translation", got)
+	if string(after) != string(before) {
+		t.Fatal("AI translation mutated read-only JSON seed")
 	}
-	if got := cleanDictionaryDisplay(rows[0].Russian); got != "создание; сотворение" {
-		t.Fatalf("JSON russian = %q, want AI translation", got)
+	value, ok, err := sqliteVocabularyAITranslationGet(word.ID, "ru")
+	if err != nil || !ok || value != "создание; сотворение" {
+		t.Fatalf("sqliteVocabularyAITranslationGet = %q, %v, %v; want SQLite persistence", value, ok, err)
 	}
 }
 
@@ -1280,6 +1278,7 @@ func TestVocabularyContextDoesNotRevealEnglishAnswer(t *testing.T) {
 }
 
 func TestCommonCoreUsesCuratedLearningWords(t *testing.T) {
+	seedVocabularyRandomForTest(t, 20260608)
 	for _, language := range []string{"de", "es", "fr", "it", "pl", "pt", "ro", "uk"} {
 		word, ok := nextUnlearnedWord(userState{LearningLanguage: language, Level: "A1"})
 		if !ok {
