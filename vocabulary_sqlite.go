@@ -238,7 +238,7 @@ func sqliteVocabularySourceFresh(db *sql.DB, language string, path string, info 
 	if err != nil {
 		return false, err
 	}
-	if sizeBytes != info.Size() || modTimeUnix != info.ModTime().Unix() || wordCount <= 0 {
+	if sizeBytes != info.Size() || wordCount <= 0 {
 		return false, nil
 	}
 	var storedCount int

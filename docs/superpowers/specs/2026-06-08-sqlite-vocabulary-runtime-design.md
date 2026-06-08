@@ -12,7 +12,7 @@ Make SQLite the only runtime vocabulary store, keep JSON dictionaries as read-on
 
 The current AI translation write path stores the translation in SQLite and then calls `persistVocabularyTranslationToJSON`. That helper reads the full language JSON file, unmarshals it into `[]vocabWord`, marshals it again, and replaces the source file. English and Russian seed dictionaries are tens of megabytes on disk, so this can create large transient heap pressure on a small VPS. It also makes user traffic mutate seed files, which should be rebuild artifacts rather than hot runtime state.
 
-The SQLite import metadata also stores JSON modification time but currently treats same-size mtime-only changes as fresh. Runtime docs say size or modification time should trigger reimport, so the code and docs need to match.
+The SQLite import metadata stores JSON modification time for diagnostics, but low-memory runtime should not reimport on mtime-only changes. Routine deploys can rewrite timestamps without changing content, and reimporting large dictionaries during deploy is unnecessary pressure on a 1 GB VPS.
 
 ## Design
 
@@ -33,7 +33,7 @@ Use a two-layer vocabulary model:
 - AI translations are still mirrored into `vocabulary_translations` for normal lookup.
 - AI words are still mirrored into `vocabulary_words` and `vocabulary_translations`.
 - Seed JSON files are never rewritten by normal bot traffic.
-- JSON mtime changes trigger reimport even if size and word count are unchanged.
+- JSON mtime-only changes do not trigger reimport when size and SQLite word count still match.
 - Production deploy must preserve `vocabulary.sqlite` unless an explicit migration/restore step is being performed.
 
 ## Indexing
@@ -64,5 +64,5 @@ Backups must include `vocabulary.sqlite` or an export of `vocabulary_ai_words` a
 - AI translation must remain available from SQLite after insert.
 - AI translation must survive JSON reimport when the seed word still exists.
 - Stale AI translation must not resurrect a deleted seed word.
-- JSON mtime-only change must be detected as not fresh.
+- JSON mtime-only change must be treated as fresh to avoid deploy-time reimports.
 - Existing SQLite index coverage test must keep passing.

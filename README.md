@@ -124,7 +124,7 @@ go build -ldflags "-s -w" -o aibot .
 
 Deploy the `data/vocabulary/vocabulary_words*.json` files together with the `aibot` binary in `VOCABULARY_DIR`.
 
-On the first production start, allow extra time for the SQLite vocabulary import. Later starts skip the import unless a vocabulary JSON file changes size or modification time. The vocabulary database is separate from `DATABASE_PATH`, so user-data backups stay small and the static dictionary can be regenerated.
+On the first production start, allow extra time for the SQLite vocabulary import. Later starts skip the import while the JSON file size and imported SQLite word count still match; mtime-only changes are ignored so routine deploys do not trigger expensive reimports. The vocabulary database is separate from `DATABASE_PATH`, so user-data backups stay small and the static dictionary can be regenerated.
 
 AI-filled vocabulary is mutable runtime data. Preserve `VOCABULARY_DATABASE_PATH` (`vocabulary.sqlite` by default) during deploys and include it in production backups, or export the `vocabulary_ai_words` and `vocabulary_ai_translations` tables before replacing the database. These tables prevent repeated AI token spending after restart, JSON reimport, or deploy.
 

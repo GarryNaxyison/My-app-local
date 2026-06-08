@@ -160,7 +160,7 @@ func TestSQLiteVocabularyRuntimeImportsAndFindsWords(t *testing.T) {
 	}
 }
 
-func TestSQLiteVocabularySourceFreshDetectsMTimeOnlyChanges(t *testing.T) {
+func TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("VOCABULARY_DIR", dir)
 	path := filepath.Join(dir, "vocabulary_words.json")
@@ -202,8 +202,8 @@ func TestSQLiteVocabularySourceFreshDetectsMTimeOnlyChanges(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if fresh {
-		t.Fatal("expected mtime-only vocabulary changes to require reimport")
+	if !fresh {
+		t.Fatal("expected mtime-only vocabulary changes to stay fresh")
 	}
 }
 

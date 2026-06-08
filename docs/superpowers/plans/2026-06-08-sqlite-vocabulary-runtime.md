@@ -4,7 +4,7 @@
 
 **Goal:** Make SQLite the only runtime vocabulary store while preserving AI-filled vocabulary and keeping JSON dictionaries read-only seed files.
 
-**Architecture:** Seed JSON files are imported into SQLite and tracked with source metadata. AI-created words and translations live in dedicated SQLite tables and are replayed into hot lookup tables after seed imports. Bot traffic never rewrites vocabulary JSON files.
+**Architecture:** Seed JSON files are imported into SQLite and tracked with source metadata. AI-created words and translations live in dedicated SQLite tables and are replayed into hot lookup tables after seed imports. Bot traffic never rewrites vocabulary JSON files, and mtime-only JSON changes do not trigger expensive deploy-time reimports.
 
 **Tech Stack:** Go, `database/sql`, SQLite, existing vocabulary tests, existing Nx/go test scripts.
 
@@ -13,7 +13,7 @@
 ## File Structure
 
 - Modify `vocabulary_test.go`: replace the JSON persistence expectation with SQLite-only persistence tests and update source freshness expectations.
-- Modify `vocabulary_sqlite.go`: remove runtime JSON rewrite from AI translation writes and compare JSON modification time in source freshness checks.
+- Modify `vocabulary_sqlite.go`: remove runtime JSON rewrite from AI translation writes and keep mtime-only JSON changes fresh when size and stored word count still match.
 - Modify `README.md`: clarify that production must preserve `vocabulary.sqlite` or AI export backups.
 - Modify `docs/reference/VOCABULARY_SOURCES.md`: document JSON as read-only seed and SQLite as the mutable AI layer.
 
@@ -62,29 +62,28 @@ func TestSQLiteVocabularyAITranslationDoesNotMutateJSONSeed(t *testing.T) {
 - [ ] Run `go test ./... -run TestSQLiteVocabularyAITranslationDoesNotMutateJSONSeed -count=1`.
 - [ ] Expected result before implementation: FAIL with `AI translation mutated read-only JSON seed`.
 
-## Task 2: Red Test For JSON Source Freshness
+## Task 2: Regression Test For JSON Source Freshness
 
-- [ ] Rename `TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges` to `TestSQLiteVocabularySourceFreshDetectsMTimeOnlyChanges`.
-- [ ] Change its final assertion to:
+- [ ] Keep `TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges` asserting mtime-only changes stay fresh.
 
 ```go
-if fresh {
-	t.Fatal("expected mtime-only vocabulary changes to require reimport")
+if !fresh {
+	t.Fatal("expected mtime-only vocabulary changes to stay fresh")
 }
 ```
 
-- [ ] Run `go test ./... -run TestSQLiteVocabularySourceFreshDetectsMTimeOnlyChanges -count=1`.
-- [ ] Expected result before implementation: FAIL because the current code ignores mtime-only changes.
+- [ ] Run `go test ./... -run TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges -count=1`.
+- [ ] Expected result: PASS, proving routine deploy timestamp changes do not force reimport.
 
 ## Task 3: Minimal Production Fix
 
-- [ ] In `sqliteVocabularySourceFresh`, require stored `mod_time_unix` to equal `info.ModTime().Unix()`.
+- [ ] In `sqliteVocabularySourceFresh`, keep freshness based on JSON size plus stored SQLite word count.
 - [ ] In `sqliteVocabularyAITranslationSet`, delete the call to `persistVocabularyTranslationToJSON`.
 - [ ] Keep `persistVocabularyTranslationToJSON` only if tests still reference it; otherwise remove it and related unused imports.
 - [ ] Run:
 
 ```bash
-go test ./... -run "TestSQLiteVocabularyAITranslationDoesNotMutateJSONSeed|TestSQLiteVocabularySourceFreshDetectsMTimeOnlyChanges|TestSQLiteVocabularyAITranslationPersistsAndJoins|TestSQLiteVocabularyImportSkipsStaleAITranslations|TestSQLiteVocabularyAIWordReplayAfterJSONImport" -count=1
+go test ./... -run "TestSQLiteVocabularyAITranslationDoesNotMutateJSONSeed|TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges|TestSQLiteVocabularyAITranslationPersistsAndJoins|TestSQLiteVocabularyImportSkipsStaleAITranslations|TestSQLiteVocabularyAIWordReplayAfterJSONImport" -count=1
 ```
 
 - [ ] Expected result after implementation: PASS.
