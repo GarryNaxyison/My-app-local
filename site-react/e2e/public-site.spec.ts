@@ -38,7 +38,7 @@ const siteLocaleCodes = [
   "vi",
 ];
 
-test("landing keeps Busuu-like product flow with Poliglot features", async ({ page }) => {
+test("landing keeps goal-course product flow with Poliglot features", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/poliglot-ai.html");
 
@@ -46,7 +46,7 @@ test("landing keeps Busuu-like product flow with Poliglot features", async ({ pa
   await expect(page.locator(".public-nav a", { hasText: /^v2$/i })).toHaveCount(0);
   await expect(page.locator(".public-brand__logo img")).toBeVisible();
   const appLinks = await page.locator('a[href^="/app"]').evaluateAll((links) => [...new Set(links.map((link) => (link as HTMLAnchorElement).getAttribute("href")))].sort());
-  expect(appLinks).toEqual(["/app/v2/"]);
+  expect(appLinks).toEqual(["/app/"]);
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   const lightHero = await page.locator(".landing-hero").evaluate((hero) => {
     document.documentElement.dataset.siteTheme = "light";
@@ -54,20 +54,20 @@ test("landing keeps Busuu-like product flow with Poliglot features", async ({ pa
     const matter = hero.querySelector(".landing-hero__matter") as HTMLElement | null;
     const matterBox = matter?.getBoundingClientRect();
     const h1 = hero.querySelector("h1") as HTMLElement;
-    const cardTitle = hero.querySelector(".hero-language-picker strong") as HTMLElement;
+    const firstGoal = hero.querySelector(".hero-goals a strong") as HTMLElement | null;
     return {
       heroWidth: heroBox.width,
       heroHeight: heroBox.height,
       matterWidth: matterBox?.width || 0,
       matterHeight: matterBox?.height || 0,
       h1Color: getComputedStyle(h1).color,
-      cardTitleColor: getComputedStyle(cardTitle).color,
+      firstGoalColor: firstGoal ? getComputedStyle(firstGoal).color : "",
     };
   });
   expect(lightHero.matterWidth).toBeGreaterThan(lightHero.heroWidth * 0.9);
   expect(lightHero.matterHeight).toBeGreaterThan(lightHero.heroHeight * 0.9);
   expect(lightHero.h1Color).not.toBe("rgb(7, 17, 31)");
-  expect(lightHero.cardTitleColor).not.toBe("rgb(7, 17, 31)");
+  expect(lightHero.firstGoalColor).not.toBe("rgb(7, 17, 31)");
   const lightEyebrow = await page.locator(".workflow-section .eyebrow").evaluate((node) => {
     const style = getComputedStyle(node);
     return {
@@ -80,7 +80,10 @@ test("landing keeps Busuu-like product flow with Poliglot features", async ({ pa
   expect(lightEyebrow.textFill).toBe("rgb(15, 23, 42)");
   expect(lightEyebrow.background).not.toBe("rgba(243, 184, 75, 0.1)");
 
-  await expect(page.locator("h1")).toContainText("Учите языки онлайн");
+  await expect(page.locator("h1")).toContainText("Выберите цель");
+  const heroGoals = page.locator(".hero-goals a strong");
+  await expect(heroGoals).toHaveCount(4);
+  await expect(heroGoals).toHaveText(["Путешествия", "Работа", "Экзамен", "Разговорная речь"]);
   await expect(page.locator(".hero-language-picker a")).toHaveCount(8);
   await expect(page.locator(".course-card")).toHaveCount(3);
   await expect(page.locator(".feature-card")).toHaveCount(6);
@@ -88,9 +91,13 @@ test("landing keeps Busuu-like product flow with Poliglot features", async ({ pa
   await expect(page.locator(".faq-grid article")).toHaveCount(4);
   await expect(page.locator(".hero-proof")).toContainText("35");
   await expect(page.locator(".hero-proof")).toContainText("A1-C2");
+  await expect(page.locator(".hero-proof")).toContainText("Free");
 
+  await expect(page.locator(".hero-demo__tabs button")).toHaveText(["Урок", "Диалог", "Голос", "Фото"]);
+  await page.locator(".hero-demo__tabs button").nth(1).click();
+  await expect(page.locator(".demo-output p")).toContainText("Could you help me check in?");
   await page.locator(".hero-demo__tabs button").nth(3).click();
-  await expect(page.locator(".demo-output p")).toContainText("peanuts");
+  await expect(page.locator(".demo-output p")).toContainText("No peanuts");
   await expect(page.locator(".demo-wave i")).toHaveCount(22);
 
   const oldPrices = page.locator(".plan-old-price");
@@ -99,6 +106,10 @@ test("landing keeps Busuu-like product flow with Poliglot features", async ({ pa
   const oldPriceColor = await oldPrices.first().evaluate((node) => getComputedStyle(node).color);
   expect(oldPriceColor).not.toBe("rgb(255, 255, 255)");
   expect(oldPriceColor).not.toBe("rgba(255, 255, 255, 0.5)");
+  await expect(page.locator(".payment-methods")).toContainText("Stars");
+  await expect(page.locator(".payment-methods")).toContainText("YooKassa");
+  await expect(page.locator(".payment-methods")).toContainText("TON");
+  await expect(page.locator(".payment-methods")).toContainText("USDT");
 });
 
 test("landing hero keeps animated motion within a bounded frame budget", async ({ page }) => {
