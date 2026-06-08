@@ -163,6 +163,172 @@ func normalizeVocabularyWord(language string, word vocabWord) (vocabWord, bool) 
 
 var vocabularyLearningWordPattern = regexp.MustCompile(`^[\p{L}][\p{L}\p{N}'’]*$`)
 
+type generatedVocabularyWord struct {
+	Word         string `json:"word"`
+	Translation  string `json:"translation"`
+	Russian      string `json:"russian"`
+	Context      string `json:"context"`
+	Level        string `json:"level"`
+	Topic        string `json:"topic"`
+	PartOfSpeech string `json:"part_of_speech"`
+}
+
+func parseGeneratedVocabularyWord(raw string, language string, promptLanguage string, fallbackLevel string, forbidden map[string]bool) (vocabWord, bool) {
+	raw = stripJSONCodeFence(cleanModelReply(raw))
+	if raw == "" {
+		return vocabWord{}, false
+	}
+	var payload generatedVocabularyWord
+	if err := json.Unmarshal([]byte(raw), &payload); err != nil {
+		return vocabWord{}, false
+	}
+	return sanitizeGeneratedVocabularyWord(language, payload, promptLanguage, fallbackLevel, forbidden)
+}
+
+func sanitizeGeneratedVocabularyWord(language string, generated generatedVocabularyWord, promptLanguage string, fallbackLevel string, forbidden map[string]bool) (vocabWord, bool) {
+	language = normalizeLearningLanguage(language)
+	promptLanguage = normalizeInterfaceLanguage(promptLanguage)
+	if promptLanguage == language {
+		if language == "ru" {
+			promptLanguage = "en"
+		} else {
+			promptLanguage = "ru"
+		}
+	}
+	target := cleanDictionaryDisplay(generated.Word)
+	if target == "" {
+		return vocabWord{}, false
+	}
+	id := makeVocabID(language, target)
+	if vocabularyWordForbidden(id, target, forbidden) {
+		return vocabWord{}, false
+	}
+
+	russian := cleanDictionaryDisplay(generated.Russian)
+	if language == "ru" && russian == "" {
+		russian = target
+	}
+	if language != "ru" && russian != "" && dictionaryTextContainsTerm(russian, target) {
+		return vocabWord{}, false
+	}
+	context := normalizeVocabularyContext(generated.Context)
+	if dictionaryTextContainsTerm(context, target) {
+		context = ""
+	}
+	candidate := vocabWord{
+		ID:           id,
+		Language:     language,
+		English:      target,
+		Russian:      russian,
+		Context:      context,
+		Translations: map[string]string{},
+		Level:        normalizeCEFRLevel(firstNonEmpty(generated.Level, fallbackLevel)),
+		Topic:        cleanDictionaryDisplay(generated.Topic),
+		PartOfSpeech: cleanDictionaryDisplay(generated.PartOfSpeech),
+		Source:       "ai",
+	}
+	translation := sanitizeVocabularyTranslation(generated.Translation, candidate)
+	if translation == "" {
+		return vocabWord{}, false
+	}
+	if promptLanguage == "ru" {
+		candidate.Russian = translation
+	} else if candidate.Russian == "" {
+		return vocabWord{}, false
+	}
+	candidate.Translations[promptLanguage] = translation
+
+	word, ok := normalizeVocabularyWord(language, candidate)
+	if !ok {
+		return vocabWord{}, false
+	}
+	word.Level = normalizeCEFRLevel(candidate.Level)
+	word.Topic = cleanDictionaryDisplay(candidate.Topic)
+	word.PartOfSpeech = cleanDictionaryDisplay(candidate.PartOfSpeech)
+	word.Source = "ai"
+	if !vocabularyWordSuitableForLearning(word) {
+		return vocabWord{}, false
+	}
+	return word, true
+}
+
+func vocabularyWordForbidden(id string, word string, forbidden map[string]bool) bool {
+	if len(forbidden) == 0 {
+		return false
+	}
+	id = strings.TrimSpace(id)
+	word = cleanDictionaryDisplay(word)
+	normalizedWord := normalizeAnswer(word)
+	for _, candidate := range []string{id, legacyVocabID(id), word, strings.ToLower(word), normalizedWord} {
+		if strings.TrimSpace(candidate) != "" && forbidden[candidate] {
+			return true
+		}
+	}
+	return false
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func vocabularyGenerationPromptLanguage(user userState) learningLanguage {
+	learningLanguage := normalizeLearningLanguage(user.LearningLanguage)
+	interfaceLanguage := normalizeInterfaceLanguage(user.InterfaceLanguage)
+	if interfaceLanguage != learningLanguage {
+		return interfaceLanguageByCode(interfaceLanguage)
+	}
+	if learningLanguage == "ru" {
+		return interfaceLanguageByCode("en")
+	}
+	return interfaceLanguageByCode("ru")
+}
+
+func vocabularyGenerationForbiddenWords(user userState, extra []string) (map[string]bool, []string) {
+	language := normalizeLearningLanguage(user.LearningLanguage)
+	forbidden := map[string]bool{}
+	visible := []string{}
+	add := func(value string) {
+		value = cleanDictionaryDisplay(value)
+		if value == "" {
+			return
+		}
+		id := makeVocabID(language, value)
+		forbidden[id] = true
+		forbidden[legacyVocabID(id)] = true
+		forbidden[strings.ToLower(value)] = true
+		forbidden[normalizeAnswer(value)] = true
+		for _, existing := range visible {
+			if sameDictionaryText(existing, value) {
+				return
+			}
+		}
+		visible = append(visible, value)
+	}
+	for _, learned := range user.LearnedWords {
+		if normalizeLearningLanguage(learned.Language) != language {
+			continue
+		}
+		if strings.TrimSpace(learned.ID) != "" {
+			id := learned.ID
+			if !strings.Contains(id, ":") {
+				id = makeVocabID(language, id)
+			}
+			forbidden[id] = true
+			forbidden[legacyVocabID(id)] = true
+		}
+		add(learned.English)
+	}
+	for _, item := range extra {
+		add(item)
+	}
+	return forbidden, visible
+}
+
 func vocabularyWordSuitableForLearning(word vocabWord) bool {
 	text := strings.TrimSpace(word.English)
 	if text == "" || strings.TrimSpace(word.Russian) == "" {

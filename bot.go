@@ -1215,6 +1215,30 @@ func appendTelegramTutorFinalCheck(builder *strings.Builder, lesson tutorLesson)
 func (b *bot) startWordLesson(ctx context.Context, chatID int64, user userState) error {
 	b.deletePreviousWordPronunciation(ctx, chatID)
 	word, ok := nextUnlearnedWord(user)
+	prompt := ""
+	promptLanguage := vocabularyGenerationPromptLanguage(user)
+	if ok {
+		prompt = wordTranslation(word, promptLanguage.Code)
+		if prompt == "" {
+			prompt = b.vocabularyPromptInLanguage(ctx, user, word, promptLanguage.Code, "learn word")
+		}
+		if prompt == "" {
+			if generated, generatedOK := b.generateVocabularyWord(ctx, user, "learn word"); generatedOK {
+				word = generated
+				prompt = wordTranslation(word, promptLanguage.Code)
+			}
+		}
+	}
+	if !ok {
+		if generated, generatedOK := b.generateVocabularyWord(ctx, user, "learn word"); generatedOK {
+			word = generated
+			ok = true
+			prompt = wordTranslation(word, promptLanguage.Code)
+		}
+	}
+	if ok && prompt == "" {
+		ok = false
+	}
 	if !ok {
 		if !vocabularyLanguageHasAny(user.LearningLanguage) {
 			language := userLearningLanguage(user)
@@ -1229,11 +1253,25 @@ func (b *bot) startWordLesson(ctx context.Context, chatID int64, user userState)
 			backToMenuKeyboard(copy))
 	}
 
+	if prompt == "" {
+		prompt = wordTranslation(word, promptLanguage.Code)
+	}
+
 	language := userLearningLanguage(user)
 	copy := ui(user)
+	hint := ""
+	if strings.EqualFold(strings.TrimSpace(word.Source), "ai") {
+		hint = normalizeVocabularyContext(word.Context)
+	}
+	if hint == "" {
+		hint = b.vocabularyHint(ctx, user, word, "learn word")
+	}
+	if hint == "" {
+		hint = wordContext(word, promptLanguage.Code)
+	}
 	text := "*" + escapeMarkdownV2(copy.LearnWords) + "* 🧠\n\n" +
 		escapeMarkdownV2(fmt.Sprintf(copy.WordQuestion, learningDirectionForUI(user, language))) +
-		"\n" + wordStudyMarkdownBlockWithHint(word, user.InterfaceLanguage, b.vocabularyHint(ctx, user, word, "learn word")) + "\n\n" +
+		"\n" + studyMarkdownBlock(prompt, hint) + "\n\n" +
 		escapeMarkdownV2(copy.ChooseAnswer)
 	if err := b.telegram.sendInlineMarkdownMessage(ctx, chatID, text, wordChoiceKeyboard("wl", word.ID, wordOptions(word), user.InterfaceLanguage)); err != nil {
 		return err
@@ -1313,8 +1351,78 @@ func (b *bot) vocabularyHint(ctx context.Context, user userState, word vocabWord
 	return hint
 }
 
+func (b *bot) generateVocabularyWord(ctx context.Context, user userState, mode string) (vocabWord, bool) {
+	if b == nil || b.openrouter == nil || strings.TrimSpace(b.cfg.OpenRouterVocabularyModel) == "" || currentSQLiteVocabularyDB() == nil {
+		return vocabWord{}, false
+	}
+	language := normalizeLearningLanguage(user.LearningLanguage)
+	promptLanguage := vocabularyGenerationPromptLanguage(user)
+	extraForbidden := []string{}
+	for attempt := 0; attempt < 4; attempt++ {
+		forbidden, forbiddenList := vocabularyGenerationForbiddenWords(user, extraForbidden)
+		messages := vocabularyGenerationPrompt(user, promptLanguage, forbiddenList)
+		raw, err := b.openrouter.completeWithModel(ctx, b.cfg.OpenRouterVocabularyModel, messages, 0.2, 240)
+		if err != nil {
+			log.Printf("failed to generate vocabulary word for %s/%s: %v", language, normalizeCEFRLevel(user.Level), err)
+			return vocabWord{}, false
+		}
+		word, ok := parseGeneratedVocabularyWord(raw, language, promptLanguage.Code, user.Level, forbidden)
+		if !ok {
+			log.Printf("rejected generated vocabulary word for %s/%s", language, normalizeCEFRLevel(user.Level))
+			continue
+		}
+		exists, err := sqliteVocabularyWordExists(language, word.English)
+		if err != nil {
+			log.Printf("failed to check generated vocabulary duplicate %s: %v", word.ID, err)
+			return vocabWord{}, false
+		}
+		if exists {
+			extraForbidden = append(extraForbidden, word.English)
+			continue
+		}
+		inserted, err := sqliteVocabularyAIWordSet(word, b.cfg.OpenRouterVocabularyModel, chatMessagesPromptText(messages))
+		if err != nil {
+			log.Printf("failed to persist generated vocabulary word %s: %v", word.ID, err)
+			return vocabWord{}, false
+		}
+		if !inserted {
+			extraForbidden = append(extraForbidden, word.English)
+			continue
+		}
+		return word, true
+	}
+	return vocabWord{}, false
+}
+
+func chatMessagesPromptText(messages []chatMessage) string {
+	var builder strings.Builder
+	for _, message := range messages {
+		if strings.TrimSpace(message.Content) == "" {
+			continue
+		}
+		if builder.Len() > 0 {
+			builder.WriteString("\n\n")
+		}
+		builder.WriteString(strings.TrimSpace(message.Role))
+		builder.WriteString(": ")
+		builder.WriteString(strings.TrimSpace(message.Content))
+	}
+	return builder.String()
+}
+
 func (b *bot) vocabularyPrompt(ctx context.Context, user userState, word vocabWord, mode string) string {
 	targetLanguage := normalizeInterfaceLanguage(user.InterfaceLanguage)
+	if targetLanguage == "" {
+		targetLanguage = "en"
+	}
+	if prompt := b.vocabularyPromptInLanguage(ctx, user, word, targetLanguage, mode); prompt != "" {
+		return prompt
+	}
+	return vocabularyFallbackPrompt(word, targetLanguage)
+}
+
+func (b *bot) vocabularyPromptInLanguage(ctx context.Context, user userState, word vocabWord, targetLanguage string, mode string) string {
+	targetLanguage = normalizeInterfaceLanguage(targetLanguage)
 	if targetLanguage == "" {
 		targetLanguage = "en"
 	}
@@ -1323,8 +1431,11 @@ func (b *bot) vocabularyPrompt(ctx context.Context, user userState, word vocabWo
 			return firstDictionaryValue(value)
 		}
 	}
+	if translation := wordTranslation(word, targetLanguage); translation != "" {
+		return firstDictionaryValue(translation)
+	}
 	if b != nil && b.openrouter != nil && strings.TrimSpace(b.cfg.OpenRouterVocabularyModel) != "" {
-		raw, err := b.openrouter.completeWithModel(ctx, b.cfg.OpenRouterVocabularyModel, vocabularyTranslationPrompt(word, userLearningLanguage(user), userInterfaceLanguage(user), mode), 0.1, 160)
+		raw, err := b.openrouter.completeWithModel(ctx, b.cfg.OpenRouterVocabularyModel, vocabularyTranslationPrompt(word, userLearningLanguage(user), interfaceLanguageByCode(targetLanguage), mode), 0.1, 160)
 		if err == nil {
 			if value := sanitizeVocabularyTranslation(raw, word); value != "" {
 				_ = sqliteVocabularyAITranslationSet(word, targetLanguage, b.cfg.OpenRouterVocabularyModel, mode, value)
@@ -1332,7 +1443,7 @@ func (b *bot) vocabularyPrompt(ctx context.Context, user userState, word vocabWo
 			}
 		}
 	}
-	return vocabularyFallbackPrompt(word, targetLanguage)
+	return ""
 }
 
 func vocabularyFallbackPrompt(word vocabWord, interfaceLanguage string) string {

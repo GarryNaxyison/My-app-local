@@ -160,6 +160,53 @@ func TestSQLiteVocabularyRuntimeImportsAndFindsWords(t *testing.T) {
 	}
 }
 
+func TestSQLiteVocabularySourceFreshIgnoresMTimeOnlyChanges(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("VOCABULARY_DIR", dir)
+	path := filepath.Join(dir, "vocabulary_words.json")
+	vocabularyJSON := `[
+		{"english": "alpha", "russian": "\u0430\u043b\u044c\u0444\u0430", "level": "A1", "frequency_rank": 1},
+		{"english": "bravo", "russian": "\u0431\u0440\u0430\u0432\u043e", "level": "A1", "frequency_rank": 2}
+	]`
+	if err := os.WriteFile(path, []byte(vocabularyJSON), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "vocabulary.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+	if err := syncSQLiteVocabularyFromJSON(db); err != nil {
+		t.Fatal(err)
+	}
+	original, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	changedModTime := original.ModTime().Add(2 * time.Hour)
+	if err := os.Chtimes(path, changedModTime, changedModTime); err != nil {
+		t.Fatal(err)
+	}
+	changed, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if changed.Size() != original.Size() || changed.ModTime().Unix() == original.ModTime().Unix() {
+		t.Fatalf("test setup did not change only mtime: original=%v changed=%v", original, changed)
+	}
+
+	fresh, err := sqliteVocabularySourceFresh(db, "en", path, changed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !fresh {
+		t.Fatal("expected mtime-only vocabulary changes to stay fresh")
+	}
+}
+
 func TestWordOptionsVaryDistractorsAcrossRounds(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("VOCABULARY_DIR", dir)
@@ -349,6 +396,28 @@ func TestSQLiteVocabularyCreatesPerformanceIndexes(t *testing.T) {
 	}
 }
 
+func TestSQLiteVocabularyUsesFileBackedTempStore(t *testing.T) {
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "vocabulary.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+	if err := initSQLiteVocabularyTables(db); err != nil {
+		t.Fatal(err)
+	}
+
+	var tempStore int
+	if err := db.QueryRow(`PRAGMA temp_store`).Scan(&tempStore); err != nil {
+		t.Fatal(err)
+	}
+	const sqliteTempStoreFile = 1
+	if tempStore != sqliteTempStoreFile {
+		t.Fatalf("PRAGMA temp_store = %d, want FILE (%d)", tempStore, sqliteTempStoreFile)
+	}
+}
+
 func TestSQLiteVocabularyAICachePersistsHints(t *testing.T) {
 	configureSQLiteVocabularyForTest(t, []vocabWord{
 		testVocabWord("station", "A1", 1),
@@ -409,6 +478,165 @@ func TestSQLiteVocabularyAITranslationPersistsAndJoins(t *testing.T) {
 	}
 	if got := wordTranslation(refreshed, "es"); got != "estación" {
 		t.Fatalf("wordTranslation after AI cache = %q, want first persisted value", got)
+	}
+}
+
+func TestSQLiteVocabularyAIWordSetPersistsAndFindsWord(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		testVocabWord("ticket", "A1", 1),
+	})
+
+	inserted, err := sqliteVocabularyAIWordSet(vocabWord{
+		Language:      "en",
+		English:       "umbrella",
+		Russian:       "umbrella ru",
+		Translations:  map[string]string{"ru": "umbrella ru", "es": "paraguas"},
+		Level:         "A1",
+		Topic:         "travel",
+		PartOfSpeech:  "noun",
+		Source:        "ai",
+		FrequencyRank: 0,
+	}, "test-model", "prompt")
+	if err != nil {
+		t.Fatalf("sqliteVocabularyAIWordSet: %v", err)
+	}
+	if !inserted {
+		t.Fatal("sqliteVocabularyAIWordSet inserted = false, want true")
+	}
+
+	word, ok := findVocabWord("en:umbrella")
+	if !ok {
+		t.Fatal("expected AI vocabulary word to be queryable through normal lookup")
+	}
+	if word.ID != "en:umbrella" || word.Language != "en" || word.Level != "A1" {
+		t.Fatalf("unexpected AI word identity: %#v", word)
+	}
+	if got := wordTranslation(word, "es"); got != "paraguas" {
+		t.Fatalf("wordTranslation(AI word, es) = %q, want paraguas", got)
+	}
+	exists, err := sqliteVocabularyWordExists("en", "umbrella")
+	if err != nil {
+		t.Fatalf("sqliteVocabularyWordExists: %v", err)
+	}
+	if !exists {
+		t.Fatal("sqliteVocabularyWordExists returned false for persisted AI word")
+	}
+}
+
+func TestSQLiteVocabularyAIWordSetRejectsDuplicateWord(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		testVocabWord("umbrella", "A1", 1),
+	})
+
+	inserted, err := sqliteVocabularyAIWordSet(vocabWord{
+		Language:     "en",
+		English:      "umbrella",
+		Russian:      "umbrella ru",
+		Translations: map[string]string{"ru": "umbrella ru"},
+		Level:        "A1",
+	}, "test-model", "prompt")
+	if err != nil {
+		t.Fatalf("sqliteVocabularyAIWordSet duplicate: %v", err)
+	}
+	if inserted {
+		t.Fatal("sqliteVocabularyAIWordSet inserted duplicate word, want rejection")
+	}
+}
+
+func TestSQLiteVocabularyImportSkipsStaleAITranslations(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("VOCABULARY_DIR", dir)
+	path := filepath.Join(dir, "vocabulary_words.json")
+	if err := os.WriteFile(path, []byte(`[
+		{"english":"station","russian":"station ru","translations":{"ru":"station ru"},"level":"A1"},
+		{"english":"ticket","russian":"ticket ru","translations":{"ru":"ticket ru"},"level":"A1"}
+	]`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "vocabulary.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		configureSQLiteVocabulary(nil)
+		_ = db.Close()
+	})
+	if err := syncSQLiteVocabularyFromJSON(db); err != nil {
+		t.Fatal(err)
+	}
+	configureSQLiteVocabulary(db)
+
+	station, ok := findVocabWord("en:station")
+	if !ok {
+		t.Fatal("expected station before pruning")
+	}
+	if err := sqliteVocabularyAITranslationSet(station, "es", "test-model", "prompt", "estacion"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(`[
+		{"english":"ticket","russian":"ticket ru","translations":{"ru":"ticket ru"},"level":"A1"}
+	]`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := importSQLiteVocabularyLanguage(db, "en", path, info); err != nil {
+		t.Fatalf("importSQLiteVocabularyLanguage with stale AI translation: %v", err)
+	}
+	if _, ok := findVocabWord("en:station"); ok {
+		t.Fatal("expected pruned seed word to stay absent")
+	}
+}
+
+func TestSQLiteVocabularyAIWordReplayAfterJSONImport(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("VOCABULARY_DIR", dir)
+	path := filepath.Join(dir, "vocabulary_words.json")
+	if err := os.WriteFile(path, []byte(`[
+		{"english":"ticket","russian":"ticket ru","translations":{"ru":"ticket ru"},"level":"A1"}
+	]`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "vocabulary.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		configureSQLiteVocabulary(nil)
+		_ = db.Close()
+	})
+	if err := syncSQLiteVocabularyFromJSON(db); err != nil {
+		t.Fatal(err)
+	}
+	configureSQLiteVocabulary(db)
+
+	inserted, err := sqliteVocabularyAIWordSet(vocabWord{
+		Language:     "en",
+		English:      "umbrella",
+		Russian:      "umbrella ru",
+		Translations: map[string]string{"ru": "umbrella ru", "es": "paraguas"},
+		Level:        "A1",
+	}, "test-model", "prompt")
+	if err != nil || !inserted {
+		t.Fatalf("sqliteVocabularyAIWordSet = %v, %v; want inserted AI word", inserted, err)
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := importSQLiteVocabularyLanguage(db, "en", path, info); err != nil {
+		t.Fatal(err)
+	}
+	word, ok := findVocabWord("en:umbrella")
+	if !ok {
+		t.Fatal("expected AI word to replay after JSON import")
+	}
+	if got := wordTranslation(word, "es"); got != "paraguas" {
+		t.Fatalf("replayed AI word translation = %q, want paraguas", got)
 	}
 }
 
@@ -1233,6 +1461,135 @@ func TestMeaningQuestionsDoNotEchoCorrectAnswer(t *testing.T) {
 				t.Fatalf("expected meaning question for %s at %d not to echo %q in correct option %q", language.Code, index, question.Question, question.Options[question.CorrectIndex])
 			}
 		}
+	}
+}
+
+func TestSanitizeGeneratedVocabularyWordRejectsTargetAsTranslation(t *testing.T) {
+	word, ok := sanitizeGeneratedVocabularyWord("en", generatedVocabularyWord{
+		Word:        "doctor",
+		Translation: "doctor",
+		Russian:     "doctor",
+		Level:       "A1",
+	}, "ru", "A1", nil)
+	if ok {
+		t.Fatalf("sanitizeGeneratedVocabularyWord accepted target as translation: %#v", word)
+	}
+}
+
+func TestSanitizeGeneratedVocabularyWordRejectsUnsuitableTarget(t *testing.T) {
+	word, ok := sanitizeGeneratedVocabularyWord("en", generatedVocabularyWord{
+		Word:        "train station",
+		Translation: "estacion",
+		Russian:     "station ru",
+		Level:       "A1",
+	}, "es", "A1", nil)
+	if ok {
+		t.Fatalf("sanitizeGeneratedVocabularyWord accepted phrase target: %#v", word)
+	}
+}
+
+func TestSanitizeGeneratedVocabularyWordRejectsRussianThatLeaksTarget(t *testing.T) {
+	word, ok := sanitizeGeneratedVocabularyWord("en", generatedVocabularyWord{
+		Word:        "doctor",
+		Translation: "medico",
+		Russian:     "doctor",
+		Level:       "A1",
+	}, "es", "A1", nil)
+	if ok {
+		t.Fatalf("sanitizeGeneratedVocabularyWord accepted Russian target leak: %#v", word)
+	}
+}
+
+func TestSanitizeGeneratedVocabularyWordNormalizesLevelAndID(t *testing.T) {
+	word, ok := sanitizeGeneratedVocabularyWord("en", generatedVocabularyWord{
+		Word:         " Umbrella ",
+		Translation:  "paraguas",
+		Russian:      "umbrella ru",
+		Level:        "b1",
+		Topic:        " Travel ",
+		PartOfSpeech: " Noun ",
+	}, "es", "A2", map[string]bool{})
+	if !ok {
+		t.Fatal("sanitizeGeneratedVocabularyWord rejected valid generated card")
+	}
+	if word.ID != "en:umbrella" || word.Language != "en" || word.English != "Umbrella" {
+		t.Fatalf("unexpected generated word identity: %#v", word)
+	}
+	if word.Level != "B1" {
+		t.Fatalf("generated word level = %q, want B1", word.Level)
+	}
+	if got := wordTranslation(word, "es"); got != "paraguas" {
+		t.Fatalf("generated word Spanish translation = %q, want paraguas", got)
+	}
+}
+
+func TestVocabularyPromptInLanguageDoesNotFallbackToRussian(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		{
+			ID:       "en:station",
+			Language: "en",
+			English:  "station",
+			Russian:  "station ru",
+			Level:    "A1",
+			Translations: map[string]string{
+				"ru": "station ru",
+			},
+		},
+	})
+	word, ok := findVocabWord("en:station")
+	if !ok {
+		t.Fatal("expected station word")
+	}
+	got := (*bot)(nil).vocabularyPromptInLanguage(context.Background(), userState{LearningLanguage: "en", InterfaceLanguage: "es"}, word, "es", "learn word")
+	if got != "" {
+		t.Fatalf("vocabularyPromptInLanguage fallback = %q, want empty Spanish prompt", got)
+	}
+}
+
+func TestVocabularyGenerationPromptForbidsDuplicatesAndRequiresJSON(t *testing.T) {
+	messages := vocabularyGenerationPrompt(
+		userState{LearningLanguage: "en", InterfaceLanguage: "ru", Level: "A1"},
+		interfaceLanguageByCode("ru"),
+		[]string{"doctor"},
+	)
+	joined := ""
+	for _, message := range messages {
+		joined += message.Content + "\n"
+	}
+	for _, want := range []string{"Return strict JSON only", "doctor", `"word"`, `"translation"`, `"russian"`} {
+		if !strings.Contains(joined, want) {
+			t.Fatalf("generation prompt missing %q:\n%s", want, joined)
+		}
+	}
+}
+
+func TestVocabularyGenerationPromptLanguageFallsBackWhenInterfaceMatchesLearning(t *testing.T) {
+	if got := vocabularyGenerationPromptLanguage(userState{LearningLanguage: "en", InterfaceLanguage: "en"}); got.Code != "ru" {
+		t.Fatalf("English learner with English UI prompt language = %s, want ru", got.Code)
+	}
+	if got := vocabularyGenerationPromptLanguage(userState{LearningLanguage: "ru", InterfaceLanguage: "ru"}); got.Code != "en" {
+		t.Fatalf("Russian learner with Russian UI prompt language = %s, want en", got.Code)
+	}
+	if got := vocabularyGenerationPromptLanguage(userState{LearningLanguage: "de", InterfaceLanguage: "es"}); got.Code != "es" {
+		t.Fatalf("German learner with Spanish UI prompt language = %s, want es", got.Code)
+	}
+}
+
+func TestVocabularyGenerationForbiddenWordsIncludesLearnedAndExtra(t *testing.T) {
+	forbidden, visible := vocabularyGenerationForbiddenWords(userState{
+		LearningLanguage: "en",
+		LearnedWords: []learnedWordEntry{
+			{ID: "en:doctor", Language: "en", English: "doctor"},
+			{ID: "de:haus", Language: "de", English: "Haus"},
+		},
+	}, []string{"umbrella"})
+	for _, key := range []string{"en:doctor", "doctor", "en:umbrella", "umbrella"} {
+		if !forbidden[key] {
+			t.Fatalf("forbidden[%q] = false, want true; visible=%#v", key, visible)
+		}
+	}
+	if forbidden["de:haus"] || forbidden["haus"] {
+		t.Fatalf("forbidden includes learned word from another language: %#v", forbidden)
 	}
 }
 

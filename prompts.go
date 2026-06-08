@@ -380,6 +380,53 @@ func vocabularyHintPrompt(word vocabWord, prompt string, learningLanguage learni
 	}
 }
 
+func vocabularyGenerationPrompt(user userState, promptLanguage learningLanguage, forbidden []string) []chatMessage {
+	learningLanguage := userLearningLanguage(user)
+	level := normalizeCEFRLevel(user.Level)
+	cleanForbidden := make([]string, 0, len(forbidden))
+	seen := map[string]bool{}
+	for _, item := range forbidden {
+		item = cleanDictionaryDisplay(item)
+		if item == "" || seen[strings.ToLower(item)] {
+			continue
+		}
+		seen[strings.ToLower(item)] = true
+		cleanForbidden = append(cleanForbidden, item)
+		if len(cleanForbidden) >= 30 {
+			break
+		}
+	}
+	forbiddenText := "none"
+	if len(cleanForbidden) > 0 {
+		forbiddenText = strings.Join(cleanForbidden, ", ")
+	}
+	systemPrompt := "You are a professional CEFR lexicographer for a language-learning app. " +
+		"Return strict JSON only. No Markdown. No explanations. " +
+		"Generate one useful high-frequency vocabulary card, not a rare dictionary item. " +
+		"The card must be safe for a multiple-choice lesson: the translation must not reveal or repeat the target word. " +
+		"Never choose a forbidden word, spelling variant, inflected form, proper name, abbreviation, phrase, or vulgar word."
+	userPrompt := "Target learning language: " + learningLanguage.NativeName + "\n" +
+		"Learner prompt/interface language: " + promptLanguage.NativeName + "\n" +
+		"Requested CEFR level: " + level + "\n" +
+		"Forbidden words: " + forbiddenText + "\n\n" +
+		"Return exactly this JSON shape: " +
+		"{\"word\":\"target lemma\",\"translation\":\"short meaning in " + promptLanguage.NativeName + "\",\"russian\":\"short Russian meaning\",\"context\":\"optional short sense note in " + promptLanguage.NativeName + "\",\"level\":\"" + level + "\",\"topic\":\"everyday topic\",\"part_of_speech\":\"noun|verb|adjective|adverb\"}.\n" +
+		"Rules: word must be in " + learningLanguage.NativeName + "; translation must be in " + promptLanguage.NativeName + "; russian must be a Russian meaning; level must be one of A1, A2, B1, B2, C1, C2; do not include examples."
+	return []chatMessage{
+		{
+			Role:    "system",
+			Content: renderAppPrompt("vocabulary.generation.system", systemPrompt, commonPromptVars(learningLanguage, promptLanguage)),
+		},
+		{
+			Role: "user",
+			Content: renderAppPrompt("vocabulary.generation.user", userPrompt, mergePromptVars(commonPromptVars(learningLanguage, promptLanguage), map[string]string{
+				"level":     level,
+				"forbidden": forbiddenText,
+			})),
+		},
+	}
+}
+
 func vocabularyTranslationPrompt(word vocabWord, learningLanguage learningLanguage, targetLanguage learningLanguage, mode string) []chatMessage {
 	mode = strings.TrimSpace(mode)
 	if mode == "" {

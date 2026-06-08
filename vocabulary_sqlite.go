@@ -73,7 +73,7 @@ func initSQLiteVocabularyTables(db *sql.DB) error {
 		`PRAGMA journal_mode=WAL`,
 		`PRAGMA synchronous=NORMAL`,
 		`PRAGMA busy_timeout=5000`,
-		`PRAGMA temp_store=MEMORY`,
+		`PRAGMA temp_store=FILE`,
 		`PRAGMA foreign_keys=ON`,
 		`CREATE TABLE IF NOT EXISTS vocabulary_words (
 			id TEXT PRIMARY KEY,
@@ -128,6 +128,23 @@ func initSQLiteVocabularyTables(db *sql.DB) error {
 			updated_at TEXT NOT NULL,
 			PRIMARY KEY (word_id, target_language)
 		)`,
+		`CREATE TABLE IF NOT EXISTS vocabulary_ai_words (
+			id TEXT PRIMARY KEY,
+			language TEXT NOT NULL,
+			word TEXT NOT NULL,
+			russian TEXT NOT NULL,
+			context TEXT NOT NULL DEFAULT '',
+			level TEXT NOT NULL DEFAULT '',
+			topic TEXT NOT NULL DEFAULT '',
+			part_of_speech TEXT NOT NULL DEFAULT '',
+			source TEXT NOT NULL DEFAULT '',
+			frequency_rank INTEGER NOT NULL DEFAULT 0,
+			translations_json TEXT NOT NULL DEFAULT '{}',
+			model TEXT NOT NULL,
+			prompt TEXT NOT NULL,
+			created_at TEXT NOT NULL,
+			updated_at TEXT NOT NULL
+		)`,
 	}
 	for _, statement := range statements {
 		if _, err := db.Exec(statement); err != nil {
@@ -151,6 +168,8 @@ func ensureSQLiteVocabularyIndexes(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_vocabulary_translations_language_word ON vocabulary_translations(language, word_id)`,
 		`CREATE INDEX IF NOT EXISTS idx_vocabulary_ai_cache_word_kind ON vocabulary_ai_cache(word_id, kind, interface_language)`,
 		`CREATE INDEX IF NOT EXISTS idx_vocabulary_ai_translations_language ON vocabulary_ai_translations(target_language, learning_language)`,
+		`CREATE INDEX IF NOT EXISTS idx_vocabulary_ai_words_language_level ON vocabulary_ai_words(language, level)`,
+		`CREATE INDEX IF NOT EXISTS idx_vocabulary_ai_words_language_word ON vocabulary_ai_words(language, word)`,
 	}
 	for _, statement := range statements {
 		if _, err := db.Exec(statement); err != nil {
@@ -220,7 +239,7 @@ func sqliteVocabularySourceFresh(db *sql.DB, language string, path string, info 
 	if err != nil {
 		return false, err
 	}
-	if sizeBytes != info.Size() || modTimeUnix != info.ModTime().Unix() || wordCount <= 0 {
+	if sizeBytes != info.Size() || wordCount <= 0 {
 		return false, nil
 	}
 	var storedCount int
@@ -271,7 +290,7 @@ func importSQLiteVocabularyLanguage(db *sql.DB, language string, path string, in
 	}
 	defer wordStmt.Close()
 
-	translationStmt, err := tx.Prepare(`INSERT OR REPLACE INTO vocabulary_translations
+	translationStmt, err := tx.Prepare(`INSERT OR IGNORE INTO vocabulary_translations
 		(word_id, language, text) VALUES (?, ?, ?)`)
 	if err != nil {
 		return err
@@ -317,11 +336,16 @@ func importSQLiteVocabularyLanguage(db *sql.DB, language string, path string, in
 		}
 		position++
 	}
+	position, err = replaySQLiteVocabularyAIWordsTx(tx, language, position)
+	if err != nil {
+		return err
+	}
 	if _, err := tx.Exec(
 		`INSERT OR REPLACE INTO vocabulary_translations (word_id, language, text)
-		SELECT word_id, target_language, translation
-		FROM vocabulary_ai_translations
-		WHERE learning_language = ? AND translation <> ''`,
+		SELECT ai.word_id, ai.target_language, ai.translation
+		FROM vocabulary_ai_translations ai
+		JOIN vocabulary_words w ON w.id = ai.word_id
+		WHERE ai.learning_language = ? AND ai.translation <> ''`,
 		language,
 	); err != nil {
 		return err
@@ -350,6 +374,263 @@ func importSQLiteVocabularyLanguage(db *sql.DB, language string, path string, in
 	}
 	log.Printf("Imported %s vocabulary into SQLite: %d words", language, position)
 	return nil
+}
+
+func replaySQLiteVocabularyAIWordsTx(tx *sql.Tx, language string, startPosition int) (int, error) {
+	rows, err := tx.Query(
+		`SELECT id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, translations_json
+		FROM vocabulary_ai_words
+		WHERE language = ?
+		ORDER BY created_at, id`,
+		language,
+	)
+	if err != nil {
+		return startPosition, err
+	}
+	defer rows.Close()
+
+	wordStmt, err := tx.Prepare(`INSERT OR IGNORE INTO vocabulary_words
+		(id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, position)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		return startPosition, err
+	}
+	defer wordStmt.Close()
+
+	translationStmt, err := tx.Prepare(`INSERT OR REPLACE INTO vocabulary_translations
+		(word_id, language, text) VALUES (?, ?, ?)`)
+	if err != nil {
+		return startPosition, err
+	}
+	defer translationStmt.Close()
+
+	position := startPosition
+	for rows.Next() {
+		var word vocabWord
+		var translationsJSON string
+		if err := rows.Scan(
+			&word.ID,
+			&word.Language,
+			&word.English,
+			&word.Russian,
+			&word.Context,
+			&word.Level,
+			&word.Topic,
+			&word.PartOfSpeech,
+			&word.Source,
+			&word.FrequencyRank,
+			&translationsJSON,
+		); err != nil {
+			return position, err
+		}
+		translations := map[string]string{}
+		_ = json.Unmarshal([]byte(translationsJSON), &translations)
+		word.Translations = translations
+		word, ok := normalizeVocabularyWord(language, word)
+		if !ok {
+			continue
+		}
+		if strings.TrimSpace(word.Source) == "" {
+			word.Source = "ai"
+		}
+		result, err := wordStmt.Exec(
+			word.ID,
+			word.Language,
+			word.English,
+			word.Russian,
+			word.Context,
+			normalizeCEFRLevel(word.Level),
+			strings.TrimSpace(word.Topic),
+			strings.TrimSpace(word.PartOfSpeech),
+			strings.TrimSpace(word.Source),
+			word.FrequencyRank,
+			position,
+		)
+		if err != nil {
+			return position, err
+		}
+		inserted, err := result.RowsAffected()
+		if err != nil {
+			return position, err
+		}
+		for code, value := range word.Translations {
+			code = normalizeInterfaceLanguage(code)
+			value = cleanDictionaryDisplay(value)
+			if code == "" || value == "" {
+				continue
+			}
+			if _, err := translationStmt.Exec(word.ID, code, value); err != nil {
+				return position, err
+			}
+		}
+		if inserted > 0 {
+			position++
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return position, err
+	}
+	return position, nil
+}
+
+func sqliteVocabularyWordExists(language string, text string) (bool, error) {
+	db := currentSQLiteVocabularyDB()
+	if db == nil {
+		return false, nil
+	}
+	id := makeVocabID(language, text)
+	if strings.TrimSpace(legacyVocabID(id)) == "" {
+		return false, nil
+	}
+	var exists int
+	err := db.QueryRow(`SELECT 1 FROM vocabulary_words WHERE id = ? LIMIT 1`, id).Scan(&exists)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return exists == 1, nil
+}
+
+func sqliteVocabularyAIWordSet(word vocabWord, model string, prompt string) (bool, error) {
+	db := currentSQLiteVocabularyDB()
+	if db == nil {
+		return false, nil
+	}
+	language := normalizeLearningLanguage(word.Language)
+	word, ok := normalizeVocabularyWord(language, word)
+	if !ok {
+		return false, nil
+	}
+	word.Level = normalizeCEFRLevel(word.Level)
+	word.Topic = cleanDictionaryDisplay(word.Topic)
+	word.PartOfSpeech = cleanDictionaryDisplay(word.PartOfSpeech)
+	word.Source = strings.TrimSpace(word.Source)
+	if word.Source == "" {
+		word.Source = "ai"
+	}
+	translationsJSON, err := json.Marshal(word.Translations)
+	if err != nil {
+		return false, err
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+
+	tx, err := db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	var exists int
+	err = tx.QueryRow(`SELECT 1 FROM vocabulary_words WHERE id = ? LIMIT 1`, word.ID).Scan(&exists)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return false, err
+	}
+	if exists == 1 {
+		return false, nil
+	}
+	exists = 0
+	err = tx.QueryRow(`SELECT 1 FROM vocabulary_ai_words WHERE id = ? LIMIT 1`, word.ID).Scan(&exists)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return false, err
+	}
+	if exists == 1 {
+		return false, nil
+	}
+
+	position := 0
+	if err := tx.QueryRow(`SELECT COALESCE(MAX(position), -1) + 1 FROM vocabulary_words WHERE language = ?`, word.Language).Scan(&position); err != nil {
+		return false, err
+	}
+	result, err := tx.Exec(
+		`INSERT OR IGNORE INTO vocabulary_ai_words
+			(id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, translations_json, model, prompt, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		word.ID,
+		word.Language,
+		word.English,
+		word.Russian,
+		word.Context,
+		word.Level,
+		word.Topic,
+		word.PartOfSpeech,
+		word.Source,
+		word.FrequencyRank,
+		string(translationsJSON),
+		strings.TrimSpace(model),
+		strings.TrimSpace(prompt),
+		now,
+		now,
+	)
+	if err != nil {
+		return false, err
+	}
+	inserted, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if inserted == 0 {
+		return false, nil
+	}
+	result, err = tx.Exec(
+		`INSERT OR IGNORE INTO vocabulary_words
+			(id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, position)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		word.ID,
+		word.Language,
+		word.English,
+		word.Russian,
+		word.Context,
+		word.Level,
+		word.Topic,
+		word.PartOfSpeech,
+		word.Source,
+		word.FrequencyRank,
+		position,
+	)
+	if err != nil {
+		return false, err
+	}
+	inserted, err = result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if inserted == 0 {
+		return false, nil
+	}
+	for code, value := range word.Translations {
+		code = normalizeInterfaceLanguage(code)
+		value = cleanDictionaryDisplay(value)
+		if code == "" || value == "" {
+			continue
+		}
+		if _, err := tx.Exec(
+			`INSERT OR REPLACE INTO vocabulary_translations (word_id, language, text)
+			VALUES (?, ?, ?)`,
+			word.ID,
+			code,
+			value,
+		); err != nil {
+			return false, err
+		}
+	}
+	if _, err := tx.Exec(
+		`UPDATE vocabulary_sources
+		SET word_count = (SELECT COUNT(*) FROM vocabulary_words WHERE language = ?),
+			imported_at = ?
+		WHERE language = ?`,
+		word.Language,
+		now,
+		word.Language,
+	); err != nil {
+		return false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	invalidateSQLiteVocabularyIDCache()
+	return true, nil
 }
 
 func sqliteVocabularyHasLanguage(db *sql.DB, language string) (bool, error) {
