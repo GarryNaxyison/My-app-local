@@ -368,22 +368,18 @@ function LandingPage() {
 
       <section className="course-strip" aria-label="Курсы Poliglot AI">
         <div className="course-strip__intro">
-          <span className="eyebrow">Курсы на выбор</span>
-          <h2>Не просто список уроков, а готовые сценарии под цель</h2>
-          <p>Начните с общего маршрута A1-C2, добавьте фразы для поездки, работу, экзамен или произношение. Web app и Telegram держат один прогресс.</p>
+          <span className="eyebrow">Курсы под цель</span>
+          <h2>Не просто уроки, а маршрут под вашу ситуацию</h2>
+          <p>Выберите цель, а Poliglot AI соединит урок, диалог, голос, фото, слова и повторение в понятный сценарий.</p>
         </div>
         <div className="course-cards">
-          {[
-            ["Полный маршрут", "Уроки всех уровней сложности от A1 до C2.", "A1-C2"],
-            ["Для путешествий", "Полезные фразы, фото-перевод и ролевые ситуации.", "роль + фото"],
-            ["Произношение", "Голосовая оценка, слабые слова и история прогресса.", "voice coach"],
-          ].map(([title, body, badge], index) => (
+          {courseRoutes.map(([title, body, badge], index) => (
             <motion.a key={title} href="/app/" className="course-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.42, delay: index * 0.05 }}>
               <span>{badge}</span>
               <h3>{title}</h3>
               <p>{body}</p>
               <b>
-                Начать учиться <ChevronRight size={16} />
+                Запустить маршрут <ChevronRight size={16} />
               </b>
             </motion.a>
           ))}
@@ -445,12 +441,19 @@ function LandingPage() {
       <section id="pricing" className="pricing-section">
         <div className="section-copy">
           <span className="eyebrow">Тарифы</span>
-          <h2>Начните бесплатно и расширьте практику, когда понадобится больше лимитов</h2>
+          <h2>Начните бесплатно и расширьте лимиты, когда маршрут стал привычкой</h2>
+          <p className="pricing-lead">Оплата доступна через Telegram Stars, YooKassa/СБП, TON и USDT. Premium и Platinum открывают голос, фото и больше практики.</p>
         </div>
         <div className="pricing-grid">
-          <PlanCard name="Free" label="Для старта" price="0 ₽" body="Ежедневная привычка без оплаты." items={["уроки и слова", "базовая практика", "заметки"]} />
-          <PlanCard name="Premium" label="Лучший старт" oldPrice="1000 ₽" price="300 ₽" body="Основной режим для регулярной учебы." items={["больше уроков", "голос и фото", "словарь ошибок"]} featured />
-          <PlanCard name="Platinum" label="Максимум" oldPrice="2000 ₽" price="590 ₽" body="Для интенсивной подготовки к поездке, работе или экзамену." items={["расширенные лимиты", "больше практики", "роли и произношение"]} />
+          <PlanCard name="Free" label="Попробовать маршрут" price="0 ₽" body="Старт без оплаты для короткой ежедневной практики." items={["5 уроков в день", "15 сообщений практики", "слова, заметки и базовый прогресс"]} />
+          <PlanCard name="Premium" label="Регулярная учеба" oldPrice="1000 ₽" price="300 ₽" body="Основной режим для тех, кто занимается каждый день." items={["50 уроков в день", "200 сообщений практики", "20 voice до 30 секунд, голос и фото"]} featured />
+          <PlanCard name="Platinum" label="Интенсив" oldPrice="2000 ₽" price="590 ₽" body="Максимальные лимиты для поездки, работы или экзамена." items={["100 уроков в день", "500 сообщений практики", "60 voice до 30 секунд, максимум AI-диалогов"]} />
+        </div>
+        <div className="payment-methods" aria-label="Способы оплаты">
+          <span>Telegram Stars</span>
+          <span>YooKassa/СБП</span>
+          <span>TON</span>
+          <span>USDT</span>
         </div>
       </section>
 
@@ -484,8 +487,8 @@ function LandingPage() {
       <section className="progress-section">
         <div>
           <span className="eyebrow">Прогресс</span>
-          <h2>Ошибки, заметки и награды не теряются между устройствами</h2>
-          <p>Сервис показывает, что уже получилось, что стоит повторить и куда двигаться дальше.</p>
+          <h2>Сервис показывает, что повторить дальше</h2>
+          <p>Ошибки, заметки, weak words, pronunciation history, XP, streak, награды и лидеры остаются в одном профиле между web app, PWA и Telegram.</p>
         </div>
         <div className="progress-orbit" aria-hidden="true">
           <Trophy size={44} />
@@ -513,10 +516,10 @@ function LandingPage() {
       <section className="start-panel">
         <div>
           <span className="eyebrow">Старт</span>
-          <h2>Откройте Poliglot AI и пройдите первый маршрут</h2>
+          <h2>Выберите цель и пройдите первый маршрут</h2>
         </div>
         <a className="hero-action hero-action--primary" href="/app/">
-          Открыть онлайн-приложение <ArrowRight size={18} />
+          Начать бесплатно <ArrowRight size={18} />
         </a>
       </section>
     </main>
