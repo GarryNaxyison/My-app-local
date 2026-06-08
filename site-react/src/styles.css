@@ -2517,6 +2517,7 @@ html[data-site-theme="dark"] .payment-methods span {
 }
 
 @media (max-width: 680px) {
+  html[data-site-theme="light"] .landing-hero,
   .landing-hero {
     min-height: auto;
   }
