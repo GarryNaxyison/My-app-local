@@ -29,12 +29,32 @@ func TestShadowingScoreRewardsCloseRepeat(t *testing.T) {
 }
 
 func TestShadowingPhrasePromptIsTargetOnly(t *testing.T) {
-	messages := shadowingPhrasePrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "A2", shadowingDeckSpec(42))
+	messages := shadowingPhrasePrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "A2", shadowingDeckSpec(42), "")
 	if len(messages) != 2 {
 		t.Fatalf("expected 2 chat messages, got %d", len(messages))
 	}
 	if !containsAll(messages[1].Content, []string{"Create exactly one natural English phrase", "10,000-card phrase deck", "Return only the target-language phrase"}) {
 		t.Fatalf("unexpected shadowing prompt: %q", messages[1].Content)
+	}
+}
+
+func TestShadowingPhrasePromptAvoidsPreviousPhrase(t *testing.T) {
+	previous := "Could you say that a little slower, please?"
+	messages := shadowingPhrasePrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "A2", shadowingDeckSpec(42), previous)
+	if !strings.Contains(messages[1].Content, "Do not repeat or lightly paraphrase this previous phrase: "+previous) {
+		t.Fatalf("prompt does not avoid previous phrase: %q", messages[1].Content)
+	}
+}
+
+func TestBuildShadowingPhraseFallbackAvoidsPreviousPhrase(t *testing.T) {
+	user := userState{TelegramID: 0, Level: "A2", LearningLanguage: "en"}
+	previous := shadowingFallbackPhrase(learningLanguageByCode("en"), shadowingDeckIndex(user))
+	got := (&bot{}).buildShadowingPhrase(t.Context(), user, previous)
+	if got == "" {
+		t.Fatal("expected fallback phrase")
+	}
+	if strings.EqualFold(got, previous) {
+		t.Fatalf("fallback repeated previous phrase %q", previous)
 	}
 }
 

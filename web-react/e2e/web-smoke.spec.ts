@@ -2291,6 +2291,20 @@ test("mobile roleplay scenario cards expand and scroll above bottom menu", async
 test("shadowing uses one compact work panel with the sample audio inside the task", async ({ page }) => {
   const phrases = ["Could you repeat that, please?", "The train leaves at nine."];
   let phraseIndex = 0;
+  const spokenTexts: string[] = [];
+  await page.addInitScript(() => {
+    Object.defineProperty(HTMLMediaElement.prototype, "play", {
+      configurable: true,
+      value() {
+        setTimeout(() => this.dispatchEvent(new Event("ended")), 0);
+        return Promise.resolve();
+      },
+    });
+    Object.defineProperty(HTMLMediaElement.prototype, "pause", {
+      configurable: true,
+      value() {},
+    });
+  });
   await page.unroute("**/api/shadowing/start");
   await page.route("**/api/shadowing/start", (route) => {
     const phrase = phrases[Math.min(phraseIndex, phrases.length - 1)];
@@ -2301,12 +2315,24 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
       body: JSON.stringify({ phrase, target: phrase }),
     });
   });
+  await page.route("**/api/tools/translator-speech", async (route) => {
+    const payload = route.request().postDataJSON() as Record<string, unknown>;
+    spokenTexts.push(String(payload.text || ""));
+    await route.fulfill({
+      status: 200,
+      contentType: "audio/mpeg",
+      body: Buffer.from("test-audio"),
+    });
+  });
   await page.goto("/app/?view=home");
   await page.locator(".home-plan-v2__steps button").filter({ hasText: appCopy("ru", "today_plan_listen_title") }).click();
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await expect(page.locator(".chat-workspace--single")).toBeVisible();
   await expect(page.locator(".chat-workspace__output")).toHaveCount(0);
   await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toBeVisible();
+  await page.locator(".task-box-v2 .audio-wave-button-v2").click();
+  await expect.poll(() => spokenTexts).toEqual([phrases[0]]);
+  await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).not.toHaveClass(/is-playing/);
   await expect(page.locator(".task-box-v2")).not.toContainText("Could you repeat that, please?");
   await expect(page.locator(".task-box-v2 strong")).toHaveCount(0);
   await page.locator(".task-box-v2__next").click();
@@ -2314,6 +2340,10 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
   await expect(page.locator(".chat-workspace--single")).toBeVisible();
   await expect(page.locator(".chat-workspace__output")).toHaveCount(0);
   await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toHaveCount(1);
+  await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toBeEnabled();
+  await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).not.toHaveClass(/is-playing/);
+  await page.locator(".task-box-v2 .audio-wave-button-v2").click();
+  await expect.poll(() => spokenTexts).toEqual([phrases[0], phrases[1]]);
 });
 
 test("mobile listening panel stays above bottom menu", async ({ page, isMobile }) => {

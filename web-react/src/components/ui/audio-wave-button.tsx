@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { PauseCircle, PlayCircle, Volume2 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { apiBlob } from "@/lib/api";
@@ -41,6 +41,18 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setPlaying(false);
+    setLoading(false);
+    setError("");
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+  }, [text, wordId, targetLanguage]);
 
   const stop = () => {
     audioRef.current?.pause();

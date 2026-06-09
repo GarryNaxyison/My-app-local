@@ -1839,7 +1839,8 @@ export function App() {
   };
 
   const startShadowing = async () => {
-    const payload = await runAction("shadowing", () => api<ApiRecord>("/api/shadowing/start", { method: "POST", body: {} }), copy("phrase_ready", "Phrase is ready."));
+    const previous = cleanAppText(shadowingTarget);
+    const payload = await runAction("shadowing", () => api<ApiRecord>("/api/shadowing/start", { method: "POST", body: { previous } }), copy("phrase_ready", "Phrase is ready."));
     if (!payload) return;
     const record = getRecord(payload);
     const target = asText(record.target || record.phrase || record.text || record.message, "");
@@ -6443,7 +6444,7 @@ function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string;
   return (
     <div className="audio-action-row-v2">
       {uniqueClips.map((clip, index) => (
-        <AudioWaveButton key={`${clip.label}-${index}`} label={clip.label} text={clip.text} wordId={clip.wordId} targetLanguage={clip.targetLanguage} />
+        <AudioWaveButton key={`${clip.label}-${clip.wordId || clip.text || index}-${clip.targetLanguage || ""}`} label={clip.label} text={clip.text} wordId={clip.wordId} targetLanguage={clip.targetLanguage} />
       ))}
     </div>
   );

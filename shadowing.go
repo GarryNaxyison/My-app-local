@@ -131,9 +131,13 @@ func shadowingDeckIndex(user userState) int {
 	return int(seed % shadowingDeckSize)
 }
 
-func shadowingPhrasePrompt(language learningLanguage, interfaceLanguage learningLanguage, level string, card string) []chatMessage {
+func shadowingPhrasePrompt(language learningLanguage, interfaceLanguage learningLanguage, level string, card string, previous string) []chatMessage {
+	avoid := ""
+	if strings.TrimSpace(previous) != "" {
+		avoid = "\nDo not repeat or lightly paraphrase this previous phrase: " + strings.TrimSpace(previous)
+	}
 	userPrompt := "Create exactly one natural " + language.NativeName + " phrase for a listening-and-repeat drill at CEFR level " + level + ". " +
-		"Use this semantic card so the drill comes from a 10,000-card phrase deck shared across all languages:\n" + card + "\n\n" +
+		"Use this semantic card so the drill comes from a 10,000-card phrase deck shared across all languages:\n" + card + avoid + "\n\n" +
 		"The learner will listen, repeat aloud, and compare speech recognition to the phrase. " +
 		"Requirements: 5-11 words when the language uses spaces; one everyday spoken chunk; useful rhythm; no rare vocabulary; no translation; no explanation; no numbering; no quotation marks; no Markdown. " +
 		"Return only the phrase in " + language.NativeName + ". If the target language is not English, do not use English words unless they are unavoidable international words. " +
@@ -143,8 +147,9 @@ func shadowingPhrasePrompt(language learningLanguage, interfaceLanguage learning
 		{
 			Role: "user",
 			Content: renderAppPrompt("listening.phrase.user", userPrompt, mergePromptVars(commonPromptVars(language, interfaceLanguage), map[string]string{
-				"level":     level,
-				"deck_card": card,
+				"level":           level,
+				"deck_card":       card,
+				"previous_phrase": previous,
 			})),
 		},
 	}
@@ -430,17 +435,22 @@ func shadowingDoneKeyboard(user userState, copies ...uiCopy) map[string]any {
 	}
 }
 
-func (b *bot) buildShadowingPhrase(ctx context.Context, user userState) string {
+func (b *bot) buildShadowingPhrase(ctx context.Context, user userState, previous string) string {
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
 	index := shadowingDeckIndex(user)
-	raw, err := b.openrouter.complete(ctx, shadowingPhrasePrompt(language, interfaceLanguage, user.Level, shadowingDeckSpec(index)), 0.55, 180)
-	if err != nil {
-		return shadowingFallbackPhrase(language, index)
+	if b.openrouter != nil {
+		raw, err := b.openrouter.complete(ctx, shadowingPhrasePrompt(language, interfaceLanguage, user.Level, shadowingDeckSpec(index), previous), 0.7, 180)
+		if err == nil {
+			phrase := sanitizeShadowingPhrase(raw)
+			if phrase != "" && !shadowingLooksWrongScript(phrase, language) && !strings.EqualFold(phrase, strings.TrimSpace(previous)) {
+				return phrase
+			}
+		}
 	}
-	phrase := sanitizeShadowingPhrase(raw)
-	if phrase == "" || shadowingLooksWrongScript(phrase, language) {
-		return shadowingFallbackPhrase(language, index)
+	phrase := shadowingFallbackPhrase(language, index)
+	if strings.EqualFold(phrase, strings.TrimSpace(previous)) {
+		phrase = shadowingFallbackPhrase(language, index+17)
 	}
 	return phrase
 }
@@ -485,7 +495,8 @@ func (b *bot) startShadowing(ctx context.Context, chatID int64, user userState) 
 		return b.telegram.sendMessageWithCopy(ctx, chatID, b.limitReachedText(systemUI(user).PracticeKind, user), copy)
 	}
 	_ = b.telegram.sendChatAction(ctx, chatID, "typing")
-	phrase := b.buildShadowingPhrase(ctx, user)
+	previous, _ := parseShadowingMode(user.Mode)
+	phrase := b.buildShadowingPhrase(ctx, user, previous)
 	if err := b.store.setMode(user.TelegramID, shadowingMode(phrase)); err != nil {
 		return err
 	}
@@ -819,7 +830,17 @@ func (api *webAPI) handleShadowingStart(w http.ResponseWriter, r *http.Request) 
 		writeAPIError(w, http.StatusTooManyRequests, api.bot.limitReachedText(systemUI(user).PracticeKind, user))
 		return
 	}
-	phrase := api.bot.buildShadowingPhrase(r.Context(), user)
+	var req struct {
+		Previous string `json:"previous"`
+	}
+	if r.Body != nil {
+		_ = json.NewDecoder(r.Body).Decode(&req)
+	}
+	previous := strings.TrimSpace(req.Previous)
+	if previous == "" {
+		previous, _ = parseShadowingMode(user.Mode)
+	}
+	phrase := api.bot.buildShadowingPhrase(r.Context(), user, previous)
 	if err := api.bot.store.setMode(user.TelegramID, shadowingMode(phrase)); err != nil {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
