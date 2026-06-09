@@ -5051,6 +5051,10 @@ select {
   gap: 16px;
 }
 
+.roleplay-view-v2--session .roleplay-stage-v2 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .roleplay-brief-v2,
 .roleplay-dialog-card-v2 {
   min-width: 0;
@@ -5087,6 +5091,10 @@ select {
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 12px;
   min-height: min(620px, 70vh);
+}
+
+.roleplay-view-v2--desktop-session .roleplay-dialog-card-v2 {
+  min-height: min(680px, calc(100dvh - 230px));
 }
 
 .roleplay-dialog-head-v2 {
@@ -7370,6 +7378,33 @@ select {
 
   .context-display--roleplay .roleplay-grid-v2 button svg {
     flex: 0 0 auto;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-stage-v2 {
+    display: block;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-dialog-card-v2 {
+    min-height: 0 !important;
+    grid-template-rows: auto minmax(220px, auto) auto;
+    gap: 8px;
+    padding: 10px;
+    overflow: visible;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-dialog-scroll-v2 {
+    min-height: min(44dvh, 360px);
+    max-height: calc(100dvh - 300px);
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-composer-v2 textarea {
+    min-height: 104px;
   }
 
   .context-display--phrasebook .phrasebook-view-v2 {

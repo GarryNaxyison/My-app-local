@@ -652,6 +652,21 @@ function currentNotFoundPath() {
   return "";
 }
 
+function useMobileUiLayout() {
+  const queryText = "(max-width: 760px)";
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(queryText).matches);
+
+  useEffect(() => {
+    const query = window.matchMedia(queryText);
+    const update = () => setIsMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  return isMobile;
+}
+
 function navCopyKey(view: ViewId) {
   const map: Partial<Record<ViewId, string>> = {
     home: "today",
@@ -5751,6 +5766,7 @@ function RoleplayView({
   roleplayResult,
 }: ViewRendererProps) {
   const [activeScenario, setActiveScenario] = useState<RoleplayScenario | null>(null);
+  const isMobileUi = useMobileUiLayout();
   const beginScenario = async (scenario: RoleplayScenario) => {
     setActiveScenario(scenario);
     await startRoleplayScenario(scenario);
@@ -5765,26 +5781,9 @@ function RoleplayView({
     : roleplayMessages.slice(0, 8);
 
   if (activeScenario) {
-    const Icon = activeScenario.icon;
-    const title = roleplayScenarioTitle(activeScenario, user);
-    const description = roleplayScenarioDescription(activeScenario, user);
     return (
-      <section className="v2-panel roleplay-view-v2 roleplay-view-v2--session">
+      <section className={cn("v2-panel roleplay-view-v2 roleplay-view-v2--session", isMobileUi ? "roleplay-view-v2--mobile-session" : "roleplay-view-v2--desktop-session")}>
         <div className="roleplay-stage-v2">
-          <aside className="roleplay-brief-v2">
-            <span className="eyebrow">{copy("roleplay", "Roleplay")}</span>
-            <Icon size={28} />
-            <h2>{title}</h2>
-            <p>{description}</p>
-            <div className="roleplay-brief-v2__meta">
-              <span>{copy("level", "Level")}: {activeScenario.difficulty}</span>
-              <span>{copy("goal", "Goal")}: {activeScenario.goal || copy("natural_dialogue", "Natural dialogue")}</span>
-            </div>
-            <Button variant="outline" type="button" onClick={resetScenario}>
-              <ChevronRight size={16} />
-              {copy("choose_another_scenario", "Choose another scenario")}
-            </Button>
-          </aside>
           <div className="roleplay-dialog-card-v2">
             <div className="panel-head roleplay-dialog-head-v2">
               <Button variant="outline" type="button" onClick={resetScenario}>

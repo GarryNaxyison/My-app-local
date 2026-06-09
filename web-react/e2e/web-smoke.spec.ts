@@ -2227,6 +2227,7 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
   await page.locator(".roleplay-grid-v2 button").first().click();
   await expect(page.locator(".roleplay-view-v2--session")).toBeVisible();
+  await expect(page.locator(".roleplay-view-v2--mobile-session")).toBeVisible();
   await expect(page.locator(".roleplay-view-v2--session .roleplay-brief-v2")).toBeHidden();
   await expect(page.getByText(/ROLEPLAY DIALOGUE|Диалоговая сцена/)).toHaveCount(0);
   await expect(page.locator(".roleplay-dialog-head-v2 button")).toBeVisible();
@@ -2243,6 +2244,21 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await page.locator(".roleplay-composer-v2 textarea").fill("Could you repeat that, please?");
   await page.locator(".roleplay-composer-v2 textarea").press("Enter");
   await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Short polite request.").first()).toBeVisible();
+});
+
+test("desktop roleplay session uses full-width dialogue without the scenario aside", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.goto("/app/?view=roleplay");
+  await expect(page.locator(".context-display--roleplay")).toBeVisible();
+  await page.locator(".roleplay-grid-v2 button").first().click();
+  await expect(page.locator(".roleplay-view-v2--desktop-session")).toBeVisible();
+  await expect(page.locator(".roleplay-view-v2--session .roleplay-brief-v2")).toHaveCount(0);
+
+  const panel = await page.locator(".roleplay-view-v2--session").boundingBox();
+  const dialog = await page.locator(".roleplay-dialog-card-v2").boundingBox();
+  expect(panel).not.toBeNull();
+  expect(dialog).not.toBeNull();
+  expect(dialog!.width).toBeGreaterThan(panel!.width * 0.94);
 });
 
 test("mobile roleplay scenario cards expand and scroll above bottom menu", async ({ page, isMobile }) => {
