@@ -844,6 +844,16 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "payment_crypto_prepare_instruction",
     "payment_crypto_instruction",
     "payment_usdt_trc20_instruction",
+    "report_bug",
+    "report_bug_body",
+    "problem_description",
+    "problem_description_placeholder",
+    "attach_screenshot",
+    "screenshots_attached",
+    "bug_report_close",
+    "send_report",
+    "bug_report_image_only",
+    "bug_report_sent",
   ];
   expect(appLocaleCodes).toHaveLength(35);
   for (const code of appLocaleCodes) {
@@ -1000,6 +1010,16 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "plan_offline_count",
     "plan_dashboard",
     "weekly_review",
+    "report_bug",
+    "report_bug_body",
+    "problem_description",
+    "problem_description_placeholder",
+    "attach_screenshot",
+    "screenshots_attached",
+    "bug_report_close",
+    "send_report",
+    "bug_report_image_only",
+    "bug_report_sent",
   ];
   for (const code of appLocaleCodes) {
     for (const key of noSectionLeakKeys) {
@@ -1129,6 +1149,24 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".password-card-v2")).toContainText("Пароли не совпадают");
   await page.locator(".password-card-v2 input").nth(2).fill("new-password");
   await expect(page.locator(".password-card-v2")).toContainText("Пароли совпадают");
+});
+
+test("bug report paste keeps one clipboard image and no generic section text", async ({ page, isMobile }) => {
+  await page.goto("/app/?view=home");
+  await page.locator(isMobile ? ".mobile-report-button-v2" : ".v2-report-button").click();
+  const dialog = page.locator(".bug-report-dialog-v2");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).not.toContainText("Раздел");
+  await dialog.locator("textarea").evaluate((node) => {
+    const file = new File([new Uint8Array([137, 80, 78, 71])], "paste.png", { type: "image/png", lastModified: 123 });
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    const event = new ClipboardEvent("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "clipboardData", { value: { files: transfer.files, items: transfer.items } });
+    node.dispatchEvent(event);
+  });
+  await expect(dialog.locator(".bug-report-dialog-v2__upload")).toContainText("paste.png");
+  await expect(dialog.locator(".bug-report-dialog-v2__upload")).not.toContainText("2 ");
 });
 
 test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", async ({ page, isMobile }) => {
@@ -2082,6 +2120,32 @@ test("mobile header controls and editable nav rail reorder work", async ({ page,
   await expect(page.locator(".mobile-bottom-nav-v2 button[data-view]").nth(1)).toHaveAttribute("data-view", firstAfterDropView || "");
 });
 
+test("mobile nav rail order reloads from the per-user server layout", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  let serverSession = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      navigation_layout: {
+        mobile_rail: ["settings", "home", "tutor", "words", "word-game", "pronunciation", "shadowing"],
+      },
+    },
+  };
+  await page.unroute("**/api/session");
+  await page.unroute("**/api/navigation-layout");
+  await page.route("**/api/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(serverSession) }));
+  await page.route("**/api/navigation-layout", async (route) => {
+    const payload = route.request().postDataJSON() as Record<string, unknown>;
+    serverSession = { ...serverSession, user: { ...serverSession.user, navigation_layout: payload } };
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(serverSession) });
+  });
+  await page.goto("/app/?view=home");
+  await expect(page.locator(".mobile-bottom-nav-v2 button[data-view]").first()).toHaveAttribute("data-view", "settings");
+  await page.evaluate(() => localStorage.removeItem("poliglot-mobile-nav-rail-v2:demor22"));
+  await page.reload();
+  await expect(page.locator(".mobile-bottom-nav-v2 button[data-view]").first()).toHaveAttribute("data-view", "settings");
+});
+
 test("desktop function ribbon reorder persists after reload", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop ribbon assertion");
   await page.goto("/app/?view=home");
@@ -2210,6 +2274,18 @@ test("mobile roleplay scenario cards expand and scroll above bottom menu", async
 });
 
 test("shadowing uses one compact work panel with the sample audio inside the task", async ({ page }) => {
+  const phrases = ["Could you repeat that, please?", "The train leaves at nine."];
+  let phraseIndex = 0;
+  await page.unroute("**/api/shadowing/start");
+  await page.route("**/api/shadowing/start", (route) => {
+    const phrase = phrases[Math.min(phraseIndex, phrases.length - 1)];
+    phraseIndex += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ phrase, target: phrase }),
+    });
+  });
   await page.goto("/app/?view=home");
   await page.locator(".home-plan-v2__steps button").filter({ hasText: appCopy("ru", "today_plan_listen_title") }).click();
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
@@ -2218,6 +2294,11 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
   await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toBeVisible();
   await expect(page.locator(".task-box-v2")).not.toContainText("Could you repeat that, please?");
   await expect(page.locator(".task-box-v2 strong")).toHaveCount(0);
+  await page.locator(".task-box-v2__next").click();
+  await expect.poll(() => phraseIndex).toBeGreaterThan(1);
+  await expect(page.locator(".chat-workspace--single")).toBeVisible();
+  await expect(page.locator(".chat-workspace__output")).toHaveCount(0);
+  await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toHaveCount(1);
 });
 
 test("mobile listening panel stays above bottom menu", async ({ page, isMobile }) => {

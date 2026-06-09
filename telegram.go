@@ -628,6 +628,9 @@ func mainMenuInlineKeyboard(copies ...uiCopy) map[string]any {
 				{"text": "📚 " + copy.Vocabulary, "callback_data": "menu_vocabulary"},
 			},
 			{
+				{"text": "🔖 " + copy.Phrasebook, "callback_data": "menu_phrasebook"},
+			},
+			{
 				{"text": "📖 " + copy.Mistakes, "callback_data": "menu_mistakes"},
 				{"text": "🎯 " + copy.LevelTest, "callback_data": "menu_level_test"},
 			},
@@ -673,6 +676,7 @@ func wordsMenuKeyboard(copies ...uiCopy) map[string]any {
 			{{"text": "🎮 " + copy.WordGame, "callback_data": "menu_word_game"}},
 			{{"text": "✍️ " + copy.Spelling, "callback_data": "menu_spelling"}},
 			{{"text": "📚 " + copy.Vocabulary, "callback_data": "menu_vocabulary"}},
+			{{"text": "🔖 " + copy.Phrasebook, "callback_data": "menu_phrasebook"}},
 			{{"text": "📖 " + copy.Mistakes, "callback_data": "menu_mistakes"}},
 			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 		},
@@ -915,6 +919,28 @@ func vocabularyKeyboard(page int, totalPages int, copies ...uiCopy) map[string]a
 	rows = append(rows,
 		[]map[string]any{{"text": "🎮 " + copy.WordGame, "callback_data": "menu_word_game"}},
 		[]map[string]any{{"text": "✍️ " + copy.Spelling, "callback_data": "menu_spelling"}},
+		[]map[string]any{{"text": "🧠 " + copy.LearnWords, "callback_data": "menu_word_lesson"}},
+		[]map[string]any{{"text": "🔖 " + copy.Phrasebook, "callback_data": "menu_phrasebook"}},
+		[]map[string]any{{"text": copy.BackMenu, "callback_data": "back_menu"}},
+	)
+	return map[string]any{"inline_keyboard": rows}
+}
+
+func phrasebookKeyboard(page int, totalPages int, copies ...uiCopy) map[string]any {
+	copy := keyboardCopy(copies)
+	rows := [][]map[string]any{}
+	if totalPages > 1 {
+		row := []map[string]any{}
+		if page > 0 {
+			row = append(row, map[string]any{"text": copy.Back, "callback_data": "phrasebook|" + strconv.Itoa(page-1)})
+		}
+		if page+1 < totalPages {
+			row = append(row, map[string]any{"text": copy.NextPage, "callback_data": "phrasebook|" + strconv.Itoa(page+1)})
+		}
+		rows = append(rows, row)
+	}
+	rows = append(rows,
+		[]map[string]any{{"text": "📚 " + copy.Vocabulary, "callback_data": "menu_vocabulary"}},
 		[]map[string]any{{"text": "🧠 " + copy.LearnWords, "callback_data": "menu_word_lesson"}},
 		[]map[string]any{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 	)

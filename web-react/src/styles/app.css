@@ -7537,6 +7537,76 @@ select {
     white-space: nowrap;
   }
 
+  .context-display--pronunciation {
+    overflow-y: auto !important;
+    padding-bottom: calc(132px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .pronunciation-dashboard-v2 {
+    display: grid;
+    gap: 12px;
+    min-height: max-content !important;
+    overflow: visible !important;
+  }
+
+  .pronunciation-workbench-v2 {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: auto;
+    align-items: start !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 12px !important;
+  }
+
+  .pronunciation-target-primary-v2 {
+    display: grid !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 12px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 16px !important;
+    overflow: visible !important;
+  }
+
+  .pronunciation-target-primary-v2 > div {
+    align-content: start !important;
+    min-height: 0 !important;
+  }
+
+  .pronunciation-target-primary-v2 h2 {
+    font-size: 24px !important;
+    line-height: 1.18 !important;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .pronunciation-target-primary-v2 p {
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .pronunciation-target-primary-v2 .audio-action-row-v2,
+  .pronunciation-target-primary-v2 .audio-wave-button-v2 {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .pronunciation-tools-v2 {
+    display: grid;
+    gap: 10px;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .pronunciation-tool-card-v2 {
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 14px !important;
+  }
+
   .mobile-bottom-nav-v2 {
     display: flex !important;
     grid-template-columns: none !important;

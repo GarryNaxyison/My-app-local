@@ -70,6 +70,16 @@ const en: Record<string, string> = {
   level_updated: "Level updated",
   settings_saved: "Settings saved.",
   activation_accepted: "Activation key accepted.",
+  report_bug: "Report a bug",
+  report_bug_body: "Describe what happened. You can attach a screenshot.",
+  problem_description: "Problem description",
+  problem_description_placeholder: "Example: the roleplay dialog card did not open...",
+  attach_screenshot: "Attach screenshot",
+  screenshots_attached: "screenshots attached",
+  bug_report_close: "Close",
+  send_report: "Send report",
+  bug_report_image_only: "Screenshot or image without text.",
+  bug_report_sent: "Bug report saved.",
   open_menu: "Open menu",
   close_menu: "Close menu",
   language_cockpit: "Language cockpit",
@@ -2932,6 +2942,13 @@ function localizedFallbackForEnglishCopy(code: AppLocaleCode, key: string): stri
   if (key === "auth_failed") return terms.unavailable;
   if (key.startsWith("auth_")) return target.auth_failed && /failed|auth/i.test(keyLabel) ? terms.unavailable : `${target.account || terms.account}: ${keyLabel}`;
   if (key.includes("phrasebook") || key.includes("note")) return target.phrasebook || terms.words;
+  if (key.includes("bug") || key.includes("report") || key.includes("screenshot") || key.includes("problem")) {
+    if (key.includes("send")) return target.send || terms.open;
+    if (key.includes("close")) return terms.open;
+    if (key.includes("attach") || key.includes("image")) return target.tools || terms.open;
+    if (key.includes("sent") || key.includes("saved")) return terms.ready;
+    return target.tools || terms.unavailable;
+  }
   if (key.includes("payment") || key.includes("crypto") || key.includes("network")) return target.payment_options && target.payment_options !== en.payment_options ? target.payment_options : target.premium || terms.account;
   if (key.includes("activity") || key.includes("rhythm") || key.includes("training_balance")) return target.dashboard || terms.growth;
   if (key.includes("learned") || key.includes("completed") || key.includes("rounds") || key.includes("attempts") || key.includes("repaired") || key.includes("practiced")) return target.dashboard || terms.growth;
@@ -3801,6 +3818,49 @@ function applyCriticalUxCopy(code: AppLocaleCode) {
 
 appLocaleCodes.forEach((code) => applyCriticalUxCopy(code));
 
+const bugReportCopy: Partial<Record<AppLocaleCode, Record<string, string>>> = {
+  ru: {
+    report_bug: "Сообщить об ошибке",
+    report_bug_body: "Опишите, что произошло. Скриншот можно прикрепить сразу.",
+    problem_description: "Описание проблемы",
+    problem_description_placeholder: "Например: в roleplay не открылась карточка диалога...",
+    attach_screenshot: "Прикрепить скриншот",
+    screenshots_attached: "скриншота прикреплено",
+    bug_report_close: "Закрыть",
+    send_report: "Отправить отчет",
+    bug_report_image_only: "Скриншот или изображение без текста.",
+    bug_report_sent: "Багрепорт сохранен.",
+  },
+  en: {
+    report_bug: "Report a bug",
+    report_bug_body: "Describe what happened. You can attach a screenshot.",
+    problem_description: "Problem description",
+    problem_description_placeholder: "Example: the roleplay dialog card did not open...",
+    attach_screenshot: "Attach screenshot",
+    screenshots_attached: "screenshots attached",
+    bug_report_close: "Close",
+    send_report: "Send report",
+    bug_report_image_only: "Screenshot or image without text.",
+    bug_report_sent: "Bug report saved.",
+  },
+};
+
+appLocaleCodes.forEach((code) => {
+  const values = bugReportCopy[code] || {
+    report_bug: localizedFallbackForEnglishCopy(code, "report_bug"),
+    report_bug_body: localizedFallbackForEnglishCopy(code, "report_bug_body"),
+    problem_description: localizedFallbackForEnglishCopy(code, "problem_description"),
+    problem_description_placeholder: localizedFallbackForEnglishCopy(code, "problem_description_placeholder"),
+    attach_screenshot: localizedFallbackForEnglishCopy(code, "attach_screenshot"),
+    screenshots_attached: localizedFallbackForEnglishCopy(code, "screenshots_attached"),
+    bug_report_close: localizedFallbackForEnglishCopy(code, "bug_report_close"),
+    send_report: localizedFallbackForEnglishCopy(code, "send_report"),
+    bug_report_image_only: localizedFallbackForEnglishCopy(code, "bug_report_image_only"),
+    bug_report_sent: localizedFallbackForEnglishCopy(code, "bug_report_sent"),
+  };
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
+});
+
 const authCopy: Record<AppLocaleCode, Record<string, string>> = {
   ru: { auth_login_title: "Войти в Poliglot AI", auth_create_account: "Создать аккаунт", auth_login: "Войти", auth_create: "Создать", auth_welcome: "С возвращением", auth_new_account: "Новый аккаунт", auth_login_hint: "Введите логин и пароль или подтвердите вход через Telegram.", auth_register_hint: "Придумайте логин и пароль для нового аккаунта.", auth_support: "Восстановление доступа", auth_subtitle: "Вход или регистрация", auth_telegram_title: "Войти через Telegram", auth_username: "Логин", auth_password: "Пароль", auth_password_repeat: "Повторите пароль", auth_referral: "Реферальный код", auth_referral_placeholder: "8 символов", auth_finish_account: "Завершите настройку аккаунта", auth_words: "Слова", auth_card_lessons: "Короткие AI-уроки подстраиваются под ваш уровень.", auth_card_words: "Маршрут дня держит слова, практику и повторение вместе.", auth_card_telegram: "Сайт и Telegram используют один учебный профиль.", auth_privacy_consent: "Я согласен на обработку персональных данных по политике.", auth_privacy_policy: "Политика обработки данных", auth_privacy_required: "Примите политику обработки персональных данных, чтобы продолжить.", auth_fill_required: "Введите логин и пароль.", captcha_required: "Подтвердите, что вы не робот.", auth_password_mismatch: "Пароли не совпадают.", auth_failed: "Ошибка авторизации", keep_signed_in: "Запомнить вход", already_have_account: "Уже есть аккаунт?", hide_password: "Скрыть пароль", show_password: "Показать пароль" },
   en: { auth_login_title: "Sign in to Poliglot AI", auth_create_account: "Create account", auth_login: "Sign in", auth_create: "Create", auth_welcome: "Welcome back", auth_new_account: "New account", auth_login_hint: "Enter login and password or confirm through Telegram.", auth_register_hint: "Choose a login and password for the new account.", auth_support: "Account recovery", auth_subtitle: "Sign in or create an account", auth_telegram_title: "Sign in with Telegram", auth_username: "Login", auth_password: "Password", auth_password_repeat: "Repeat password", auth_referral: "Referral code", auth_referral_placeholder: "8 characters", auth_finish_account: "Finish account setup", auth_words: "Words", auth_card_lessons: "Short AI lessons adapt to your level.", auth_card_words: "Daily route keeps words, practice, and review together.", auth_card_telegram: "Website and Telegram use one learning profile.", auth_privacy_consent: "I agree to personal data processing under the policy.", auth_privacy_policy: "Data processing policy", auth_privacy_required: "Accept the personal data policy to continue.", auth_fill_required: "Enter login and password.", captcha_required: "Confirm that you are not a robot.", auth_password_mismatch: "Passwords do not match.", auth_failed: "Authentication failed", keep_signed_in: "Keep me signed in", already_have_account: "Already have an account?", hide_password: "Hide password", show_password: "Show password" },
@@ -4154,6 +4214,22 @@ appLocaleCodes.forEach((code) => {
     tutor_course_label: target.course || learn,
   };
   localeOverrides[code] = { ...target, ...generic, ...(tutorInteractiveExplicitCopy[code] || {}) };
+});
+
+appLocaleCodes.forEach((code) => {
+  const values = bugReportCopy[code] || {
+    report_bug: localizedFallbackForEnglishCopy(code, "report_bug"),
+    report_bug_body: localizedFallbackForEnglishCopy(code, "report_bug_body"),
+    problem_description: localizedFallbackForEnglishCopy(code, "problem_description"),
+    problem_description_placeholder: localizedFallbackForEnglishCopy(code, "problem_description_placeholder"),
+    attach_screenshot: localizedFallbackForEnglishCopy(code, "attach_screenshot"),
+    screenshots_attached: localizedFallbackForEnglishCopy(code, "screenshots_attached"),
+    bug_report_close: localizedFallbackForEnglishCopy(code, "bug_report_close"),
+    send_report: localizedFallbackForEnglishCopy(code, "send_report"),
+    bug_report_image_only: localizedFallbackForEnglishCopy(code, "bug_report_image_only"),
+    bug_report_sent: localizedFallbackForEnglishCopy(code, "bug_report_sent"),
+  };
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
 });
 
 let cp1251ReverseMap: Map<string, number> | null = null;

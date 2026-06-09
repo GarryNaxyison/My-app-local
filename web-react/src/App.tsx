@@ -1844,10 +1844,6 @@ export function App() {
     const record = getRecord(payload);
     const target = asText(record.target || record.phrase || record.text || record.message, "");
     setShadowingTarget(target);
-    setMessages((current) => [
-      panelMessage(target || copy("listening_phrase_fallback", "Listen and repeat the phrase."), "default", copy("listening_phrase", "Listening phrase"), record, "shadowing"),
-      ...current,
-    ]);
     setView("shadowing");
   };
 
@@ -4139,10 +4135,21 @@ function BugReportDialog({
   const [message, setMessage] = useState("");
   const [screenshots, setScreenshots] = useState<File[]>([]);
   const canSend = message.trim().length >= 8 || screenshots.length > 0;
+  const screenshotKey = (file: File) => `${file.name || "clipboard"}:${file.type || "application/octet-stream"}:${file.size}`;
   const addScreenshotFiles = (files: File[]) => {
     const imageFiles = files.filter((file) => file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|svg|heic|heif)$/i.test(file.name));
     if (!imageFiles.length) return;
-    setScreenshots((current) => [...current, ...imageFiles].slice(0, 5));
+    setScreenshots((current) => {
+      const seen = new Set(current.map(screenshotKey));
+      const next = [...current];
+      for (const file of imageFiles) {
+        const key = screenshotKey(file);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        next.push(file);
+      }
+      return next.slice(0, 5);
+    });
   };
   const addClipboardScreenshots = (event: ClipboardEvent<HTMLTextAreaElement>) => {
     const files = Array.from(event.clipboardData.files || []);

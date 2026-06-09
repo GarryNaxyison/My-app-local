@@ -1386,7 +1386,20 @@ func (api *webAPI) handleNavigationLayout(w http.ResponseWriter, r *http.Request
 	if !decodeJSONRequest(w, r, &req) {
 		return
 	}
-	if err := api.bot.store.setNavigationLayout(user.TelegramID, req); err != nil {
+	next := user.NavigationLayout
+	if len(req.FunctionRibbon) > 0 {
+		next.FunctionRibbon = req.FunctionRibbon
+	}
+	if len(req.MobilePinned) > 0 {
+		next.MobilePinned = req.MobilePinned
+	}
+	if len(req.MobileMore) > 0 {
+		next.MobileMore = req.MobileMore
+	}
+	if len(req.MobileRail) > 0 {
+		next.MobileRail = req.MobileRail
+	}
+	if err := api.bot.store.setNavigationLayout(user.TelegramID, next); err != nil {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

@@ -614,6 +614,27 @@ func TestWebNavigationLayoutPersistsInDatabaseAndSession(t *testing.T) {
 	}
 }
 
+func TestWebNavigationLayoutPatchPreservesSavedMobileOrder(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/navigation-layout", map[string]any{
+		"function_ribbon": []string{"home", "lesson"},
+		"mobile_rail":     []string{"settings", "home", "tutor"},
+	})
+	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/navigation-layout", map[string]any{
+		"function_ribbon": []string{"lesson", "home"},
+	})
+	stored, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(stored.NavigationLayout.FunctionRibbon, ","); got != "lesson,home" {
+		t.Fatalf("function ribbon patch was not saved: %#v", stored.NavigationLayout)
+	}
+	if got := strings.Join(stored.NavigationLayout.MobileRail, ","); got != "settings,home,tutor" {
+		t.Fatalf("mobile rail order was lost after partial patch: %#v", stored.NavigationLayout)
+	}
+}
+
 func TestWebMistakesReturnsAllItemsForClientPagination(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	entries := make([]mistakeEntry, 0, 12)

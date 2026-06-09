@@ -26,6 +26,7 @@ type uiCopy struct {
 	WordGame         string
 	Spelling         string
 	Vocabulary       string
+	Phrasebook       string
 	Mistakes         string
 	Progress         string
 	Leaders          string
@@ -96,7 +97,7 @@ var uiCopies = map[string]uiCopy{
 		MenuButton: "📋 Меню", StopButton: "⏹ Стоп", Back: "◀ Назад", BackMenu: "◀ В меню",
 		MainMenuTitle: "Главное меню", MainMenuBody: "Выбери действие:",
 		Learning: "Учиться", Words: "Слова", Stats: "Прогресс", Settings: "Настройки", Tools: "Инструменты",
-		NewLesson: "Новый урок", Practice: "Практика", AITutor: "AI Репетитор", LevelTest: "Определить уровень", LearnWords: "Учить слова", WordGame: "Повторяй-ка", Spelling: "Правописание", Vocabulary: "Словарик", Mistakes: "Словарь ошибок", Progress: "Мой прогресс", Leaders: "Лидеры", Limits: "Мои лимиты", BotLanguage: "Язык бота", LearningLanguage: "Язык изучения", Notifications: "Уведомления", Premium: "Premium",
+		NewLesson: "Новый урок", Practice: "Практика", AITutor: "AI Репетитор", LevelTest: "Определить уровень", LearnWords: "Учить слова", WordGame: "Повторяй-ка", Spelling: "Правописание", Vocabulary: "Словарик", Phrasebook: "Разговорник", Mistakes: "Словарь ошибок", Progress: "Мой прогресс", Leaders: "Лидеры", Limits: "Мои лимиты", BotLanguage: "Язык бота", LearningLanguage: "Язык изучения", Notifications: "Уведомления", Premium: "Premium",
 		ChooseBotLang: "Выбери язык бота", ChooseLearnLang: "Какой язык хочешь изучать?", ChooseTimezone: "Выбери часовой пояс", TimezoneHint: "Я буду присылать ежедневное напоминание примерно в 19:00 по твоему времени.",
 		BotLangSet: "Готово! Язык бота: %s.", LearnLangSet: "Готово! Теперь изучаем: %s.", UnknownButton: "Не понял кнопку. Нажми 📋 Меню.", Stopped: "Остановлено. Нажми 📋 Меню чтобы выбрать следующее действие.",
 		WordQuestion: "Как будет %s:", ChooseAnswer: "Выбери правильный вариант:", Correct: "Правильно!", TryAgain: "Пока не то. Попробуй ещё раз:", NextWord: "Следующее слово", NextPage: "Вперёд ▶", AlreadyLearned: "Это слово уже было в твоем словаре.", AddedToVocab: "Слово добавлено в изученный словарь.", TotalLearned: "Всего изучено слов: %d", WriteWord: "Напиши %s:", Hint: "Подсказка", GoodSpelling: "Отлично, написано верно!",
@@ -124,7 +125,7 @@ func englishUICopy() uiCopy {
 		MenuButton: "📋 Menu", StopButton: "⏹ Stop", Back: "◀ Back", BackMenu: "◀ Menu",
 		MainMenuTitle: "Main Menu", MainMenuBody: "Choose an action:",
 		Learning: "Learn", Words: "Words", Stats: "Progress", Settings: "Settings", Tools: "Tools",
-		NewLesson: "New lesson", Practice: "Practice", AITutor: "AI Tutor", Shadowing: "Listening", LevelTest: "Find level", LearnWords: "Learn words", WordGame: "Review", Spelling: "Spelling", Vocabulary: "Vocabulary", Mistakes: "Mistakes", Progress: "My progress", Leaders: "Leaders", Limits: "Limits", BotLanguage: "Bot language", LearningLanguage: "Learning language", Notifications: "Notifications", Premium: "Premium", Referral: "Referrals",
+		NewLesson: "New lesson", Practice: "Practice", AITutor: "AI Tutor", Shadowing: "Listening", LevelTest: "Find level", LearnWords: "Learn words", WordGame: "Review", Spelling: "Spelling", Vocabulary: "Vocabulary", Phrasebook: "Phrasebook", Mistakes: "Mistakes", Progress: "My progress", Leaders: "Leaders", Limits: "Limits", BotLanguage: "Bot language", LearningLanguage: "Learning language", Notifications: "Notifications", Premium: "Premium", Referral: "Referrals",
 		ChooseBotLang: "Choose bot language", ChooseLearnLang: "Which language do you want to learn?", ChooseTimezone: "Choose time zone", TimezoneHint: "I will send daily reminders around 19:00 in your local time.",
 		BotLangSet: "Done. Bot language: %s.", LearnLangSet: "Done. Now learning: %s.", UnknownButton: "I did not understand that button. Press 📋 Menu.", Stopped: "Stopped. Press 📋 Menu to choose the next action.",
 		WordQuestion: "How do you say %s?", ChooseAnswer: "Choose the correct answer:", Correct: "Correct!", TryAgain: "Not quite. Try again:", NextWord: "Next word", NextPage: "Next ▶", AlreadyLearned: "This word is already in your vocabulary.", AddedToVocab: "Word added to your learned vocabulary.", TotalLearned: "Learned words: %d", WriteWord: "Write %s:", Hint: "Hint", GoodSpelling: "Great spelling!",
@@ -278,6 +279,7 @@ func generatedUICopy(code string) (uiCopy, bool) {
 		WordGame:         t.Review,
 		Spelling:         t.Spelling,
 		Vocabulary:       t.Vocabulary,
+		Phrasebook:       phrasebookButtonLabel(code),
 		Mistakes:         t.Mistakes,
 		Progress:         t.Progress,
 		Leaders:          t.Leaders,
@@ -595,6 +597,9 @@ func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
 	if copy.Shadowing == "" {
 		copy.Shadowing = shadowingButtonLabel(code)
 	}
+	if copy.Phrasebook == "" {
+		copy.Phrasebook = phrasebookButtonLabel(code)
+	}
 	if copy.Referral == "" {
 		switch normalizeInterfaceLanguage(code) {
 		case "ru":
@@ -605,6 +610,81 @@ func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
 	}
 	copy.Tool = toolUICopyFor(code)
 	return copy
+}
+
+func phrasebookButtonLabel(code string) string {
+	switch normalizeInterfaceLanguage(code) {
+	case "ru":
+		return "Разговорник"
+	case "es":
+		return "Frases"
+	case "de":
+		return "Sprachführer"
+	case "fr":
+		return "Phrases"
+	case "it":
+		return "Frasario"
+	case "pl":
+		return "Rozmówki"
+	case "pt":
+		return "Frases"
+	case "ro":
+		return "Fraze"
+	case "uk":
+		return "Розмовник"
+	case "kk":
+		return "Сөйлескіш"
+	case "ky":
+		return "Сүйлөшмө"
+	case "ka":
+		return "სასაუბრო"
+	case "uz":
+		return "So'zlashgich"
+	case "tt":
+		return "Сөйләшкеч"
+	case "tg":
+		return "Гуфтугӯнома"
+	case "hy":
+		return "Զրուցարան"
+	case "zh":
+		return "短语本"
+	case "ja":
+		return "フレーズ集"
+	case "ko":
+		return "표현집"
+	case "ar":
+		return "كتاب العبارات"
+	case "bn":
+		return "ফ্রেজবুক"
+	case "cs":
+		return "Konverzace"
+	case "el":
+		return "Φράσεις"
+	case "hi":
+		return "वाक्य-पुस्तिका"
+	case "hu":
+		return "Kifejezések"
+	case "id":
+		return "Buku frasa"
+	case "nl":
+		return "Zinnenboek"
+	case "sv":
+		return "Frasbok"
+	case "ta":
+		return "சொற்றொடர்கள்"
+	case "te":
+		return "పదబంధాలు"
+	case "th":
+		return "สมุดวลี"
+	case "tl":
+		return "Mga parirala"
+	case "tr":
+		return "Deyimler"
+	case "vi":
+		return "Sổ cụm từ"
+	default:
+		return "Phrasebook"
+	}
 }
 
 func replaceButtonMentions(text string, oldMenuButton string, oldStopButton string, menuButton string, stopButton string) string {

@@ -483,6 +483,8 @@ func (b *bot) handleCommand(ctx context.Context, chatID int64, text string, user
 		return b.startWordLesson(ctx, chatID, user)
 	case "/game":
 		return b.startWordGame(ctx, chatID, user)
+	case "/phrasebook":
+		return b.sendPhrasebook(ctx, chatID, user, 0)
 	case "/spelling":
 		return b.startSpellingPractice(ctx, chatID, user)
 	case "/progress":
@@ -848,6 +850,8 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.startSpellingPractice(ctx, chatID, user)
 	case "menu_vocabulary":
 		return b.sendVocabulary(ctx, chatID, user, 0)
+	case "menu_phrasebook":
+		return b.sendPhrasebook(ctx, chatID, user, 0)
 	case "menu_tools":
 		return b.sendToolsMenu(ctx, chatID, user)
 	case "privacy_continue":
@@ -997,6 +1001,13 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 				return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 			}
 			return b.sendVocabulary(ctx, chatID, user, page)
+		}
+		if strings.HasPrefix(query.Data, "phrasebook|") {
+			page, err := strconv.Atoi(strings.TrimPrefix(query.Data, "phrasebook|"))
+			if err != nil {
+				return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
+			}
+			return b.sendPhrasebook(ctx, chatID, user, page)
 		}
 		if strings.HasPrefix(query.Data, "mistakes|") {
 			page, ok := parseMistakesPageCallback(query.Data)
@@ -2416,6 +2427,52 @@ func (b *bot) sendVocabulary(ctx context.Context, chatID int64, user userState, 
 	}
 
 	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, builder.String(), vocabularyKeyboard(page, totalPages, ui(user)))
+}
+
+func (b *bot) sendPhrasebook(ctx context.Context, chatID int64, user userState, page int) error {
+	const pageSize = 10
+
+	items := normalizePhrasebookEntries(user.Phrasebook, user.LearningLanguage, time.Now().UTC())
+	copy := ui(user)
+	if len(items) == 0 {
+		return b.telegram.sendInlineMarkdownMessage(ctx, chatID,
+			"*"+escapeMarkdownV2(copy.Phrasebook)+"* 🔖\n\n0",
+			phrasebookKeyboard(0, 1, copy))
+	}
+
+	totalPages := (len(items) + pageSize - 1) / pageSize
+	if page < 0 {
+		page = 0
+	}
+	if page >= totalPages {
+		page = totalPages - 1
+	}
+
+	start := page * pageSize
+	end := start + pageSize
+	if end > len(items) {
+		end = len(items)
+	}
+
+	var builder strings.Builder
+	builder.WriteString("*" + escapeMarkdownV2(copy.Phrasebook) + "* 🔖\n")
+	builder.WriteString("*" + itoa(page+1) + "/" + itoa(totalPages) + "*\n\n")
+	for i, item := range items[start:end] {
+		builder.WriteString(escapeMarkdownV2(itoa(start+i+1) + ". "))
+		builder.WriteString("*" + escapeMarkdownV2(item.Phrase) + "*")
+		if strings.TrimSpace(item.Translation) != "" {
+			builder.WriteString("\n   `")
+			builder.WriteString(escapeMarkdownV2(item.Translation))
+			builder.WriteString("`")
+		}
+		if strings.TrimSpace(item.Note) != "" && strings.TrimSpace(item.Note) != strings.TrimSpace(item.Translation) {
+			builder.WriteString("\n   ")
+			builder.WriteString(escapeMarkdownV2(item.Note))
+		}
+		builder.WriteString("\n\n")
+	}
+
+	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, strings.TrimSpace(builder.String()), phrasebookKeyboard(page, totalPages, copy))
 }
 
 func (b *bot) handleLessonAnswer(ctx context.Context, chatID int64, user userState, text string, pronunciation *pronunciationAssessment) error {

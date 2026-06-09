@@ -47,6 +47,7 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 		"menu_word_game",
 		"menu_spelling",
 		"menu_vocabulary",
+		"menu_phrasebook",
 		"menu_mistakes",
 		"menu_level_test",
 		"menu_progress",
@@ -159,6 +160,35 @@ func TestAITutorMenuLabelIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
 		}
 		if !found {
 			t.Fatalf("missing menu_tutor for %s", language.Code)
+		}
+	}
+}
+
+func TestPhrasebookMenuLabelIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
+	for _, language := range interfaceLanguages() {
+		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})
+		if strings.TrimSpace(copy.Phrasebook) == "" {
+			t.Fatalf("missing phrasebook label for %s", language.Code)
+		}
+		keyboard := mainMenuInlineKeyboard(copy)
+		rows := keyboard["inline_keyboard"].([][]map[string]any)
+		found := false
+		for _, row := range rows {
+			for _, button := range row {
+				if button["callback_data"] == "menu_phrasebook" {
+					found = true
+					text, _ := button["text"].(string)
+					if !strings.Contains(text, copy.Phrasebook) {
+						t.Fatalf("menu_phrasebook label for %s = %q, want copy label %q", language.Code, text, copy.Phrasebook)
+					}
+					if language.Code != "en" && strings.Contains(text, "Phrasebook") {
+						t.Fatalf("menu_phrasebook label for %s leaked English fallback: %q", language.Code, text)
+					}
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("missing menu_phrasebook for %s", language.Code)
 		}
 	}
 }

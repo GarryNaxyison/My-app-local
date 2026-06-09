@@ -1126,7 +1126,7 @@ func normalizeNavigationIDs(values []string, limit int) []string {
 		limit = 32
 	}
 	allowed := map[string]bool{
-		"home": true, "lesson": true, "practice": true, "roleplay": true, "shadowing": true,
+		"home": true, "tutor": true, "lesson": true, "practice": true, "roleplay": true, "shadowing": true,
 		"pronunciation": true, "words": true, "word-game": true, "spelling": true, "vocabulary": true,
 		"phrasebook": true, "offline": true, "level": true, "progress": true, "awards": true,
 		"leaderboard": true, "limits": true, "mistakes": true, "tools": true, "dashboard": true,
