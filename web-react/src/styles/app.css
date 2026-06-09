@@ -2961,6 +2961,8 @@ select {
   display: grid;
   place-items: center;
   padding: 18px;
+  overflow: auto;
+  overscroll-behavior: contain;
   background: rgba(1, 6, 18, 0.56);
   backdrop-filter: blur(18px);
 }
@@ -2968,6 +2970,9 @@ select {
 .award-modal-v2,
 .v2-payment-modal {
   width: min(560px, 100%);
+  max-height: min(760px, calc(100dvh - 48px));
+  overflow: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--line-strong);
   border-radius: 28px;
   background: var(--surface-strong);
@@ -5222,7 +5227,7 @@ select {
 
 .pronunciation-workbench-v2 {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.72fr);
+  grid-template-columns: minmax(420px, 1fr) minmax(280px, 360px);
   gap: 16px;
   align-items: stretch;
   min-height: 360px;
@@ -5252,10 +5257,12 @@ select {
 .pronunciation-target-primary-v2 h2 {
   margin: 0;
   color: var(--text);
-  font-size: 40px;
+  font-size: clamp(28px, 3vw, 40px);
   line-height: 1.14;
   letter-spacing: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 .pronunciation-target-primary-v2 p {

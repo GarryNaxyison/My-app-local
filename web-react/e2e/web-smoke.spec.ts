@@ -555,6 +555,21 @@ async function mockApi(page: Page) {
       body: JSON.stringify({ phrase: "Could you repeat that, please?", target: "Could you repeat that, please?" }),
     }),
   );
+  let pronunciationSampleIndex = 0;
+  const pronunciationSamples = [
+    "Could you repeat that, please?",
+    "That meeting starts at five.",
+    "We are leaving on Friday.",
+  ];
+  await page.route("**/api/pronunciation/start", (route) => {
+    const phrase = pronunciationSamples[pronunciationSampleIndex % pronunciationSamples.length];
+    pronunciationSampleIndex += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ phrase, target: phrase, user: sessionPayload.user }),
+    });
+  });
   await page.route("**/api/shadowing/answer", (route) => {
     const body = route.request().postData() || "";
     const isTutorListening = body.includes("Good morning") || body.includes("coffee");

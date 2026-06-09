@@ -1865,6 +1865,23 @@ export function App() {
     setVoiceFile(null);
   };
 
+  const startPronunciation = async () => {
+    const previous = cleanAppText(pronunciationTarget || shadowingTarget);
+    const payload = await runAction("pronunciation-start", () => api<ApiRecord>("/api/pronunciation/start", { method: "POST", body: { previous } }), copy("phrase_ready", "Phrase is ready."));
+    if (!payload) return;
+    const record = getRecord(payload);
+    const target = cleanAppText(recordField(record, ["target", "phrase", "text"]));
+    if (target) {
+      setPronunciationTarget(target);
+      setMessages((current) => [
+        panelMessage(target, "default", copy("pronunciation_target", "Text to pronounce"), record, "pronunciation"),
+        ...current,
+      ].slice(0, 12));
+    }
+    const refreshed = record.user && typeof record.user === "object" ? record.user as UserProfile : null;
+    if (refreshed) setSession((current) => current ? updateSessionUser(current, refreshed) : current);
+  };
+
   const submitPronunciation = async (target: string) => {
     const cleanTarget = cleanAppText(target).trim();
     if (!cleanTarget) {
@@ -2512,6 +2529,7 @@ export function App() {
     submitShadowing,
     pronunciationTarget,
     setPronunciationTarget,
+    startPronunciation,
     submitPronunciation,
     startWord,
     wordChallenge,
@@ -4503,6 +4521,7 @@ type ViewRendererProps = {
   submitShadowing: () => Promise<void>;
   pronunciationTarget: string;
   setPronunciationTarget: (value: string) => void;
+  startPronunciation: () => Promise<void>;
   submitPronunciation: (target: string) => Promise<ApiRecord | null>;
   startWord: () => Promise<void>;
   wordChallenge: WordChallenge | null;
@@ -5832,7 +5851,7 @@ function RoleplayView({
   );
 }
 
-function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, pronunciationTarget, setPronunciationTarget, submitPronunciation, voiceFile, imageFile, setVoiceFile, setImageFile, busy, copy }: ViewRendererProps) {
+function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, pronunciationTarget, startPronunciation, submitPronunciation, voiceFile, imageFile, setVoiceFile, setImageFile, busy, copy }: ViewRendererProps) {
   const p = pronunciationLocale(user);
   const liveReports = useMemo(
     () => messages
@@ -5856,15 +5875,15 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   const reports = mergePronunciationHistory(liveReports, storedReports);
   const latest = reports[0];
   const score = latest?.score || latest?.similarity || latest?.average_confidence || 0;
-  const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || pronunciationPracticeFallback(user, copy));
+  const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || shadowingTarget || pronunciationPracticeFallback(user, copy));
   const problemWords = uniquePronunciationProblems(reports.flatMap((report) => report.problem_words || []));
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
   const tokens = compactPronunciationMap(uniquePronunciationProblems(problemWords.length ? problemWords : fallbackWords), user, copy);
   const focusItems = pronunciationFocusItems(tokens, copy);
   const [practiceResult, setPracticeResult] = useState<PronunciationAssessment | null>(null);
   useEffect(() => {
-    if (!pronunciationTarget && defaultTarget) setPronunciationTarget(defaultTarget);
-  }, [defaultTarget, pronunciationTarget, setPronunciationTarget]);
+    if (!pronunciationTarget && !busy) void startPronunciation();
+  }, [Boolean(pronunciationTarget), Boolean(busy)]);
   const activeTarget = cleanAppText(pronunciationTarget || defaultTarget);
   const checkPronunciation = async () => {
     const record = await submitPronunciation(activeTarget);
@@ -5882,7 +5901,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   const nextPronunciationSample = () => {
     setPracticeResult(null);
     setVoiceFile(null);
-    setPronunciationTarget(pronunciationPracticeFallback(user, copy, true));
+    void startPronunciation();
   };
   return (
     <div className="pronunciation-dashboard-v2">
@@ -5904,8 +5923,8 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
                 {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
                 {copy("record_and_check", "Record and check")}
               </Button>
-              <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample}>
-                <ChevronRight size={16} />
+              <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample} disabled={busy === "pronunciation-start"}>
+                {busy === "pronunciation-start" ? <Spinner size="small" className="button-spinner-v2" /> : <ChevronRight size={16} />}
                 {copy("next_phrase", "Next phrase")}
               </Button>
             </div>

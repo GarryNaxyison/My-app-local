@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
@@ -144,6 +145,29 @@ func shadowingPhrasePrompt(language learningLanguage, interfaceLanguage learning
 			Content: renderAppPrompt("listening.phrase.user", userPrompt, mergePromptVars(commonPromptVars(language, interfaceLanguage), map[string]string{
 				"level":     level,
 				"deck_card": card,
+			})),
+		},
+	}
+}
+
+func pronunciationPhrasePrompt(language learningLanguage, interfaceLanguage learningLanguage, level string, card string, previous string) []chatMessage {
+	avoid := ""
+	if strings.TrimSpace(previous) != "" {
+		avoid = "\nDo not repeat or lightly paraphrase this previous phrase: " + previous
+	}
+	userPrompt := "Create exactly one natural " + language.NativeName + " phrase for a pronunciation drill at CEFR level " + level + ". " +
+		"The learner will listen to an audio model, record the same phrase, and receive pronunciation scoring.\n" +
+		"Semantic card:\n" + card + avoid + "\n\n" +
+		"Requirements: 5-10 words when the language uses spaces; everyday spoken phrase; useful sounds and rhythm; no rare vocabulary; no translation; no explanation; no numbering; no quotation marks; no Markdown. " +
+		"Return only the phrase in " + language.NativeName + "."
+	return []chatMessage{
+		{Role: "system", Content: coachSystemPrompt(language, interfaceLanguage)},
+		{
+			Role: "user",
+			Content: renderAppPrompt("pronunciation.phrase.user", userPrompt, mergePromptVars(commonPromptVars(language, interfaceLanguage), map[string]string{
+				"level":           level,
+				"deck_card":       card,
+				"previous_phrase": previous,
 			})),
 		},
 	}
@@ -417,6 +441,29 @@ func (b *bot) buildShadowingPhrase(ctx context.Context, user userState) string {
 	phrase := sanitizeShadowingPhrase(raw)
 	if phrase == "" || shadowingLooksWrongScript(phrase, language) {
 		return shadowingFallbackPhrase(language, index)
+	}
+	return phrase
+}
+
+func (b *bot) buildPronunciationPhrase(ctx context.Context, user userState, previous string) string {
+	language := userLearningLanguage(user)
+	interfaceLanguage := userInterfaceLanguage(user)
+	index := int((time.Now().UTC().UnixNano() + int64(user.VoiceCount*97) + int64(user.LessonCount*31)) % int64(shadowingDeckSize))
+	if index < 0 {
+		index = -index
+	}
+	if b.openrouter != nil {
+		raw, err := b.openrouter.completeWithModel(ctx, b.cfg.OpenRouterPronunciationModel, pronunciationPhrasePrompt(language, interfaceLanguage, user.Level, shadowingDeckSpec(index), previous), 0.8, 160)
+		if err == nil {
+			phrase := sanitizeShadowingPhrase(cleanModelReply(raw))
+			if phrase != "" && !shadowingLooksWrongScript(phrase, language) && !strings.EqualFold(phrase, strings.TrimSpace(previous)) {
+				return phrase
+			}
+		}
+	}
+	phrase := shadowingFallbackPhrase(language, index+1)
+	if strings.EqualFold(phrase, strings.TrimSpace(previous)) {
+		phrase = shadowingFallbackPhrase(language, index+17)
 	}
 	return phrase
 }
@@ -885,6 +932,30 @@ func (api *webAPI) handleShadowingAnswer(w http.ResponseWriter, r *http.Request)
 		"bonus_xp":              bonusXP,
 		"promoted_to":           promotedTo,
 		"user":                  api.userDTO(refreshed),
+	})
+}
+
+func (api *webAPI) handlePronunciationStart(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req struct {
+		Previous string `json:"previous"`
+	}
+	if r.Body != nil {
+		_ = json.NewDecoder(r.Body).Decode(&req)
+	}
+	phrase := api.bot.buildPronunciationPhrase(r.Context(), user, req.Previous)
+	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"target":      phrase,
+		"instruction": "Listen to the model, repeat the exact phrase, then send your recording for pronunciation scoring.",
+		"user":        api.userDTO(refreshed),
 	})
 }
 
