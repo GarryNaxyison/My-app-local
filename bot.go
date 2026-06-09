@@ -41,7 +41,7 @@ const (
 	platinumMonthlyProduct   = "platinum_30d"
 	platinumYearlyProduct    = "platinum_365d"
 	annualDiscountPercent    = 17
-	telegramOpsRecipientID   = 8140236860
+	telegramOpsRecipientID   = 185156683
 )
 
 type premiumPlan struct {

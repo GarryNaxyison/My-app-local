@@ -801,8 +801,8 @@ func TestWebBugReportNotifiesTelegramRecipient(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("bug report returned %d: %s", recorder.Code, recorder.Body.String())
 	}
-	if telegramPayload["chat_id"] != float64(telegramOpsRecipientID) {
-		t.Fatalf("telegram chat_id = %#v, want %d", telegramPayload["chat_id"], telegramOpsRecipientID)
+	if telegramPayload["chat_id"] != float64(185156683) {
+		t.Fatalf("telegram chat_id = %#v, want %d", telegramPayload["chat_id"], 185156683)
 	}
 	text, _ := telegramPayload["text"].(string)
 	for _, want := range []string{"Bug report Poliglot AI", "From: tester (-42)", "View: home", "Меню лагает"} {
@@ -863,11 +863,28 @@ func TestWebBugReportUsesConfiguredTelegramOpsRecipients(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("bug report returned %d: %s", recorder.Code, recorder.Body.String())
 	}
-	if len(chatIDs) != 2 {
-		t.Fatalf("sent bug report to %d chats, want 2: %#v", len(chatIDs), chatIDs)
+	if len(chatIDs) != 3 {
+		t.Fatalf("sent bug report to %d chats, want 3: %#v", len(chatIDs), chatIDs)
 	}
-	if chatIDs[0] != float64(12345) || chatIDs[1] != "@poliglot_owner" {
-		t.Fatalf("chat IDs = %#v, want configured recipients", chatIDs)
+	if chatIDs[0] != float64(12345) || chatIDs[1] != "@poliglot_owner" || chatIDs[2] != float64(185156683) {
+		t.Fatalf("chat IDs = %#v, want configured recipients plus AsaselD", chatIDs)
+	}
+}
+
+func TestConfigTelegramOpsRecipientsAlwaysIncludesAsaselD(t *testing.T) {
+	recipients := (config{TelegramOpsRecipients: []telegramOpsRecipient{
+		{ChatID: "12345"},
+		{ChatID: "185156683"},
+		{ChatID: "@poliglot_owner"},
+	}}).telegramOpsRecipients()
+
+	if len(recipients) != 3 {
+		t.Fatalf("telegramOpsRecipients() returned %d recipients, want 3: %#v", len(recipients), recipients)
+	}
+	for index, want := range []string{"12345", "185156683", "@poliglot_owner"} {
+		if recipients[index].ChatID != want {
+			t.Fatalf("recipient %d = %q, want %q; all recipients: %#v", index, recipients[index].ChatID, want, recipients)
+		}
 	}
 }
 

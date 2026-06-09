@@ -181,10 +181,21 @@ type telegramOpsRecipient struct {
 }
 
 func (cfg config) telegramOpsRecipients() []telegramOpsRecipient {
-	if len(cfg.TelegramOpsRecipients) > 0 {
-		return append([]telegramOpsRecipient{}, cfg.TelegramOpsRecipients...)
+	recipients := make([]telegramOpsRecipient, 0, len(cfg.TelegramOpsRecipients)+1)
+	seen := map[string]bool{}
+	add := func(recipient telegramOpsRecipient) {
+		chatID := normalizeTelegramOpsChatID(recipient.ChatID)
+		if chatID == "" || seen[strings.ToLower(chatID)] {
+			return
+		}
+		seen[strings.ToLower(chatID)] = true
+		recipients = append(recipients, telegramOpsRecipient{ChatID: chatID})
 	}
-	return []telegramOpsRecipient{{ChatID: strconv.FormatInt(telegramOpsRecipientID, 10)}}
+	for _, recipient := range cfg.TelegramOpsRecipients {
+		add(recipient)
+	}
+	add(telegramOpsRecipient{ChatID: strconv.FormatInt(telegramOpsRecipientID, 10)})
+	return recipients
 }
 
 func parseTelegramOpsRecipients(raw string) []telegramOpsRecipient {

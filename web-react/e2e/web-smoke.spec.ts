@@ -145,6 +145,9 @@ const paymentHistorySeed = [
   },
 ];
 
+let testSessionPayloadOverride: typeof sessionPayload | null = null;
+let testPhrasebookItemsOverride: unknown[] | null = null;
+
 async function mockApi(page: Page) {
   await page.addInitScript(
     ({ phrases, payments }) => {
@@ -208,7 +211,7 @@ async function mockApi(page: Page) {
     }
     return route.continue();
   });
-  await page.route("**/api/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
+  await page.route("**/api/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(testSessionPayloadOverride || sessionPayload) }));
   await page.route("**/api/settings", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
   await page.route("**/api/navigation-layout", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
   await page.route("**/api/tutor/start", (route) =>
@@ -448,13 +451,14 @@ async function mockApi(page: Page) {
   );
   await page.route("**/api/phrasebook**", async (route) => {
     const request = route.request();
+    const phrasebookItems = testPhrasebookItemsOverride || phrasebookSeed;
     if (request.method() === "GET") {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: phrasebookSeed }) });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: phrasebookItems }) });
       return;
     }
     if (request.method() === "POST") {
       const item = request.postDataJSON();
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: [item, ...phrasebookSeed] }) });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: [item, ...phrasebookItems] }) });
       return;
     }
     if (request.method() === "DELETE") {
@@ -686,6 +690,8 @@ async function mockAnonymousAuth(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  testSessionPayloadOverride = null;
+  testPhrasebookItemsOverride = null;
   await mockApi(page);
 });
 
@@ -1125,7 +1131,7 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".password-card-v2")).toContainText("Пароли совпадают");
 });
 
-test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", async ({ page }) => {
+test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", async ({ page, isMobile }) => {
   await page.goto("/app/?view=tutor");
   await expect(page.locator('.function-ribbon [data-view="tutor"]')).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("AI Репетитор");
@@ -1195,6 +1201,10 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Сильный вариант");
   await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Не использовать");
   await expect(page.locator(".tutor-answer-variants-v2")).not.toContainText("have football");
+  await page.locator(isMobile ? '.mobile-bottom-nav-v2 [data-view="home"]' : '.function-ribbon [data-view="home"]').click();
+  await expect(page.locator(".context-display")).toHaveAttribute("data-view", "home");
+  await page.locator(isMobile ? '.mobile-bottom-nav-v2 [data-view="tutor"]' : '.function-ribbon [data-view="tutor"]').click();
+  await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Письмо");
   await page.locator(".tutor-answer-variant-v2").filter({ hasText: "Could I see the menu first" }).click();
   await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue(/Could I see the menu first\?/);
   await page.locator(".tutor-context-v2 textarea").fill("Coffee for breakfast, please.");
@@ -1280,6 +1290,23 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]')).toContainText("AI Репетитор");
   await page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]').click();
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
+});
+
+test("standalone listening hides the target text and leaves only audio playback", async ({ page }) => {
+  await page.goto("/app/?view=shadowing");
+  const listeningPanel = page.locator(".chat-workspace--shadowing .task-box-v2");
+  await expect(listeningPanel.locator(".audio-wave-button-v2")).toBeVisible();
+  await expect(listeningPanel).not.toContainText("Could you repeat that, please?");
+  await expect(listeningPanel.locator("strong")).toHaveCount(0);
+});
+
+test("pronunciation shows the text-to-pronounce block before the pronunciation summary", async ({ page }) => {
+  await page.goto("/app/?view=pronunciation");
+  const targetBox = await page.locator(".pronunciation-target-primary-v2").boundingBox();
+  const summaryBox = await page.locator(".pronunciation-hero-v2").boundingBox();
+  expect(targetBox, "text-to-pronounce block").not.toBeNull();
+  expect(summaryBox, "pronunciation summary block").not.toBeNull();
+  expect(targetBox!.y).toBeLessThan(summaryBox!.y);
 });
 
 test("auth registration shows localized password rules", async ({ page }) => {
@@ -1734,7 +1761,7 @@ test("pronunciation map is compact and removes repeated advice", async ({ page }
   await expect(page.locator(".heatmap-token-v2")).toHaveCount(2);
   await expect(page.locator(".heatmap-token-v2 em", { hasText: "Уверенность" })).toHaveCount(1);
   const stored = await page.evaluate(() => localStorage.getItem("poliglot-pronunciation-v2:demor22") || "");
-  expect(stored).toContain("reservation");
+  expect(stored).toContain("coffee");
   await page.reload();
   await expect(page.locator(".context-display--pronunciation")).toBeVisible();
   await expect(page.locator(".heatmap-token-v2")).toHaveCount(2);
@@ -1960,6 +1987,11 @@ test("mobile header controls and editable nav rail reorder work", async ({ page,
   }
   const railText = await page.locator(".mobile-bottom-nav-v2").innerText();
   expect(railText).not.toMatch(/AI micro lesson|PWA mini decks|Translate and convert|Repair drills/);
+  const defaultRailViews = await page.locator(".mobile-bottom-nav-v2").evaluate((node) =>
+    Array.from(node.querySelectorAll<HTMLButtonElement>("button[data-view]")).map((button) => button.dataset.view),
+  );
+  expect(defaultRailViews.slice(0, 6)).toEqual(["home", "tutor", "words", "word-game", "pronunciation", "shadowing"]);
+  expect(defaultRailViews.at(-1)).toBe("settings");
   const initialScrollLeft = await page.locator(".mobile-bottom-nav-v2").evaluate((node) => {
     node.scrollLeft = 0;
     return node.scrollLeft;
@@ -2184,7 +2216,8 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
   await expect(page.locator(".chat-workspace--single")).toBeVisible();
   await expect(page.locator(".chat-workspace__output")).toHaveCount(0);
   await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toBeVisible();
-  await expect(page.locator(".task-box-v2")).toContainText("Could you repeat that, please?");
+  await expect(page.locator(".task-box-v2")).not.toContainText("Could you repeat that, please?");
+  await expect(page.locator(".task-box-v2 strong")).toHaveCount(0);
 });
 
 test("mobile listening panel stays above bottom menu", async ({ page, isMobile }) => {
@@ -2290,6 +2323,17 @@ test("mobile phrasebook paginates notes after ten cards", async ({ page, isMobil
   await page.addInitScript((phrases) => {
     localStorage.setItem("poliglot-phrasebook-v2:demor22", JSON.stringify(phrases));
   }, manyPhrases);
+  testSessionPayloadOverride = { ...sessionPayload, user: { ...sessionPayload.user, phrasebook: manyPhrases } };
+  testPhrasebookItemsOverride = manyPhrases;
+  await page.unrouteAll({ behavior: "ignoreErrors" });
+  await page.route("**/app/assets/**", (route) => {
+    const request = route.request();
+    const assetPath = new URL(request.url()).pathname.toLowerCase();
+    if (request.resourceType() === "image" || /\.(avif|gif|ico|jpe?g|png|svg|webp)$/.test(assetPath)) {
+      return route.fulfill({ status: 200, contentType: "image/png", body: png });
+    }
+    return route.continue();
+  });
   await page.route("**/api/session", (route) =>
     route.fulfill({
       status: 200,
@@ -2297,12 +2341,15 @@ test("mobile phrasebook paginates notes after ten cards", async ({ page, isMobil
       body: JSON.stringify({ ...sessionPayload, user: { ...sessionPayload.user, phrasebook: manyPhrases } }),
     }),
   );
+  await page.route("**/api/daily/claim", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, already_claimed: true }) }),
+  );
   await page.route("**/api/phrasebook**", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: manyPhrases }) });
       return;
     }
-    await route.fallback();
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: manyPhrases }) });
   });
   await page.goto("/app/?view=phrasebook");
   await expect(page.locator(".context-display--phrasebook")).toBeVisible();

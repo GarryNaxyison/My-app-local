@@ -362,6 +362,29 @@ function tutorStableShuffle<T>(items: T[], seed: string) {
 
 type TutorStageId = "words" | "explain" | "choice" | "writing" | "listening" | "pronunciation" | "dialogue" | "final-check" | "review";
 type TutorFeedbackTone = "idle" | "success" | "error";
+type TutorProgressSnapshot = {
+  lessonId: string;
+  currentStageIndex: number;
+  unlockedStageIndex: number;
+  wordQuizIndex: number;
+  wordQuizSelection: string;
+  wordQuizAttempts: number;
+  wordQuizResults: Array<{ id: string; word: string; answer: string; attempts: number }>;
+  choiceCheckIndex: number;
+  choiceCheckResults: Array<{ id: string; answer: string }>;
+  choiceSelection: string;
+  finalCheckIndex: number;
+  finalCheckSelection: string;
+  finalCheckResults: Array<{ id: string; answer: string }>;
+  tutorDraft: string;
+  srsSelection: string;
+  feedback: string;
+  feedbackTone: TutorFeedbackTone;
+  tutorPronunciation: PronunciationAssessment | null;
+  tutorPronunciationCorrection: string;
+  pendingAdvanceNote: string;
+  completedNotes: Record<string, string>;
+};
 
 type TurnstileAPI = {
   render: (
@@ -462,13 +485,13 @@ const legacyAwardStories: Record<string, string[]> = {
 const navItems: NavItem[] = [
   { id: "home", label: "Сегодня", shortLabel: "Сегодня", group: "learn", description: "Daily command center", icon: LayoutDashboard, accent: "blue" },
   { id: "tutor", label: "AI Репетитор", shortLabel: "Tutor", group: "learn", description: "One guided lesson", icon: Sparkles, accent: "gold" },
+  { id: "words", label: "Learn words", shortLabel: "Words", group: "words", description: "New vocabulary", icon: Brain, accent: "violet" },
+  { id: "word-game", label: "Review game", shortLabel: "Review", group: "words", description: "Multiple choice", icon: Repeat2, accent: "blue" },
+  { id: "pronunciation", label: "Pronunciation", shortLabel: "Pronounce", group: "learn", description: "Voice heatmap", icon: Activity, accent: "blue" },
+  { id: "shadowing", label: "Listening", shortLabel: "Listen", group: "learn", description: "Repeat and score", icon: Volume2, accent: "mint" },
   { id: "lesson", label: "Lesson", shortLabel: "Lesson", group: "learn", description: "AI micro lesson", icon: BookOpen, accent: "indigo" },
   { id: "practice", label: "Practice", shortLabel: "Practice", group: "learn", description: "Conversation coach", icon: MessageCircle, accent: "teal" },
   { id: "roleplay", label: "Roleplay", shortLabel: "Roleplay", group: "learn", description: "AI scenarios", icon: Sparkles, accent: "violet" },
-  { id: "shadowing", label: "Listening", shortLabel: "Listen", group: "learn", description: "Repeat and score", icon: Volume2, accent: "mint" },
-  { id: "pronunciation", label: "Pronunciation", shortLabel: "Pronounce", group: "learn", description: "Voice heatmap", icon: Activity, accent: "blue" },
-  { id: "words", label: "Learn words", shortLabel: "Words", group: "words", description: "New vocabulary", icon: Brain, accent: "violet" },
-  { id: "word-game", label: "Review game", shortLabel: "Review", group: "words", description: "Multiple choice", icon: Repeat2, accent: "blue" },
   { id: "spelling", label: "Spelling", shortLabel: "Spell", group: "words", description: "Type from memory", icon: PenLine, accent: "rose" },
   { id: "vocabulary", label: "Vocabulary", shortLabel: "Vocab", group: "words", description: "Saved words", icon: ListChecks, accent: "teal" },
   { id: "phrasebook", label: "Notes", shortLabel: "Notes", group: "words", description: "Saved lesson notes", icon: Bookmark, accent: "gold" },
@@ -2259,7 +2282,10 @@ export function App() {
     const nextLayout = { ...(session?.user?.navigation_layout || {}), ...patch };
     setSession((current) => current?.user ? updateSessionUser(current, { ...current.user, navigation_layout: nextLayout }) : current);
     void api<SessionData>("/api/navigation-layout", { method: "POST", body: nextLayout })
-      .then((nextSession) => setSession(nextSession))
+      .then((nextSession) => setSession((current) => {
+        const source = nextSession || current;
+        return source?.user ? updateSessionUser(source, { ...source.user, navigation_layout: nextLayout }) : source;
+      }))
       .catch(() => undefined);
   };
 
@@ -3150,7 +3176,7 @@ function compactPronunciationMap(items: PronunciationProblem[], user: UserProfil
         : issue.includes("low") || issue.includes("confidence")
           ? copy("pronunciation_map_confidence", "Уверенность")
           : tip || copy("pronunciation_map_focus", "Фокус");
-    const normalized = `${label.toLowerCase()}|${signal.toLowerCase()}`;
+    const normalized = signal.toLowerCase();
     if (seenText.has(normalized)) continue;
     seenText.add(normalized);
     compact.push({ ...item, issue: signal, tip: tip && tip !== signal ? tip : "" });
@@ -3644,7 +3670,7 @@ function MobileBottomNav({
   const dragGhostPointRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const dragGhostFrameRef = useRef<number | null>(null);
   const storageKey = `poliglot-mobile-nav-v2:${accountKey || "guest"}`;
-  const defaultPinned: ViewId[] = ["home", "tutor", "words", "lesson", "practice"];
+  const defaultPinned: ViewId[] = ["home", "tutor", "words", "word-game", "pronunciation"];
   const longPressEditDelayMs = 650;
   const readPinned = useCallback(() => {
     const serverPinned = navigationLayout.mobile_pinned;
@@ -4564,7 +4590,7 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
+function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
   useEffect(() => {
     if (!tutorLesson && !busy && !tutorLoadError) void startTutor();
   }, [Boolean(tutorLesson), Boolean(busy), tutorLoadError]);
@@ -4594,8 +4620,10 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
   const [tutorPronunciationCorrection, setTutorPronunciationCorrection] = useState("");
   const [pendingAdvanceNote, setPendingAdvanceNote] = useState("");
   const [completedNotes, setCompletedNotes] = useState<Record<string, string>>({});
-
-  useEffect(() => {
+  const tutorProgressAccountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
+  const tutorProgressKey = tutorLesson?.id ? `poliglot-tutor-progress-v2:${tutorProgressAccountKey}:${tutorLesson.id}` : "";
+  const tutorProgressSkipSaveRef = useRef("");
+  const resetTutorProgressState = () => {
     setCurrentStageIndex(0);
     setUnlockedStageIndex(0);
     setWordQuizIndex(0);
@@ -4617,8 +4645,119 @@ function TutorView({ user, tutorLesson, tutorLoadError, voiceFile, imageFile, se
     setTutorPronunciationCorrection("");
     setPendingAdvanceNote("");
     setCompletedNotes({});
+  };
+  const safeTutorIndex = (value: unknown) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(64, Number(value))) : 0;
+  const safeTutorText = (value: unknown) => typeof value === "string" ? value : "";
+  const safeTutorResults = <T extends ApiRecord>(value: unknown, normalize: (record: ApiRecord) => T | null): T[] => {
+    if (!Array.isArray(value)) return [];
+    return value.map((item) => normalize(getRecord(item))).filter((item): item is T => Boolean(item));
+  };
+
+  useEffect(() => {
+    if (tutorLesson?.id && tutorProgressKey) {
+      tutorProgressSkipSaveRef.current = tutorProgressKey;
+      try {
+        const snapshot = JSON.parse(localStorage.getItem(tutorProgressKey) || "null") as Partial<TutorProgressSnapshot> | null;
+        if (snapshot?.lessonId === tutorLesson.id) {
+          setCurrentStageIndex(safeTutorIndex(snapshot.currentStageIndex));
+          setUnlockedStageIndex(safeTutorIndex(snapshot.unlockedStageIndex));
+          setWordQuizIndex(safeTutorIndex(snapshot.wordQuizIndex));
+          setWordQuizSelection(safeTutorText(snapshot.wordQuizSelection));
+          setWordQuizAttempts(safeTutorIndex(snapshot.wordQuizAttempts));
+          setWordQuizResults(safeTutorResults(snapshot.wordQuizResults, (record) => {
+            const id = safeTutorText(record.id);
+            const word = safeTutorText(record.word);
+            const answer = safeTutorText(record.answer);
+            return id && word && answer ? { id, word, answer, attempts: safeTutorIndex(record.attempts) } : null;
+          }));
+          setChoiceCheckIndex(safeTutorIndex(snapshot.choiceCheckIndex));
+          setChoiceCheckResults(safeTutorResults(snapshot.choiceCheckResults, (record) => {
+            const id = safeTutorText(record.id);
+            const answer = safeTutorText(record.answer);
+            return id && answer ? { id, answer } : null;
+          }));
+          setChoiceSelection(safeTutorText(snapshot.choiceSelection));
+          setFinalCheckIndex(safeTutorIndex(snapshot.finalCheckIndex));
+          setFinalCheckSelection(safeTutorText(snapshot.finalCheckSelection));
+          setFinalCheckResults(safeTutorResults(snapshot.finalCheckResults, (record) => {
+            const id = safeTutorText(record.id);
+            const answer = safeTutorText(record.answer);
+            return id && answer ? { id, answer } : null;
+          }));
+          setTutorDraft(safeTutorText(snapshot.tutorDraft));
+          setSrsSelection(safeTutorText(snapshot.srsSelection));
+          setFeedback(safeTutorText(snapshot.feedback));
+          setFeedbackTone(snapshot.feedbackTone === "success" || snapshot.feedbackTone === "error" ? snapshot.feedbackTone : "idle");
+          setTutorVoiceChecking(false);
+          setTutorPronunciation(getRecord(snapshot.tutorPronunciation) as PronunciationAssessment | null);
+          setTutorPronunciationCorrection(safeTutorText(snapshot.tutorPronunciationCorrection));
+          setPendingAdvanceNote(safeTutorText(snapshot.pendingAdvanceNote));
+          setCompletedNotes(getRecord(snapshot.completedNotes) as Record<string, string>);
+          setVoiceFile(null);
+          return;
+        }
+      } catch {
+        // Fall back to a fresh lesson state if a stored snapshot is malformed.
+      }
+    }
+    resetTutorProgressState();
     setVoiceFile(null);
-  }, [tutorLesson?.id]);
+  }, [tutorLesson?.id, tutorProgressKey]);
+
+  useEffect(() => {
+    if (!tutorLesson?.id || !tutorProgressKey) return;
+    if (tutorProgressSkipSaveRef.current === tutorProgressKey) {
+      tutorProgressSkipSaveRef.current = "";
+      return;
+    }
+    const snapshot: TutorProgressSnapshot = {
+      lessonId: tutorLesson.id,
+      currentStageIndex,
+      unlockedStageIndex,
+      wordQuizIndex,
+      wordQuizSelection,
+      wordQuizAttempts,
+      wordQuizResults,
+      choiceCheckIndex,
+      choiceCheckResults,
+      choiceSelection,
+      finalCheckIndex,
+      finalCheckSelection,
+      finalCheckResults,
+      tutorDraft,
+      srsSelection,
+      feedback,
+      feedbackTone,
+      tutorPronunciation,
+      tutorPronunciationCorrection,
+      pendingAdvanceNote,
+      completedNotes,
+    };
+    localStorage.setItem(tutorProgressKey, JSON.stringify(snapshot));
+  }, [
+    tutorLesson?.id,
+    tutorProgressKey,
+    currentStageIndex,
+    unlockedStageIndex,
+    wordQuizIndex,
+    wordQuizSelection,
+    wordQuizAttempts,
+    wordQuizResults,
+    choiceCheckIndex,
+    choiceCheckResults,
+    choiceSelection,
+    finalCheckIndex,
+    finalCheckSelection,
+    finalCheckResults,
+    tutorDraft,
+    srsSelection,
+    feedback,
+    feedbackTone,
+    tutorPronunciation,
+    tutorPronunciationCorrection,
+    pendingAdvanceNote,
+    completedNotes,
+  ]);
 
   const tutorStages = useMemo<Array<{ id: TutorStageId; title: string; instruction: string }>>(() => [
     {
@@ -5740,15 +5879,6 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   };
   return (
     <div className="pronunciation-dashboard-v2">
-      <section className="v2-panel pronunciation-hero-v2">
-        <span className="eyebrow"><Activity size={15} />{copy("pronunciation", p.title)}</span>
-        <h2>{copy("pronunciation_dashboard", p.title)}</h2>
-        <p>{copy("pronunciation_dashboard_body", "Карта слабых слов и звуков собирается из ваших голосовых ответов и проверок произношения.")}</p>
-        <div className="pronunciation-score-v2">
-          <strong>{Math.round(Number(score || 0))}/100</strong>
-          <span>{user.level || "A1"} · {copy("latest_score", "latest score")}</span>
-        </div>
-      </section>
       <section className="v2-panel pronunciation-workbench-v2 pronunciation-practice-v2 pronunciation-work-window-v2">
         <div className="pronunciation-target-primary-v2">
           <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
@@ -5781,6 +5911,15 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
             </div>
           ) : null}
         </aside>
+      </section>
+      <section className="v2-panel pronunciation-hero-v2">
+        <span className="eyebrow"><Activity size={15} />{copy("pronunciation", p.title)}</span>
+        <h2>{copy("pronunciation_dashboard", p.title)}</h2>
+        <p>{copy("pronunciation_dashboard_body", "Карта слабых слов и звуков собирается из ваших голосовых ответов и проверок произношения.")}</p>
+        <div className="pronunciation-score-v2">
+          <strong>{Math.round(Number(score || 0))}/100</strong>
+          <span>{user.level || "A1"} · {copy("latest_score", "latest score")}</span>
+        </div>
       </section>
       <section className="v2-panel heatmap-panel-v2">
         <span className="eyebrow">{copy("pronunciation_heatmap", "Heatmap")}</span>
@@ -6107,7 +6246,6 @@ function ChatWorkView({
         {isShadowing && shadowingTarget ? (
           <div className="task-box-v2">
             <span>{copy("spoken_model", "Spoken model")}</span>
-            <strong>{shadowingTarget}</strong>
             <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget }]} />
             <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
               <ChevronRight size={16} />
