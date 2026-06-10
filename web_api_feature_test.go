@@ -1317,6 +1317,23 @@ func TestWebAITutorStartReturnsSessionStep(t *testing.T) {
 	}
 }
 
+func TestWebTutorStartUsesAITutorEngine(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-legacy-route", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/start", map[string]any{})
+	if _, ok := body["next_step"].(map[string]any); !ok {
+		t.Fatalf("legacy tutor route did not return AI tutor step: %#v", body)
+	}
+	if _, ok := body["tutor_lesson"]; ok {
+		t.Fatalf("legacy tutor route returned local tutor lesson payload: %#v", body)
+	}
+}
+
 func TestWebAITutorAnswerAdvancesSession(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	payload := validAITutorLessonPayloadForTest()

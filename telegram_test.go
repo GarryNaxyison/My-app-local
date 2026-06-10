@@ -118,6 +118,60 @@ func TestTelegramAITutorMenuStartsInteractiveSession(t *testing.T) {
 	}
 }
 
+func TestMenuTutorDoesNotUseLocalCourseBank(t *testing.T) {
+	var sentText string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		sentText, _ = payload["text"].(string)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	store := &jsonStore{
+		path:            filepath.Join(t.TempDir(), "users.json"),
+		users:           map[int64]userState{},
+		aiTutorLessons:  map[string]aiTutorLessonRecord{},
+		aiTutorSessions: map[string]aiTutorSessionRecord{},
+		aiTutorAnswers:  map[string]aiTutorAnswerRecord{},
+	}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		TimezoneSelected:  true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+		Level:             "A1",
+	}
+	store.users[user.TelegramID] = user
+	if err := store.saveAITutorLesson(aiTutorLessonRecord{ID: "lesson-tg-local-regression", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+
+	err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:   "cb-1",
+		From: telegramUser{ID: user.TelegramID, FirstName: user.FirstName},
+		Data: "menu_tutor",
+	})
+	if err != nil {
+		t.Fatalf("handleCallbackQuery(menu_tutor) error = %v", err)
+	}
+
+	if !strings.Contains(sentText, "A Morning Visit") {
+		t.Fatalf("menu_tutor did not render AI tutor story step: %q", sentText)
+	}
+	for _, oldMarker := range []string{"local-a1-a2-course-core", "Final word check", "Pattern:"} {
+		if strings.Contains(sentText, oldMarker) {
+			t.Fatalf("menu_tutor leaked local course bank marker %q in text: %q", oldMarker, sentText)
+		}
+	}
+}
+
 func TestTelegramAITutorTextRoutesToActiveSession(t *testing.T) {
 	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}, aiTutorLessons: map[string]aiTutorLessonRecord{}, aiTutorSessions: map[string]aiTutorSessionRecord{}, aiTutorAnswers: map[string]aiTutorAnswerRecord{}}
 	user := userState{TelegramID: 123, FirstName: "Test", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1", Mode: "ai_tutor:session-1"}
