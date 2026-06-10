@@ -178,8 +178,8 @@ func TestAITutorCanonicalStages(t *testing.T) {
 	if stages[len(stages)-1] != aiTutorStageComplete {
 		t.Fatalf("last stage = %q", stages[len(stages)-1])
 	}
-	if len(stages) != 23 {
-		t.Fatalf("stage count = %d, want 23", len(stages))
+	if len(stages) != 21 {
+		t.Fatalf("stage count = %d, want 21", len(stages))
 	}
 }
 ```
