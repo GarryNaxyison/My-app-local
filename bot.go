@@ -31,6 +31,7 @@ const (
 	modeSpellingPrefix       = "spelling:"
 	modeMistakePrefix        = "mistake:"
 	modeLevelTestPrefix      = "leveltest:"
+	modeAITutorPrefix        = "ai_tutor:"
 	spamWindow               = 5 * time.Second
 	spamTimeout              = 30 * time.Second
 	spamMaxMessages          = 5
@@ -419,6 +420,9 @@ func (b *bot) handleUpdate(ctx context.Context, update telegramUpdate) error {
 		return b.handleCommand(ctx, message.Chat.ID, text, user)
 	}
 
+	if strings.HasPrefix(user.Mode, modeAITutorPrefix) {
+		return b.handleAITutorText(ctx, message.Chat.ID, user, text)
+	}
 	if strings.HasPrefix(user.Mode, modeToolTranslatorPrefix) {
 		return b.handleTranslatorText(ctx, message.Chat.ID, user, text)
 	}
@@ -979,6 +983,9 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		}
 		return b.sendMainMenu(ctx, chatID, user)
 	default:
+		if strings.HasPrefix(query.Data, "ait|") {
+			return b.handleAITutorCallback(ctx, chatID, user, query.Data)
+		}
 		if strings.HasPrefix(query.Data, "trsrc|") {
 			return b.handleTranslatorLanguageCallback(ctx, chatID, user, query.Data, false)
 		}
@@ -1094,14 +1101,123 @@ func (b *bot) startPractice(ctx context.Context, chatID int64, user userState) e
 func (b *bot) startTutorLesson(ctx context.Context, chatID int64, user userState) error {
 	b.deletePreviousWordPronunciation(ctx, chatID)
 	_ = b.telegram.sendChatAction(ctx, chatID, "typing")
-	lesson, err := b.store.nextTutorLesson(user, func(sequence int) (tutorLesson, error) {
-		return buildTutorLessonForSequence(tutorReusableLessonUser(user), sequence)
-	})
+	result, err := b.aiTutorEngine().Start(ctx, user, "telegram")
 	if err != nil {
 		return b.telegram.sendMessageWithCopy(ctx, chatID, botRuntimeMessage(user, "lesson_task_failed", err.Error()), ui(user))
 	}
-	copy := ui(user)
-	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, formatTelegramTutorLesson(lesson, user), tutorLessonKeyboard(copy))
+	if err := b.store.setMode(user.TelegramID, modeAITutorPrefix+result.Session.ID); err != nil {
+		return err
+	}
+	return b.sendAITutorStep(ctx, chatID, user, result)
+}
+
+func (b *bot) handleAITutorText(ctx context.Context, chatID int64, user userState, text string) error {
+	sessionID := strings.TrimPrefix(user.Mode, modeAITutorPrefix)
+	result, err := b.aiTutorEngine().Submit(ctx, user, sessionID, aiTutorSubmitInput{Text: text})
+	if err != nil {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, err.Error(), ui(user))
+	}
+	if result.Session.Status == aiTutorSessionComplete {
+		_ = b.store.setMode(user.TelegramID, "idle")
+	}
+	return b.sendAITutorStep(ctx, chatID, user, result)
+}
+
+func (b *bot) handleAITutorCallback(ctx context.Context, chatID int64, user userState, data string) error {
+	parts := strings.Split(data, "|")
+	if len(parts) < 4 {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
+	}
+	sessionID := strings.TrimSpace(parts[1])
+	value := strings.TrimSpace(parts[3])
+	result, err := b.aiTutorEngine().Submit(ctx, user, sessionID, aiTutorSubmitInput{Choice: value})
+	if err != nil {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, err.Error(), ui(user))
+	}
+	if result.Session.Status == aiTutorSessionComplete {
+		_ = b.store.setMode(user.TelegramID, "idle")
+	}
+	return b.sendAITutorStep(ctx, chatID, user, result)
+}
+
+func (b *bot) sendAITutorStep(ctx context.Context, chatID int64, user userState, result aiTutorResult) error {
+	text := formatTelegramAITutorStep(result.NextStep, result.Feedback, user)
+	keyboard := aiTutorTelegramKeyboard(result.Session.ID, result.NextStep, ui(user))
+	if keyboard != nil {
+		return b.telegram.sendInlineMessage(ctx, chatID, text, keyboard)
+	}
+	return b.telegram.sendMessageWithCopy(ctx, chatID, text, ui(user))
+}
+
+func formatTelegramAITutorStep(step aiTutorStep, feedback aiTutorFeedback, user userState) string {
+	var builder strings.Builder
+	if strings.TrimSpace(feedback.Message) != "" {
+		builder.WriteString(strings.TrimSpace(feedback.Message))
+		builder.WriteString("\n\n")
+	}
+	if strings.TrimSpace(step.Title) != "" {
+		builder.WriteString(strings.TrimSpace(step.Title))
+		builder.WriteString("\n\n")
+	}
+	if strings.TrimSpace(step.Instruction) != "" {
+		builder.WriteString(strings.TrimSpace(step.Instruction))
+	}
+	if step.Kind == "story" && strings.TrimSpace(step.Lesson.Story.TextTarget) != "" {
+		builder.WriteString("\n\n")
+		builder.WriteString(strings.TrimSpace(step.Lesson.Story.TextTarget))
+	}
+	if step.Word != nil {
+		builder.WriteString("\n\n")
+		builder.WriteString(strings.TrimSpace(step.Word.Target))
+		builder.WriteString(" - ")
+		builder.WriteString(strings.TrimSpace(step.Word.InterfaceTranslation))
+	}
+	if step.Question != nil && strings.TrimSpace(step.Question.QuestionTarget) != "" && !strings.Contains(builder.String(), step.Question.QuestionTarget) {
+		builder.WriteString("\n\n")
+		builder.WriteString(strings.TrimSpace(step.Question.QuestionTarget))
+	}
+	text := strings.TrimSpace(builder.String())
+	if text == "" {
+		text = ui(user).AITutor
+	}
+	return text
+}
+
+func aiTutorTelegramKeyboard(sessionID string, step aiTutorStep, copy uiCopy) map[string]any {
+	callback := func(value string) string {
+		return "ait|" + sessionID + "|choice|" + value
+	}
+	switch step.Kind {
+	case "story", "word_learn":
+		return map[string]any{"inline_keyboard": [][]map[string]any{
+			{{"text": "Continue", "callback_data": callback("continue")}},
+			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
+		}}
+	case "rating":
+		return map[string]any{"inline_keyboard": [][]map[string]any{
+			{
+				{"text": "Easy", "callback_data": callback("easy")},
+				{"text": "Good", "callback_data": callback("good")},
+			},
+			{
+				{"text": "Hard", "callback_data": callback("hard")},
+				{"text": "Bad", "callback_data": callback("bad")},
+			},
+		}}
+	case "review":
+		return map[string]any{"inline_keyboard": [][]map[string]any{
+			{
+				{"text": "Tomorrow", "callback_data": callback("tomorrow")},
+				{"text": "3 days", "callback_data": callback("3_days")},
+			},
+			{
+				{"text": "1 week", "callback_data": callback("1_week")},
+				{"text": "No review", "callback_data": callback("no_review")},
+			},
+		}}
+	default:
+		return nil
+	}
 }
 
 func tutorLessonKeyboard(copy uiCopy) map[string]any {
