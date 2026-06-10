@@ -198,6 +198,7 @@ type store interface {
 	clearMistakes(telegramID int64, language string) error
 	nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error)
 	saveAITutorLesson(lesson aiTutorLessonRecord) error
+	getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error)
 	findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error)
 	createAITutorSession(session aiTutorSessionRecord) error
 	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
@@ -887,6 +888,15 @@ func (s *jsonStore) findApprovedAITutorLesson(language string, interfaceLanguage
 		return aiTutorLessonRecord{}, false, nil
 	}
 	return s.aiTutorLessons[ids[0]], true, nil
+}
+
+func (s *jsonStore) getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	lesson, ok := s.aiTutorLessons[strings.TrimSpace(lessonID)]
+	return lesson, ok, nil
 }
 
 func (s *jsonStore) createAITutorSession(session aiTutorSessionRecord) error {

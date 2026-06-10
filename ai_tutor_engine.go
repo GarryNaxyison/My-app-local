@@ -47,6 +47,11 @@ type aiTutorResult struct {
 	Feedback aiTutorFeedback      `json:"feedback,omitempty"`
 }
 
+type aiTutorSubmitInput struct {
+	Text   string `json:"text"`
+	Choice string `json:"choice"`
+}
+
 type aiTutorQualityResult struct {
 	Approved bool     `json:"approved"`
 	Score    int      `json:"score"`
@@ -75,6 +80,68 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 		return aiTutorResult{}, err
 	}
 	return e.createSessionForLesson(user, surface, lesson)
+}
+
+func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID string, input aiTutorSubmitInput) (aiTutorResult, error) {
+	session, ok, err := e.store.getAITutorSession(sessionID)
+	if err != nil {
+		return aiTutorResult{}, err
+	}
+	if !ok || session.TelegramID != user.TelegramID {
+		return aiTutorResult{}, errors.New("AI Tutor session not found")
+	}
+	lesson, ok, err := e.store.getAITutorLesson(session.LessonID)
+	if err != nil {
+		return aiTutorResult{}, err
+	}
+	if !ok {
+		return aiTutorResult{}, errors.New("AI Tutor lesson not found")
+	}
+	if session.Status == aiTutorSessionComplete {
+		return aiTutorResult{Session: session, Lesson: lesson, NextStep: aiTutorBuildStep(lesson.Payload, aiTutorStageComplete)}, nil
+	}
+
+	current := session.CurrentStage
+	answerText := strings.TrimSpace(input.Text)
+	if strings.TrimSpace(input.Choice) != "" {
+		answerText = strings.TrimSpace(input.Choice)
+	}
+	if err := e.store.saveAITutorAnswer(aiTutorAnswerRecord{
+		SessionID:  session.ID,
+		Stage:      current,
+		AnswerText: answerText,
+		Correct:    true,
+		CreatedAt:  formatDBTime(e.now().UTC()),
+	}); err != nil {
+		return aiTutorResult{}, err
+	}
+
+	next := aiTutorNextStage(current)
+	status := aiTutorSessionActive
+	completedAt := ""
+	if current == aiTutorStageReviewSchedule || next == aiTutorStageComplete {
+		status = aiTutorSessionComplete
+		next = aiTutorStageComplete
+		completedAt = formatDBTime(e.now().UTC())
+		if input.Choice != "" && input.Choice != "no_review" {
+			if err := e.store.scheduleAITutorReview(user.TelegramID, lesson.ID, aiTutorReviewDueAt(e.now().UTC(), input.Choice), input.Choice); err != nil {
+				return aiTutorResult{}, err
+			}
+		}
+	}
+	if err := e.store.updateAITutorSessionStage(session.ID, next, status, completedAt); err != nil {
+		return aiTutorResult{}, err
+	}
+	session.CurrentStage = next
+	session.Status = status
+	session.CompletedAt = completedAt
+	session.UpdatedAt = formatDBTime(e.now().UTC())
+	return aiTutorResult{
+		Session:  session,
+		Lesson:   lesson,
+		NextStep: aiTutorBuildStep(lesson.Payload, next),
+		Feedback: aiTutorFeedback{OK: true, Message: "Saved."},
+	}, nil
 }
 
 func (e *aiTutorEngine) createSessionForLesson(user userState, surface string, lesson aiTutorLessonRecord) (aiTutorResult, error) {
@@ -215,6 +282,29 @@ func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {
 		}
 	}
 	return step
+}
+
+func aiTutorNextStage(stage string) string {
+	stages := aiTutorCanonicalStages()
+	for index, current := range stages {
+		if current == stage && index+1 < len(stages) {
+			return stages[index+1]
+		}
+	}
+	return aiTutorStageComplete
+}
+
+func aiTutorReviewDueAt(now time.Time, interval string) string {
+	switch strings.TrimSpace(interval) {
+	case "tomorrow":
+		return formatDBTime(now.AddDate(0, 0, 1))
+	case "3_days":
+		return formatDBTime(now.AddDate(0, 0, 3))
+	case "1_week":
+		return formatDBTime(now.AddDate(0, 0, 7))
+	default:
+		return ""
+	}
 }
 
 func aiTutorStageIndex(stage string, prefix string) (int, bool) {

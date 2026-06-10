@@ -57,3 +57,45 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 		t.Fatalf("AI calls = %d, want generation + preflight", ai.calls)
 	}
 }
+
+func TestAITutorSubmitAdvancesThroughDeterministicStages(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatal(err)
+	}
+	session := aiTutorSessionRecord{ID: "session-1", TelegramID: 9, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageStoryIntro, Status: aiTutorSessionActive}
+	if err := store.createAITutorSession(session); err != nil {
+		t.Fatal(err)
+	}
+	engine := newAITutorEngine(store, &fakeAITutorClient{})
+	result, err := engine.Submit(context.Background(), userState{TelegramID: 9, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}, "session-1", aiTutorSubmitInput{Text: "continue"})
+	if err != nil {
+		t.Fatalf("Submit() error = %v", err)
+	}
+	if result.Session.CurrentStage != aiTutorStageRetell {
+		t.Fatalf("stage = %q, want retell", result.Session.CurrentStage)
+	}
+}
+
+func TestAITutorReviewScheduleCompletesSession(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	_ = store.saveAITutorLesson(lesson)
+	session := aiTutorSessionRecord{ID: "session-1", TelegramID: 9, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageReviewSchedule, Status: aiTutorSessionActive}
+	_ = store.createAITutorSession(session)
+	engine := newAITutorEngine(store, &fakeAITutorClient{})
+	engine.now = func() time.Time { return time.Date(2026, 6, 10, 12, 0, 0, 0, time.UTC) }
+	result, err := engine.Submit(context.Background(), userState{TelegramID: 9, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}, "session-1", aiTutorSubmitInput{Choice: "3_days"})
+	if err != nil {
+		t.Fatalf("Submit() error = %v", err)
+	}
+	if result.Session.Status != aiTutorSessionComplete {
+		t.Fatalf("status = %q", result.Session.Status)
+	}
+	if result.Session.CurrentStage != aiTutorStageComplete {
+		t.Fatalf("stage = %q", result.Session.CurrentStage)
+	}
+}

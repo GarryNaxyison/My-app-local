@@ -1654,6 +1654,25 @@ func (s *sqliteStore) findApprovedAITutorLesson(language string, interfaceLangua
 	return lesson, true, nil
 }
 
+func (s *sqliteStore) getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error) {
+	row := s.db.QueryRow(
+		`SELECT id, learning_language, interface_language, exact_level, level_band, theme, status,
+			payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating,
+			created_at, updated_at
+		FROM ai_tutor_lessons
+		WHERE id = ?`,
+		strings.TrimSpace(lessonID),
+	)
+	lesson, err := scanAITutorLessonRecord(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorLessonRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	return lesson, true, nil
+}
+
 func (s *sqliteStore) createAITutorSession(session aiTutorSessionRecord) error {
 	if strings.TrimSpace(session.ID) == "" {
 		return errors.New("ai tutor session id is empty")
