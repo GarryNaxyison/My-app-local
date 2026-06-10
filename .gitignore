@@ -1,6 +1,7 @@
 .env
 .env.local
 tmp/
+.worktrees/
 .nx/
 test-results/
 node_modules/
