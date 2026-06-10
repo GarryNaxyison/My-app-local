@@ -205,6 +205,7 @@ type store interface {
 	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
 	saveAITutorAnswer(answer aiTutorAnswerRecord) error
 	saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error
+	updateAITutorLessonQuality(lessonID string, status string, postScore int) error
 	scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error
 	clearLegacyTutorLessonBase() error
 	referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error)
@@ -976,6 +977,22 @@ func (s *jsonStore) saveAITutorQualityCheck(check aiTutorQualityCheckRecord) err
 		check.CreatedAt = formatDBTime(time.Now().UTC())
 	}
 	s.aiTutorQualityChecks[check.ID] = check
+	return nil
+}
+
+func (s *jsonStore) updateAITutorLessonQuality(lessonID string, status string, postScore int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	lesson, ok := s.aiTutorLessons[strings.TrimSpace(lessonID)]
+	if !ok {
+		return errors.New("ai tutor lesson not found")
+	}
+	lesson.Status = strings.TrimSpace(status)
+	lesson.PostScore = postScore
+	lesson.UpdatedAt = formatDBTime(time.Now().UTC())
+	s.aiTutorLessons[lesson.ID] = lesson
 	return nil
 }
 

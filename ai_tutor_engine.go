@@ -106,6 +106,35 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 	if strings.TrimSpace(input.Choice) != "" {
 		answerText = strings.TrimSpace(input.Choice)
 	}
+	if aiTutorStageNeedsChecker(current) {
+		checkRaw, err := e.checkFreeTextStage(ctx, user, lesson.Payload, current, answerText)
+		if err != nil {
+			return aiTutorResult{}, err
+		}
+		if err := e.store.saveAITutorAnswer(aiTutorAnswerRecord{
+			SessionID:    session.ID,
+			Stage:        current,
+			AnswerText:   answerText,
+			FeedbackJSON: checkRaw,
+			Correct:      true,
+			CreatedAt:    formatDBTime(e.now().UTC()),
+		}); err != nil {
+			return aiTutorResult{}, err
+		}
+		next := aiTutorNextStage(current)
+		if err := e.store.updateAITutorSessionStage(session.ID, next, aiTutorSessionActive, ""); err != nil {
+			return aiTutorResult{}, err
+		}
+		session.CurrentStage = next
+		session.Status = aiTutorSessionActive
+		session.UpdatedAt = formatDBTime(e.now().UTC())
+		return aiTutorResult{
+			Session:  session,
+			Lesson:   lesson,
+			NextStep: aiTutorBuildStep(lesson.Payload, next),
+			Feedback: aiTutorFeedback{OK: true, Message: "Checked.", JSON: checkRaw},
+		}, nil
+	}
 	if err := e.store.saveAITutorAnswer(aiTutorAnswerRecord{
 		SessionID:  session.ID,
 		Stage:      current,
@@ -127,6 +156,9 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 			if err := e.store.scheduleAITutorReview(user.TelegramID, lesson.ID, aiTutorReviewDueAt(e.now().UTC(), input.Choice), input.Choice); err != nil {
 				return aiTutorResult{}, err
 			}
+		}
+		if err := e.finishAITutorLesson(ctx, user, lesson, session.ID); err != nil {
+			return aiTutorResult{}, err
 		}
 	}
 	if err := e.store.updateAITutorSessionStage(session.ID, next, status, completedAt); err != nil {
@@ -226,6 +258,70 @@ func (e *aiTutorEngine) generateLesson(ctx context.Context, user userState) (aiT
 		return aiTutorLessonRecord{}, errors.New("generated lesson failed preflight")
 	}
 	return record, nil
+}
+
+func aiTutorStageNeedsChecker(stage string) bool {
+	switch stage {
+	case aiTutorStageRetell, aiTutorStageQuestion1, aiTutorStageQuestion2, aiTutorStageQuestion3, aiTutorStageProduction:
+		return true
+	default:
+		return false
+	}
+}
+
+func (e *aiTutorEngine) checkFreeTextStage(ctx context.Context, user userState, lesson aiTutorLessonPayload, stage string, answer string) (string, error) {
+	if e.ai == nil {
+		return "", errors.New("ai tutor client is not configured")
+	}
+	language := userLearningLanguage(user)
+	interfaceLanguage := userInterfaceLanguage(user)
+	level := user.Level
+	switch stage {
+	case aiTutorStageRetell:
+		return e.ai.complete(ctx, aiTutorRetellCheckPrompt(language, interfaceLanguage, level, lesson, answer), 0.2, 1200)
+	case aiTutorStageQuestion1, aiTutorStageQuestion2, aiTutorStageQuestion3:
+		index := map[string]int{aiTutorStageQuestion1: 0, aiTutorStageQuestion2: 1, aiTutorStageQuestion3: 2}[stage]
+		if index >= len(lesson.ComprehensionQuestions) {
+			return "", errors.New("question stage is out of range")
+		}
+		return e.ai.complete(ctx, aiTutorQuestionCheckPrompt(language, interfaceLanguage, level, lesson, lesson.ComprehensionQuestions[index], answer), 0.2, 1200)
+	case aiTutorStageProduction:
+		return e.ai.complete(ctx, aiTutorProductionCheckPrompt(language, interfaceLanguage, level, lesson, answer), 0.2, 1200)
+	default:
+		return "", errors.New("stage does not support AI checking")
+	}
+}
+
+func (e *aiTutorEngine) finishAITutorLesson(ctx context.Context, user userState, lesson aiTutorLessonRecord, sessionID string) error {
+	if lesson.Status != aiTutorStatusInTrial {
+		return nil
+	}
+	if e.ai == nil {
+		return errors.New("ai tutor client is not configured")
+	}
+	raw, err := e.ai.complete(ctx, aiTutorQualityPrompt(userLearningLanguage(user), userInterfaceLanguage(user), lesson.Payload, map[string]string{"session_id": sessionID}, "post"), 0.1, 1200)
+	if err != nil {
+		return err
+	}
+	quality := aiTutorParseQualityResult(raw)
+	status := aiTutorStatusRejected
+	if quality.Approved && quality.Score >= aiTutorPromotionThreshold {
+		status = aiTutorStatusApproved
+	}
+	if err := e.store.saveAITutorQualityCheck(aiTutorQualityCheckRecord{
+		ID:         aiTutorNewID("aitq"),
+		LessonID:   lesson.ID,
+		SessionID:  sessionID,
+		Kind:       "post",
+		Score:      quality.Score,
+		Approved:   quality.Approved,
+		IssuesJSON: aiTutorJSON(quality.Issues),
+		ResultJSON: raw,
+		CreatedAt:  formatDBTime(e.now().UTC()),
+	}); err != nil {
+		return err
+	}
+	return e.store.updateAITutorLessonQuality(lesson.ID, status, quality.Score)
 }
 
 func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {

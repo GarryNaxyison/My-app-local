@@ -99,3 +99,44 @@ func TestAITutorReviewScheduleCompletesSession(t *testing.T) {
 		t.Fatalf("stage = %q", result.Session.CurrentStage)
 	}
 }
+
+func TestAITutorSubmitRetellUsesAIChecker(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	_ = store.saveAITutorLesson(lesson)
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: 9, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageRetell, Status: aiTutorSessionActive})
+	ai := &fakeAITutorClient{responses: []string{`{"correct":true,"comprehension_score":88,"corrected_answer_target":"Mia goes to the shop.","feedback_interface":"Good.","mistakes":[]}`}}
+	engine := newAITutorEngine(store, ai)
+	result, err := engine.Submit(context.Background(), userState{TelegramID: 9, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}, "session-1", aiTutorSubmitInput{Text: "Mia shop."})
+	if err != nil {
+		t.Fatalf("Submit() error = %v", err)
+	}
+	if result.Session.CurrentStage != aiTutorStageQuestion1 {
+		t.Fatalf("stage = %q", result.Session.CurrentStage)
+	}
+	if result.Feedback.JSON == "" {
+		t.Fatalf("missing checker JSON feedback")
+	}
+	if ai.calls != 1 {
+		t.Fatalf("AI calls = %d", ai.calls)
+	}
+}
+
+func TestAITutorCompletionPromotesApprovedTrialLesson(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusInTrial, Payload: payload}
+	_ = store.saveAITutorLesson(lesson)
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: 9, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageReviewSchedule, Status: aiTutorSessionActive})
+	ai := &fakeAITutorClient{responses: []string{`{"approved":true,"score":93,"critical_issues":[],"fix_suggestions":[],"reasons":["clear"]}`}}
+	engine := newAITutorEngine(store, ai)
+	_, err := engine.Submit(context.Background(), userState{TelegramID: 9, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}, "session-1", aiTutorSubmitInput{Choice: "tomorrow"})
+	if err != nil {
+		t.Fatalf("Submit() error = %v", err)
+	}
+	updated, _, _ := store.getAITutorLesson("lesson-1")
+	if updated.Status != aiTutorStatusApproved || updated.PostScore != 93 {
+		t.Fatalf("lesson not promoted: %#v", updated)
+	}
+}

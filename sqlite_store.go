@@ -1814,6 +1814,25 @@ func (s *sqliteStore) saveAITutorQualityCheck(check aiTutorQualityCheckRecord) e
 	return err
 }
 
+func (s *sqliteStore) updateAITutorLessonQuality(lessonID string, status string, postScore int) error {
+	result, err := s.db.Exec(
+		`UPDATE ai_tutor_lessons
+		SET status = ?, post_score = ?, updated_at = ?
+		WHERE id = ?`,
+		strings.TrimSpace(status),
+		postScore,
+		formatDBTime(time.Now().UTC()),
+		strings.TrimSpace(lessonID),
+	)
+	if err != nil {
+		return err
+	}
+	if rows, err := result.RowsAffected(); err == nil && rows == 0 {
+		return errors.New("ai tutor lesson not found")
+	}
+	return nil
+}
+
 func (s *sqliteStore) scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error {
 	if telegramID == 0 || strings.TrimSpace(lessonID) == "" || strings.TrimSpace(intervalCode) == "" || strings.TrimSpace(intervalCode) == "no_review" {
 		return nil
