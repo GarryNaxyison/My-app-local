@@ -252,6 +252,29 @@ func validateAITutorLessonPayload(lesson aiTutorLessonPayload) []string {
 	return issues
 }
 
+func normalizeAITutorLessonPayload(lesson aiTutorLessonPayload) aiTutorLessonPayload {
+	if len(lesson.Words) == 6 {
+		if len(lesson.WordLearning) != 6 {
+			lesson.WordLearning = aiTutorWordTasksFromWords(lesson.Words)
+		}
+		if len(lesson.WordRecall) != 6 {
+			lesson.WordRecall = aiTutorWordTasksFromWords(lesson.Words)
+		}
+	}
+	if !hasAITutorReviewOptions(lesson.ReviewOptions) {
+		lesson.ReviewOptions = []string{"tomorrow", "3_days", "1_week", "no_review"}
+	}
+	return lesson
+}
+
+func aiTutorWordTasksFromWords(words []aiTutorWord) []aiTutorWordTask {
+	tasks := make([]aiTutorWordTask, 0, len(words))
+	for _, word := range words {
+		tasks = append(tasks, aiTutorWordTask{WordID: strings.TrimSpace(word.ID)})
+	}
+	return tasks
+}
+
 func countAITutorStorySentences(text string, declaredCount int) int {
 	text = strings.TrimSpace(text)
 	count := 0

@@ -18,6 +18,10 @@ func TestAITutorGenerationPromptContract(t *testing.T) {
 		"Exactly 5-7 sentences",
 		"Select exactly 6 useful target words",
 		"Create exactly 3 comprehension questions",
+		"word_recall",
+		"review_options",
+		"tomorrow",
+		"no_review",
 		"old-fp",
 	} {
 		if !strings.Contains(content, want) {

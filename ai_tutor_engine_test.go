@@ -58,6 +58,34 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 	}
 }
 
+func TestAITutorStartRepairsDerivedWordTasksAndReviewOptions(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	payload.WordLearning = []aiTutorWordTask{{WordID: "w1"}}
+	payload.WordRecall = []aiTutorWordTask{{WordID: "w1"}}
+	payload.ReviewOptions = nil
+	body, _ := json.Marshal(payload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(body),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 78, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	result, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("Start() should repair deterministic lesson scaffolding, got error = %v", err)
+	}
+	if got := len(result.Lesson.Payload.WordLearning); got != 6 {
+		t.Fatalf("word learning tasks = %d, want 6", got)
+	}
+	if got := len(result.Lesson.Payload.WordRecall); got != 6 {
+		t.Fatalf("word recall tasks = %d, want 6", got)
+	}
+	if !hasAITutorReviewOptions(result.Lesson.Payload.ReviewOptions) {
+		t.Fatalf("review options were not repaired: %#v", result.Lesson.Payload.ReviewOptions)
+	}
+}
+
 func TestAITutorSubmitAdvancesThroughDeterministicStages(t *testing.T) {
 	store := newTestJSONStore(t)
 	payload := validAITutorLessonPayloadForTest()

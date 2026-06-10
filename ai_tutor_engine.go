@@ -215,6 +215,7 @@ func (e *aiTutorEngine) generateLesson(ctx context.Context, user userState) (aiT
 	if err := json.Unmarshal([]byte(strings.TrimSpace(raw)), &payload); err != nil {
 		return aiTutorLessonRecord{}, err
 	}
+	payload = normalizeAITutorLessonPayload(payload)
 	if issues := validateAITutorLessonPayload(payload); len(issues) > 0 {
 		return aiTutorLessonRecord{}, errors.New(strings.Join(issues, "; "))
 	}
