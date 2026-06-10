@@ -86,6 +86,25 @@ func TestAITutorStartRepairsDerivedWordTasksAndReviewOptions(t *testing.T) {
 	}
 }
 
+func TestAITutorStartAcceptsApprovedTenPointPreflightScore(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	body, _ := json.Marshal(payload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(body),
+		`{"approved":true,"score":10,"critical_issues":[],"fix_suggestions":[],"reasons":["10/10 lesson"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 79, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	result, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("Start() should accept approved 10/10 preflight score, got error = %v", err)
+	}
+	if result.Lesson.PreflightScore < aiTutorPromotionThreshold {
+		t.Fatalf("preflight score = %d, want normalized score above threshold", result.Lesson.PreflightScore)
+	}
+}
+
 func TestAITutorSubmitAdvancesThroughDeterministicStages(t *testing.T) {
 	store := newTestJSONStore(t)
 	payload := validAITutorLessonPayloadForTest()

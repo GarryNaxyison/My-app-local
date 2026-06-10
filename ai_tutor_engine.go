@@ -418,6 +418,9 @@ func aiTutorStageIndex(stage string, prefix string) (int, bool) {
 func aiTutorParseQualityResult(raw string) aiTutorQualityResult {
 	var result aiTutorQualityResult
 	_ = json.Unmarshal([]byte(strings.TrimSpace(raw)), &result)
+	if result.Score > 0 && result.Score <= 10 {
+		result.Score *= 10
+	}
 	return result
 }
 
