@@ -22,6 +22,48 @@
       "notes": "Returns compact feedback plus mistake JSON after the sentinel.",
       "template": "Target language: {{learning_language_native_name}}\nLevel: {{level}}\nTask:\n{{task}}\n\nLearner answer:\n{{learner_answer}}\n\nCheck the answer and finish the task. Reply mostly in {{interface_language_native_name}}. Return exactly three compact numbered sections in {{interface_language_native_name}}: 1) corrected version with only the natural target-language answer, 2) one highest-impact thing to improve with a short reason, 3) mini-summary with one repeatable phrase from the correction. Prioritize a correction the learner can reuse tomorrow over a long grammar lecture. Do not ask a follow-up question. Do not continue the lesson. Keep the feedback under 1000 characters. The feedback must be plain text only: no Markdown, no asterisks, no # headings.\n\nAfter the feedback, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of mistakes found in the learner's answer. Each object must have these keys: \"word\" (the wrong word or phrase the learner wrote), \"correction\" (the correct version in {{learning_language_native_name}}), \"explanation\" (one short sentence in {{interface_language_native_name}} why it is wrong). If there are no mistakes, write an empty array: []."
     },
+    "ai_tutor.lesson.generate.user": {
+      "feature": "AI Tutor lesson generation",
+      "tool": "ai tutor",
+      "function": "aiTutorLessonGenerationPrompt",
+      "notes": "Creates one strict JSON reusable interactive lesson with story, six words, three questions, production task, and review options.",
+      "template": "Interface language: {{interface_language_native_name}}\nTarget learning language: {{learning_language_native_name}}\nExact learner level: {{level}}\nLevel band: {{level_band}}\nTopic/theme seed: {{topic_seed}}\nRecent lesson fingerprints to avoid: {{recent_lesson_fingerprints}}\n\nReturn strict JSON only. No Markdown. No prose outside JSON.\n\nCreate one complete reusable micro-lesson for a language learner.\n\nRequirements:\n1. Create a short story in the target learning language.\n   - Exactly 5-7 sentences.\n   - Natural, everyday, culturally neutral.\n   - Match the exact CEFR level strictly.\n   - Do not include translations inside the story.\n2. Select exactly 6 useful target words or short chunks from the story.\n   - Each word must include target form and interface-language translation.\n   - Prefer high-frequency useful vocabulary.\n3. Create a learner retelling task.\n4. Create exactly 3 comprehension questions.\n   - Questions are in the target learning language.\n   - Answers are expected in the target learning language.\n   - Include expected answer points and correction guidance.\n5. Create word learning and recall data for the 6 words.\n6. Create a production task.\n   - The learner writes 2-3 target-language sentences.\n   - The learner must use at least 3 of the 6 words.\n7. Create final reflection and review options.\n\nReturn the exact JSON shape requested by the application."
+    },
+    "ai_tutor.retell.check.user": {
+      "feature": "AI Tutor retell check",
+      "tool": "ai tutor",
+      "function": "aiTutorRetellCheckPrompt",
+      "notes": "Checks learner retell against the story and returns machine-readable corrections.",
+      "template": "Target learning language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nLevel: {{level}}\n\nEvaluate the learner retell against the lesson story.\nReturn strict JSON only with keys: ok, comprehension_score, corrected_answer_target, advice_interface, mistakes.\nAdvice and mistake explanations must use the interface language. Corrected answer must use the target language.\n\nPayload:\n{{payload_json}}"
+    },
+    "ai_tutor.question.check.user": {
+      "feature": "AI Tutor question answer check",
+      "tool": "ai tutor",
+      "function": "aiTutorQuestionCheckPrompt",
+      "notes": "Checks one comprehension answer and returns concise correction JSON.",
+      "template": "Target learning language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nLevel: {{level}}\n\nEvaluate one comprehension answer.\nReturn strict JSON only with keys: ok, result, corrected_answer_target, tip_interface, mistakes.\nresult must be one of correct, partial, incorrect.\n\nPayload:\n{{payload_json}}"
+    },
+    "ai_tutor.production.check.user": {
+      "feature": "AI Tutor production check",
+      "tool": "ai tutor",
+      "function": "aiTutorProductionCheckPrompt",
+      "notes": "Checks 2-3 user sentences for required lesson words and grammar.",
+      "template": "Target learning language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nLevel: {{level}}\n\nEvaluate the learner's 2-3 sentence production task.\nReturn strict JSON only with keys: ok, used_words, missing_requirement, corrected_version_target, recommendations_interface, mistakes.\n\nPayload:\n{{payload_json}}"
+    },
+    "ai_tutor.lesson.quality_preflight.user": {
+      "feature": "AI Tutor preflight quality gate",
+      "tool": "ai tutor",
+      "function": "aiTutorQualityPrompt",
+      "notes": "Rejects malformed, off-level, unsafe, duplicate, or incomplete generated lessons before learners see them.",
+      "template": "Target learning language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nLevel: {{level}}\n\nReview this generated lesson before any learner sees it.\nReturn strict JSON only with keys: approved, score, critical_issues, fix_suggestions, reasons.\nReject wrong language, wrong CEFR level, unsafe content, duplicates, wrong counts, bad translations, or questions not based on the story.\n\nPayload:\n{{payload_json}}"
+    },
+    "ai_tutor.lesson.quality_post.user": {
+      "feature": "AI Tutor post-lesson promotion gate",
+      "tool": "ai tutor",
+      "function": "aiTutorQualityPrompt",
+      "notes": "Promotes only strong completed trial lessons into the shared lesson bank.",
+      "template": "Target learning language: {{learning_language_native_name}}\nInterface language: {{interface_language_native_name}}\nLevel: {{level}}\n\nReview this completed trial lesson for shared-bank promotion.\nReturn strict JSON only with keys: approved, score, reasons, bank_promotion_decision, critical_issues.\nApprove only strong reusable lessons with score at least 88 and no critical issues.\n\nPayload:\n{{payload_json}}"
+    },
     "practice.chat.user": {
       "feature": "Adaptive practice chat",
       "tool": "practice",
