@@ -60,13 +60,15 @@ func validAITutorLessonPayloadForTest() aiTutorLessonPayload {
 
 func TestAITutorLevelBand(t *testing.T) {
 	cases := map[string]string{
-		"A1": "A1-A2",
-		"A2": "A1-A2",
-		"B1": "B1-B2",
-		"B2": "B1-B2",
-		"C1": "C1-C2",
-		"C2": "C1-C2",
-		"":   "A1-A2",
+		"A1":    "A1-A2",
+		"A2":    "A1-A2",
+		"B1":    "B1-B2",
+		"B2":    "B1-B2",
+		"C1":    "C1-C2",
+		"C2":    "C1-C2",
+		"B1-B2": "B1-B2",
+		"C1-C2": "C1-C2",
+		"":      "A1-A2",
 	}
 	for level, want := range cases {
 		if got := aiTutorLevelBand(level); got != want {

@@ -172,6 +172,65 @@ func (s *sqliteStore) init() error {
 			lesson_order INTEGER NOT NULL DEFAULT 0,
 			PRIMARY KEY (telegram_id, lesson_id)
 		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_lessons (
+			id TEXT PRIMARY KEY,
+			learning_language TEXT NOT NULL,
+			interface_language TEXT NOT NULL,
+			exact_level TEXT NOT NULL,
+			level_band TEXT NOT NULL,
+			theme TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL,
+			payload_json TEXT NOT NULL,
+			fingerprint TEXT NOT NULL DEFAULT '',
+			preflight_score INTEGER NOT NULL DEFAULT 0,
+			post_score INTEGER NOT NULL DEFAULT 0,
+			completion_count INTEGER NOT NULL DEFAULT 0,
+			average_rating REAL NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL,
+			updated_at TEXT NOT NULL
+		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_sessions (
+			id TEXT PRIMARY KEY,
+			telegram_id INTEGER NOT NULL,
+			lesson_id TEXT NOT NULL,
+			surface TEXT NOT NULL,
+			current_stage TEXT NOT NULL,
+			status TEXT NOT NULL,
+			started_at TEXT NOT NULL,
+			completed_at TEXT NOT NULL DEFAULT '',
+			updated_at TEXT NOT NULL
+		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_answers (
+			session_id TEXT NOT NULL,
+			stage TEXT NOT NULL,
+			answer_text TEXT NOT NULL DEFAULT '',
+			answer_json TEXT NOT NULL DEFAULT '',
+			feedback_json TEXT NOT NULL DEFAULT '',
+			correct INTEGER NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL,
+			PRIMARY KEY (session_id, stage)
+		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_reviews (
+			id TEXT PRIMARY KEY,
+			telegram_id INTEGER NOT NULL,
+			lesson_id TEXT NOT NULL,
+			due_at TEXT NOT NULL,
+			interval_code TEXT NOT NULL,
+			status TEXT NOT NULL,
+			created_at TEXT NOT NULL,
+			updated_at TEXT NOT NULL
+		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_quality_checks (
+			id TEXT PRIMARY KEY,
+			lesson_id TEXT NOT NULL,
+			session_id TEXT NOT NULL DEFAULT '',
+			kind TEXT NOT NULL,
+			score INTEGER NOT NULL,
+			approved INTEGER NOT NULL,
+			issues_json TEXT NOT NULL DEFAULT '[]',
+			result_json TEXT NOT NULL,
+			created_at TEXT NOT NULL
+		)`,
 		`CREATE TABLE IF NOT EXISTS referral_purchase_rewards (
 			payment_id TEXT PRIMARY KEY,
 			buyer_id INTEGER NOT NULL,
@@ -270,6 +329,18 @@ func (s *sqliteStore) init() error {
 		return err
 	}
 	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_tutor_user_lessons_user_order ON tutor_user_lessons(telegram_id, lesson_order, assigned_at)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_lessons_context ON ai_tutor_lessons(learning_language, interface_language, level_band, status, created_at)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_sessions_user_status ON ai_tutor_sessions(telegram_id, status, updated_at)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_reviews_due ON ai_tutor_reviews(status, due_at, telegram_id)`); err != nil {
+		return err
+	}
+	if err := s.clearLegacyTutorLessonBase(); err != nil {
 		return err
 	}
 	return nil
@@ -1485,6 +1556,313 @@ func (s *sqliteStore) assignTutorLessonTx(tx *sql.Tx, telegramID int64, lessonID
 		return false, err
 	}
 	return rows > 0, nil
+}
+
+func (s *sqliteStore) saveAITutorLesson(lesson aiTutorLessonRecord) error {
+	if strings.TrimSpace(lesson.ID) == "" {
+		return errors.New("ai tutor lesson id is empty")
+	}
+	now := formatDBTime(time.Now().UTC())
+	if lesson.CreatedAt == "" {
+		lesson.CreatedAt = now
+	}
+	lesson.UpdatedAt = now
+	if strings.TrimSpace(lesson.ExactLevel) == "" {
+		lesson.ExactLevel = lesson.Payload.Level
+	}
+	lesson.ExactLevel = normalizeCEFRLevel(lesson.ExactLevel)
+	lesson.LearningLanguage = normalizeLearningLanguage(firstNonEmpty(lesson.LearningLanguage, lesson.Payload.TargetLanguage))
+	lesson.InterfaceLanguage = normalizeInterfaceLanguage(firstNonEmpty(lesson.InterfaceLanguage, lesson.Payload.InterfaceLanguage))
+	lesson.LevelBand = aiTutorLevelBand(firstNonEmpty(lesson.LevelBand, lesson.Payload.LevelBand, lesson.ExactLevel))
+	lesson.Theme = strings.TrimSpace(firstNonEmpty(lesson.Theme, lesson.Payload.Theme))
+	if strings.TrimSpace(lesson.Status) == "" {
+		lesson.Status = aiTutorStatusDraft
+	}
+	if strings.TrimSpace(lesson.Fingerprint) == "" {
+		lesson.Fingerprint = aiTutorFingerprint(lesson.Payload)
+	}
+	payload, err := json.Marshal(lesson.Payload)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
+		`INSERT INTO ai_tutor_lessons (
+			id, learning_language, interface_language, exact_level, level_band, theme, status,
+			payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating,
+			created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			learning_language=excluded.learning_language,
+			interface_language=excluded.interface_language,
+			exact_level=excluded.exact_level,
+			level_band=excluded.level_band,
+			theme=excluded.theme,
+			status=excluded.status,
+			payload_json=excluded.payload_json,
+			fingerprint=excluded.fingerprint,
+			preflight_score=excluded.preflight_score,
+			post_score=excluded.post_score,
+			completion_count=excluded.completion_count,
+			average_rating=excluded.average_rating,
+			updated_at=excluded.updated_at`,
+		lesson.ID,
+		lesson.LearningLanguage,
+		lesson.InterfaceLanguage,
+		lesson.ExactLevel,
+		lesson.LevelBand,
+		lesson.Theme,
+		lesson.Status,
+		string(payload),
+		lesson.Fingerprint,
+		lesson.PreflightScore,
+		lesson.PostScore,
+		lesson.CompletionCount,
+		lesson.AverageRating,
+		lesson.CreatedAt,
+		lesson.UpdatedAt,
+	)
+	return err
+}
+
+func (s *sqliteStore) findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error) {
+	row := s.db.QueryRow(
+		`SELECT id, learning_language, interface_language, exact_level, level_band, theme, status,
+			payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating,
+			created_at, updated_at
+		FROM ai_tutor_lessons
+		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ?
+			AND NOT EXISTS (
+				SELECT 1 FROM ai_tutor_sessions
+				WHERE ai_tutor_sessions.telegram_id = ?
+					AND ai_tutor_sessions.lesson_id = ai_tutor_lessons.id
+			)
+		ORDER BY post_score DESC, preflight_score DESC, created_at ASC
+		LIMIT 1`,
+		normalizeLearningLanguage(language),
+		normalizeInterfaceLanguage(interfaceLanguage),
+		aiTutorLevelBand(levelBand),
+		aiTutorStatusApproved,
+		telegramID,
+	)
+	lesson, err := scanAITutorLessonRecord(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorLessonRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	return lesson, true, nil
+}
+
+func (s *sqliteStore) createAITutorSession(session aiTutorSessionRecord) error {
+	if strings.TrimSpace(session.ID) == "" {
+		return errors.New("ai tutor session id is empty")
+	}
+	now := formatDBTime(time.Now().UTC())
+	if session.StartedAt == "" {
+		session.StartedAt = now
+	}
+	if session.UpdatedAt == "" {
+		session.UpdatedAt = now
+	}
+	if strings.TrimSpace(session.Status) == "" {
+		session.Status = aiTutorSessionActive
+	}
+	_, err := s.db.Exec(
+		`INSERT INTO ai_tutor_sessions (
+			id, telegram_id, lesson_id, surface, current_stage, status, started_at, completed_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			telegram_id=excluded.telegram_id,
+			lesson_id=excluded.lesson_id,
+			surface=excluded.surface,
+			current_stage=excluded.current_stage,
+			status=excluded.status,
+			completed_at=excluded.completed_at,
+			updated_at=excluded.updated_at`,
+		session.ID,
+		session.TelegramID,
+		strings.TrimSpace(session.LessonID),
+		strings.TrimSpace(session.Surface),
+		strings.TrimSpace(session.CurrentStage),
+		strings.TrimSpace(session.Status),
+		session.StartedAt,
+		strings.TrimSpace(session.CompletedAt),
+		session.UpdatedAt,
+	)
+	return err
+}
+
+func (s *sqliteStore) getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error) {
+	var session aiTutorSessionRecord
+	err := s.db.QueryRow(
+		`SELECT id, telegram_id, lesson_id, surface, current_stage, status, started_at, completed_at, updated_at
+		FROM ai_tutor_sessions
+		WHERE id = ?`,
+		strings.TrimSpace(sessionID),
+	).Scan(
+		&session.ID,
+		&session.TelegramID,
+		&session.LessonID,
+		&session.Surface,
+		&session.CurrentStage,
+		&session.Status,
+		&session.StartedAt,
+		&session.CompletedAt,
+		&session.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorSessionRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorSessionRecord{}, false, err
+	}
+	return session, true, nil
+}
+
+func (s *sqliteStore) updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error {
+	_, err := s.db.Exec(
+		`UPDATE ai_tutor_sessions
+		SET current_stage = ?, status = COALESCE(NULLIF(?, ''), status), completed_at = ?, updated_at = ?
+		WHERE id = ?`,
+		strings.TrimSpace(stage),
+		strings.TrimSpace(status),
+		strings.TrimSpace(completedAt),
+		formatDBTime(time.Now().UTC()),
+		strings.TrimSpace(sessionID),
+	)
+	return err
+}
+
+func (s *sqliteStore) saveAITutorAnswer(answer aiTutorAnswerRecord) error {
+	if strings.TrimSpace(answer.SessionID) == "" || strings.TrimSpace(answer.Stage) == "" {
+		return errors.New("ai tutor answer session and stage are required")
+	}
+	if answer.CreatedAt == "" {
+		answer.CreatedAt = formatDBTime(time.Now().UTC())
+	}
+	_, err := s.db.Exec(
+		`INSERT INTO ai_tutor_answers (
+			session_id, stage, answer_text, answer_json, feedback_json, correct, created_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(session_id, stage) DO UPDATE SET
+			answer_text=excluded.answer_text,
+			answer_json=excluded.answer_json,
+			feedback_json=excluded.feedback_json,
+			correct=excluded.correct,
+			created_at=excluded.created_at`,
+		strings.TrimSpace(answer.SessionID),
+		strings.TrimSpace(answer.Stage),
+		answer.AnswerText,
+		answer.AnswerJSON,
+		answer.FeedbackJSON,
+		boolToInt(answer.Correct),
+		answer.CreatedAt,
+	)
+	return err
+}
+
+func (s *sqliteStore) saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error {
+	if strings.TrimSpace(check.ID) == "" {
+		return errors.New("ai tutor quality check id is empty")
+	}
+	if check.CreatedAt == "" {
+		check.CreatedAt = formatDBTime(time.Now().UTC())
+	}
+	_, err := s.db.Exec(
+		`INSERT INTO ai_tutor_quality_checks (
+			id, lesson_id, session_id, kind, score, approved, issues_json, result_json, created_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			lesson_id=excluded.lesson_id,
+			session_id=excluded.session_id,
+			kind=excluded.kind,
+			score=excluded.score,
+			approved=excluded.approved,
+			issues_json=excluded.issues_json,
+			result_json=excluded.result_json,
+			created_at=excluded.created_at`,
+		strings.TrimSpace(check.ID),
+		strings.TrimSpace(check.LessonID),
+		strings.TrimSpace(check.SessionID),
+		strings.TrimSpace(check.Kind),
+		check.Score,
+		boolToInt(check.Approved),
+		firstNonEmpty(check.IssuesJSON, "[]"),
+		check.ResultJSON,
+		check.CreatedAt,
+	)
+	return err
+}
+
+func (s *sqliteStore) scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error {
+	if telegramID == 0 || strings.TrimSpace(lessonID) == "" || strings.TrimSpace(intervalCode) == "" || strings.TrimSpace(intervalCode) == "no_review" {
+		return nil
+	}
+	now := formatDBTime(time.Now().UTC())
+	id := itoa(int(telegramID)) + "|" + strings.TrimSpace(lessonID) + "|" + strings.TrimSpace(intervalCode)
+	_, err := s.db.Exec(
+		`INSERT INTO ai_tutor_reviews (
+			id, telegram_id, lesson_id, due_at, interval_code, status, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			due_at=excluded.due_at,
+			interval_code=excluded.interval_code,
+			status=excluded.status,
+			updated_at=excluded.updated_at`,
+		id,
+		telegramID,
+		strings.TrimSpace(lessonID),
+		strings.TrimSpace(dueAt),
+		strings.TrimSpace(intervalCode),
+		"scheduled",
+		now,
+		now,
+	)
+	return err
+}
+
+func (s *sqliteStore) clearLegacyTutorLessonBase() error {
+	if _, err := s.db.Exec(`DELETE FROM tutor_user_lessons`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM tutor_lessons`); err != nil {
+		return err
+	}
+	return nil
+}
+
+type aiTutorLessonScanner interface {
+	Scan(dest ...any) error
+}
+
+func scanAITutorLessonRecord(scanner aiTutorLessonScanner) (aiTutorLessonRecord, error) {
+	var lesson aiTutorLessonRecord
+	var payload string
+	err := scanner.Scan(
+		&lesson.ID,
+		&lesson.LearningLanguage,
+		&lesson.InterfaceLanguage,
+		&lesson.ExactLevel,
+		&lesson.LevelBand,
+		&lesson.Theme,
+		&lesson.Status,
+		&payload,
+		&lesson.Fingerprint,
+		&lesson.PreflightScore,
+		&lesson.PostScore,
+		&lesson.CompletionCount,
+		&lesson.AverageRating,
+		&lesson.CreatedAt,
+		&lesson.UpdatedAt,
+	)
+	if err != nil {
+		return aiTutorLessonRecord{}, err
+	}
+	if err := json.Unmarshal([]byte(payload), &lesson.Payload); err != nil {
+		return aiTutorLessonRecord{}, err
+	}
+	return lesson, nil
 }
 
 func (s *sqliteStore) referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error) {
