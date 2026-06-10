@@ -53,6 +53,8 @@ import {
 } from "lucide-react";
 import { ApiError, api, apiForm, loadSession, logout } from "./lib/api";
 import type {
+  AiTutorResponse,
+  AiTutorStep,
   ChatMessage,
   ChoiceOption,
   LanguageOption,
@@ -1347,6 +1349,9 @@ export function App() {
   const [wordResult, setWordResult] = useState<TrainerResult | null>(null);
   const [wordGameResult, setWordGameResult] = useState<TrainerResult | null>(null);
   const [tutorLesson, setTutorLesson] = useState<TutorLesson | null>(null);
+  const [aiTutorSessionId, setAiTutorSessionId] = useState("");
+  const [aiTutorStep, setAiTutorStep] = useState<AiTutorStep | null>(null);
+  const [aiTutorFeedback, setAiTutorFeedback] = useState("");
   const [tutorLoadError, setTutorLoadError] = useState("");
   const [spellingChallenge, setSpellingChallenge] = useState<SpellingChallenge | null>(null);
   const [spellingResult, setSpellingResult] = useState<TrainerResult | null>(null);
@@ -1746,12 +1751,15 @@ export function App() {
 
   const startTutor = async () => {
     setTutorLesson(null);
+    setAiTutorSessionId("");
+    setAiTutorStep(null);
+    setAiTutorFeedback("");
     setTutorLoadError("");
     const payload = await runAction("tutor", async () => {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 30000);
       try {
-        return await api<ApiRecord>("/api/tutor/start", { method: "POST", body: {}, signal: controller.signal });
+        return await api<AiTutorResponse>("/api/ai-tutor/start", { method: "POST", body: {}, signal: controller.signal });
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           throw new Error(copy("tutor_timeout", "Tutor lesson is taking too long. Try again."));
@@ -1762,27 +1770,61 @@ export function App() {
       }
     }, copy("tutor_ready", "Tutor lesson is ready."));
     if (!payload) return;
-    const record = getRecord(payload);
-    const lesson = asTutorLesson(record.tutor_lesson);
-    if (!lesson) {
+    const response = payload as AiTutorResponse;
+    const step = response.next_step || null;
+    const sessionID = String(response.session?.id || response.session?.ID || "");
+    const lessonPayload = response.lesson || step?.lesson;
+    if (!step || !sessionID) {
       const text = copy("request_failed", "Request failed");
       setTutorLoadError(text);
       setStatus({ kind: "error", text });
       return;
     }
+    const lesson: TutorLesson = {
+      id: sessionID,
+      title: cleanAppText(lessonPayload?.title || step.title || copy("ai_tutor", "AI Tutor")),
+      level: cleanAppText(lessonPayload?.level || user.level || "A1"),
+      learning_language: user.learning_language || "en",
+      interface_language: user.interface_language || "ru",
+      topic: cleanAppText(lessonPayload?.theme || step.title || copy("ai_tutor", "AI Tutor")),
+      goal: cleanAppText(lessonPayload?.lesson_goal || step.instruction || ""),
+      source: "ai-tutor-engine",
+      words: (lessonPayload?.words || []).map((word, index) => ({
+        id: word.id || `w${index + 1}`,
+        word: cleanAppText(word.target || ""),
+        translation: cleanAppText(word.interface_translation || ""),
+        example: cleanAppText(word.example_sentence_target || ""),
+      })),
+    };
     setTutorLoadError("");
+    setAiTutorSessionId(sessionID);
+    setAiTutorStep(step);
+    setAiTutorFeedback(response.feedback?.message || "");
     setTutorLesson(lesson);
     setMessages((current) => [
       panelMessage(
-        [lesson.goal, lesson.grammar, lesson.listening_text].map((item) => cleanAppText(item)).filter(Boolean).join("\n\n"),
+        [lesson.goal, lessonPayload?.story?.text_target].map((item) => cleanAppText(item)).filter(Boolean).join("\n\n"),
         "default",
         lesson.title || copy("ai_tutor", "AI Tutor"),
-        record,
+        getRecord(payload),
         "tutor",
       ),
       ...current,
     ].slice(0, 12));
     setView("tutor");
+  };
+
+  const submitAiTutorStep = async (text: string, choice = "") => {
+    if (!aiTutorSessionId) return;
+    const payload = await runAction(
+      "tutor",
+      () => api<AiTutorResponse>("/api/ai-tutor/answer", { method: "POST", body: { session_id: aiTutorSessionId, text, choice } }),
+      copy("tutor_answer_saved", "Answer saved"),
+    );
+    if (!payload) return;
+    const response = payload as AiTutorResponse;
+    setAiTutorStep(response.next_step || null);
+    setAiTutorFeedback(response.feedback?.message || "");
   };
 
   const submitLearningAnswer = async (mode: "lesson" | "practice") => {
@@ -2533,6 +2575,9 @@ export function App() {
     setImageFile,
     setView: activateView,
     tutorLesson,
+    aiTutorStep,
+    aiTutorFeedback,
+    submitAiTutorStep,
     tutorLoadError,
     startTutor,
     startLesson,
@@ -4525,6 +4570,9 @@ type ViewRendererProps = {
   setImageFile: (file: File | null) => void;
   setView: (view: ViewId) => void;
   tutorLesson: TutorLesson | null;
+  aiTutorStep: AiTutorStep | null;
+  aiTutorFeedback: string;
+  submitAiTutorStep: (text: string, choice?: string) => Promise<void>;
   tutorLoadError: string;
   startTutor: () => Promise<void>;
   startLesson: () => Promise<void>;
@@ -4632,7 +4680,7 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
+function TutorView({ user, session, tutorLesson, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
   useEffect(() => {
     if (!tutorLesson && !busy && !tutorLoadError) void startTutor();
   }, [Boolean(tutorLesson), Boolean(busy), tutorLoadError]);
@@ -5443,6 +5491,43 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
     );
   };
 
+  const renderAiTutorServerMaterial = () => {
+    if (!aiTutorStep) return null;
+    const storyText = display(aiTutorStep.lesson?.story?.text_target);
+    const word = aiTutorStep.word;
+    const options = aiTutorStep.options || [];
+    return (
+      <article className="tutor-message-v2 is-active">
+        <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
+        <div>
+          <strong>{display(aiTutorStep.title) || copy("ai_tutor", "AI Tutor")}</strong>
+          {aiTutorStep.instruction ? <p>{display(aiTutorStep.instruction)}</p> : null}
+          {aiTutorStep.kind === "story" && storyText ? <p className="tutor-task-copy-v2">{storyText}</p> : null}
+          {word ? (
+            <div className="tutor-word-check-v2">
+              <strong>{display(word.target)}</strong>
+              {word.interface_translation ? <span>{display(word.interface_translation)}</span> : null}
+              {word.example_sentence_target ? <p>{display(word.example_sentence_target)}</p> : null}
+            </div>
+          ) : null}
+          {aiTutorStep.question?.question_target ? <p className="tutor-task-copy-v2">{display(aiTutorStep.question.question_target)}</p> : null}
+          {options.length ? (
+            <div className="tutor-srs" role="group" aria-label={copy("tutor_options", "Options")}>
+              {options.map((option) => (
+                <button key={option} type="button" onClick={() => void submitAiTutorStep("", option)}>
+                  {option.replaceAll("_", " ")}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </article>
+    );
+  };
+
+  const aiTutorNeedsText = aiTutorStep?.kind === "free_text" || aiTutorStep?.kind === "word_recall";
+  const aiTutorCanContinue = aiTutorStep && ["story", "word_learn"].includes(aiTutorStep.kind);
+
   return (
     <div className="tutor-workspace">
       <section className="v2-panel tutor-hero">
@@ -5465,7 +5550,69 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         </Button>
       </section>
 
-      {!tutorLesson ? (
+      {aiTutorStep ? (
+        <div className="tutor-session-v2">
+          <aside className="v2-panel tutor-plan-v2" aria-label={copy("tutor_flow", "Lesson flow")}>
+            <div className="panel-head">
+              <span className="eyebrow">{copy("tutor_progress_label", "Progress")}</span>
+              <h2>{display(aiTutorStep.stage)}</h2>
+            </div>
+            <div className="tutor-step-list-v2">
+              <button type="button" className="tutor-step-v2 is-active">
+                <span><Sparkles size={13} /></span>
+                <strong>{display(aiTutorStep.title) || display(aiTutorStep.stage)}</strong>
+              </button>
+            </div>
+          </aside>
+          <section className="v2-panel tutor-context-v2">
+            <div className="tutor-context-v2__head">
+              <div>
+                <span className="eyebrow">{copy("tutor_context_title", "Tutor context")}</span>
+                <h2>{display(aiTutorStep.title) || copy("ai_tutor", "AI Tutor")}</h2>
+              </div>
+              <span>{display(aiTutorStep.stage)}</span>
+            </div>
+            <div className="tutor-transcript-v2" aria-live="polite">
+              {renderAiTutorServerMaterial()}
+            </div>
+            {aiTutorStep.kind !== "complete" ? (
+              <form
+                className="tutor-composer-v2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void submitAiTutorStep(tutorDraft, aiTutorCanContinue ? "continue" : "");
+                  setTutorDraft("");
+                }}
+              >
+                {aiTutorNeedsText ? (
+                  <div className="composer-textarea-shell-v2">
+                    <textarea
+                      value={tutorDraft}
+                      onChange={(event) => setTutorDraft(event.target.value)}
+                      placeholder={copy("tutor_answer_placeholder", "Type your answer for this tutor step.")}
+                      rows={3}
+                    />
+                  </div>
+                ) : null}
+                {aiTutorFeedback ? <p className="tutor-feedback-v2 is-success">{aiTutorFeedback}</p> : null}
+                {!aiTutorStep.options?.length ? (
+                  <Button type="submit" disabled={busy === "tutor"}>
+                    {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <ChevronRight size={16} />}
+                    <span>{aiTutorCanContinue ? copy("tutor_continue", "Continue") : copy("send", "Send")}</span>
+                  </Button>
+                ) : null}
+              </form>
+            ) : (
+              <div className="tutor-composer-v2">
+                <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
+                  {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <Sparkles size={16} />}
+                  <span>{copy("tutor_restart", "Start another tutor lesson")}</span>
+                </Button>
+              </div>
+            )}
+          </section>
+        </div>
+      ) : !tutorLesson ? (
         <section className={cn("v2-panel tutor-loading-panel", tutorLoadError && "is-error")}>
           {tutorLoadError ? (
             <>

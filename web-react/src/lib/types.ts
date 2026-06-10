@@ -116,6 +116,42 @@ export type PhrasebookItem = {
   created_at?: string;
 };
 
+export type AiTutorStep = {
+  stage: string;
+  kind: string;
+  title?: string;
+  instruction?: string;
+  lesson?: {
+    title?: string;
+    level?: string;
+    theme?: string;
+    lesson_goal?: string;
+    story?: { text_target?: string };
+    words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string }>;
+  };
+  word?: { id?: string; target?: string; interface_translation?: string; example_sentence_target?: string };
+  question?: { id?: string; question_target?: string };
+  options?: string[];
+};
+
+export type AiTutorSession = {
+  ID?: string;
+  id?: string;
+  CurrentStage?: string;
+  current_stage?: string;
+  Status?: string;
+  status?: string;
+};
+
+export type AiTutorResponse = {
+  session?: AiTutorSession;
+  lesson?: AiTutorStep["lesson"];
+  current_stage?: string;
+  next_step?: AiTutorStep;
+  feedback?: { ok?: boolean; message?: string; json?: string };
+  user?: unknown;
+};
+
 export type SessionData = {
   authenticated: boolean;
   account?: {
