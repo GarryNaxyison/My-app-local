@@ -177,6 +177,11 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/navigation-layout", api.handleNavigationLayout)
 	mux.HandleFunc("/api/leaderboard", api.handleLeaderboard)
 	mux.HandleFunc("/api/tutor/start", api.handleTutorStart)
+	mux.HandleFunc("/api/ai-tutor/start", api.handleAITutorStart)
+	mux.HandleFunc("/api/ai-tutor/session", api.handleAITutorSession)
+	mux.HandleFunc("/api/ai-tutor/answer", api.handleAITutorAnswer)
+	mux.HandleFunc("/api/ai-tutor/review", api.handleAITutorReview)
+	mux.HandleFunc("/api/ai-tutor/finish", api.handleAITutorFinish)
 	mux.HandleFunc("/api/lesson/start", api.handleLessonStart)
 	mux.HandleFunc("/api/lesson/answer", api.handleLessonAnswer)
 	mux.HandleFunc("/api/practice", api.handlePractice)
@@ -1438,6 +1443,10 @@ func (api *webAPI) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
 }
 
 func (api *webAPI) handleTutorStart(w http.ResponseWriter, r *http.Request) {
+	api.handleAITutorStart(w, r)
+}
+
+func (api *webAPI) handleAITutorStart(w http.ResponseWriter, r *http.Request) {
 	if !allowMethod(w, r, http.MethodPost) {
 		return
 	}
@@ -1446,22 +1455,148 @@ func (api *webAPI) handleTutorStart(w http.ResponseWriter, r *http.Request) {
 		api.writeCurrentUserError(w, err)
 		return
 	}
-	lesson, err := api.bot.store.nextTutorLesson(user, func(sequence int) (tutorLesson, error) {
-		return buildTutorLessonForSequence(tutorReusableLessonUser(user), sequence)
-	})
+	if api.bot == nil || api.bot.store == nil {
+		writeAPIError(w, http.StatusInternalServerError, "AI Tutor is not configured")
+		return
+	}
+	result, err := api.bot.aiTutorEngine().Start(r.Context(), user, "web")
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
-	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, err.Error())
+	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) handleAITutorSession(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodGet, http.MethodPost) {
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
-		"tutor_lesson": lesson,
-		"user":         api.userDTO(refreshed),
-	})
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	sessionID := strings.TrimSpace(r.URL.Query().Get("session_id"))
+	if r.Method == http.MethodPost {
+		var req struct {
+			SessionID string `json:"session_id"`
+		}
+		if !decodeJSONRequest(w, r, &req) {
+			return
+		}
+		sessionID = strings.TrimSpace(req.SessionID)
+	}
+	result, err := api.loadAITutorSessionResult(user, sessionID)
+	if err != nil {
+		writeAPIError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) handleAITutorAnswer(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req struct {
+		SessionID string `json:"session_id"`
+		Text      string `json:"text"`
+		Choice    string `json:"choice"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	result, err := api.bot.aiTutorEngine().Submit(r.Context(), user, req.SessionID, aiTutorSubmitInput{Text: req.Text, Choice: req.Choice})
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) handleAITutorReview(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req struct {
+		SessionID string `json:"session_id"`
+		Choice    string `json:"choice"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	result, err := api.bot.aiTutorEngine().Submit(r.Context(), user, req.SessionID, aiTutorSubmitInput{Choice: req.Choice})
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) handleAITutorFinish(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req struct {
+		SessionID string `json:"session_id"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	result, err := api.bot.aiTutorEngine().Submit(r.Context(), user, req.SessionID, aiTutorSubmitInput{Choice: "no_review"})
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) loadAITutorSessionResult(user userState, sessionID string) (aiTutorResult, error) {
+	if strings.TrimSpace(sessionID) == "" {
+		return aiTutorResult{}, errors.New("AI Tutor session not found")
+	}
+	session, ok, err := api.bot.store.getAITutorSession(sessionID)
+	if err != nil {
+		return aiTutorResult{}, err
+	}
+	if !ok || session.TelegramID != user.TelegramID {
+		return aiTutorResult{}, errors.New("AI Tutor session not found")
+	}
+	lesson, ok, err := api.bot.store.getAITutorLesson(session.LessonID)
+	if err != nil {
+		return aiTutorResult{}, err
+	}
+	if !ok {
+		return aiTutorResult{}, errors.New("AI Tutor lesson not found")
+	}
+	return aiTutorResult{Session: session, Lesson: lesson, NextStep: aiTutorBuildStep(lesson.Payload, session.CurrentStage)}, nil
+}
+
+func (api *webAPI) aiTutorDTO(result aiTutorResult, user userState) map[string]any {
+	return map[string]any{
+		"session":       result.Session,
+		"lesson":        result.Lesson.Payload,
+		"lesson_status": result.Lesson.Status,
+		"current_stage": result.Session.CurrentStage,
+		"next_step":     result.NextStep,
+		"feedback":      result.Feedback,
+		"user":          api.userDTO(user),
+	}
 }
 
 func (api *webAPI) handleLessonStart(w http.ResponseWriter, r *http.Request) {

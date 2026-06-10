@@ -1300,6 +1300,64 @@ func TestTelegramStarsSuccessfulPaymentNotifiesOpsRecipient(t *testing.T) {
 	}
 }
 
+func TestWebAITutorStartReturnsSessionStep(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	if _, ok := body["session"].(map[string]any); !ok {
+		t.Fatalf("missing session in response: %#v", body)
+	}
+	next, ok := body["next_step"].(map[string]any)
+	if !ok || next["stage"] != aiTutorStageStoryIntro {
+		t.Fatalf("next_step = %#v", body["next_step"])
+	}
+}
+
+func TestWebAITutorAnswerAdvancesSession(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-2", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	start := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	session := start["session"].(map[string]any)
+	sessionID, _ := session["ID"].(string)
+	if sessionID == "" {
+		sessionID, _ = session["id"].(string)
+	}
+	answer := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/answer", map[string]any{"session_id": sessionID, "text": "continue"})
+	if answer["current_stage"] != aiTutorStageRetell {
+		t.Fatalf("current_stage = %#v response=%#v", answer["current_stage"], answer)
+	}
+}
+
+func TestWebAITutorReviewCompletesSession(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-3", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	start := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	session := start["session"].(map[string]any)
+	sessionID, _ := session["ID"].(string)
+	if sessionID == "" {
+		sessionID, _ = session["id"].(string)
+	}
+	if err := store.updateAITutorSessionStage(sessionID, aiTutorStageReviewSchedule, aiTutorSessionActive, ""); err != nil {
+		t.Fatalf("updateAITutorSessionStage() error = %v", err)
+	}
+	done := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/review", map[string]any{"session_id": sessionID, "choice": "no_review"})
+	if done["current_stage"] != aiTutorStageComplete {
+		t.Fatalf("current_stage = %#v response=%#v", done["current_stage"], done)
+	}
+}
+
 func newTestWebAPI(t *testing.T) (*webAPI, *sqliteStore, *http.Cookie) {
 	t.Helper()
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")

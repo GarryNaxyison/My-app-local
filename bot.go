@@ -244,6 +244,7 @@ type bot struct {
 	store                 store
 	telegram              *telegramClient
 	openrouter            *openRouterClient
+	aiTutor               *aiTutorEngine
 	yookassa              *yooKassaClient
 	webYooKassa           *yooKassaClient
 	cryptoRates           *cryptoRateProvider
@@ -256,6 +257,13 @@ type bot struct {
 	pronunciationMessages map[int64][]int64
 	vocabularyHintMu      sync.Mutex
 	vocabularyHints       map[string]string
+}
+
+func (b *bot) aiTutorEngine() *aiTutorEngine {
+	if b.aiTutor != nil {
+		return b.aiTutor
+	}
+	return newAITutorEngine(b.store, b.openrouter)
 }
 
 type messageThrottle struct {
