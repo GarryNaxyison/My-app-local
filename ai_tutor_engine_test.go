@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -11,10 +12,12 @@ import (
 type fakeAITutorClient struct {
 	responses []string
 	calls     int
+	messages  [][]chatMessage
 }
 
 func (f *fakeAITutorClient) complete(ctx context.Context, messages []chatMessage, temperature float64, maxTokens int) (string, error) {
 	f.calls++
+	f.messages = append(f.messages, messages)
 	if len(f.responses) == 0 {
 		return `{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`, nil
 	}
@@ -55,6 +58,30 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 	}
 	if ai.calls != 2 {
 		t.Fatalf("AI calls = %d, want generation + preflight", ai.calls)
+	}
+}
+
+func TestAITutorStartUsesLearningFocusAsTopicSeed(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	body, _ := json.Marshal(payload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(body),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 80, FirstName: "demo", InterfaceLanguage: "de", LearningLanguage: "en", Level: "A2", LearningFocus: "work meetings and business travel"}
+	if _, err := engine.Start(context.Background(), user, "web"); err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if len(ai.messages) == 0 || len(ai.messages[0]) < 2 {
+		t.Fatalf("generation prompt was not captured: %#v", ai.messages)
+	}
+	prompt := ai.messages[0][1].Content
+	for _, want := range []string{"Topic/theme seed: work meetings and business travel", "Interface language: German", "Target learning language: English"} {
+		if !strings.Contains(prompt, want) {
+			t.Fatalf("generation prompt misses %q:\n%s", want, prompt)
+		}
 	}
 }
 
@@ -126,6 +153,25 @@ func TestAITutorSubmitAdvancesThroughDeterministicStages(t *testing.T) {
 	}
 }
 
+func TestAITutorWordRecallRejectsWrongChoice(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	_ = store.saveAITutorLesson(lesson)
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: 9, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorWordRecallStage(1), Status: aiTutorSessionActive})
+	engine := newAITutorEngine(store, &fakeAITutorClient{})
+	result, err := engine.Submit(context.Background(), userState{TelegramID: 9, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}, "session-1", aiTutorSubmitInput{Choice: "w2"})
+	if err != nil {
+		t.Fatalf("Submit() error = %v", err)
+	}
+	if result.Session.CurrentStage != aiTutorWordRecallStage(1) {
+		t.Fatalf("wrong recall choice advanced to %q", result.Session.CurrentStage)
+	}
+	if result.Feedback.OK || !strings.Contains(result.Feedback.Message, "Try again") {
+		t.Fatalf("wrong recall choice feedback = %#v", result.Feedback)
+	}
+}
+
 func TestAITutorReviewScheduleCompletesSession(t *testing.T) {
 	store := newTestJSONStore(t)
 	payload := validAITutorLessonPayloadForTest()
@@ -167,6 +213,34 @@ func TestAITutorSubmitRetellUsesAIChecker(t *testing.T) {
 	}
 	if ai.calls != 1 {
 		t.Fatalf("AI calls = %d", ai.calls)
+	}
+}
+
+func TestAITutorSubmitProductionShowsFinalRecommendations(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	_ = store.saveAITutorLesson(lesson)
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: 9, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageProduction, Status: aiTutorSessionActive})
+	ai := &fakeAITutorClient{responses: []string{`{"ok":true,"used_words":["shop","bread"],"missing_requirement":"","corrected_version_target":"Mia buys bread at the shop.","recommendations_interface":["Repeat shop and bread tomorrow.","Keep sentences short at A1."],"mistakes":[]}`}}
+	engine := newAITutorEngine(store, ai)
+	result, err := engine.Submit(context.Background(), userState{TelegramID: 9, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}, "session-1", aiTutorSubmitInput{Text: "Mia buys bread in shop."})
+	if err != nil {
+		t.Fatalf("Submit() error = %v", err)
+	}
+	if !strings.Contains(result.Feedback.Message, "Repeat shop and bread tomorrow.") {
+		t.Fatalf("production feedback should include final recommendations, got %#v", result.Feedback)
+	}
+}
+
+func TestAITutorStepOptionsDoNotExposeCorrectFlag(t *testing.T) {
+	step := aiTutorBuildStep(validAITutorLessonPayloadForTest(), aiTutorWordRecallStage(1))
+	body, err := json.Marshal(step)
+	if err != nil {
+		t.Fatalf("marshal step: %v", err)
+	}
+	if strings.Contains(string(body), `"correct"`) {
+		t.Fatalf("step JSON exposes correct answer metadata: %s", string(body))
 	}
 }
 

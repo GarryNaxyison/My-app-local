@@ -50,6 +50,7 @@ CRYPTO_USDT_PLATINUM_YEAR_AMOUNT=
 CRYPTO_USDT_RUB_RATE=72
 STORAGE_DRIVER=sqlite
 DATABASE_PATH=english_coach.sqlite
+AI_TUTOR_DATABASE_PATH=ai_tutor_lessons.sqlite
 VOCABULARY_DIR=data/vocabulary
 VOCABULARY_DATABASE_PATH=vocabulary.sqlite
 ACTIVATION_KEYS_DATABASE_PATH=activation_keys.sqlite
@@ -77,6 +78,8 @@ XXXX-XXXX-XXXX-XXXX 365 premium optional-note
 ```
 
 The key alphabet avoids ambiguous characters (`I`, `O`, `0`, `1`). A redeemed key is deleted from the active key table and written to `activation_key_redemptions`, so it cannot be reused even if the same line remains in the import file.
+
+Approved AI Tutor lessons are kept in a separate reusable SQLite lesson bank, controlled by `AI_TUTOR_DATABASE_PATH`, so generated lessons that pass quality review do not mix with per-user progress in `DATABASE_PATH`. Runtime sessions and answers stay in the main user database.
 
 Generate keys locally or on the server:
 

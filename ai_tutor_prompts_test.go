@@ -19,6 +19,9 @@ func TestAITutorGenerationPromptContract(t *testing.T) {
 		"Select exactly 6 useful target words",
 		"Create exactly 3 comprehension questions",
 		"word_recall",
+		"audio_text_target",
+		"example_audio_text_target",
+		"recommendations_interface",
 		"review_options",
 		"tomorrow",
 		"no_review",
@@ -26,6 +29,37 @@ func TestAITutorGenerationPromptContract(t *testing.T) {
 	} {
 		if !strings.Contains(content, want) {
 			t.Fatalf("generation prompt misses %q:\n%s", want, content)
+		}
+	}
+}
+
+func TestAITutorGenerationPromptRendersForAllInterfaceLanguages(t *testing.T) {
+	previous := appPromptRegistry.entries
+	t.Cleanup(func() {
+		appPromptRegistry.mu.Lock()
+		appPromptRegistry.entries = previous
+		appPromptRegistry.mu.Unlock()
+	})
+	if _, err := loadAppPromptFile("app_prompts.json"); err != nil {
+		t.Fatalf("loadAppPromptFile() error = %v", err)
+	}
+	if got := len(interfaceLanguages()); got != 35 {
+		t.Fatalf("interface language count = %d, want 35", got)
+	}
+	targetLanguage := learningLanguageByCode("en")
+	for _, interfaceLanguage := range interfaceLanguages() {
+		messages := aiTutorLessonGenerationPrompt(targetLanguage, interfaceLanguage, "A2", "travel planning", nil)
+		if len(messages) != 2 {
+			t.Fatalf("%s message count = %d", interfaceLanguage.Code, len(messages))
+		}
+		content := messages[1].Content
+		for _, want := range []string{interfaceLanguage.NativeName, targetLanguage.NativeName, "Topic/theme seed: travel planning"} {
+			if !strings.Contains(content, want) {
+				t.Fatalf("%s prompt misses %q:\n%s", interfaceLanguage.Code, want, content)
+			}
+		}
+		if strings.Contains(content, "{{") || strings.Contains(content, "}}") {
+			t.Fatalf("%s prompt has unresolved template variable:\n%s", interfaceLanguage.Code, content)
 		}
 	}
 }

@@ -104,6 +104,8 @@ Requirements:
    - Do not include translations inside the story.
 2. Select exactly 6 useful target words or short chunks from the story.
    - Each word must include target form and interface-language translation.
+   - Each word must include audio_text_target for target-language word/chunk audio.
+   - Each example sentence must include example_audio_text_target for target-language audio.
    - Prefer high-frequency useful vocabulary.
 3. Create a learner retelling task.
 4. Create exactly 3 comprehension questions.
@@ -114,6 +116,7 @@ Requirements:
 6. Create a production task.
    - The learner writes 2-3 target-language sentences.
    - The learner must use at least 3 of the 6 words.
+   - Include final recommendations in the interface language.
 7. Create final reflection and review options.
 
 Return exactly this JSON shape:
@@ -126,13 +129,13 @@ Return exactly this JSON shape:
   "theme": "",
   "lesson_goal": "",
   "grammar_focus": {"name": "", "short_explanation_interface": "", "model_sentence_target": ""},
-  "story": {"text_target": "", "sentence_count": 0},
-  "words": [{"id": "", "target": "", "interface_translation": "", "part_of_speech": "", "example_sentence_target": "", "example_translation_interface": "", "difficulty_note_interface": ""}],
+  "story": {"text_target": "", "audio_text_target": "", "sentence_count": 0},
+  "words": [{"id": "", "target": "", "interface_translation": "", "part_of_speech": "", "example_sentence_target": "", "example_translation_interface": "", "audio_text_target": "", "example_audio_text_target": "", "difficulty_note_interface": ""}],
   "retell_task": {"instruction_interface": "", "min_sentences": 2, "feedback_rubric": []},
   "comprehension_questions": [{"id": "", "question_target": "", "expected_points": [], "feedback_rule_interface": ""}],
   "word_learning": [{"word_id": ""}],
   "word_recall": [{"word_id": ""}],
-  "production_task": {"instruction_interface": "", "required_word_count": 3, "sentence_count": "2-3", "evaluation_criteria": []},
+  "production_task": {"instruction_interface": "", "required_word_count": 3, "sentence_count": "2-3", "evaluation_criteria": [], "recommendations_interface": []},
   "review_options": ["tomorrow", "3_days", "1_week", "no_review"],
   "quality_self_check": {"cefr_reason": "", "why_reusable": "", "duplicate_risk": ""}
 }`

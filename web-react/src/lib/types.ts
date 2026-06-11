@@ -126,12 +126,12 @@ export type AiTutorStep = {
     level?: string;
     theme?: string;
     lesson_goal?: string;
-    story?: { text_target?: string };
-    words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string }>;
+    story?: { text_target?: string; audio_text_target?: string };
+    words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string }>;
   };
-  word?: { id?: string; target?: string; interface_translation?: string; example_sentence_target?: string };
+  word?: { id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string };
   question?: { id?: string; question_target?: string };
-  options?: string[];
+  options?: Array<string | { id?: string; text?: string; correct?: boolean }>;
 };
 
 export type AiTutorSession = {

@@ -10,13 +10,13 @@ Rebuild AI Tutor from scratch around AI-generated reusable lessons. The old loca
 
 The new tutor must provide the same complete interactive lesson in both Web and Telegram:
 
-1. AI prepares a short level-appropriate story in the target learning language.
+1. AI prepares a short 5-7 sentence level-appropriate story in the target learning language, including target-language audio text for playback.
 2. The learner studies the story.
 3. The learner retells what they understood in their own words.
 4. The learner answers three comprehension questions in the target learning language.
-5. The learner studies six AI-selected lesson words.
-6. The learner recalls the six words.
-7. The learner writes two or three target-language sentences using the lesson words.
+5. The learner studies six AI-selected lesson words with interface-language translations, examples, and audio playback for the word and example.
+6. The learner recalls the six words through multiple-choice test options.
+7. The learner writes two or three target-language sentences using the lesson words, then receives final recommendations from AI.
 8. The learner rates the lesson and chooses whether to review it tomorrow, in three days, in one week, or not at all.
 9. Only high-quality lessons are promoted into the shared lesson bank.
 
@@ -27,6 +27,11 @@ The new tutor must provide the same complete interactive lesson in both Web and 
 - Old `tutor_lessons` and `tutor_user_lessons` data will be cleared or replaced by migration.
 - The deterministic local course-bank generator in `course_tutor.go` is not the new source of lessons.
 - New lessons are AI-generated in strict JSON and stored with lifecycle status.
+- Generated lesson JSON must include audio-ready target text for the story, every word, and every word example.
+- Word recall is a test with answer variants, not a free-form old repeat card.
+- The production checker must surface final recommendations in the interface language.
+- Lesson generation must use the user's configured topic/theme preference as the prompt topic seed when it is present.
+- Lessons promoted after quality review are stored in a separate reusable SQLite lesson bank, not only in the main user-progress database.
 - Lessons are grouped for reuse by learning language, interface language, and level band: `A1-A2`, `B1-B2`, `C1-C2`.
 - The exact user level still matters during generation and validation.
 - A lesson is reusable only after preflight validation and post-lesson quality review.
@@ -116,16 +121,16 @@ Canonical stage order:
    - AI checks each answer separately, corrects mistakes, and gives one useful tip.
 
 6. `word_learn_1` through `word_learn_6`
-   - Each target word or chunk is shown with interface-language translation, example, and short note.
+   - Each target word or chunk is shown with interface-language translation, example, short note, word audio, and example audio.
    - This is the "learn words" stage.
 
 7. `word_recall_1` through `word_recall_6`
-   - The learner recalls the words through translation, choice, or typed answer depending on surface constraints.
+   - The learner recalls the words through multiple-choice answer variants with one correct option.
    - This is the "repeat/check words" stage.
 
 8. `production`
    - The learner writes two or three target-language sentences using at least three of the six words.
-   - AI checks usage, grammar, and naturalness.
+   - AI checks usage, grammar, naturalness, and returns final recommendations in the interface language.
 
 9. `lesson_feedback`
    - Asks how the lesson felt.
@@ -345,7 +350,7 @@ Use separate prompts for separate checks.
 
 3. `ai_tutor.production.check.user`
    - Input: six words, production task, learner sentences.
-   - Output: JSON with used words, missing requirement, corrected version, recommendations, mistakes.
+   - Output: JSON with used words, missing requirement, corrected version, interface-language recommendations, mistakes.
 
 4. `ai_tutor.lesson.quality_preflight.user`
    - Input: generated lesson JSON.
@@ -387,6 +392,7 @@ Rendering:
 
 - Each stage sends one clear message.
 - Long story messages can be split safely by paragraph.
+- Audio controls are shown for story playback and for each word/example pair.
 - Buttons are used for word learning, recall choices, continue, retry, and review schedule.
 - Free-text stages show a clear prompt and then wait for the user's next message.
 

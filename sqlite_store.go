@@ -14,8 +14,12 @@ import (
 )
 
 type sqliteStore struct {
-	db *sql.DB
+	db        *sql.DB
+	aiTutorDB *sql.DB
 }
+
+const aiTutorLessonSelectColumns = `id, learning_language, interface_language, exact_level, level_band, theme, status,
+	payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating, created_at, updated_at`
 
 func openSQLiteDatabase(name string, databasePath string) (*sql.DB, error) {
 	if err := requireNonEmpty(name, databasePath); err != nil {
@@ -30,21 +34,44 @@ func openSQLiteDatabase(name string, databasePath string) (*sql.DB, error) {
 	return db, nil
 }
 
-func newSQLiteStore(databasePath string, importJSONPath string) (*sqliteStore, error) {
+func newSQLiteStore(databasePath string, importJSONPath string, aiTutorDatabasePath ...string) (*sqliteStore, error) {
 	db, err := openSQLiteDatabase("DATABASE_PATH", databasePath)
 	if err != nil {
 		return nil, err
 	}
-	store := &sqliteStore{db: db}
+	bankPath := ""
+	if len(aiTutorDatabasePath) > 0 {
+		bankPath = strings.TrimSpace(aiTutorDatabasePath[0])
+	}
+	if bankPath == "" {
+		bankPath = defaultAITutorDatabasePath(databasePath)
+	}
+	aiTutorDB, err := openSQLiteDatabase("AI_TUTOR_DATABASE_PATH", bankPath)
+	if err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+	store := &sqliteStore{db: db, aiTutorDB: aiTutorDB}
 	if err := store.init(); err != nil {
 		_ = db.Close()
+		_ = aiTutorDB.Close()
+		return nil, err
+	}
+	if err := store.initAITutorLessonBank(); err != nil {
+		_ = db.Close()
+		_ = aiTutorDB.Close()
 		return nil, err
 	}
 	if err := store.importJSONIfEmpty(importJSONPath); err != nil {
 		_ = db.Close()
+		_ = aiTutorDB.Close()
 		return nil, err
 	}
 	return store, nil
+}
+
+func defaultAITutorDatabasePath(databasePath string) string {
+	return ":memory:"
 }
 
 func (s *sqliteStore) init() error {
@@ -342,6 +369,39 @@ func (s *sqliteStore) init() error {
 	}
 	if err := s.clearLegacyTutorLessonBase(); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (s *sqliteStore) initAITutorLessonBank() error {
+	statements := []string{
+		`PRAGMA journal_mode=WAL`,
+		`PRAGMA synchronous=NORMAL`,
+		`PRAGMA busy_timeout=5000`,
+		`PRAGMA temp_store=MEMORY`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_lessons (
+			id TEXT PRIMARY KEY,
+			learning_language TEXT NOT NULL,
+			interface_language TEXT NOT NULL,
+			exact_level TEXT NOT NULL,
+			level_band TEXT NOT NULL,
+			theme TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL,
+			payload_json TEXT NOT NULL,
+			fingerprint TEXT NOT NULL DEFAULT '',
+			preflight_score INTEGER NOT NULL DEFAULT 0,
+			post_score INTEGER NOT NULL DEFAULT 0,
+			completion_count INTEGER NOT NULL DEFAULT 0,
+			average_rating REAL NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL,
+			updated_at TEXT NOT NULL
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_ai_tutor_lessons_context ON ai_tutor_lessons(learning_language, interface_language, level_band, status, created_at)`,
+	}
+	for _, stmt := range statements {
+		if _, err := s.aiTutorDB.Exec(stmt); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1585,7 +1645,17 @@ func (s *sqliteStore) saveAITutorLesson(lesson aiTutorLessonRecord) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.db.Exec(
+	if err := s.saveAITutorLessonToDB(s.db, lesson, payload); err != nil {
+		return err
+	}
+	if lesson.Status == aiTutorStatusApproved {
+		return s.saveAITutorLessonToDB(s.aiTutorDB, lesson, payload)
+	}
+	return nil
+}
+
+func (s *sqliteStore) saveAITutorLessonToDB(db *sql.DB, lesson aiTutorLessonRecord, payload []byte) error {
+	_, err := db.Exec(
 		`INSERT INTO ai_tutor_lessons (
 			id, learning_language, interface_language, exact_level, level_band, theme, status,
 			payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating,
@@ -1625,10 +1695,18 @@ func (s *sqliteStore) saveAITutorLesson(lesson aiTutorLessonRecord) error {
 }
 
 func (s *sqliteStore) findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error) {
+	lesson, ok, err := s.findApprovedAITutorLessonInBank(language, interfaceLanguage, levelBand, telegramID)
+	if err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	if ok {
+		if err := s.saveAITutorLesson(lesson); err != nil {
+			return aiTutorLessonRecord{}, false, err
+		}
+		return lesson, true, nil
+	}
 	row := s.db.QueryRow(
-		`SELECT id, learning_language, interface_language, exact_level, level_band, theme, status,
-			payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating,
-			created_at, updated_at
+		`SELECT `+aiTutorLessonSelectColumns+`
 		FROM ai_tutor_lessons
 		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ?
 			AND NOT EXISTS (
@@ -1644,21 +1722,87 @@ func (s *sqliteStore) findApprovedAITutorLesson(language string, interfaceLangua
 		aiTutorStatusApproved,
 		telegramID,
 	)
-	lesson, err := scanAITutorLessonRecord(row)
+	lesson, err = scanAITutorLessonRecord(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return aiTutorLessonRecord{}, false, nil
 	}
 	if err != nil {
 		return aiTutorLessonRecord{}, false, err
 	}
+	if err := s.saveAITutorLesson(lesson); err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
 	return lesson, true, nil
 }
 
+func (s *sqliteStore) findApprovedAITutorLessonInBank(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error) {
+	rows, err := s.aiTutorDB.Query(
+		`SELECT `+aiTutorLessonSelectColumns+`
+		FROM ai_tutor_lessons
+		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ?
+		ORDER BY post_score DESC, preflight_score DESC, created_at ASC`,
+		normalizeLearningLanguage(language),
+		normalizeInterfaceLanguage(interfaceLanguage),
+		aiTutorLevelBand(levelBand),
+		aiTutorStatusApproved,
+	)
+	if err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		lesson, err := scanAITutorLessonRecord(rows)
+		if err != nil {
+			return aiTutorLessonRecord{}, false, err
+		}
+		used, err := s.aiTutorLessonUsedByUser(telegramID, lesson.ID)
+		if err != nil {
+			return aiTutorLessonRecord{}, false, err
+		}
+		if !used {
+			return lesson, true, nil
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	return aiTutorLessonRecord{}, false, nil
+}
+
+func (s *sqliteStore) aiTutorLessonUsedByUser(telegramID int64, lessonID string) (bool, error) {
+	var used int
+	err := s.db.QueryRow(
+		`SELECT 1 FROM ai_tutor_sessions WHERE telegram_id = ? AND lesson_id = ? LIMIT 1`,
+		telegramID,
+		strings.TrimSpace(lessonID),
+	).Scan(&used)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	return err == nil, err
+}
+
 func (s *sqliteStore) getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error) {
-	row := s.db.QueryRow(
-		`SELECT id, learning_language, interface_language, exact_level, level_band, theme, status,
-			payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating,
-			created_at, updated_at
+	lesson, ok, err := s.getAITutorLessonFromDB(s.db, lessonID)
+	if err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	if ok {
+		return lesson, true, nil
+	}
+	lesson, ok, err = s.getAITutorLessonFromDB(s.aiTutorDB, lessonID)
+	if err != nil || !ok {
+		return lesson, ok, err
+	}
+	if err := s.saveAITutorLesson(lesson); err != nil {
+		return aiTutorLessonRecord{}, false, err
+	}
+	return lesson, true, nil
+}
+
+func (s *sqliteStore) getAITutorLessonFromDB(db *sql.DB, lessonID string) (aiTutorLessonRecord, bool, error) {
+	row := db.QueryRow(
+		`SELECT `+aiTutorLessonSelectColumns+`
 		FROM ai_tutor_lessons
 		WHERE id = ?`,
 		strings.TrimSpace(lessonID),
@@ -1829,6 +1973,20 @@ func (s *sqliteStore) updateAITutorLessonQuality(lessonID string, status string,
 	}
 	if rows, err := result.RowsAffected(); err == nil && rows == 0 {
 		return errors.New("ai tutor lesson not found")
+	}
+	if strings.TrimSpace(status) == aiTutorStatusApproved {
+		lesson, ok, err := s.getAITutorLessonFromDB(s.db, lessonID)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("ai tutor lesson not found")
+		}
+		payload, err := json.Marshal(lesson.Payload)
+		if err != nil {
+			return err
+		}
+		return s.saveAITutorLessonToDB(s.aiTutorDB, lesson, payload)
 	}
 	return nil
 }

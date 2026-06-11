@@ -31,7 +31,13 @@ type aiTutorStep struct {
 	Lesson      aiTutorLessonPayload `json:"lesson,omitempty"`
 	Word        *aiTutorWord         `json:"word,omitempty"`
 	Question    *aiTutorQuestion     `json:"question,omitempty"`
-	Options     []string             `json:"options,omitempty"`
+	Options     []aiTutorStepOption  `json:"options,omitempty"`
+}
+
+type aiTutorStepOption struct {
+	ID      string `json:"id"`
+	Text    string `json:"text"`
+	Correct bool   `json:"-"`
 }
 
 type aiTutorFeedback struct {
@@ -132,8 +138,26 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 			Session:  session,
 			Lesson:   lesson,
 			NextStep: aiTutorBuildStep(lesson.Payload, next),
-			Feedback: aiTutorFeedback{OK: true, Message: "Checked.", JSON: checkRaw},
+			Feedback: aiTutorFeedback{OK: true, Message: aiTutorCheckerFeedbackMessage(current, checkRaw), JSON: checkRaw},
 		}, nil
+	}
+	if expectedChoice, ok := aiTutorExpectedRecallChoice(current, lesson.Payload); ok {
+		if strings.TrimSpace(input.Choice) == "" {
+			return aiTutorResult{
+				Session:  session,
+				Lesson:   lesson,
+				NextStep: aiTutorBuildStep(lesson.Payload, current),
+				Feedback: aiTutorFeedback{OK: false, Message: "Choose an answer."},
+			}, nil
+		}
+		if strings.TrimSpace(input.Choice) != expectedChoice {
+			return aiTutorResult{
+				Session:  session,
+				Lesson:   lesson,
+				NextStep: aiTutorBuildStep(lesson.Payload, current),
+				Feedback: aiTutorFeedback{OK: false, Message: "Try again."},
+			}, nil
+		}
 	}
 	if err := e.store.saveAITutorAnswer(aiTutorAnswerRecord{
 		SessionID:  session.ID,
@@ -174,6 +198,45 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 		NextStep: aiTutorBuildStep(lesson.Payload, next),
 		Feedback: aiTutorFeedback{OK: true, Message: "Saved."},
 	}, nil
+}
+
+func aiTutorCheckerFeedbackMessage(stage string, raw string) string {
+	var data map[string]any
+	if err := json.Unmarshal([]byte(strings.TrimSpace(raw)), &data); err != nil {
+		return "Checked."
+	}
+	candidates := []string{"message", "feedback_interface", "advice_interface", "tip_interface", "corrected_answer_target", "corrected_version_target"}
+	parts := make([]string, 0, 4)
+	for _, key := range candidates {
+		if value, ok := data[key].(string); ok {
+			if trimmed := strings.TrimSpace(value); trimmed != "" {
+				parts = append(parts, trimmed)
+			}
+		}
+	}
+	if stage == aiTutorStageProduction {
+		if recommendations, ok := data["recommendations_interface"].([]any); ok {
+			for _, item := range recommendations {
+				if value, ok := item.(string); ok {
+					if trimmed := strings.TrimSpace(value); trimmed != "" {
+						parts = append(parts, trimmed)
+					}
+				}
+			}
+		}
+	}
+	if len(parts) == 0 {
+		return "Checked."
+	}
+	return strings.Join(parts, " ")
+}
+
+func aiTutorExpectedRecallChoice(stage string, lesson aiTutorLessonPayload) (string, bool) {
+	index, ok := aiTutorStageIndex(stage, "word_recall_")
+	if !ok || index < 0 || index >= len(lesson.Words) {
+		return "", false
+	}
+	return strings.TrimSpace(lesson.Words[index].ID), true
 }
 
 func (e *aiTutorEngine) createSessionForLesson(user userState, surface string, lesson aiTutorLessonRecord) (aiTutorResult, error) {
@@ -353,12 +416,12 @@ func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {
 		step.Kind = "rating"
 		step.Title = "Lesson feedback"
 		step.Instruction = "How did this lesson feel?"
-		step.Options = []string{"easy", "good", "hard", "bad"}
+		step.Options = aiTutorOptions("easy", "good", "hard", "bad")
 	case aiTutorStageReviewSchedule:
 		step.Kind = "review"
 		step.Title = "Review"
 		step.Instruction = "Choose review time."
-		step.Options = []string{"tomorrow", "3_days", "1_week", "no_review"}
+		step.Options = aiTutorOptions("tomorrow", "3_days", "1_week", "no_review")
 	case aiTutorStageComplete:
 		step.Kind = "complete"
 		step.Title = "Complete"
@@ -376,9 +439,43 @@ func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {
 			step.Title = word.InterfaceTranslation
 			step.Instruction = "Recall the target word."
 			step.Word = &word
+			step.Options = aiTutorRecallOptions(lesson.Words, index)
 		}
 	}
 	return step
+}
+
+func aiTutorOptions(values ...string) []aiTutorStepOption {
+	options := make([]aiTutorStepOption, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if value != "" {
+			options = append(options, aiTutorStepOption{ID: value, Text: strings.ReplaceAll(value, "_", " ")})
+		}
+	}
+	return options
+}
+
+func aiTutorRecallOptions(words []aiTutorWord, correctIndex int) []aiTutorStepOption {
+	if correctIndex < 0 || correctIndex >= len(words) {
+		return nil
+	}
+	correct := words[correctIndex]
+	options := []aiTutorStepOption{{ID: correct.ID, Text: correct.Target, Correct: true}}
+	for index, word := range words {
+		if index == correctIndex || strings.EqualFold(word.ID, correct.ID) || strings.EqualFold(word.Target, correct.Target) {
+			continue
+		}
+		options = append(options, aiTutorStepOption{ID: word.ID, Text: word.Target})
+		if len(options) >= 4 {
+			break
+		}
+	}
+	for len(options) < 4 {
+		id := "distractor_" + itoa(len(options)+1)
+		options = append(options, aiTutorStepOption{ID: id, Text: "Option " + itoa(len(options)+1)})
+	}
+	return options
 }
 
 func aiTutorNextStage(stage string) string {

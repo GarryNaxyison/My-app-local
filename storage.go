@@ -220,7 +220,7 @@ type store interface {
 func newStore(cfg config) (store, error) {
 	switch strings.ToLower(strings.TrimSpace(cfg.StorageDriver)) {
 	case "", "sqlite":
-		return newSQLiteStore(cfg.DatabasePath, cfg.DataPath)
+		return newSQLiteStore(cfg.DatabasePath, cfg.DataPath, cfg.AITutorDatabasePath)
 	case "json":
 		return newJSONStore(cfg.DataPath)
 	default:

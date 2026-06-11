@@ -8,6 +8,16 @@
 
 **Tech Stack:** Go, modernc SQLite, OpenRouter chat completions, Telegram Bot API, React/Vite, Playwright, existing runtime prompt system in `app_prompts.json`.
 
+## Final Requirements Addendum
+
+- Lesson generation must require a 5-7 sentence story, six word/interface-language pairs, story audio text, word audio text, and example audio text.
+- Word recall must be multiple choice with structured answer options and one correct option; a wrong choice must keep the learner on the same recall stage.
+- Production checking must return and display final interface-language recommendations, not just a generic "Checked" message.
+- Web must render server-driven AI Tutor steps without falling back to the old `local-a1-a2-course-core` marker, including error/retry states.
+- Telegram must use the same shared engine and render recall choices as callback buttons.
+- Lesson generation must pass the user's configured `learning_focus` as the topic/theme seed.
+- Approved reusable lessons must be copied into the separate SQLite bank configured by `AI_TUTOR_DATABASE_PATH`.
+
 ---
 
 ## File Structure

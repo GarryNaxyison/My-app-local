@@ -24,6 +24,7 @@ type config struct {
 	OpenRouterAppName                 string
 	DataPath                          string
 	DatabasePath                      string
+	AITutorDatabasePath               string
 	ActivationKeysDatabasePath        string
 	ActivationKeysImportPath          string
 	VocabularyDatabasePath            string
@@ -101,6 +102,7 @@ func configFromEnv() (config, error) {
 		OpenRouterAppName:                 envOrDefault("OPENROUTER_APP_NAME", "AI Polyglot Coach"),
 		DataPath:                          envOrDefault("DATA_PATH", "english_coach_data.json"),
 		DatabasePath:                      envOrDefault("DATABASE_PATH", "english_coach.sqlite"),
+		AITutorDatabasePath:               envOrDefault("AI_TUTOR_DATABASE_PATH", "ai_tutor_lessons.sqlite"),
 		ActivationKeysDatabasePath:        envOrDefault("ACTIVATION_KEYS_DATABASE_PATH", "activation_keys.sqlite"),
 		ActivationKeysImportPath:          envOrDefault("ACTIVATION_KEYS_FILE", "activation_keys.txt"),
 		VocabularyDatabasePath:            envOrDefault("VOCABULARY_DATABASE_PATH", "vocabulary.sqlite"),

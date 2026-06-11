@@ -1144,9 +1144,96 @@ func (b *bot) sendAITutorStep(ctx context.Context, chatID int64, user userState,
 	text := formatTelegramAITutorStep(result.NextStep, result.Feedback, user)
 	keyboard := aiTutorTelegramKeyboard(result.Session.ID, result.NextStep, ui(user))
 	if keyboard != nil {
-		return b.telegram.sendInlineMessage(ctx, chatID, text, keyboard)
+		if err := b.telegram.sendInlineMessage(ctx, chatID, text, keyboard); err != nil {
+			return err
+		}
+	} else if err := b.telegram.sendMessageWithCopy(ctx, chatID, text, ui(user)); err != nil {
+		return err
 	}
-	return b.telegram.sendMessageWithCopy(ctx, chatID, text, ui(user))
+	b.sendAITutorAudioClips(ctx, chatID, user, result.NextStep)
+	return nil
+}
+
+type aiTutorTelegramAudioClip struct {
+	Text     string
+	Filename string
+	Title    string
+	LogKey   string
+}
+
+func (b *bot) sendAITutorAudioClips(ctx context.Context, chatID int64, user userState, step aiTutorStep) {
+	for _, clip := range aiTutorTelegramAudioClips(step) {
+		b.sendTextPronunciation(ctx, chatID, user, clip.Text, clip.Filename, clip.Title, clip.LogKey)
+	}
+}
+
+func aiTutorTelegramAudioClips(step aiTutorStep) []aiTutorTelegramAudioClip {
+	switch step.Kind {
+	case "story":
+		text := strings.TrimSpace(step.Lesson.Story.AudioTextTarget)
+		if text == "" {
+			text = strings.TrimSpace(step.Lesson.Story.TextTarget)
+		}
+		if text == "" {
+			return nil
+		}
+		return []aiTutorTelegramAudioClip{{
+			Text:     text,
+			Filename: "ai-tutor-story.mp3",
+			Title:    strings.TrimSpace(step.Title),
+			LogKey:   "ai tutor story",
+		}}
+	case "word_learn":
+		if step.Word == nil {
+			return nil
+		}
+		wordID := aiTutorTelegramAudioFileID(step.Word.ID)
+		wordText := strings.TrimSpace(step.Word.AudioTextTarget)
+		if wordText == "" {
+			wordText = strings.TrimSpace(step.Word.Target)
+		}
+		exampleText := strings.TrimSpace(step.Word.ExampleAudioTextTarget)
+		if exampleText == "" {
+			exampleText = strings.TrimSpace(step.Word.ExampleSentenceTarget)
+		}
+		clips := make([]aiTutorTelegramAudioClip, 0, 2)
+		if wordText != "" {
+			clips = append(clips, aiTutorTelegramAudioClip{
+				Text:     wordText,
+				Filename: "ai-tutor-" + wordID + ".mp3",
+				Title:    strings.TrimSpace(step.Word.Target),
+				LogKey:   "ai tutor word " + wordID,
+			})
+		}
+		if exampleText != "" {
+			clips = append(clips, aiTutorTelegramAudioClip{
+				Text:     exampleText,
+				Filename: "ai-tutor-" + wordID + "-example.mp3",
+				Title:    strings.TrimSpace(step.Word.ExampleSentenceTarget),
+				LogKey:   "ai tutor example " + wordID,
+			})
+		}
+		return clips
+	default:
+		return nil
+	}
+}
+
+func aiTutorTelegramAudioFileID(id string) string {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return "clip"
+	}
+	var builder strings.Builder
+	for _, r := range id {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			builder.WriteRune(r)
+		}
+	}
+	if builder.Len() == 0 {
+		return "clip"
+	}
+	return builder.String()
 }
 
 func formatTelegramAITutorStep(step aiTutorStep, feedback aiTutorFeedback, user userState) string {
@@ -1193,6 +1280,18 @@ func aiTutorTelegramKeyboard(sessionID string, step aiTutorStep, copy uiCopy) ma
 			{{"text": "Continue", "callback_data": callback("continue")}},
 			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 		}}
+	case "word_recall":
+		rows := make([][]map[string]any, 0, 3)
+		for index, option := range step.Options {
+			button := map[string]any{"text": option.Text, "callback_data": callback(option.ID)}
+			if index%2 == 0 {
+				rows = append(rows, []map[string]any{button})
+			} else {
+				rows[len(rows)-1] = append(rows[len(rows)-1], button)
+			}
+		}
+		rows = append(rows, []map[string]any{{"text": copy.BackMenu, "callback_data": "back_menu"}})
+		return map[string]any{"inline_keyboard": rows}
 	case "rating":
 		return map[string]any{"inline_keyboard": [][]map[string]any{
 			{

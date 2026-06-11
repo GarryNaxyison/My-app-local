@@ -65,6 +65,44 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 	}
 }
 
+func TestAITutorTelegramRecallKeyboardUsesStructuredOptions(t *testing.T) {
+	lesson := validAITutorLessonPayloadForTest()
+	step := aiTutorBuildStep(lesson, aiTutorWordRecallStage(1))
+	keyboard := aiTutorTelegramKeyboard("session-1", step, ui(userState{InterfaceLanguage: "ru"}))
+	callbacks := collectCallbackData(t, keyboard)
+
+	for _, want := range []string{"ait|session-1|choice|w1", "ait|session-1|choice|w2", "back_menu"} {
+		if !callbacks[want] {
+			t.Fatalf("recall keyboard is missing callback %q; got %#v", want, callbacks)
+		}
+	}
+	if callbacks["ait|session-1|choice|continue"] {
+		t.Fatalf("recall keyboard must use answer choices, got continue callback: %#v", callbacks)
+	}
+}
+
+func TestAITutorTelegramAudioClipsUseGeneratedAudioText(t *testing.T) {
+	lesson := validAITutorLessonPayloadForTest()
+
+	storyClips := aiTutorTelegramAudioClips(aiTutorBuildStep(lesson, aiTutorStageStoryIntro))
+	if len(storyClips) != 1 || storyClips[0].Text != lesson.Story.AudioTextTarget {
+		t.Fatalf("story clips = %#v", storyClips)
+	}
+
+	wordClips := aiTutorTelegramAudioClips(aiTutorBuildStep(lesson, aiTutorWordLearnStage(1)))
+	if len(wordClips) != 2 {
+		t.Fatalf("word clips count = %d, want 2: %#v", len(wordClips), wordClips)
+	}
+	if wordClips[0].Text != lesson.Words[0].AudioTextTarget || wordClips[1].Text != lesson.Words[0].ExampleAudioTextTarget {
+		t.Fatalf("word clips use wrong audio text: %#v", wordClips)
+	}
+
+	recallClips := aiTutorTelegramAudioClips(aiTutorBuildStep(lesson, aiTutorWordRecallStage(1)))
+	if len(recallClips) != 0 {
+		t.Fatalf("recall clips should not reveal the answer: %#v", recallClips)
+	}
+}
+
 func TestTelegramAITutorMenuStartsInteractiveSession(t *testing.T) {
 	var payloads []map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

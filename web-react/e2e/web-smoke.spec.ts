@@ -232,10 +232,10 @@ async function mockApi(page: Page) {
             level: "A1",
             theme: "daily life",
             lesson_goal: "Understand and retell a short everyday story.",
-            story: { text_target: "Mia wakes up early. She buys bread. She goes home." },
+            story: { text_target: "Mia wakes up early. She buys bread. She goes home.", audio_text_target: "Mia wakes up early. She buys bread. She goes home." },
             words: [
-              { id: "w1", target: "wake up", interface_translation: "просыпаться", example_sentence_target: "I wake up early." },
-              { id: "w2", target: "bread", interface_translation: "хлеб", example_sentence_target: "She buys bread." },
+              { id: "w1", target: "wake up", interface_translation: "просыпаться", example_sentence_target: "I wake up early.", audio_text_target: "wake up", example_audio_text_target: "I wake up early." },
+              { id: "w2", target: "bread", interface_translation: "хлеб", example_sentence_target: "She buys bread.", audio_text_target: "bread", example_audio_text_target: "She buys bread." },
             ],
           },
         },
@@ -1377,8 +1377,12 @@ test.skip("AI Tutor cafe scenario uses slots for explanation choices and dialogu
 test("AI Tutor renders server-driven step", async ({ page }) => {
   await page.goto("/app/?view=tutor");
   await expect(page.locator(".tutor-workspace")).toContainText("A Morning Visit");
+  await expect(page.locator(".tutor-hero")).toContainText("A1 · daily life");
+  await expect(page.locator(".tutor-hero")).toContainText("ai-tutor-engine");
+  await expect(page.locator(".tutor-hero")).not.toContainText("local-a1-a2-course-core");
   await expect(page.locator(".tutor-context-v2")).toContainText("Read the story.");
   await expect(page.locator(".tutor-context-v2")).toContainText("Mia wakes up early.");
+  await expect(page.locator(".tutor-context-v2 .audio-wave-button-v2")).toBeVisible();
 });
 
 test("standalone listening hides the target text and leaves only audio playback", async ({ page }) => {
@@ -1927,6 +1931,8 @@ test("AI Tutor failed start stops loading loop and shows retry", async ({ page }
 
   await page.goto("/app/?view=tutor");
   await expect(page.locator(".tutor-loading-panel")).toContainText(/No tutor lesson available|Не удалось/);
+  await expect(page.locator(".tutor-hero")).toContainText("ai-tutor-engine");
+  await expect(page.locator(".tutor-hero")).not.toContainText("local-a1-a2-course-core");
   await expect(page.locator(".tutor-loading-panel").getByRole("button", { name: /Retry|Повторить/ })).toBeVisible();
   expect(tutorStartCalls).toBe(1);
 });

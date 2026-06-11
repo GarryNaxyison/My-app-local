@@ -55,8 +55,9 @@ type aiTutorGrammarFocus struct {
 }
 
 type aiTutorStory struct {
-	TextTarget    string `json:"text_target"`
-	SentenceCount int    `json:"sentence_count"`
+	TextTarget      string `json:"text_target"`
+	AudioTextTarget string `json:"audio_text_target"`
+	SentenceCount   int    `json:"sentence_count"`
 }
 
 type aiTutorWord struct {
@@ -66,6 +67,8 @@ type aiTutorWord struct {
 	PartOfSpeech                string `json:"part_of_speech"`
 	ExampleSentenceTarget       string `json:"example_sentence_target"`
 	ExampleTranslationInterface string `json:"example_translation_interface"`
+	AudioTextTarget             string `json:"audio_text_target"`
+	ExampleAudioTextTarget      string `json:"example_audio_text_target"`
 	DifficultyNoteInterface     string `json:"difficulty_note_interface,omitempty"`
 }
 
@@ -87,10 +90,11 @@ type aiTutorWordTask struct {
 }
 
 type aiTutorProductionTask struct {
-	InstructionInterface string   `json:"instruction_interface"`
-	RequiredWordCount    int      `json:"required_word_count"`
-	SentenceCount        string   `json:"sentence_count"`
-	EvaluationCriteria   []string `json:"evaluation_criteria"`
+	InstructionInterface     string   `json:"instruction_interface"`
+	RequiredWordCount        int      `json:"required_word_count"`
+	SentenceCount            string   `json:"sentence_count"`
+	EvaluationCriteria       []string `json:"evaluation_criteria"`
+	RecommendationsInterface []string `json:"recommendations_interface"`
 }
 
 type aiTutorQualitySelfCheck struct {
@@ -227,6 +231,9 @@ func validateAITutorLessonPayload(lesson aiTutorLessonPayload) []string {
 	if storySentenceCount < 5 || storySentenceCount > 7 {
 		issues = append(issues, "story must contain 5-7 story sentences")
 	}
+	if strings.TrimSpace(lesson.Story.AudioTextTarget) == "" {
+		issues = append(issues, "story audio is required")
+	}
 	if len(lesson.WordLearning) != 6 {
 		issues = append(issues, "word learning must contain exactly 6 tasks")
 	}
@@ -236,12 +243,21 @@ func validateAITutorLessonPayload(lesson aiTutorLessonPayload) []string {
 	if lesson.ProductionTask.RequiredWordCount < 3 {
 		issues = append(issues, "production task must require at least 3 words")
 	}
+	if len(aiTutorTrimmedStrings(lesson.ProductionTask.RecommendationsInterface)) == 0 {
+		issues = append(issues, "final recommendations are required")
+	}
 	if !hasAITutorReviewOptions(lesson.ReviewOptions) {
 		issues = append(issues, "review options must include tomorrow, 3_days, 1_week, no_review")
 	}
 	for index, word := range lesson.Words {
 		if strings.TrimSpace(word.ID) == "" || strings.TrimSpace(word.Target) == "" || strings.TrimSpace(word.InterfaceTranslation) == "" {
 			issues = append(issues, "word "+itoa(index+1)+" requires id, target, and interface translation")
+		}
+		if strings.TrimSpace(word.AudioTextTarget) == "" {
+			issues = append(issues, "word "+itoa(index+1)+" audio is required")
+		}
+		if strings.TrimSpace(word.ExampleAudioTextTarget) == "" {
+			issues = append(issues, "word "+itoa(index+1)+" example audio is required")
 		}
 	}
 	for index, question := range lesson.ComprehensionQuestions {
@@ -250,6 +266,16 @@ func validateAITutorLessonPayload(lesson aiTutorLessonPayload) []string {
 		}
 	}
 	return issues
+}
+
+func aiTutorTrimmedStrings(values []string) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
 
 func normalizeAITutorLessonPayload(lesson aiTutorLessonPayload) aiTutorLessonPayload {

@@ -5494,28 +5494,47 @@ function TutorView({ user, session, tutorLesson, aiTutorStep, aiTutorFeedback, s
   const renderAiTutorServerMaterial = () => {
     if (!aiTutorStep) return null;
     const storyText = display(aiTutorStep.lesson?.story?.text_target);
+    const storyAudioText = display(aiTutorStep.lesson?.story?.audio_text_target || aiTutorStep.lesson?.story?.text_target);
     const word = aiTutorStep.word;
-    const options = aiTutorStep.options || [];
+    const options = (aiTutorStep.options || [])
+      .map((option) => {
+        if (typeof option === "string") return { id: option, text: option.replaceAll("_", " ") };
+        const id = display(option.id || option.text);
+        const text = display(option.text || option.id);
+        return id && text ? { id, text } : null;
+      })
+      .filter((option): option is { id: string; text: string } => Boolean(option));
     return (
       <article className="tutor-message-v2 is-active">
         <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
         <div>
           <strong>{display(aiTutorStep.title) || copy("ai_tutor", "AI Tutor")}</strong>
           {aiTutorStep.instruction ? <p>{display(aiTutorStep.instruction)}</p> : null}
-          {aiTutorStep.kind === "story" && storyText ? <p className="tutor-task-copy-v2">{storyText}</p> : null}
+          {aiTutorStep.kind === "story" && storyText ? (
+            <>
+              <p className="tutor-task-copy-v2">{storyText}</p>
+              <AudioActionRow clips={[{ label: copy("tutor_story_audio", "Story audio"), text: storyAudioText, targetLanguage: user.learning_language }]} />
+            </>
+          ) : null}
           {word ? (
             <div className="tutor-word-check-v2">
               <strong>{display(word.target)}</strong>
               {word.interface_translation ? <span>{display(word.interface_translation)}</span> : null}
               {word.example_sentence_target ? <p>{display(word.example_sentence_target)}</p> : null}
+              <AudioActionRow
+                clips={[
+                  { label: copy("tutor_word_audio", "Word audio"), text: display(word.audio_text_target || word.target), targetLanguage: user.learning_language },
+                  { label: copy("tutor_example_audio", "Example audio"), text: display(word.example_audio_text_target || word.example_sentence_target), targetLanguage: user.learning_language },
+                ]}
+              />
             </div>
           ) : null}
           {aiTutorStep.question?.question_target ? <p className="tutor-task-copy-v2">{display(aiTutorStep.question.question_target)}</p> : null}
           {options.length ? (
             <div className="tutor-srs" role="group" aria-label={copy("tutor_options", "Options")}>
               {options.map((option) => (
-                <button key={option} type="button" onClick={() => void submitAiTutorStep("", option)}>
-                  {option.replaceAll("_", " ")}
+                <button key={option.id} type="button" onClick={() => void submitAiTutorStep("", option.id)}>
+                  {option.text}
                 </button>
               ))}
             </div>
@@ -5525,8 +5544,19 @@ function TutorView({ user, session, tutorLesson, aiTutorStep, aiTutorFeedback, s
     );
   };
 
-  const aiTutorNeedsText = aiTutorStep?.kind === "free_text" || aiTutorStep?.kind === "word_recall";
+  const aiTutorNeedsText = aiTutorStep?.kind === "free_text" || (aiTutorStep?.kind === "word_recall" && !aiTutorStep.options?.length);
   const aiTutorCanContinue = aiTutorStep && ["story", "word_learn"].includes(aiTutorStep.kind);
+  const aiTutorHeroTopic = display(aiTutorStep?.lesson?.theme || aiTutorStep?.lesson?.title || aiTutorStep?.title);
+  const aiTutorHeroLevel = display(aiTutorStep?.lesson?.level || user.level || "A1");
+  const tutorHeroTitle = tutorLesson
+    ? `${display(tutorLesson.level)} · ${localizedTutorTopic || copy("tutor_words_title", "Theme vocabulary")}`
+    : aiTutorStep
+      ? `${aiTutorHeroLevel} · ${aiTutorHeroTopic || copy("tutor_words_title", "Theme vocabulary")}`
+      : copy("tutor_loading", "Preparing a guided lesson");
+  const tutorHeroGoal =
+    localizedTutorGoal ||
+    display(aiTutorStep?.lesson?.lesson_goal || aiTutorStep?.instruction) ||
+    copy("tutor_subtitle", "Words, grammar, listening, writing, dialogue, and review in one context window.");
 
   return (
     <div className="tutor-workspace">
@@ -5536,12 +5566,12 @@ function TutorView({ user, session, tutorLesson, aiTutorStep, aiTutorFeedback, s
         </div>
         <div className="tutor-hero__copy">
           <span className="eyebrow">{copy("ai_tutor", "AI Tutor")}</span>
-          <h2>{tutorLesson ? `${display(tutorLesson.level)} · ${localizedTutorTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
-          <p>{localizedTutorGoal || copy("tutor_subtitle", "Words, grammar, listening, writing, dialogue, and review in one context window.")}</p>
+          <h2>{tutorHeroTitle}</h2>
+          <p>{tutorHeroGoal}</p>
           <div className="tutor-hero__meta">
             <span>{copy("tutor_duration", "5-10 minutes")}</span>
             {tutorLesson?.lesson_number && tutorLesson?.course_size ? <span>{copy("tutor_course_label", "Course")} {tutorLesson.lesson_number}/{tutorLesson.course_size}</span> : null}
-            <span>{display(tutorLesson?.source) || "local-a1-a2-course-core"}</span>
+            <span>{display(tutorLesson?.source) || "ai-tutor-engine"}</span>
           </div>
         </div>
         <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
