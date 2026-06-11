@@ -3997,6 +3997,51 @@ select {
   overflow: auto;
 }
 
+.offline-decks-v2 {
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+.offline-deck-list-v2 {
+  grid-column: 1 / -1;
+}
+
+.offline-hero-v2 {
+  align-self: end;
+  justify-self: end;
+  width: min(100%, 420px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--surface-strong) 72%, transparent);
+}
+
+.offline-hero-v2 h2 {
+  font-size: clamp(1.1rem, 1.3vw, 1.35rem);
+}
+
+.offline-hero-v2 p {
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.offline-hero-v2 .home-insights-v2__actions {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.offline-deck-head-v2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  align-items: end;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.offline-deck-summary-v2 {
+  min-width: 0;
+}
+
 .phrasebook-grid-v2,
 .offline-deck-grid-v2 {
   display: grid;
@@ -4915,7 +4960,6 @@ select {
 .daily-quests-v2,
 .weekly-plan-v2,
 .roleplay-view-v2,
-.offline-hero-v2,
 .dashboard-hero-v2,
 .pronunciation-hero-v2 {
   grid-column: span 2;
@@ -4924,8 +4968,13 @@ select {
 .daily-quests-v2 .eyebrow,
 .weekly-plan-v2 .eyebrow,
 .pronunciation-hero-v2 .eyebrow,
-.offline-hero-v2 .eyebrow,
 .dashboard-hero-v2 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.offline-hero-v2 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -5510,8 +5559,18 @@ select {
 }
 
 .dashboard-rhythm-v2__bars small {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   color: var(--muted);
   font-weight: 850;
+}
+
+.dashboard-rhythm-v2__bars small em {
+  color: var(--text);
+  font-style: normal;
+  font-size: 12px;
 }
 
 .dashboard-rhythm-v2__bars b {
@@ -5964,7 +6023,6 @@ select {
   .daily-quests-v2,
   .weekly-plan-v2,
   .roleplay-view-v2,
-  .offline-hero-v2,
   .dashboard-hero-v2,
   .pronunciation-hero-v2,
   .dashboard-grid-v2 {
@@ -6219,15 +6277,6 @@ select {
   background: color-mix(in srgb, var(--teal) 16%, transparent);
 }
 
-.offline-decks-v2 {
-  grid-template-columns: 1fr;
-}
-
-.offline-hero-v2,
-.offline-deck-list-v2 {
-  grid-column: 1 / -1;
-}
-
 .offline-deck-grid-v2 {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   max-height: none;
@@ -6249,6 +6298,20 @@ select {
   .v2-app {
     grid-template-rows: minmax(0, 1fr) auto;
     padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+  }
+
+  .offline-decks-v2 {
+    grid-template-columns: 1fr;
+  }
+
+  .offline-deck-head-v2 {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .offline-hero-v2 {
+    justify-self: stretch;
+    width: 100%;
   }
 
   .v2-topbar,

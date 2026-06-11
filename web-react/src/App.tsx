@@ -1202,6 +1202,25 @@ function monthDateKeys(offset = 0) {
   return keys;
 }
 
+function recentDateKeys(days: number, end = new Date()) {
+  const keys: string[] = [];
+  const cursor = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  for (let index = 0; index < days; index += 1) {
+    keys.push(localDateKey(cursor));
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return keys;
+}
+
+function habitWeekTotal(log: Record<string, HabitDay> | undefined, field: "lessons" | "practice" | "voice") {
+  return recentDateKeys(7).reduce((total, key) => total + Number(log?.[key]?.[field] || 0), 0);
+}
+
+function weeklyGoalFromDailyLimit(limit: unknown, fallback: number) {
+  const daily = Number(limit || 0);
+  return Math.max(1, Math.round((daily > 0 ? daily : fallback) * 7));
+}
+
 function dailyGoalComplete(user: UserProfile) {
   const voiceLimit = Number(user.voice_limit || 0);
   const voiceReady = voiceLimit > 0 ? Number(user.voice_today || 0) >= 1 : true;
@@ -2804,8 +2823,6 @@ function AuthStandaloneView({
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const captchaRef = useRef<HTMLDivElement | null>(null);
   const captchaWidgetRef = useRef("");
-  const [telegramOtpOpen, setTelegramOtpOpen] = useState(false);
-  const [telegramRequest, setTelegramRequest] = useState<TelegramCodeRequest | null>(null);
   const interfaceLanguages = session?.interface_languages?.length
     ? session.interface_languages
     : [{ code: language || "ru", native_name: (language || "ru").toUpperCase() }];
@@ -2941,70 +2958,6 @@ function AuthStandaloneView({
     }
   };
 
-  const startTelegramAuth = async (): Promise<TelegramCodeRequest | null> => {
-    if (!privacyAccepted) {
-      setStatus({ kind: "error", text: copy("auth_privacy_required", "Accept the personal data policy to continue.") });
-      return null;
-    }
-    let telegramWindow: Window | null = null;
-    try {
-      telegramWindow = window.open("about:blank", "_blank");
-      if (telegramWindow) telegramWindow.opener = null;
-    } catch {
-      telegramWindow = null;
-    }
-    setBusy("telegram-code");
-    setStatus(null);
-    try {
-      const payload = await api<ApiRecord>("/api/auth/telegram/start", { method: "POST", body: { privacy_consent: true, privacy_policy_url: privacyURL } });
-      const record = getRecord(payload);
-      const token = asText(record.token, "");
-      const botURL = asText(record.bot_url, "");
-      const expiresAt = asText(record.expires_at, "");
-      if (!token || !botURL) throw new Error(copy("telegram_code_start_failed", "Не удалось подготовить Telegram-код."));
-      if (telegramWindow) {
-        telegramWindow.location.href = botURL;
-      } else {
-        window.open(botURL, "_blank", "noopener,noreferrer");
-      }
-      const request = { token, botURL, expiresAt };
-      setTelegramRequest(request);
-      setTelegramOtpOpen(true);
-      return request;
-    } catch (error) {
-      telegramWindow?.close();
-      setStatus({ kind: "error", text: error instanceof Error ? error.message : copy("telegram_code_start_failed", "Не удалось подготовить Telegram-код.") });
-      return null;
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const verifyTelegramAuth = async (code: string) => {
-    if (!telegramRequest?.token) {
-      setStatus({ kind: "error", text: copy("telegram_code_missing", "Сначала отправьте код в Telegram.") });
-      return false;
-    }
-    setBusy("telegram-code-verify");
-    try {
-      const payload = await api<SessionData | ApiRecord>("/api/auth/telegram/status", { method: "POST", body: { token: telegramRequest.token, code } });
-      const nextSession = payload as SessionData;
-      if (nextSession.authenticated) {
-        setTelegramOtpOpen(false);
-        setTelegramRequest(null);
-        afterAuth(nextSession);
-        return true;
-      }
-      setStatus({ kind: "info", text: copy("auth_finish_account", "Finish account") });
-      return false;
-    } catch (error) {
-      setStatus({ kind: "error", text: error instanceof Error ? error.message : copy("auth_failed", "Authentication failed") });
-      return false;
-    } finally {
-      setBusy(null);
-    }
-  };
-
   const captchaSlot = captchaEnabled ? (
     <div className="auth-turnstile-slot-v2" ref={captchaRef} data-testid="auth-captcha" aria-label={copy("captcha_required", "Confirm you are not a robot.")} />
   ) : null;
@@ -3043,7 +2996,7 @@ function AuthStandaloneView({
       <SignInPage
         mode={mode}
         title={<span>{mode === "register" ? copy("auth_create_account", "Create account") : copy("auth_welcome", "Welcome back")}</span>}
-        description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_login_hint", "Enter login and password or confirm through Telegram.")}
+        description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_login_password_hint", "Введите логин и пароль.")}
         heroImageSrc={heroImageSrc}
         testimonials={testimonials}
         status={status ? <span className={`is-${status.kind}`}>{status.text}</span> : null}
@@ -3073,27 +3026,10 @@ function AuthStandaloneView({
           hidePassword: copy("hide_password", "Hide password"),
           showPassword: copy("show_password", "Show password"),
         }}
-        socialIcon={<TelegramIcon className="auth-social-icon-v2" />}
         onSignIn={submitAuth}
-        onGoogleSignIn={() => void startTelegramAuth()}
         onResetPassword={() => window.open("https://t.me/AsaselD", "_blank", "noopener,noreferrer")}
         onCreateAccount={() => setMode("register")}
         onLoginMode={() => setMode("login")}
-      />
-      <OTPDialog
-        open={telegramOtpOpen}
-        title={copy("telegram_code_title", "Telegram two-factor code")}
-        description={copy("telegram_code_description", "We opened Telegram with the same code flow as Version 1. Enter the 6-digit code from the bot to link this web account.")}
-        telegramUrl={telegramRequest?.botURL}
-        expiresAt={telegramRequest?.expiresAt ? prettyDate(telegramRequest.expiresAt) : ""}
-        verifying={busy === "telegram-code-verify"}
-        resending={busy === "telegram-code"}
-        onVerify={verifyTelegramAuth}
-        onResend={async () => Boolean(await startTelegramAuth())}
-        onClose={() => {
-          setTelegramOtpOpen(false);
-          setTelegramRequest(null);
-        }}
       />
     </>
   );
@@ -6103,30 +6039,34 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
   };
   return (
     <div className="offline-decks-v2">
-      <section className="v2-panel offline-hero-v2">
-        <span className="eyebrow"><WifiOff size={15} />{copy("offline_decks", "Offline decks")}</span>
-        <h2>{copy("offline_decks_title", "PWA mini-decks для повторения")}</h2>
-        <p>{copy("offline_decks_body", "Мини-колоды сохраняются в браузере и доступны без Telegram. Service worker кэширует web shell.")}</p>
-        <div className="home-insights-v2__actions">
-          <Button onClick={() => void refreshDeck()} disabled={busy === "vocabulary" || busy === "mistakes"}><Repeat2 size={16} />{copy("refresh_deck", "Обновить колоду")}</Button>
-          <Button variant="outline" onClick={() => downloadDeck("txt")} disabled={!visibleDeck.length}><Download size={16} />TXT</Button>
-          <Button variant="outline" onClick={() => downloadDeck("json")} disabled={!visibleDeck.length}><Download size={16} />JSON</Button>
-        </div>
-      </section>
       <section className="v2-panel offline-deck-list-v2">
-        <span className="eyebrow">{copy("saved_offline", "Saved offline")}</span>
-        <h2>{deck.length ? `${deck.length} ${copy("cards", "cards")}` : copy("no_offline_cards", "Колода пока пустая")}</h2>
-        <div className="offline-group-tabs-v2" role="tablist" aria-label={copy("offline_grouping", "Группировка колоды")}>
-          {[
-            { id: "all", label: copy("all", "Все") },
-            { id: "vocabulary", label: copy("words", "Слова") },
-            { id: "phrasebook", label: copy("phrasebook", "Заметки") },
-            { id: "mistakes", label: copy("mistakes", "Ошибки") },
-          ].map((option) => (
-            <button key={option.id} type="button" className={group === option.id ? "is-active" : ""} onClick={() => setGroup(option.id as OfflineDeckItem["source"] | "all")}>
-              {option.label}
-            </button>
-          ))}
+        <div className="offline-deck-head-v2">
+          <div className="offline-deck-summary-v2">
+            <span className="eyebrow">{copy("saved_offline", "Saved offline")}</span>
+            <h2>{deck.length ? `${deck.length} ${copy("cards", "cards")}` : copy("no_offline_cards", "Колода пока пустая")}</h2>
+            <div className="offline-group-tabs-v2" role="tablist" aria-label={copy("offline_grouping", "Группировка колоды")}>
+              {[
+                { id: "all", label: copy("all", "Все") },
+                { id: "vocabulary", label: copy("words", "Слова") },
+                { id: "phrasebook", label: copy("phrasebook", "Заметки") },
+                { id: "mistakes", label: copy("mistakes", "Ошибки") },
+              ].map((option) => (
+                <button key={option.id} type="button" className={group === option.id ? "is-active" : ""} onClick={() => setGroup(option.id as OfflineDeckItem["source"] | "all")}>
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="offline-hero-v2">
+            <span className="eyebrow"><WifiOff size={15} />{copy("offline_decks", "Offline decks")}</span>
+            <h2>{copy("offline_decks_title", "PWA mini-decks для повторения")}</h2>
+            <p>{copy("offline_decks_body", "Мини-колоды сохраняются в браузере и доступны без Telegram. Service worker кэширует web shell.")}</p>
+            <div className="home-insights-v2__actions">
+              <Button onClick={() => void refreshDeck()} disabled={busy === "vocabulary" || busy === "mistakes"}><Repeat2 size={16} />{copy("refresh_deck", "Обновить колоду")}</Button>
+              <Button variant="outline" onClick={() => downloadDeck("txt")} disabled={!visibleDeck.length}><Download size={16} />TXT</Button>
+              <Button variant="outline" onClick={() => downloadDeck("json")} disabled={!visibleDeck.length}><Download size={16} />JSON</Button>
+            </div>
+          </div>
         </div>
         <div className="offline-pagination-v2">
           <span>{copy("showing_cards_page", "Показано по 10")}: {visibleDeck.length ? `${safePage + 1}/${totalPages}` : "0/0"}</span>
@@ -6168,6 +6108,20 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
   const reviewCount = Number(user.word_game_count || 0);
   const voiceCount = Number(user.voice_today || 0);
   const mistakeCount = Number(user.mistakes || mistakes.length || 0);
+  const weekLessons = habitWeekTotal(user.habit_log, "lessons") || Number(user.lessons_today || 0);
+  const weekPractice = habitWeekTotal(user.habit_log, "practice") || Number(user.practice_today || 0);
+  const weekVoice = habitWeekTotal(user.habit_log, "voice") || Number(user.voice_today || 0);
+  const weeklyBalance = [
+    { label: copy("words_learned", "Слов изучено"), value: Math.min(learnedWords, 70), goal: 70 },
+    { label: copy("phrases_practiced", "Фраз отработано"), value: weekPractice, goal: weeklyGoalFromDailyLimit(user.practice_limit, 2) },
+    { label: copy("lessons_completed", "Уроков пройдено"), value: weekLessons, goal: weeklyGoalFromDailyLimit(user.lesson_limit, 1) },
+    { label: copy("review_rounds", "Повторений"), value: Math.min(reviewCount, 56), goal: 56 },
+    { label: copy("voice_attempts", "Озвучено"), value: weekVoice, goal: weeklyGoalFromDailyLimit(user.voice_limit, 1) },
+  ].map((metric) => ({
+    ...metric,
+    value: Math.max(0, Math.round(Number(metric.value || 0))),
+    goal: Math.max(1, Math.round(Number(metric.goal || 1))),
+  }));
   const learningMetrics = [
     { label: copy("words_learned", "Слов изучено"), value: learnedWords, icon: Brain },
     { label: copy("phrases_practiced", "Фраз отработано"), value: practiceCount, icon: MessageCircle },
@@ -6219,9 +6173,9 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
         <span className="eyebrow">{copy("weekly_rhythm", "Weekly rhythm")}</span>
         <h2>{copy("training_balance", "Баланс тренировки")}</h2>
         <div className="dashboard-rhythm-v2__bars">
-          {learningMetrics.slice(0, 5).map((metric, index) => (
-            <span key={metric.label} style={{ "--bar": `${Math.min(100, 22 + Number(metric.value || 0) * 9 + index * 5)}%` } as CSSProperties}>
-              <small>{metric.label}</small>
+          {weeklyBalance.map((metric) => (
+            <span key={metric.label} style={{ "--bar": `${Math.min(100, Math.round((metric.value / metric.goal) * 100))}%` } as CSSProperties}>
+              <small>{metric.label}<em>{metric.value}/{metric.goal}</em></small>
               <b />
             </span>
           ))}

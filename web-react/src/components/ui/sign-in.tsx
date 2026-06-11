@@ -88,6 +88,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const isRegister = mode === "register";
+  const hasSocialSignIn = Boolean(onGoogleSignIn);
   void heroImageSrc;
   void testimonials;
 
@@ -164,15 +165,19 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               </button>
             </form>
 
-            <div className="animate-element animate-delay-700 relative flex items-center justify-center">
-              <span className="w-full border-t border-[color:var(--line)]"></span>
-              <span className="absolute bg-[color:var(--bg)] px-4 text-sm text-[color:var(--muted)]">{labels.divider || "Or continue with"}</span>
-            </div>
+            {hasSocialSignIn ? (
+              <>
+                <div className="animate-element animate-delay-700 relative flex items-center justify-center">
+                  <span className="w-full border-t border-[color:var(--line)]"></span>
+                  <span className="absolute bg-[color:var(--bg)] px-4 text-sm text-[color:var(--muted)]">{labels.divider || "Or continue with"}</span>
+                </div>
 
-            <button type="button" onClick={onGoogleSignIn} className="auth-social-button-v2 animate-element animate-delay-800 flex w-full items-center justify-center gap-3 rounded-2xl border border-[color:var(--line)] py-3 transition-colors hover:bg-[color:var(--surface-muted)]">
-              {socialIcon || <GoogleIcon />}
-              {labels.social || "Continue with Google"}
-            </button>
+                <button type="button" onClick={onGoogleSignIn} className="auth-social-button-v2 animate-element animate-delay-800 flex w-full items-center justify-center gap-3 rounded-2xl border border-[color:var(--line)] py-3 transition-colors hover:bg-[color:var(--surface-muted)]">
+                  {socialIcon || <GoogleIcon />}
+                  {labels.social || "Continue with Google"}
+                </button>
+              </>
+            ) : null}
 
             <p className="animate-element animate-delay-900 text-center text-sm text-[color:var(--muted)]">
               {isRegister ? labels.loginPrompt || "Already have an account?" : labels.createPrompt || "New to our platform?"}{" "}

@@ -1464,42 +1464,21 @@ test("auth login page uses React sign-in component, Cloudflare slot and current 
   await expect(page).toHaveURL(/\/app$/);
 });
 
-test("auth Telegram button opens existing 6 digit OTP flow", async ({ page }) => {
+test("auth login and registration do not expose Telegram entry", async ({ page }) => {
   await mockAnonymousAuth(page);
-  let telegramStatusPayload: Record<string, unknown> | null = null;
   let telegramStartPayload: Record<string, unknown> | null = null;
   await page.route("**/api/auth/telegram/start", (route) => {
     telegramStartPayload = route.request().postDataJSON();
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ token: "tg-token", status: "pending", bot_url: "https://t.me/poliglot_ai_bot?start=code_123456", expires_at: "2026-05-27T01:38:00+03:00" }),
-    });
-  });
-  await page.route("**/api/auth/telegram/status", async (route) => {
-    telegramStatusPayload = route.request().postDataJSON();
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) });
+    return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "telegram disabled" }) });
   });
 
   await page.goto("/app/login");
-  const telegramIcon = await page.locator(".auth-social-icon-v2").boundingBox();
-  expect(telegramIcon).not.toBeNull();
-  expect(telegramIcon!.width).toBeLessThanOrEqual(24);
-  expect(telegramIcon!.height).toBeLessThanOrEqual(24);
-  await page.getByRole("button", { name: /Telegram/ }).click();
+  await expect(page.getByRole("button", { name: /Telegram/ })).toHaveCount(0);
+  await expect(page.locator(".auth-social-button-v2")).toHaveCount(0);
   await expect(page.locator(".otp-dialog-v2")).toHaveCount(0);
-  await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_privacy_required"));
-  await page.locator('input[name="privacy_consent"]').check();
-  await page.getByRole("button", { name: /Telegram/ }).click();
-  await expect(page.locator(".otp-dialog-v2")).toBeVisible();
-  await expect.poll(() => telegramStartPayload).toMatchObject({ privacy_consent: true });
-  await expect(page.locator(".otp-dialog-v2__inputs input")).toHaveCount(6);
-  await page.locator("#otp-0").click();
-  await page.keyboard.type("123456");
-  await expect.poll(async () => page.locator(".otp-dialog-v2__inputs input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value).join(""))).toBe("123456");
-  await page.locator(".otp-dialog-v2__actions button").first().click();
-  await expect.poll(() => telegramStatusPayload).toEqual({ token: "tg-token", code: "123456" });
-  await expect(page).toHaveURL(/\/app$/);
+  await page.getByRole("link", { name: appCopy("en", "auth_create_account") }).click();
+  await expect(page.getByRole("button", { name: /Telegram/ })).toHaveCount(0);
+  expect(telegramStartPayload).toBeNull();
 });
 
 test("desktop Today has no top quick buttons, has compact quests and a green streak", async ({ page, isMobile }) => {
@@ -2548,6 +2527,67 @@ test("main mobile and desktop views have scrollable output without mojibake", as
     }));
     expect(metrics.scrollHeight).toBeGreaterThanOrEqual(metrics.clientHeight);
   }
+});
+
+test("regression: desktop offline controls are folded into the deck panel on the right", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.goto("/app/?view=offline");
+  await expect(page.locator(".context-display--offline")).toBeVisible();
+  const panelBox = await page.locator(".offline-deck-list-v2").boundingBox();
+  const summaryBox = await page.locator(".offline-deck-summary-v2").boundingBox();
+  const controlsBox = await page.locator(".offline-hero-v2").boundingBox();
+  expect(panelBox).not.toBeNull();
+  expect(summaryBox).not.toBeNull();
+  expect(controlsBox).not.toBeNull();
+  expect(controlsBox!.x).toBeGreaterThan(summaryBox!.x + summaryBox!.width - 8);
+  expect(controlsBox!.x + controlsBox!.width).toBeLessThanOrEqual(panelBox!.x + panelBox!.width + 2);
+  expect(controlsBox!.y).toBeGreaterThanOrEqual(panelBox!.y + 12);
+  expect(controlsBox!.y + controlsBox!.height).toBeLessThan(panelBox!.y + panelBox!.height);
+});
+
+test("regression: dashboard training balance uses the current week and does not max every bar", async ({ page }) => {
+  const today = new Date();
+  const dayKey = (offset: number) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - offset);
+    return date.toISOString().slice(0, 10);
+  };
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      lesson_limit: 2,
+      practice_limit: 2,
+      voice_limit: 2,
+      lessons_today: 1,
+      practice_today: 0,
+      voice_today: 0,
+      lesson_count: 42,
+      practice_count: 42,
+      word_game_count: 42,
+      learned_words: 42,
+      habit_log: {
+        [dayKey(0)]: { login: true, complete: false, lessons: 1, practice: 0, voice: 0 },
+        [dayKey(1)]: { login: true, complete: true, lessons: 1, practice: 1, voice: 0 },
+        [dayKey(2)]: { login: true, complete: false, lessons: 0, practice: 1, voice: 0 },
+        [dayKey(8)]: { login: true, complete: true, lessons: 7, practice: 7, voice: 7 },
+      },
+    },
+  };
+  await page.goto("/app/?view=dashboard");
+  await expect(page.locator(".dashboard-rhythm-v2")).toBeVisible();
+  const barRatios = await page.locator(".dashboard-rhythm-v2__bars span").evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const row = node as HTMLElement;
+      const bar = row.querySelector("b") as HTMLElement | null;
+      const rowWidth = row.getBoundingClientRect().width;
+      const barWidth = bar?.getBoundingClientRect().width || 0;
+      return Number((barWidth / Math.max(1, rowWidth)).toFixed(2));
+    }),
+  );
+  expect(barRatios.length).toBeGreaterThanOrEqual(5);
+  expect(barRatios.filter((ratio) => ratio < 0.7).length).toBeGreaterThanOrEqual(3);
+  expect(Math.max(...barRatios)).toBeLessThan(0.95);
 });
 
 test("regression: chat messages show sender first and full-width text below it", async ({ page }) => {
