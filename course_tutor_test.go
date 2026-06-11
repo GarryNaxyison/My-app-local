@@ -237,6 +237,94 @@ func TestTutorDoctorLessonHasTeachingPointAndFinalWordCheck(t *testing.T) {
 			t.Fatalf("final word check misses %q:\n%s", want, combined)
 		}
 	}
+	for _, item := range lesson.FinalWordCheck.Items {
+		correct := tutorCorrectChoiceText(t, item)
+		if correct != "" && strings.Contains(strings.ToLower(item.Prompt), strings.ToLower(correct)) {
+			t.Fatalf("final word prompt reveals correct answer %q in %q", correct, item.Prompt)
+		}
+	}
+}
+
+func TestTutorFinalWordCheckUsesRecallChoicesWithoutRevealingAnswer(t *testing.T) {
+	words := []tutorLessonWord{
+		{ID: "w1", Word: "coffee", Translation: "hot drink", Level: "A1"},
+		{ID: "w2", Word: "breakfast", Translation: "morning meal", Level: "A1"},
+		{ID: "w3", Word: "menu", Translation: "food list", Level: "A1"},
+		{ID: "w4", Word: "ticket", Translation: "travel paper", Level: "A1"},
+		{ID: "w5", Word: "station", Translation: "train place", Level: "A1"},
+	}
+	template := tutorScenarioTemplate{Item: "coffee", Detail: "breakfast"}
+	check := buildTutorFinalWordCheck(words, template, "en")
+	if len(check.Items) < 4 {
+		t.Fatalf("final word check items = %d, want at least 4", len(check.Items))
+	}
+	for _, item := range check.Items {
+		if len(item.Options) != 4 {
+			t.Fatalf("final word check option count = %d, want 4 in %#v", len(item.Options), item)
+		}
+		correct := tutorCorrectChoiceText(t, item)
+		if !tutorLessonWordsContain(words, correct) {
+			t.Fatalf("correct option = %q, want one of target lesson words in %#v", correct, item)
+		}
+		if strings.Contains(strings.ToLower(item.Prompt), strings.ToLower(correct)) {
+			t.Fatalf("prompt reveals correct answer %q in %q", correct, item.Prompt)
+		}
+	}
+}
+
+func TestTutorLessonNonEnglishTargetMaterialAvoidsEnglishScenarioTemplates(t *testing.T) {
+	user := userState{TelegramID: 195, FirstName: "demo", InterfaceLanguage: "en", LearningLanguage: "es", Level: "A1"}
+	lesson, err := buildTutorLessonForSequence(user, 1)
+	if err != nil {
+		t.Fatalf("buildTutorLessonForSequence(es) error = %v", err)
+	}
+	combined := strings.ToLower(strings.Join(append([]string{lesson.ListeningText, lesson.PronunciationText}, lesson.Dialogue...), "\n"))
+	for _, forbidden := range []string{"good morning", "could i", "i need", "thank you", "please"} {
+		if strings.Contains(combined, forbidden) {
+			t.Fatalf("non-English tutor material leaked English scenario phrase %q:\n%s", forbidden, combined)
+		}
+	}
+}
+
+func TestTutorLessonBuildsValidTargetMaterialForEveryLearningLanguage(t *testing.T) {
+	if len(learningLanguages) != 35 {
+		t.Fatalf("learningLanguages = %d, want 35", len(learningLanguages))
+	}
+	for _, language := range learningLanguages {
+		t.Run(language.Code, func(t *testing.T) {
+			user := userState{TelegramID: 196, FirstName: "demo", InterfaceLanguage: "en", LearningLanguage: language.Code, Level: "A1"}
+			lesson, err := buildTutorLessonForSequence(user, 1)
+			if err != nil {
+				t.Fatalf("buildTutorLessonForSequence(%s) error = %v", language.Code, err)
+			}
+			if lesson.LearningLanguage != language.Code {
+				t.Fatalf("learning language = %q, want %q", lesson.LearningLanguage, language.Code)
+			}
+			if len(lesson.Words) < 4 {
+				t.Fatalf("words = %d, want at least 4", len(lesson.Words))
+			}
+			if len(lesson.WritingExpected) == 0 || len(lesson.ListeningExpected) == 0 {
+				t.Fatalf("expected target words are missing: writing=%#v listening=%#v", lesson.WritingExpected, lesson.ListeningExpected)
+			}
+			for _, expected := range append(append([]string{}, lesson.WritingExpected...), lesson.ListeningExpected...) {
+				if !tutorLessonWordsContain(lesson.Words, expected) && language.Code != "en" {
+					t.Fatalf("expected word %q is not one of target lesson words %#v", expected, tutorLessonWordTexts(lesson.Words, 8))
+				}
+			}
+			if language.Code == "en" {
+				return
+			}
+			combined := strings.ToLower(strings.Join(append(
+				[]string{lesson.TeachingPoint.Pattern, lesson.TeachingPoint.ModelAnswer, lesson.ListeningText, lesson.PronunciationText},
+				append(lesson.Dialogue, tutorVariantTexts(append(lesson.AnswerVariants, lesson.DialogueVariants...))...)...,
+			), "\n"))
+			for _, forbidden := range []string{"good morning", "could i", "i'd like", "i need", "thank you", "would you like"} {
+				if strings.Contains(combined, forbidden) {
+					t.Fatalf("%s tutor target material leaked English scenario phrase %q:\n%s", language.Code, forbidden, combined)
+				}
+			}
+		})
+	}
 }
 
 func TestTutorAnswerSlotFeedbackNamesMissingDetail(t *testing.T) {
@@ -249,6 +337,15 @@ func TestTutorAnswerSlotFeedbackNamesMissingDetail(t *testing.T) {
 	if !strings.Contains(strings.ToLower(feedback), "doctor") {
 		t.Fatalf("feedback should mention present item doctor, got %q", feedback)
 	}
+}
+
+func tutorLessonWordsContain(words []tutorLessonWord, text string) bool {
+	for _, word := range words {
+		if strings.EqualFold(strings.TrimSpace(word.Word), strings.TrimSpace(text)) {
+			return true
+		}
+	}
+	return false
 }
 
 func TestTutorLessonStepsIncludeFinalCheckBeforeReview(t *testing.T) {

@@ -482,6 +482,9 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 	scenarioTemplate := tutorScenarioTemplateFor(topic, courseFunction, interfaceLanguage)
 	review := selectTutorReviewWords(user, interfaceLanguage, language, 3)
 	checks := tutorScenarioChecks(words, topic, courseFunction, interfaceLanguage)
+	if language != "en" {
+		checks = tutorTargetWordRecallChecks(words, interfaceLanguage)
+	}
 	choice := checks[0]
 	languageName := learningLanguageByCode(language).ExplanationName
 	topicTitle := tutorTopicTitle(topic, interfaceLanguage)
@@ -513,18 +516,18 @@ func buildTutorLessonForSequence(user userState, lessonSequence int) (tutorLesso
 		CanDo:             tutorCanDo(level, topic, courseFunction, interfaceLanguage),
 		Scenario:          tutorTopicScenario(topic, interfaceLanguage) + " " + tutorVariantConstraint(variant, interfaceLanguage),
 		ScenarioSlots:     tutorScenarioSlotsFromTemplate(scenarioTemplate, interfaceLanguage),
-		TeachingPoint:     tutorTeachingPointFor(scenarioTemplate, interfaceLanguage),
-		FinalWordCheck:    buildTutorFinalWordCheck(words, scenarioTemplate, interfaceLanguage),
+		TeachingPoint:     tutorTeachingPointForLanguage(scenarioTemplate, words, language, interfaceLanguage),
+		FinalWordCheck:    buildTutorFinalWordCheck(words, tutorFinalWordTemplateForLanguage(scenarioTemplate, language), interfaceLanguage),
 		TutorSummary:      tutorSummaryForLesson(words, scenarioTemplate, courseFunction, interfaceLanguage),
 		Steps:             tutorLessonSteps(interfaceLanguage),
 		Words:             words,
 		GrammarTitle:      tutorScenarioGrammarTitle(level, courseFunction, interfaceLanguage),
 		Grammar:           tutorScenarioGrammarBody(level, languageName, topic, courseFunction, interfaceLanguage),
-		MiniExplanation:   tutorMiniExplanation(level, topic, courseFunction, words, interfaceLanguage),
+		MiniExplanation:   tutorMiniExplanationForLanguage(level, topic, courseFunction, words, language, interfaceLanguage),
 		Choice:            choice,
 		Checks:            checks,
-		WritingTask:       tutorWritingTask(first, second, topic, courseFunction, interfaceLanguage),
-		WritingExpected:   tutorScenarioExpectedWords(scenarioTemplate),
+		WritingTask:       tutorWritingTaskForLanguage(first, second, topic, courseFunction, language, interfaceLanguage),
+		WritingExpected:   tutorExpectedWordsForLanguage(words, scenarioTemplate, language),
 		AnswerVariants:    tutorAnswerVariants(words, topic, courseFunction, language, interfaceLanguage, false),
 		ListeningTask:     tutorListeningTask(topic, courseFunction, interfaceLanguage),
 		ListeningText:     listeningText,
@@ -863,6 +866,20 @@ func tutorTeachingPointFor(template tutorScenarioTemplate, interfaceLanguage str
 	}
 }
 
+func tutorTeachingPointForLanguage(template tutorScenarioTemplate, words []tutorLessonWord, language string, interfaceLanguage string) tutorTeachingPoint {
+	if normalizeLearningLanguage(language) == "en" {
+		return tutorTeachingPointFor(template, interfaceLanguage)
+	}
+	model := tutorTargetPracticeLine(words, 4)
+	return tutorTeachingPoint{
+		Title:       tutorLocalized(interfaceLanguage, "Target-language pattern", "Target-language pattern"),
+		Pattern:     model,
+		SceneOrder:  tutorTargetSceneOrder(words, 3),
+		Explanation: tutorTargetPracticeExplanation(words, interfaceLanguage),
+		ModelAnswer: model,
+	}
+}
+
 func buildTutorFinalWordCheck(words []tutorLessonWord, template tutorScenarioTemplate, interfaceLanguage string) tutorFinalWordCheck {
 	items := tutorWordCheckItems(words, template, interfaceLanguage)
 	required := tutorMinInt(len(items), tutorMaxInt(2, len(items)-1))
@@ -875,42 +892,122 @@ func buildTutorFinalWordCheck(words []tutorLessonWord, template tutorScenarioTem
 	}
 }
 
+func tutorFinalWordTemplateForLanguage(template tutorScenarioTemplate, language string) tutorScenarioTemplate {
+	if normalizeLearningLanguage(language) == "en" {
+		return template
+	}
+	return tutorScenarioTemplate{}
+}
+
 func tutorWordCheckItems(words []tutorLessonWord, template tutorScenarioTemplate, interfaceLanguage string) []tutorLessonChoice {
 	items := make([]tutorLessonChoice, 0, 4)
 	seen := map[string]bool{}
-	addWord := func(wordText string) {
-		wordText = strings.TrimSpace(wordText)
-		key := strings.ToLower(wordText)
-		if wordText == "" || seen[key] {
+	addChoice := func(choice tutorLessonChoice) {
+		key := strings.ToLower(strings.TrimSpace(choice.CorrectAnswerID))
+		if key == "" {
+			key = strings.ToLower(strings.TrimSpace(choice.Prompt))
+		}
+		if key == "" || seen[key] || len(choice.Options) == 0 {
 			return
 		}
-		for _, word := range words {
-			if !strings.EqualFold(strings.TrimSpace(word.Word), wordText) {
-				continue
-			}
-			ordered := []tutorLessonWord{word}
-			for _, candidate := range words {
-				if candidate.ID == word.ID || strings.EqualFold(candidate.Word, word.Word) {
-					continue
-				}
-				ordered = append(ordered, candidate)
-			}
-			items = append(items, tutorChoiceFromWords(ordered, interfaceLanguage))
-			seen[key] = true
-			return
-		}
-		items = append(items, tutorSlotWordChoice(wordText, words, interfaceLanguage))
 		seen[key] = true
+		items = append(items, choice)
 	}
-	addWord(template.Item)
-	addWord(template.Detail)
-	for _, word := range words {
-		addWord(word.Word)
+	addSlot := func(slot string) {
+		slot = strings.TrimSpace(slot)
+		if slot == "" {
+			return
+		}
+		for index, word := range words {
+			if strings.EqualFold(strings.TrimSpace(word.Word), slot) {
+				addChoice(tutorTargetWordRecallChoice(word, words, index, interfaceLanguage))
+				return
+			}
+		}
+		addChoice(tutorSlotWordChoice(slot, words, interfaceLanguage))
+	}
+	addSlot(template.Item)
+	addSlot(template.Detail)
+	for index, word := range words {
+		if strings.TrimSpace(word.ID) == "" || strings.TrimSpace(word.Word) == "" {
+			continue
+		}
+		addChoice(tutorTargetWordRecallChoice(word, words, index, interfaceLanguage))
 		if len(items) >= 4 {
 			break
 		}
 	}
 	return items
+}
+
+func tutorTargetWordRecallChecks(words []tutorLessonWord, interfaceLanguage string) []tutorLessonChoice {
+	items := tutorWordCheckItems(words, tutorScenarioTemplate{}, interfaceLanguage)
+	if len(items) == 0 {
+		return []tutorLessonChoice{tutorChoiceFromWords(words, interfaceLanguage)}
+	}
+	return items
+}
+
+func tutorTargetWordRecallChoice(correct tutorLessonWord, words []tutorLessonWord, wordIndex int, interfaceLanguage string) tutorLessonChoice {
+	options := make([]tutorChoiceOption, 0, 4)
+	seen := map[string]bool{}
+	addOption := func(word tutorLessonWord, avoid bool) {
+		text := strings.TrimSpace(word.Word)
+		id := strings.TrimSpace(word.ID)
+		if text == "" || id == "" {
+			return
+		}
+		key := strings.ToLower(text)
+		if seen[key] {
+			return
+		}
+		seen[key] = true
+		options = append(options, tutorChoiceOption{
+			ID:      id,
+			Text:    text,
+			Skill:   "final-word",
+			Quality: map[bool]string{true: "distractor", false: "correct"}[avoid],
+			Avoid:   avoid,
+		})
+	}
+	addOption(correct, false)
+	for offset := 1; offset <= len(words) && len(options) < 4; offset++ {
+		candidate := words[(wordIndex+offset)%len(words)]
+		if candidate.ID == correct.ID || strings.EqualFold(candidate.Word, correct.Word) {
+			continue
+		}
+		addOption(candidate, true)
+	}
+	for _, candidate := range words {
+		if len(options) >= 4 {
+			break
+		}
+		if candidate.ID == correct.ID || strings.EqualFold(candidate.Word, correct.Word) {
+			continue
+		}
+		addOption(candidate, true)
+	}
+	return tutorLessonChoice{
+		Prompt:          tutorRecallCue(correct, wordIndex),
+		Options:         options,
+		CorrectAnswerID: correct.ID,
+		Feedback:        tutorLocalized(interfaceLanguage, "Word recalled.", "Word recalled."),
+	}
+}
+
+func tutorRecallCue(word tutorLessonWord, index int) string {
+	target := strings.ToLower(strings.TrimSpace(word.Word))
+	for _, candidate := range []string{word.Translation, word.Context, word.ExampleRu, word.PartOfSpeech} {
+		cue := strings.TrimSpace(candidate)
+		if cue == "" {
+			continue
+		}
+		if target != "" && strings.Contains(strings.ToLower(cue), target) {
+			continue
+		}
+		return cue
+	}
+	return fmt.Sprintf("Meaning %d", index+1)
 }
 
 func tutorSlotWordChoice(slot string, words []tutorLessonWord, interfaceLanguage string) tutorLessonChoice {
@@ -944,7 +1041,7 @@ func tutorSlotWordChoice(slot string, words []tutorLessonWord, interfaceLanguage
 		}
 	}
 	return tutorLessonChoice{
-		Prompt:          tutorLocalized(interfaceLanguage, "Choose the scene word: ", "Choose the scene word: ") + slot,
+		Prompt:          tutorLocalized(interfaceLanguage, "Выберите обязательное слово сцены.", "Choose the required scenario word."),
 		Options:         options,
 		CorrectAnswerID: options[0].ID,
 		Feedback:        tutorLocalized(interfaceLanguage, "Correct: this word belongs to the lesson pattern.", "Correct: this word belongs to the lesson pattern."),
@@ -1372,6 +1469,13 @@ func tutorMiniExplanation(level string, topic tutorTopic, function tutorCourseFu
 	return template.MiniExplanationEN
 }
 
+func tutorMiniExplanationForLanguage(level string, topic tutorTopic, function tutorCourseFunction, words []tutorLessonWord, language string, interfaceLanguage string) string {
+	if normalizeLearningLanguage(language) == "en" {
+		return tutorMiniExplanation(level, topic, function, words, interfaceLanguage)
+	}
+	return tutorTargetPracticeExplanation(words, interfaceLanguage)
+}
+
 func tutorWritingTask(first tutorLessonWord, second tutorLessonWord, topic tutorTopic, function tutorCourseFunction, interfaceLanguage string) string {
 	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" {
@@ -1380,7 +1484,21 @@ func tutorWritingTask(first tutorLessonWord, second tutorLessonWord, topic tutor
 	return template.WritingTaskEN
 }
 
+func tutorWritingTaskForLanguage(first tutorLessonWord, second tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string) string {
+	if normalizeLearningLanguage(language) == "en" {
+		return tutorWritingTask(first, second, topic, function, interfaceLanguage)
+	}
+	targets := strings.Join(tutorLessonWordTexts([]tutorLessonWord{first, second}, 2), ", ")
+	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" {
+		return "Напишите одну короткую фразу на изучаемом языке, используя: " + targets + "."
+	}
+	return "Write one short target-language line using: " + targets + "."
+}
+
 func tutorAnswerVariants(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string, dialogue bool) []tutorAnswerVariant {
+	if normalizeLearningLanguage(language) != "en" {
+		return tutorTargetAnswerVariants(words, topic, language, interfaceLanguage, dialogue)
+	}
 	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	lines := template.WritingVariants
 	prefix := "writing"
@@ -1398,6 +1516,48 @@ func tutorAnswerVariants(words []tutorLessonWord, topic tutorTopic, function tut
 		}
 		seen[key] = true
 		variants = append(variants, tutorScenarioVariantToAnswer(prefix, index, line, interfaceLanguage))
+	}
+	return variants
+}
+
+func tutorTargetAnswerVariants(words []tutorLessonWord, topic tutorTopic, language string, interfaceLanguage string, dialogue bool) []tutorAnswerVariant {
+	first := tutorWordOrFallback(words, 0, "word-1")
+	second := tutorWordOrFallback(words, 1, "word-2")
+	third := tutorWordOrFallback(words, 2, "word-3")
+	fourth := tutorWordOrFallback(words, 3, "word-4")
+	lines := tutorVariantLines(topic, language, first, second, third, fourth, dialogue)
+	labels := []string{
+		tutorLocalized(interfaceLanguage, "Base answer", "Base answer"),
+		tutorLocalized(interfaceLanguage, "Natural answer", "Natural answer"),
+		tutorLocalized(interfaceLanguage, "Stronger answer", "Stronger answer"),
+		tutorLocalized(interfaceLanguage, "Do not use", "Do not use"),
+	}
+	whys := []string{
+		tutorLocalized(interfaceLanguage, "Uses the first target words.", "Uses the first target words."),
+		tutorLocalized(interfaceLanguage, "Adds one more target word.", "Adds one more target word."),
+		tutorLocalized(interfaceLanguage, "Uses more lesson words for a fuller answer.", "Uses more lesson words for a fuller answer."),
+		tutorLocalized(interfaceLanguage, "This is a word list, not a natural answer.", "This is a word list, not a natural answer."),
+	}
+	levels := []string{"A1", "A2", "B1", "avoid"}
+	prefix := "writing"
+	if dialogue {
+		prefix = "dialogue"
+	}
+	variants := make([]tutorAnswerVariant, 0, len(lines))
+	for index, text := range lines {
+		text = strings.TrimSpace(text)
+		if text == "" {
+			continue
+		}
+		variants = append(variants, tutorAnswerVariant{
+			ID:      fmt.Sprintf("%s:%d", prefix, index+1),
+			Label:   labels[tutorMinInt(index, len(labels)-1)],
+			Text:    text,
+			Why:     whys[tutorMinInt(index, len(whys)-1)],
+			Level:   levels[tutorMinInt(index, len(levels)-1)],
+			UseCase: tutorLocalized(interfaceLanguage, "target words", "target words"),
+			Avoid:   index == len(lines)-1,
+		})
 	}
 	return variants
 }
@@ -1494,16 +1654,76 @@ func tutorListeningTask(topic tutorTopic, function tutorCourseFunction, interfac
 }
 
 func tutorListeningBlock(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string) (string, string, []string) {
+	if normalizeLearningLanguage(language) != "en" {
+		text := tutorTargetPracticeLine(words, 4)
+		question := tutorLocalized(interfaceLanguage, "Какие слова из урока вы услышали?", "Which lesson words did you hear?")
+		return text, question, tutorExpectedWordsForLanguage(words, tutorScenarioTemplate{}, language)
+	}
 	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	question := tutorLocalized(interfaceLanguage, template.ListeningQuestionRU, template.ListeningQuestionEN)
 	return template.ListeningText, question, append([]string{}, template.ListeningExpected...)
 }
 
 func tutorScenarioDialogue(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, language string, interfaceLanguage string) ([]string, string, string) {
+	if normalizeLearningLanguage(language) != "en" {
+		line := tutorTargetPracticeLine(words, 3)
+		prompt := tutorLocalized(interfaceLanguage, "Ответьте одной короткой фразой на изучаемом языке.", "Answer with one short target-language line.")
+		goal := tutorLocalized(interfaceLanguage, "Использовать слова урока: ", "Use lesson words: ") + strings.Join(tutorLessonWordTexts(words, 3), ", ")
+		return []string{line}, prompt, goal
+	}
 	template := tutorScenarioTemplateFor(topic, function, interfaceLanguage)
 	prompt := tutorLocalized(interfaceLanguage, template.DialoguePromptRU, template.DialoguePromptEN)
 	goal := tutorLocalized(interfaceLanguage, template.DialogueGoalRU, template.DialogueGoalEN)
 	return append([]string{}, template.DialogueLines...), prompt, goal
+}
+
+func tutorExpectedWordsForLanguage(words []tutorLessonWord, template tutorScenarioTemplate, language string) []string {
+	if normalizeLearningLanguage(language) == "en" {
+		return tutorScenarioExpectedWords(template)
+	}
+	return tutorLessonWordTexts(words, tutorMinInt(4, len(words)))
+}
+
+func tutorTargetPracticeLine(words []tutorLessonWord, limit int) string {
+	text := strings.Join(tutorLessonWordTexts(words, limit), " ")
+	if strings.TrimSpace(text) != "" {
+		return text
+	}
+	return "target language practice"
+}
+
+func tutorTargetSceneOrder(words []tutorLessonWord, limit int) []string {
+	order := []string{"target"}
+	for _, word := range tutorLessonWordTexts(words, limit) {
+		order = append(order, word)
+	}
+	return order
+}
+
+func tutorTargetPracticeExplanation(words []tutorLessonWord, interfaceLanguage string) string {
+	pairs := make([]string, 0, tutorMinInt(4, len(words)))
+	for _, word := range words {
+		wordText := strings.TrimSpace(word.Word)
+		translation := strings.TrimSpace(word.Translation)
+		if wordText == "" {
+			continue
+		}
+		if translation != "" {
+			pairs = append(pairs, wordText+" = "+translation)
+		} else {
+			pairs = append(pairs, wordText)
+		}
+		if len(pairs) >= 4 {
+			break
+		}
+	}
+	if len(pairs) == 0 {
+		return tutorLocalized(interfaceLanguage, "Use the lesson words in a short target-language line.", "Use the lesson words in a short target-language line.")
+	}
+	if normalizeInterfaceLanguage(interfaceLanguage) == "ru" {
+		return "Соберите короткую фразу на изучаемом языке из слов урока: " + strings.Join(pairs, "; ") + "."
+	}
+	return "Build one short target-language line from the lesson words: " + strings.Join(pairs, "; ") + "."
 }
 
 func tutorReviewSummary(words []tutorLessonWord, topic tutorTopic, function tutorCourseFunction, interfaceLanguage string) []string {
