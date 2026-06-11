@@ -1336,6 +1336,46 @@ func (s *sqliteStore) saveLesson(telegramID int64, prompt string) error {
 	})
 }
 
+func (s *sqliteStore) completeTutorLesson(telegramID int64, lessonID string, amount int) (bool, error) {
+	lessonID = strings.TrimSpace(lessonID)
+	if telegramID == 0 || lessonID == "" || amount <= 0 {
+		return false, nil
+	}
+	now := time.Now().UTC()
+	tx, err := s.db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	result, err := tx.Exec(
+		`UPDATE tutor_user_lessons
+		SET completed_at = ?
+		WHERE telegram_id = ? AND lesson_id = ? AND (completed_at = '' OR completed_at IS NULL)`,
+		formatDBTime(now),
+		telegramID,
+		lessonID,
+	)
+	if err != nil {
+		return false, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	if rows == 0 {
+		return false, nil
+	}
+	return true, s.updateUser(telegramID, func(user *userState) {
+		user.XP += amount
+		user.LessonCount++
+		user.LessonsToday++
+		recordHabitDay(user, now, true)
+	})
+}
+
 func (s *sqliteStore) nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error) {
 	language, interfaceLanguage, level := tutorLessonStorageContext(user)
 	tx, err := s.db.Begin()

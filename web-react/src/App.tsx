@@ -17,7 +17,9 @@ import {
   Check,
   CheckCircle,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
+  CircleHelp,
   CircleDollarSign,
   Clock,
   Download,
@@ -210,6 +212,7 @@ type DailyBonusNotice = {
 type XPGainNotice = {
   xp: number;
   total?: number;
+  title?: string;
 };
 
 type MistakeCategory = "grammar" | "word-order" | "vocabulary" | "politeness" | "spelling";
@@ -338,6 +341,15 @@ type TutorLesson = {
   };
   next_actions?: string[];
   source?: string;
+};
+
+type TutorCompletedLessonRecord = {
+  id: string;
+  title: string;
+  topic: string;
+  level: string;
+  completedAt: string;
+  lesson: TutorLesson;
 };
 
 function tutorStableHash(value: string) {
@@ -837,6 +849,47 @@ function asTutorLesson(value: unknown): TutorLesson | null {
   const lesson = value as TutorLesson;
   if (!lesson.id || !lesson.title) return null;
   return lesson;
+}
+
+function readTutorCompletedLessons(key: string): TutorCompletedLessonRecord[] {
+  if (!key) return [];
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((item) => {
+        const record = getRecord(item);
+        const lesson = asTutorLesson(record.lesson);
+        const id = cleanAppText(record.id || lesson?.id).trim();
+        if (!id || !lesson) return null;
+        return {
+          id,
+          title: cleanAppText(record.title || lesson.title).trim() || "AI Tutor",
+          topic: cleanAppText(record.topic || lesson.topic).trim(),
+          level: cleanAppText(record.level || lesson.level).trim(),
+          completedAt: cleanAppText(record.completedAt || record.completed_at).trim() || new Date().toISOString(),
+          lesson,
+        } satisfies TutorCompletedLessonRecord;
+      })
+      .filter((item): item is TutorCompletedLessonRecord => Boolean(item))
+      .sort((left, right) => right.completedAt.localeCompare(left.completedAt));
+  } catch {
+    return [];
+  }
+}
+
+function writeTutorCompletedLesson(key: string, lesson: TutorLesson) {
+  if (!key || !lesson?.id) return;
+  const record: TutorCompletedLessonRecord = {
+    id: lesson.id,
+    title: cleanAppText(lesson.title).trim() || "AI Tutor",
+    topic: cleanAppText(lesson.topic).trim(),
+    level: cleanAppText(lesson.level).trim(),
+    completedAt: new Date().toISOString(),
+    lesson,
+  };
+  const current = readTutorCompletedLessons(key).filter((item) => item.id !== record.id);
+  localStorage.setItem(key, JSON.stringify([record, ...current].slice(0, 100)));
 }
 
 function panelMessage(message: string, tone: ChatMessage["tone"] = "default", title = "Poliglot AI", details?: ApiRecord, meta?: string): ChatMessage {
@@ -1422,6 +1475,7 @@ export function App() {
   const [dailyBonus, setDailyBonus] = useState<DailyBonusNotice | null>(null);
   const [xpGain, setXPGain] = useState<XPGainNotice | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [selectedAwardLevel, setSelectedAwardLevel] = useState<number | null>(null);
   const [activationKey, setActivationKey] = useState("");
@@ -1562,11 +1616,11 @@ export function App() {
   const paymentHistoryKey = `poliglot-payment-history-v2:${accountKey}`;
   const habitKey = `poliglot-habit-v2:${accountKey}`;
 
-  const showXPGain = (xp: number, total?: number) => {
+  const showXPGain = (xp: number, total?: number, title?: string) => {
     const amount = Math.max(0, Math.round(Number(xp || 0)));
     if (!amount) return;
     if (xpGainTimerRef.current) window.clearTimeout(xpGainTimerRef.current);
-    setXPGain({ xp: amount, total: Number.isFinite(total) ? Math.round(Number(total)) : undefined });
+    setXPGain({ xp: amount, total: Number.isFinite(total) ? Math.round(Number(total)) : undefined, title });
     xpGainTimerRef.current = window.setTimeout(() => setXPGain(null), 2600);
   };
 
@@ -1745,7 +1799,7 @@ export function App() {
     return next;
   };
 
-  const absorbPayload = (payload: unknown, options?: { preserveLanguage?: boolean; suppressXPGain?: boolean }) => {
+  const absorbPayload = (payload: unknown, options?: { preserveLanguage?: boolean; suppressXPGain?: boolean; rewardTitle?: string }) => {
     const payloadUser = getPayloadUser(payload);
     if (!payloadUser) return;
     const nextUser = options?.preserveLanguage
@@ -1758,7 +1812,10 @@ export function App() {
     const previousXP = Number(user.xp || 0);
     const nextXP = Number(nextUser.xp || previousXP);
     if (!options?.suppressXPGain && Number.isFinite(nextXP) && nextXP > previousXP) {
-      showXPGain(nextXP - previousXP, nextXP);
+      const record = getRecord(payload);
+      const explicitRewardXP = Number(recordField(record, ["xp", "reward_xp", "awarded_xp"]));
+      const rewardXP = Number.isFinite(explicitRewardXP) && explicitRewardXP > 0 ? explicitRewardXP : nextXP - previousXP;
+      showXPGain(rewardXP, nextXP, options?.rewardTitle || recordField(record, ["reward_title", "source_title"]));
     }
     setSession((current) => updateSessionUser(current, nextUser));
   };
@@ -1768,7 +1825,11 @@ export function App() {
     setStatus(null);
     try {
       const payload = await action();
-      absorbPayload(payload, { preserveLanguage: label === "daily-bonus", suppressXPGain: label === "daily-bonus" });
+      absorbPayload(payload, {
+        preserveLanguage: label === "daily-bonus",
+        suppressXPGain: label === "daily-bonus",
+        rewardTitle: label === "tutor-complete" ? copy("ai_tutor", "AI Tutor") : undefined,
+      });
       if (success) setStatus({ kind: "ok", text: success });
       return payload;
     } catch (error) {
@@ -1832,6 +1893,21 @@ export function App() {
       ),
       ...current,
     ].slice(0, 12));
+    setView("tutor");
+  };
+
+  const completeTutorLesson = async (lessonId: string, review: string) => {
+    const payload = await runAction(
+      "tutor-complete",
+      () => api<ApiRecord>("/api/tutor/complete", { method: "POST", body: { lesson_id: lessonId, review } }),
+      copy("tutor_reward_saved", "Tutor lesson completed."),
+    );
+    return payload ? getRecord(payload) : null;
+  };
+
+  const openTutorLesson = (lesson: TutorLesson) => {
+    setTutorLoadError("");
+    setTutorLesson(lesson);
     setView("tutor");
   };
 
@@ -2585,6 +2661,8 @@ export function App() {
     tutorLesson,
     tutorLoadError,
     startTutor,
+    completeTutorLesson,
+    openTutorLesson,
     startLesson,
     submitLesson: () => submitLearningAnswer("lesson"),
     submitPractice: () => submitLearningAnswer("practice"),
@@ -2664,6 +2742,7 @@ export function App() {
     dailyBonus,
     claimDailyBonus,
     openBugReport: () => setBugReportOpen(true),
+    openGuide: () => setGuideOpen(true),
   };
 
   return (
@@ -2683,6 +2762,7 @@ export function App() {
           setView={activateView}
           busy={busy}
           onBugReport={() => setBugReportOpen(true)}
+          onGuide={() => setGuideOpen(true)}
         />
         {activeView === "home" ? (
           <MobileQuickControls
@@ -2694,15 +2774,19 @@ export function App() {
             onLogout={onLogout}
             onLanguageChange={(code) => saveSettings({ interface_language: code })}
             onBugReport={() => setBugReportOpen(true)}
+            onGuide={() => setGuideOpen(true)}
             busy={busy}
           />
         ) : null}
         {status ? <StatusBanner kind={status.kind} text={status.text} onClose={() => setStatus(null)} /> : null}
         {xpGain ? (
           <div className="xp-gain-pop-v2" role="status" aria-live="polite">
-            <Sparkles size={18} />
-            <strong>+{xpGain.xp} XP</strong>
-            {xpGain.total ? <span>XP {compactNumber(xpGain.total)}</span> : null}
+            <span className="xp-gain-pop-v2__burst" aria-hidden="true"><Sparkles size={26} /></span>
+            <span className="xp-gain-pop-v2__body">
+              <span className="xp-gain-pop-v2__label">{xpGain.title || copy("xp_gained_label", "XP gained")}</span>
+              <strong>+{xpGain.xp} XP</strong>
+              {xpGain.total ? <span className="xp-gain-pop-v2__total">XP {compactNumber(xpGain.total)}</span> : null}
+            </span>
           </div>
         ) : null}
         <FunctionRibbon
@@ -2749,10 +2833,11 @@ export function App() {
               runAction("bug-report", () => apiForm<ApiRecord>("/api/bug-report", form), copy("bug_report_sent", "Bug report saved."))
                 .then((payload) => {
                   if (payload) setBugReportOpen(false);
-                })
+              })
             }
           />
         ) : null}
+        {guideOpen ? <AppGuideDialog copy={copy} onClose={() => setGuideOpen(false)} /> : null}
         <main
           key={notFoundPath || activeView}
           className={cn("context-display", `context-display--${notFoundPath ? "not-found" : activeView}`)}
@@ -3379,6 +3464,7 @@ function TopBar({
   setView,
   busy,
   onBugReport,
+  onGuide,
 }: {
   user: UserProfile;
   session: SessionData;
@@ -3392,6 +3478,7 @@ function TopBar({
   setView: (view: ViewId) => void;
   busy: string | null;
   onBugReport: () => void;
+  onGuide: () => void;
 }) {
   const interfaceLanguages = session.interface_languages?.length ? session.interface_languages : [{ code: user.interface_language || "ru", native_name: user.interface_language || "ru" }];
   const accountLogin = cleanAppText(session.account?.login) || cleanAppText(user.telegram_account?.name) || copy("learner", "Learner");
@@ -3406,6 +3493,10 @@ function TopBar({
         </button>
       </div>
       <div className="v2-topbar__actions">
+        <button className="app-guide-button-v2" type="button" onClick={onGuide} aria-label={copy("app_guide_title", "Quick start guide")}>
+          <CircleHelp size={15} />
+          <span>{copy("guide", "Guide")}</span>
+        </button>
         <button className="v2-report-button" type="button" onClick={onBugReport}>
           <Bug size={15} />
           <span>{copy("report_bug", "Сообщить об ошибке")}</span>
@@ -3439,6 +3530,7 @@ function MobileQuickControls({
   onLogout,
   onLanguageChange,
   onBugReport,
+  onGuide,
   busy,
 }: {
   user: UserProfile;
@@ -3449,11 +3541,15 @@ function MobileQuickControls({
   onLogout: () => void;
   onLanguageChange: (code: string) => Promise<void>;
   onBugReport: () => void;
+  onGuide: () => void;
   busy: string | null;
 }) {
   const interfaceLanguages = session.interface_languages?.length ? session.interface_languages : [{ code: user.interface_language || "ru", native_name: user.interface_language || "ru" }];
   return (
     <div className="mobile-quick-controls-v2" aria-label={copy("mobile_quick_controls", "Mobile quick controls")}>
+      <button className="app-guide-button-v2" type="button" onClick={onGuide} aria-label={copy("app_guide_title", "Quick start guide")}>
+        <CircleHelp size={17} />
+      </button>
       <button className="mobile-report-button-v2" type="button" onClick={onBugReport} aria-label={copy("report_bug", "Сообщить об ошибке")}>
         <Bug size={17} />
       </button>
@@ -4191,7 +4287,7 @@ function BugReportDialog({
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
                 onPaste={addClipboardScreenshots}
-                placeholder={copy("problem_description_placeholder", "Например: в roleplay не открылась карточка диалога...")}
+                placeholder={copy("problem_description_placeholder", "Опишите Вашу проблему")}
                 rows={5}
               />
             </label>
@@ -4216,6 +4312,49 @@ function BugReportDialog({
             </Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AppGuideDialog({
+  copy,
+  onClose,
+}: {
+  copy: (key: string, fallback: string) => string;
+  onClose: () => void;
+}) {
+  const steps = [
+    { title: copy("app_guide_step_1_title", "Pick today's route"), body: copy("app_guide_step_1_body", "Start from Today: words, speaking, listening, and one repair.") },
+    { title: copy("app_guide_step_2_title", "Finish one AI tutor lesson"), body: copy("app_guide_step_2_body", "Move through the tutor tasks in order and complete the final review.") },
+    { title: copy("app_guide_step_3_title", "Save useful phrases"), body: copy("app_guide_step_3_body", "Add good answers and common fixes to notes for fast reuse.") },
+    { title: copy("app_guide_step_4_title", "Train weak spots"), body: copy("app_guide_step_4_body", "Open mistakes, pronunciation, and spelling to repair what blocked you.") },
+    { title: copy("app_guide_step_5_title", "Check progress"), body: copy("app_guide_step_5_body", "Use XP, level, streak, and completed lessons to choose the next session.") },
+  ];
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="v2-dialog-content app-guide-dialog-v2">
+        <DialogBody className="app-guide-dialog-v2__body">
+          <CircleHelp className="app-guide-dialog-v2__icon" size={42} />
+          <DialogTitle>{copy("app_guide_title", "Quick start guide")}</DialogTitle>
+          <DialogDescription>{copy("app_guide_body", "Five steps to start learning without hunting through menus.")}</DialogDescription>
+          <div className="app-guide-steps-v2">
+            {steps.map((step, index) => (
+              <article className="app-guide-step-v2" key={step.title}>
+                <strong>{index + 1}</strong>
+                <span><b>{step.title}</b><small>{step.body}</small></span>
+              </article>
+            ))}
+          </div>
+        </DialogBody>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button className="app-guide-back-v2" type="button" variant="outline" onClick={onClose}>
+              <ChevronLeft size={16} />
+              {copy("back", "Back")}
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -4494,6 +4633,8 @@ type ViewRendererProps = {
   tutorLesson: TutorLesson | null;
   tutorLoadError: string;
   startTutor: () => Promise<void>;
+  completeTutorLesson: (lessonId: string, review: string) => Promise<ApiRecord | null>;
+  openTutorLesson: (lesson: TutorLesson) => void;
   startLesson: () => Promise<void>;
   submitLesson: () => Promise<void>;
   submitPractice: () => Promise<void>;
@@ -4573,6 +4714,7 @@ type ViewRendererProps = {
   dailyBonus: DailyBonusNotice | null;
   claimDailyBonus: () => Promise<void>;
   openBugReport: () => void;
+  openGuide: () => void;
 };
 
 function ViewRenderer(props: ViewRendererProps) {
@@ -4599,7 +4741,7 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy, savePhrase }: ViewRendererProps) {
+function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, completeTutorLesson, openTutorLesson, busy, copy, savePhrase }: ViewRendererProps) {
   useEffect(() => {
     if (!tutorLesson && !busy && !tutorLoadError) void startTutor();
   }, [Boolean(tutorLesson), Boolean(busy), tutorLoadError]);
@@ -4628,8 +4770,12 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
   const [tutorPronunciationCorrection, setTutorPronunciationCorrection] = useState("");
   const [pendingAdvanceNote, setPendingAdvanceNote] = useState("");
   const [completedNotes, setCompletedNotes] = useState<Record<string, string>>({});
+  const [completedLessonsOpen, setCompletedLessonsOpen] = useState(false);
+  const [completedLessonPage, setCompletedLessonPage] = useState(0);
+  const [completedLessonsVersion, setCompletedLessonsVersion] = useState(0);
   const tutorProgressAccountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
   const tutorProgressKey = tutorLesson?.id ? `poliglot-tutor-progress-v2:${tutorProgressAccountKey}:${tutorLesson.id}` : "";
+  const tutorCompletedLessonsKey = `poliglot-tutor-completed-v2:${tutorProgressAccountKey}`;
   const tutorProgressSkipSaveRef = useRef("");
   const resetTutorProgressState = () => {
     setCurrentStageIndex(0);
@@ -4826,6 +4972,17 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
   const viewingPastStage = Boolean(activeStage && currentStageIndex < unlockedStageIndex);
   const completedCount = Math.min(unlockedStageIndex, tutorStages.length);
   const progressPercent = Math.round((completedCount / tutorStages.length) * 100);
+  const completedLessons = useMemo(
+    () => readTutorCompletedLessons(tutorCompletedLessonsKey),
+    [tutorCompletedLessonsKey, completedLessonsVersion, completedLessonsOpen],
+  );
+  const completedLessonPageSize = 10;
+  const completedLessonPageCount = Math.max(1, Math.ceil(completedLessons.length / completedLessonPageSize));
+  const safeCompletedLessonPage = Math.min(completedLessonPage, completedLessonPageCount - 1);
+  const visibleCompletedLessons = completedLessons.slice(
+    safeCompletedLessonPage * completedLessonPageSize,
+    safeCompletedLessonPage * completedLessonPageSize + completedLessonPageSize,
+  );
   const interfaceLocale = languageCode(user.interface_language);
   const localizedTutorTopic = (() => {
     const topic = display(tutorLesson?.topic);
@@ -4984,6 +5141,12 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
     setPendingAdvanceNote("");
   };
 
+  const rememberCompletedLesson = () => {
+    if (!tutorLesson) return;
+    writeTutorCompletedLesson(tutorCompletedLessonsKey, tutorLesson);
+    setCompletedLessonsVersion((version) => version + 1);
+  };
+
   const handleTutorAction = async () => {
     if (!activeStage || !tutorLesson) return;
     if (viewingPastStage) {
@@ -5138,6 +5301,13 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         setFeedbackTone("error");
         return;
       }
+      const payload = await completeTutorLesson(tutorLesson.id, srsSelection);
+      if (!payload) {
+        setFeedback(copy("request_failed", "Request failed"));
+        setFeedbackTone("error");
+        return;
+      }
+      rememberCompletedLesson();
       advanceTutorStage(`${copy("tutor_review_scheduled", "Review scheduled")}: ${srsSelection}`);
       return;
     }
@@ -5145,7 +5315,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
   };
 
   const primaryActionLabel = (() => {
-    if (tutorVoiceChecking) return copy("checking", "Checking...");
+    if (tutorVoiceChecking || busy === "tutor-complete") return copy("checking", "Checking...");
     if (!activeStage) return copy("tutor_continue", "Continue");
     if (viewingPastStage) return copy("tutor_back_to_current", "Back to current task");
     if (pendingAdvanceNote) return copy("tutor_next_step", "Next");
@@ -5427,10 +5597,16 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
             {tutorSourceLabel ? <span>{tutorSourceLabel}</span> : null}
           </div>
         </div>
-        <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
-          {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <Sparkles size={18} />}
-          <span>{copy("tutor_new_lesson", "New tutor lesson")}</span>
-        </Button>
+        <div className="tutor-hero__actions">
+          <Button className="tutor-completed-lessons-button-v2" type="button" variant="outline" onClick={() => { setCompletedLessonPage(0); setCompletedLessonsVersion((version) => version + 1); setCompletedLessonsOpen(true); }}>
+            <BookOpen size={17} />
+            <span>{copy("tutor_completed_lessons", "Completed lessons")}</span>
+          </Button>
+          <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
+            {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <Sparkles size={18} />}
+            <span>{copy("tutor_new_lesson", "New tutor lesson")}</span>
+          </Button>
+        </div>
       </section>
 
       {!tutorLesson ? (
@@ -5467,14 +5643,14 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
                   type="button"
                   className={cn("tutor-step-v2", index < unlockedStageIndex && "is-done", index === currentStageIndex && !viewingCompleteSummary && "is-active")}
                   onClick={() => {
-                    if (index <= unlockedStageIndex) {
+                    if (index === currentStageIndex && !viewingCompleteSummary) {
                       setCurrentStageIndex(index);
                       setFeedback("");
                       setFeedbackTone("idle");
                       setPendingAdvanceNote("");
                     }
                   }}
-                  disabled={index > unlockedStageIndex}
+                  disabled={index !== currentStageIndex || viewingCompleteSummary}
                 >
                   <span>{index < unlockedStageIndex ? <Check size={13} /> : index + 1}</span>
                   <strong>{stage.title}</strong>
@@ -5484,7 +5660,10 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
                 <button
                   type="button"
                   className={cn("tutor-step-v2", viewingCompleteSummary && "is-active")}
-                  onClick={() => setCurrentStageIndex(tutorStages.length)}
+                  onClick={() => {
+                    if (viewingCompleteSummary) setCurrentStageIndex(tutorStages.length);
+                  }}
+                  disabled={!viewingCompleteSummary}
                 >
                   <span><Check size={13} /></span>
                   <strong>{copy("tutor_summary", "Summary")}</strong>
@@ -5569,8 +5748,8 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
                   </div>
                 ) : null}
                 {feedback ? <p className={cn("tutor-feedback-v2", feedbackTone === "error" && "is-error", feedbackTone === "success" && "is-success")}>{feedback}</p> : null}
-                <Button type="submit" disabled={tutorVoiceChecking}>
-                  {tutorVoiceChecking ? <Spinner size="small" className="button-spinner-v2" /> : activeStage?.id === "choice" || activeStage?.id === "final-check" ? <Check size={16} /> : activeStage?.id === "review" ? <ListChecks size={16} /> : <ChevronRight size={16} />}
+                <Button type="submit" disabled={tutorVoiceChecking || busy === "tutor-complete"}>
+                  {tutorVoiceChecking || busy === "tutor-complete" ? <Spinner size="small" className="button-spinner-v2" /> : activeStage?.id === "choice" || activeStage?.id === "final-check" ? <Check size={16} /> : activeStage?.id === "review" ? <ListChecks size={16} /> : <ChevronRight size={16} />}
                   <span>{primaryActionLabel}</span>
                 </Button>
               </form>
@@ -5585,6 +5764,55 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
           </section>
         </div>
       )}
+      {completedLessonsOpen ? (
+        <Dialog open onOpenChange={(open) => { if (!open) setCompletedLessonsOpen(false); }}>
+          <DialogContent className="v2-dialog-content tutor-completed-lessons-dialog-v2">
+            <DialogBody className="tutor-completed-lessons-dialog-v2__body">
+              <BookOpen className="tutor-completed-lessons-dialog-v2__icon" size={42} />
+              <DialogTitle>{copy("tutor_completed_lessons", "Completed lessons")}</DialogTitle>
+              <DialogDescription>{copy("tutor_completed_lessons_body", "Choose a finished tutor lesson to review its topic, level, and summary.")}</DialogDescription>
+              <div className="tutor-completed-lessons-list-v2">
+                {visibleCompletedLessons.length ? visibleCompletedLessons.map((item) => (
+                  <button
+                    className="tutor-completed-lesson-v2"
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      openTutorLesson(item.lesson);
+                      setCompletedLessonsOpen(false);
+                    }}
+                  >
+                    <span>
+                      <strong>{item.topic || item.title}</strong>
+                      <small>{item.title}</small>
+                    </span>
+                    <em>{item.level || copy("level_label", "Level")}</em>
+                  </button>
+                )) : (
+                  <p className="tutor-completed-lessons-empty-v2">{copy("tutor_completed_lessons_empty", "Completed tutor lessons will appear here after the final review.")}</p>
+                )}
+              </div>
+            </DialogBody>
+            <DialogFooter className="tutor-completed-lessons-footer-v2">
+              <Button className="tutor-completed-lessons-back-v2" type="button" variant="outline" onClick={() => setCompletedLessonsOpen(false)}>
+                <ChevronLeft size={16} />
+                {copy("back", "Back")}
+              </Button>
+              <div className="tutor-completed-lessons-pages-v2">
+                <Button className="tutor-completed-lessons-prev-v2" type="button" variant="outline" size="sm" disabled={safeCompletedLessonPage <= 0} onClick={() => setCompletedLessonPage((page) => Math.max(0, page - 1))}>
+                  <ChevronLeft size={15} />
+                  {copy("back", "Back")}
+                </Button>
+                <span>{safeCompletedLessonPage + 1}/{completedLessonPageCount}</span>
+                <Button className="tutor-completed-lessons-next-v2" type="button" variant="outline" size="sm" disabled={safeCompletedLessonPage + 1 >= completedLessonPageCount} onClick={() => setCompletedLessonPage((page) => Math.min(completedLessonPageCount - 1, page + 1))}>
+                  {copy("next", "Next")}
+                  <ChevronRight size={15} />
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }
@@ -5631,6 +5859,10 @@ function HomeView(props: ViewRendererProps) {
         <Meter label={copy("lessons_today", "Lessons today")} value={user.lessons_today} max={user.lesson_limit} />
         <Meter label={copy("practice_today", "Practice today")} value={user.practice_today} max={user.practice_limit} />
         <Meter label={copy("voices_today", "Voice messages today")} value={user.voice_today} max={user.voice_limit} />
+      </section>
+      <section className="v2-panel home-mobile-level-v2" aria-label={copy("level_label", "Level")}>
+        <span className="home-mobile-level-v2__xp-label">XP</span>
+        <LevelProgress user={user} copy={copy} />
       </section>
       <section className="v2-panel home-premium">
         <span className="eyebrow">{copy("premium", "Premium")}</span>
@@ -6493,7 +6725,10 @@ function PronunciationReport({ pronunciation, copy, compact = false }: { pronunc
 
 function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, savePhrase, busy, copy }: ViewRendererProps & { mode: "words" | "word-game" }) {
   const challenge = wordChallenge;
-  const options = toChoiceOptions(challenge?.options);
+  const options = useMemo(
+    () => tutorStableShuffle(toChoiceOptions(challenge?.options), `${mode}:${challenge?.prompt || ""}:${challenge?.correct_answer_id || ""}`),
+    [mode, challenge?.prompt, challenge?.correct_answer_id, challenge?.options],
+  );
   const start = mode === "words" ? startWord : startWordGame;
   const answer = mode === "words" ? answerWord : answerWordGame;
   const result = mode === "words" ? wordResult : wordGameResult;

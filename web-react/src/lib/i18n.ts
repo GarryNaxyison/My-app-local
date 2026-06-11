@@ -73,13 +73,31 @@ const en: Record<string, string> = {
   report_bug: "Report a bug",
   report_bug_body: "Describe what happened. You can attach a screenshot.",
   problem_description: "Problem description",
-  problem_description_placeholder: "Example: the roleplay dialog card did not open...",
+  problem_description_placeholder: "Describe your problem",
   attach_screenshot: "Attach screenshot",
   screenshots_attached: "screenshots attached",
   bug_report_close: "Close",
   send_report: "Send report",
   bug_report_image_only: "Screenshot or image without text.",
   bug_report_sent: "Bug report saved.",
+  guide: "Guide",
+  app_guide_title: "Quick start guide",
+  app_guide_body: "Five steps to start learning without hunting through menus.",
+  app_guide_step_1_title: "Pick today's route",
+  app_guide_step_1_body: "Start from Today: words, speaking, listening, and one repair.",
+  app_guide_step_2_title: "Finish one AI tutor lesson",
+  app_guide_step_2_body: "Move through the tutor tasks in order and complete the final review.",
+  app_guide_step_3_title: "Save useful phrases",
+  app_guide_step_3_body: "Add good answers and common fixes to notes for fast reuse.",
+  app_guide_step_4_title: "Train weak spots",
+  app_guide_step_4_body: "Open mistakes, pronunciation, and spelling to repair what blocked you.",
+  app_guide_step_5_title: "Check progress",
+  app_guide_step_5_body: "Use XP, level, streak, and completed lessons to choose the next session.",
+  xp_gained_label: "XP gained",
+  tutor_reward_saved: "Tutor lesson completed.",
+  tutor_completed_lessons: "Completed lessons",
+  tutor_completed_lessons_body: "Choose a finished tutor lesson to review its topic, level, and summary.",
+  tutor_completed_lessons_empty: "Completed tutor lessons will appear here after the final review.",
   open_menu: "Open menu",
   close_menu: "Close menu",
   language_cockpit: "Language cockpit",
@@ -418,6 +436,24 @@ const ru: Record<string, string> = {
   level_updated: "Уровень обновлен",
   settings_saved: "Настройки сохранены.",
   activation_accepted: "Ключ активации принят.",
+  guide: "Гайд",
+  app_guide_title: "Как начать",
+  app_guide_body: "Пять шагов, чтобы начать заниматься без поиска по меню.",
+  app_guide_step_1_title: "Выберите маршрут дня",
+  app_guide_step_1_body: "Начните с блока Сегодня: слова, речь, аудирование и одна ошибка.",
+  app_guide_step_2_title: "Закройте урок AI репетитора",
+  app_guide_step_2_body: "Проходите задания по порядку и завершите финальное повторение.",
+  app_guide_step_3_title: "Сохраняйте полезные фразы",
+  app_guide_step_3_body: "Добавляйте удачные ответы и исправления в заметки.",
+  app_guide_step_4_title: "Тренируйте слабые места",
+  app_guide_step_4_body: "Открывайте ошибки, произношение и spelling, чтобы чинить блокеры.",
+  app_guide_step_5_title: "Проверяйте прогресс",
+  app_guide_step_5_body: "XP, уровень, streak и пройденные уроки подскажут следующий шаг.",
+  xp_gained_label: "Начислено",
+  tutor_reward_saved: "Урок AI репетитора завершён.",
+  tutor_completed_lessons: "Пройденные уроки",
+  tutor_completed_lessons_body: "Выберите завершённый урок, чтобы посмотреть тему, уровень и итог.",
+  tutor_completed_lessons_empty: "Пройденные уроки появятся здесь после финального повторения.",
   open_menu: "Открыть меню",
   close_menu: "Закрыть меню",
   language_cockpit: "Языковой cockpit",
@@ -3823,7 +3859,7 @@ const bugReportCopy: Partial<Record<AppLocaleCode, Record<string, string>>> = {
     report_bug: "Сообщить об ошибке",
     report_bug_body: "Опишите, что произошло. Скриншот можно прикрепить сразу.",
     problem_description: "Описание проблемы",
-    problem_description_placeholder: "Например: в roleplay не открылась карточка диалога...",
+    problem_description_placeholder: "Опишите Вашу проблему",
     attach_screenshot: "Прикрепить скриншот",
     screenshots_attached: "скриншота прикреплено",
     bug_report_close: "Закрыть",
@@ -3835,7 +3871,7 @@ const bugReportCopy: Partial<Record<AppLocaleCode, Record<string, string>>> = {
     report_bug: "Report a bug",
     report_bug_body: "Describe what happened. You can attach a screenshot.",
     problem_description: "Problem description",
-    problem_description_placeholder: "Example: the roleplay dialog card did not open...",
+    problem_description_placeholder: "Describe your problem",
     attach_screenshot: "Attach screenshot",
     screenshots_attached: "screenshots attached",
     bug_report_close: "Close",
@@ -3845,12 +3881,19 @@ const bugReportCopy: Partial<Record<AppLocaleCode, Record<string, string>>> = {
   },
 };
 
+function bugProblemPlaceholderCopy(code: AppLocaleCode): string {
+  if (code === "ru") return "Опишите Вашу проблему";
+  if (code === "en") return "Describe your problem";
+  const label = localizedFallbackForEnglishCopy(code, "problem_description");
+  return label && label !== "problem_description" ? label : localizedFallbackForEnglishCopy(code, "report_bug");
+}
+
 appLocaleCodes.forEach((code) => {
   const values = bugReportCopy[code] || {
     report_bug: localizedFallbackForEnglishCopy(code, "report_bug"),
     report_bug_body: localizedFallbackForEnglishCopy(code, "report_bug_body"),
     problem_description: localizedFallbackForEnglishCopy(code, "problem_description"),
-    problem_description_placeholder: localizedFallbackForEnglishCopy(code, "problem_description_placeholder"),
+    problem_description_placeholder: bugProblemPlaceholderCopy(code),
     attach_screenshot: localizedFallbackForEnglishCopy(code, "attach_screenshot"),
     screenshots_attached: localizedFallbackForEnglishCopy(code, "screenshots_attached"),
     bug_report_close: localizedFallbackForEnglishCopy(code, "bug_report_close"),
@@ -4300,7 +4343,7 @@ appLocaleCodes.forEach((code) => {
     report_bug: localizedFallbackForEnglishCopy(code, "report_bug"),
     report_bug_body: localizedFallbackForEnglishCopy(code, "report_bug_body"),
     problem_description: localizedFallbackForEnglishCopy(code, "problem_description"),
-    problem_description_placeholder: localizedFallbackForEnglishCopy(code, "problem_description_placeholder"),
+    problem_description_placeholder: bugProblemPlaceholderCopy(code),
     attach_screenshot: localizedFallbackForEnglishCopy(code, "attach_screenshot"),
     screenshots_attached: localizedFallbackForEnglishCopy(code, "screenshots_attached"),
     bug_report_close: localizedFallbackForEnglishCopy(code, "bug_report_close"),
@@ -4309,6 +4352,49 @@ appLocaleCodes.forEach((code) => {
     bug_report_sent: localizedFallbackForEnglishCopy(code, "bug_report_sent"),
   };
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
+});
+
+appLocaleCodes.forEach((code) => {
+  const target = localeOverrides[code] || {};
+  const terms = derivedUiTerms[code] || {
+    open: "Open",
+    daily: "Daily practice",
+    learn: "Learning",
+    words: "Words",
+    growth: "Progress",
+    ready: "Ready",
+  };
+  const today = target.today || terms.daily;
+  const learn = target.learning_group || terms.learn;
+  const words = target.learn_words || target.tutor_words || terms.words;
+  const mistakes = target.mistakes || target.choose_mistake || terms.growth;
+  const progress = target.progress || terms.growth;
+  const completedLessons = target.lessons_completed || target.tutor_completed_lessons || progress;
+  const guideValues: Record<string, string> = code === "ru"
+    ? {}
+    : code === "en"
+      ? {}
+      : {
+          guide: `${terms.open}: ${learn}`,
+          app_guide_title: `${learn}: ${terms.ready}`,
+          app_guide_body: `${today}: ${words}, ${progress}.`,
+          app_guide_step_1_title: today,
+          app_guide_step_1_body: `${words}: ${today}.`,
+          app_guide_step_2_title: target.ai_tutor || learn,
+          app_guide_step_2_body: target.tutor_short_hint || learn,
+          app_guide_step_3_title: target.phrasebook || target.save_to_phrasebook || learn,
+          app_guide_step_3_body: target.phrasebook_note_placeholder || target.save_to_phrasebook || learn,
+          app_guide_step_4_title: mistakes,
+          app_guide_step_4_body: `${mistakes}: ${target.pronunciation || target.spelling || progress}.`,
+          app_guide_step_5_title: progress,
+          app_guide_step_5_body: `${progress}: XP, ${target.level_label || progress}.`,
+          xp_gained_label: "XP",
+          tutor_reward_saved: `${target.ai_tutor || learn}: ${target.done || terms.ready}`,
+          tutor_completed_lessons: completedLessons,
+          tutor_completed_lessons_body: `${completedLessons}: ${target.level_label || progress}.`,
+          tutor_completed_lessons_empty: `${completedLessons}: ${target.done || terms.ready}.`,
+        };
+  localeOverrides[code] = { ...target, ...guideValues };
 });
 
 let cp1251ReverseMap: Map<string, number> | null = null;

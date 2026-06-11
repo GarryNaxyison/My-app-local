@@ -192,6 +192,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/vocabulary", api.handleVocabulary)
 	mux.HandleFunc("/api/phrasebook", api.handlePhrasebook)
 	mux.HandleFunc("/api/bug-report", api.handleBugReport)
+	mux.HandleFunc("/api/tutor/complete", api.handleTutorComplete)
 	mux.HandleFunc("/api/word-game/next", api.handleWordGameNext)
 	mux.HandleFunc("/api/word-game/answer", api.handleWordGameAnswer)
 	mux.HandleFunc("/api/spelling/start", api.handleSpellingStart)
@@ -1461,6 +1462,63 @@ func (api *webAPI) handleTutorStart(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"tutor_lesson": lesson,
 		"user":         api.userDTO(refreshed),
+	})
+}
+
+const tutorLessonCompletionXP = 40
+
+type tutorCompleteRequest struct {
+	LessonID string `json:"lesson_id"`
+	Review   string `json:"review"`
+}
+
+func (api *webAPI) handleTutorComplete(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req tutorCompleteRequest
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	lessonID := strings.TrimSpace(req.LessonID)
+	if lessonID == "" {
+		writeAPIError(w, http.StatusBadRequest, "lesson_id is required")
+		return
+	}
+	completed, err := api.bot.store.completeTutorLesson(user.TelegramID, lessonID, tutorLessonCompletionXP)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	promotedTo := ""
+	if completed {
+		promotedTo, err = api.bot.maybePromoteLearningLevelForWeb(r.Context(), user.TelegramID, user.FirstName)
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	xp := 0
+	if completed {
+		xp = tutorLessonCompletionXP
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ok":          true,
+		"completed":   completed,
+		"xp":          xp,
+		"review":      strings.TrimSpace(req.Review),
+		"promoted_to": promotedTo,
+		"user":        api.userDTO(refreshed),
 	})
 }
 

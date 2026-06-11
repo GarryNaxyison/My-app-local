@@ -121,11 +121,12 @@ type userState struct {
 }
 
 type jsonStore struct {
-	path             string
-	mu               sync.Mutex
-	users            map[int64]userState
-	tutorLessons     map[string]tutorLesson
-	tutorUserLessons map[int64]map[string]time.Time
+	path                  string
+	mu                    sync.Mutex
+	users                 map[int64]userState
+	tutorLessons          map[string]tutorLesson
+	tutorUserLessons      map[int64]map[string]time.Time
+	tutorCompletedLessons map[int64]map[string]time.Time
 }
 
 type leaderboardEntry struct {
@@ -179,6 +180,7 @@ type store interface {
 	recordHabitLogin(telegramID int64) error
 	claimDailyBonus(telegramID int64, date string, amount int) (bool, error)
 	saveLesson(telegramID int64, prompt string) error
+	completeTutorLesson(telegramID int64, lessonID string, amount int) (bool, error)
 	incrementPractice(telegramID int64) error
 	savePracticeHistory(telegramID int64, history []string) error
 	incrementVoice(telegramID int64) error
@@ -218,10 +220,11 @@ func newJSONStore(path string) (*jsonStore, error) {
 	}
 
 	store := &jsonStore{
-		path:             path,
-		users:            map[int64]userState{},
-		tutorLessons:     map[string]tutorLesson{},
-		tutorUserLessons: map[int64]map[string]time.Time{},
+		path:                  path,
+		users:                 map[int64]userState{},
+		tutorLessons:          map[string]tutorLesson{},
+		tutorUserLessons:      map[int64]map[string]time.Time{},
+		tutorCompletedLessons: map[int64]map[string]time.Time{},
 	}
 
 	bytes, err := os.ReadFile(path)
@@ -526,6 +529,42 @@ func (s *jsonStore) saveLesson(telegramID int64, prompt string) error {
 	})
 }
 
+func (s *jsonStore) completeTutorLesson(telegramID int64, lessonID string, amount int) (bool, error) {
+	lessonID = strings.TrimSpace(lessonID)
+	if telegramID == 0 || lessonID == "" || amount <= 0 {
+		return false, nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureTutorLessonMapsLocked()
+	if _, assigned := s.tutorUserLessons[telegramID][lessonID]; !assigned {
+		return false, nil
+	}
+	if s.tutorCompletedLessons[telegramID] == nil {
+		s.tutorCompletedLessons[telegramID] = map[string]time.Time{}
+	}
+	if _, alreadyCompleted := s.tutorCompletedLessons[telegramID][lessonID]; alreadyCompleted {
+		return false, nil
+	}
+
+	now := time.Now().UTC()
+	user, ok := s.users[telegramID]
+	if !ok {
+		user = newUserState(telegramID, now)
+	}
+	normalizeUser(&user, now)
+	s.tutorCompletedLessons[telegramID][lessonID] = now
+	user.XP += amount
+	user.LessonCount++
+	user.LessonsToday++
+	recordHabitDay(&user, now, true)
+	user.UpdatedAt = now
+	s.users[telegramID] = user
+	s.rewardReferralLevelLocked(telegramID, now)
+	return true, s.saveLocked()
+}
+
 func (s *jsonStore) incrementPractice(telegramID int64) error {
 	return s.update(telegramID, func(user *userState) {
 		user.PracticeCount++
@@ -771,6 +810,9 @@ func (s *jsonStore) ensureTutorLessonMapsLocked() {
 	}
 	if s.tutorUserLessons == nil {
 		s.tutorUserLessons = map[int64]map[string]time.Time{}
+	}
+	if s.tutorCompletedLessons == nil {
+		s.tutorCompletedLessons = map[int64]map[string]time.Time{}
 	}
 }
 

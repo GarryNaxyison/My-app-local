@@ -464,6 +464,28 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 	before = currentXP()
 	mistake := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": "She goes home"})
 	assertXPDelta("mistake", before, 8, mistake)
+
+	tutorStart := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/start", map[string]any{})
+	tutorLesson, ok := tutorStart["tutor_lesson"].(map[string]any)
+	if !ok {
+		t.Fatalf("tutor start response missing lesson: %#v", tutorStart)
+	}
+	tutorLessonID, _ := tutorLesson["id"].(string)
+	if tutorLessonID == "" {
+		t.Fatalf("tutor lesson id is empty: %#v", tutorLesson)
+	}
+	before = currentXP()
+	tutorComplete := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/complete", map[string]any{"lesson_id": tutorLessonID, "review": "good"})
+	assertXPDelta("tutor complete", before, 40, tutorComplete)
+	if completed, _ := tutorComplete["completed"].(bool); !completed {
+		t.Fatalf("first tutor completion should be marked completed: %#v", tutorComplete)
+	}
+	before = currentXP()
+	tutorRepeat := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/complete", map[string]any{"lesson_id": tutorLessonID, "review": "good"})
+	assertXPDelta("tutor repeat", before, 0, tutorRepeat)
+	if completed, _ := tutorRepeat["completed"].(bool); completed {
+		t.Fatalf("repeated tutor completion should not be rewarded again: %#v", tutorRepeat)
+	}
 }
 
 func TestWebTranslatorSpeechRequiresPaidAudioBudget(t *testing.T) {

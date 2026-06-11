@@ -202,6 +202,7 @@ async function mockApi(page: Page) {
     },
   ];
   let wordRoundIndex = 0;
+  let tutorCompleteCount = 0;
 
   await page.route("**/app/assets/**", (route) => {
     const request = route.request();
@@ -383,6 +384,25 @@ async function mockApi(page: Page) {
       }),
     }),
   );
+  await page.route("**/api/tutor/complete", (route) => {
+    const baseUser = (testSessionPayloadOverride || sessionPayload).user;
+    const awarded = tutorCompleteCount === 0 ? 40 : 0;
+    tutorCompleteCount += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        completed: awarded > 0,
+        xp: awarded,
+        user: {
+          ...baseUser,
+          xp: Number(baseUser.xp || 0) + awarded,
+          xp_current: Number(baseUser.xp_current || 0) + awarded,
+        },
+      }),
+    });
+  });
   await page.route("**/api/words/next", (route) => {
     const round = wordRounds[wordRoundIndex % wordRounds.length];
     wordRoundIndex += 1;
@@ -871,6 +891,24 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "send_report",
     "bug_report_image_only",
     "bug_report_sent",
+    "guide",
+    "app_guide_title",
+    "app_guide_body",
+    "app_guide_step_1_title",
+    "app_guide_step_1_body",
+    "app_guide_step_2_title",
+    "app_guide_step_2_body",
+    "app_guide_step_3_title",
+    "app_guide_step_3_body",
+    "app_guide_step_4_title",
+    "app_guide_step_4_body",
+    "app_guide_step_5_title",
+    "app_guide_step_5_body",
+    "xp_gained_label",
+    "tutor_reward_saved",
+    "tutor_completed_lessons",
+    "tutor_completed_lessons_body",
+    "tutor_completed_lessons_empty",
     "tutor_step_pronunciation",
     "tutor_step_final_check",
     "tutor_step_assessment",
@@ -1081,6 +1119,24 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "send_report",
     "bug_report_image_only",
     "bug_report_sent",
+    "guide",
+    "app_guide_title",
+    "app_guide_body",
+    "app_guide_step_1_title",
+    "app_guide_step_1_body",
+    "app_guide_step_2_title",
+    "app_guide_step_2_body",
+    "app_guide_step_3_title",
+    "app_guide_step_3_body",
+    "app_guide_step_4_title",
+    "app_guide_step_4_body",
+    "app_guide_step_5_title",
+    "app_guide_step_5_body",
+    "xp_gained_label",
+    "tutor_reward_saved",
+    "tutor_completed_lessons",
+    "tutor_completed_lessons_body",
+    "tutor_completed_lessons_empty",
   ];
   for (const code of appLocaleCodes) {
     for (const key of noSectionLeakKeys) {
@@ -1218,6 +1274,7 @@ test("bug report paste keeps one clipboard image and no generic section text", a
   const dialog = page.locator(".bug-report-dialog-v2");
   await expect(dialog).toBeVisible();
   await expect(dialog).not.toContainText("Раздел");
+  await expect(dialog.locator("textarea")).toHaveAttribute("placeholder", "Опишите Вашу проблему");
   await dialog.locator("textarea").evaluate((node) => {
     const file = new File([new Uint8Array([137, 80, 78, 71])], "paste.png", { type: "image/png", lastModified: 123 });
     const transfer = new DataTransfer();
@@ -1257,14 +1314,16 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Раздел:");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Паттерн A2:");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("В ответе должно быть");
-  await page.locator(".tutor-step-v2").first().click();
-  await expect(page.locator(".tutor-context-v2")).toContainText("Слова изучены");
-  await expect(page.locator(".tutor-word-grid--compact")).toContainText("menu");
-  await tutorSubmit.click();
-  await expect(page.locator(".tutor-context-v2")).toContainText("Мини-объяснение");
+  await expect(page.locator(".tutor-step-v2").first()).toBeDisabled();
+  await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Мини-объяснение");
+  await expect(page.locator(".tutor-word-grid--compact")).toHaveCount(0);
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Выбор ответа");
   await expect(page.locator(".tutor-context-v2")).toContainText("Вопрос 1/3");
+  await expect(async () => {
+    const optionTexts = await page.locator(".tutor-choice-grid-v2 button span").allInnerTexts();
+    expect(optionTexts).not.toEqual(["Coffee.", "Could I see the menu and have coffee for breakfast, please?", "I need a ticket.", "Could I see the menu, please?"]);
+  }).toPass();
   await expect(page.locator(".tutor-choice-grid-v2")).toContainText("Could I see the menu and have coffee for breakfast, please?");
   await expect(page.locator(".tutor-choice-grid-v2")).toContainText("I need a ticket.");
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "Coffee." }).click();
@@ -1358,9 +1417,17 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-context-v2")).toContainText("Повторяйка");
   await expect(page.locator(".tutor-context-v2")).toContainText("кофе");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Choose the lesson word: coffee");
+  await expect(async () => {
+    const optionTexts = await page.locator(".tutor-final-check-v2 button span").allInnerTexts();
+    expect(optionTexts).not.toEqual(["coffee", "menu", "football", "breakfast"]);
+  }).toPass();
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "coffee" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("завтрак");
+  await expect(async () => {
+    const optionTexts = await page.locator(".tutor-final-check-v2 button span").allInnerTexts();
+    expect(optionTexts).not.toEqual(["breakfast", "football", "menu", "coffee"]);
+  }).toPass();
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "breakfast" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Разбор репетитора");
@@ -1374,6 +1441,16 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await page.locator(".tutor-srs button").first().click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Урок завершён");
+  await expect(page.locator(".xp-gain-pop-v2")).toContainText("+40 XP");
+  await expect(page.locator(".xp-gain-pop-v2")).toContainText("AI Репетитор");
+  await page.locator(".tutor-completed-lessons-button-v2").click();
+  const completedDialog = page.locator(".tutor-completed-lessons-dialog-v2");
+  await expect(completedDialog).toBeVisible();
+  await expect(completedDialog).toContainText("Пройденные уроки");
+  await expect(completedDialog).toContainText("Еда и заказ");
+  await expect(completedDialog).toContainText("A1");
+  await completedDialog.locator(".tutor-completed-lessons-back-v2").click();
+  await expect(completedDialog).toHaveCount(0);
 
   await useInterfaceLanguage(page, "de");
   await page.goto("/app/?view=tutor");
@@ -1388,6 +1465,72 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]')).toContainText("AI Репетитор");
   await page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]').click();
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
+});
+
+test("AI Tutor completed lessons modal paginates finished lesson history", async ({ page }) => {
+  await page.addInitScript(() => {
+    const lessons = Array.from({ length: 12 }, (_, index) => ({
+      id: `completed-${index + 1}`,
+      title: "AI Репетитор",
+      topic: `Cafe ${index + 1}`,
+      level: index % 2 === 0 ? "A1" : "A2",
+      completedAt: new Date(Date.now() - index * 1000).toISOString(),
+      lesson: {
+        id: `completed-${index + 1}`,
+        title: "AI Репетитор",
+        topic: `Cafe ${index + 1}`,
+        level: index % 2 === 0 ? "A1" : "A2",
+        learning_language: "en",
+        interface_language: "ru",
+        words: [],
+      },
+    }));
+    localStorage.setItem("poliglot-tutor-completed-v2:demor22", JSON.stringify(lessons));
+  });
+  await page.goto("/app/?view=tutor");
+  await page.locator(".tutor-completed-lessons-button-v2").click();
+  const dialog = page.locator(".tutor-completed-lessons-dialog-v2");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.locator(".tutor-completed-lesson-v2")).toHaveCount(10);
+  await expect(dialog).toContainText("Cafe 1");
+  await expect(dialog).not.toContainText("Cafe 11");
+  await dialog.locator(".tutor-completed-lessons-next-v2").click();
+  await expect(dialog).toContainText("Cafe 11");
+  await expect(dialog).toContainText("Cafe 12");
+  await expect(dialog.locator(".tutor-completed-lesson-v2")).toHaveCount(2);
+  await dialog.locator(".tutor-completed-lessons-back-v2").click();
+  await expect(dialog).toHaveCount(0);
+});
+
+test("guide button opens localized quick start guide and mobile home shows level XP panel", async ({ page, isMobile }) => {
+  await page.goto("/app/?view=home");
+  await page.locator(isMobile ? ".mobile-quick-controls-v2 .app-guide-button-v2" : ".v2-topbar .app-guide-button-v2").click();
+  const guide = page.locator(".app-guide-dialog-v2");
+  await expect(guide).toBeVisible();
+  await expect(guide.locator(".app-guide-step-v2")).toHaveCount(5);
+  await expect(guide).toContainText("Как начать");
+  await guide.locator(".app-guide-back-v2").click();
+  await expect(guide).toHaveCount(0);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/?view=home");
+  await expect(page.locator(".home-mobile-level-v2")).toBeVisible();
+  await expect(page.locator(".home-mobile-level-v2")).toContainText("A2");
+  await expect(page.locator(".home-mobile-level-v2")).toContainText("XP");
+  await page.locator(".mobile-quick-controls-v2 .app-guide-button-v2").click();
+  await expect(page.locator(".app-guide-dialog-v2")).toBeVisible();
+});
+
+test("word trainer shuffles options away from API order", async ({ page }) => {
+  await page.goto("/app/?view=words");
+  await expect(page.locator(".choice-grid-v2 button")).toHaveCount(4);
+  const prompt = await page.locator(".trainer-display h2").innerText();
+  const optionTexts = await page.locator(".choice-grid-v2 button").allInnerTexts();
+  if (prompt.includes("яблоко")) {
+    expect(optionTexts).not.toEqual(["apple", "station", "ticket", "coffee"]);
+  } else {
+    expect(optionTexts).not.toEqual(["train", "window", "meeting", "market"]);
+  }
 });
 
 test("standalone listening hides the target text and leaves only audio playback", async ({ page }) => {
