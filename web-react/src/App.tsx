@@ -360,7 +360,7 @@ function tutorStableShuffle<T>(items: T[], seed: string) {
   return result;
 }
 
-type TutorStageId = "words" | "explain" | "choice" | "writing" | "listening" | "pronunciation" | "dialogue" | "final-check" | "review";
+type TutorStageId = "words" | "explain" | "choice" | "writing" | "listening" | "pronunciation" | "dialogue" | "final-check" | "assessment" | "review";
 type TutorFeedbackTone = "idle" | "success" | "error";
 type TutorProgressSnapshot = {
   lessonId: string;
@@ -618,6 +618,25 @@ const clientCopyPreferredKeys = new Set([
 function isGenericSectionCopy(value: string) {
   const text = value.trim();
   return /^[^\s:]+:\s*[a-z0-9_ -]+$/i.test(text) || /^(Section|Раздел|Mục):\s*/i.test(text);
+}
+
+function cleanTutorPrompt(value: unknown) {
+  const text = cleanAppText(value).trim();
+  if (!text) return "";
+  const lines = text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .filter((line) => !/^Question\s+\d+\s*$/i.test(line));
+  const seen = new Set<string>();
+  return lines
+    .filter((line) => {
+      const key = line.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join("\n");
 }
 
 function hasMojibakeText(value: string) {
@@ -1292,15 +1311,27 @@ function formatStreakLabel(days: number, user: UserProfile, copy: (key: string, 
 
 function phraseCandidatesFromMessages(messages: ChatMessage[]) {
   const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  const pushCandidate = (phrase: string, source: PhrasebookSource, details?: ApiRecord) => {
+    const cleaned = cleanAppText(phrase).replace(/\s+/g, " ").trim();
+    if (isUsefulPhraseCandidate(cleaned) && cleaned.length <= 220) candidates.push({ phrase: cleaned, source, details });
+  };
   for (const message of messages) {
     if (message.role === "user") continue;
     const details = getRecord(message.details);
     const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : "lesson";
-    const fields = ["correction", "model_phrase", "correction_audio_text", "example", "lesson"];
+    const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example", "lesson", "reply", "feedback", "result"];
     for (const field of fields) {
-      const phrase = cleanAppText(recordField(details, [field]));
-      if (isUsefulPhraseCandidate(phrase) && phrase.length <= 220) candidates.push({ phrase, source, details });
+      pushCandidate(recordField(details, [field]), source, details);
     }
+    recordList(details.answer_variants)
+      .concat(recordList(details.suggestions), recordList(details.examples), recordList(details.phrases))
+      .forEach((phrase) => pushCandidate(phrase, source, details));
+    recordMistakes(details.mistakes).forEach((mistake) => {
+      pushCandidate(recordField(mistake, ["correction", "example"]), "lesson", {
+        ...details,
+        note: recordField(mistake, ["word", "explanation", "context"]),
+      });
+    });
   }
   const seen = new Set<string>();
   return candidates.filter((item) => {
@@ -4568,14 +4599,13 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy }: ViewRendererProps) {
+function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, busy, copy, savePhrase }: ViewRendererProps) {
   useEffect(() => {
     if (!tutorLesson && !busy && !tutorLoadError) void startTutor();
   }, [Boolean(tutorLesson), Boolean(busy), tutorLoadError]);
 
   const words = tutorLesson?.words || [];
   const review = tutorLesson?.review || [];
-  const srs = tutorLesson?.srs;
   const display = (value: unknown) => cleanAppText(value).trim();
   const [currentStageIndex, setCurrentStageIndex] = useState(0);
   const [unlockedStageIndex, setUnlockedStageIndex] = useState(0);
@@ -4775,15 +4805,20 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
     },
     {
       id: "final-check",
-      title: display(tutorLesson?.final_word_check?.prompt) || copy("tutor_step_final_check", "Final word check"),
+      title: copy("tutor_step_final_check", "Final word check"),
       instruction: copy("tutor_final_check_instruction", "Check the lesson words once more before scheduling review."),
+    },
+    {
+      id: "assessment",
+      title: copy("tutor_step_assessment", "Tutor assessment"),
+      instruction: copy("tutor_final_assessment_instruction", "Review the useful phrases and weak spots before scheduling the next review."),
     },
     {
       id: "review",
       title: copy("tutor_step_review", "Memory review"),
       instruction: copy("tutor_review_instruction", "Choose how hard the lesson felt to schedule review."),
     },
-  ], [copy, tutorLesson?.final_word_check?.prompt]);
+  ], [copy]);
 
   const activeStage = currentStageIndex < tutorStages.length ? tutorStages[currentStageIndex] : null;
   const lessonComplete = Boolean(tutorLesson && unlockedStageIndex >= tutorStages.length);
@@ -4800,6 +4835,11 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
     return topic;
   })();
   const localizedTutorGoal = interfaceLocale === "ru" ? display(tutorLesson?.goal) : "";
+  const tutorSourceLabel = (() => {
+    const source = display(tutorLesson?.source);
+    if (!source || isGenericSectionCopy(source)) return "";
+    return source;
+  })();
   const tutorChecks = useMemo(() => {
     const sourceChecks = (tutorLesson?.checks || []).filter((check) => (check.options || []).length && check.correct_answer_id);
     if (sourceChecks.length) return sourceChecks;
@@ -4876,6 +4916,26 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
     setFeedbackTone("idle");
     setPendingAdvanceNote("");
   };
+  const tutorPhraseCandidates = (variants: TutorAnswerVariant[] = []) => {
+    const items: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+    const seen = new Set<string>();
+    variants.forEach((variant) => {
+      const phrase = display(variant.text);
+      if (!isUsefulPhraseCandidate(phrase) || variant.avoid) return;
+      const key = phrase.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      items.push({
+        phrase,
+        source: "lesson",
+        details: {
+          note: display(variant.why || variant.use_case || variant.label),
+          context: display(tutorLesson?.topic || tutorLesson?.goal),
+        },
+      });
+    });
+    return items.slice(0, 4);
+  };
   const renderAnswerVariants = (variants: TutorAnswerVariant[] = []) => {
     const visibleVariants = variants.filter((variant) => display(variant.text)).slice(0, 4);
     if (!visibleVariants.length) return null;
@@ -4934,34 +4994,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
       return;
     }
     if (activeStage.id === "words") {
-      if (!currentQuizWord) {
-        advanceTutorStage(`0 ${copy("tutor_words_seen", "words")}`);
-        return;
-      }
-      if (!wordQuizSelection) {
-        setFeedback(copy("tutor_word_need_choice", "Choose the translation first."));
-        setFeedbackTone("error");
-        return;
-      }
-      if (wordQuizSelection !== currentQuizWord.id) {
-        setWordQuizAttempts((attempts) => attempts + 1);
-        setFeedback(copy("tutor_feedback_wrong", "Not yet. Look at the theme words and choose again."));
-        setFeedbackTone("error");
-        return;
-      }
-      const attempts = wordQuizAttempts + 1;
-      const result = { id: currentQuizWord.id, word: display(currentQuizWord.word), answer: display(currentQuizWord.translation), attempts };
-      const nextResults = [...wordQuizResults.filter((item) => item.id !== result.id), result];
-      setWordQuizResults(nextResults);
-      if (wordQuizIndex + 1 >= words.length) {
-        advanceTutorStage(`${copy("tutor_word_result", "Words checked")}: ${nextResults.length}/${words.length}`);
-        return;
-      }
-      setWordQuizIndex((index) => index + 1);
-      setWordQuizSelection("");
-      setWordQuizAttempts(0);
-      setFeedback(copy("tutor_word_correct_next", "Correct. Next word."));
-      setFeedbackTone("success");
+      advanceTutorStage(`${copy("tutor_word_result", "Words studied")}: ${words.length}`);
       return;
     }
     if (activeStage.id === "choice") {
@@ -5044,6 +5077,14 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         } finally {
           setTutorVoiceChecking(false);
         }
+        return;
+      }
+      const writingTask = display(tutorLesson.writing_task);
+      const requiresMultipleSentences = activeStage.id === "writing" && /(?:2\s*[-–]\s*3|two\s+or\s+three|дв[ае]\s*[-–]\s*три).*(?:sentence|sentences|предлож)/i.test(writingTask);
+      const sentenceCount = answer.split(/[.!?]+/).map((part) => part.trim()).filter((part) => part.length > 1).length;
+      if (requiresMultipleSentences && sentenceCount < 2) {
+        setFeedback(copy("tutor_need_two_sentences", "Write at least two complete sentences before moving on."));
+        setFeedbackTone("error");
         return;
       }
       const requiredExpected = activeStage.id === "listening" ? Math.min(2, Math.max(1, expected.length)) : 1;
@@ -5130,7 +5171,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         {canSay ? <span><b>{copy("tutor_summary_can_say", "Can say")}:</b> {canSay}</span> : null}
         {strongItems.length ? <span><b>{copy("tutor_summary_strong", "Strong words")}:</b> {strongItems.join(", ")}</span> : null}
         {weakItems.length ? <span><b>{copy("tutor_summary_weak", "Repeat")}:</b> {weakItems.join(", ")}</span> : null}
-        {nextReview ? <span>{nextReview}</span> : null}
+        {nextReview ? <span><b>{copy("tutor_final_assessment_review", "Next review")}:</b> {nextReview}</span> : null}
       </div>
     );
   };
@@ -5141,11 +5182,6 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
       if (viewingPastStage) {
         return (
           <>
-            <div className="tutor-result-list-v2">
-              {wordQuizResults.map((item) => (
-                <span key={item.id}>{item.word} · {item.answer} · {item.attempts}</span>
-              ))}
-            </div>
             <div className="tutor-word-grid tutor-word-grid--compact">
               {words.map((word) => (
                 <article className="tutor-word" key={word.id}>
@@ -5159,39 +5195,16 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         );
       }
       return (
-        <>
-          <div className="tutor-word-check-v2">
-            <span>{copy("tutor_word_check_progress", "Word")} {Math.min(wordQuizIndex + 1, Math.max(words.length, 1))}/{Math.max(words.length, 1)}</span>
-            <strong>{display(currentQuizWord?.word) || copy("tutor_words", "New words")}</strong>
-            {currentQuizWord?.example ? <p>{display(currentQuizWord.example)}</p> : null}
-          </div>
-          <div className="choice-grid-v2 tutor-choice-grid-v2">
-            {wordQuizOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={cn(
-                  wordQuizSelection === option.id && "is-selected",
-                  feedbackTone === "error" && wordQuizSelection === option.id && "is-wrong",
-                )}
-                onClick={() => {
-                  setWordQuizSelection(option.id);
-                  setFeedback("");
-                  setFeedbackTone("idle");
-                }}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          {wordQuizResults.length ? (
-            <div className="tutor-result-list-v2" aria-label={copy("tutor_revealed_words", "Revealed words")}>
-              {wordQuizResults.map((item, index) => (
-                <span key={item.id} className="tutor-result-item-v2" style={{ animationDelay: `${index * 35}ms` }}>{item.word} · {item.answer}</span>
-              ))}
-            </div>
-          ) : null}
-        </>
+        <div className="tutor-word-grid">
+          {words.map((word) => (
+            <article className="tutor-word" key={word.id}>
+              <strong>{display(word.word)}</strong>
+              <span>{display(word.translation)}</span>
+              {word.example ? <small>{display(word.example)}</small> : null}
+              <AudioActionRow clips={[{ label: copy("tutor_audio_word", "Word audio"), text: display(word.word), wordId: word.id, targetLanguage: user.learning_language }]} />
+            </article>
+          ))}
+        </div>
       );
     }
     if (activeStage.id === "explain") {
@@ -5230,7 +5243,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         <>
           <p className="tutor-task-copy-v2">
             <strong>{copy("tutor_choice_progress", "Question")} {Math.min(choiceCheckIndex + 1, Math.max(tutorChecks.length, 1))}/{Math.max(tutorChecks.length, 1)}</strong>
-            <span>{display(activeChoiceCheck?.prompt) || copy("tutor_choice_instruction", "Choose one answer.")}</span>
+            <span>{cleanTutorPrompt(activeChoiceCheck?.prompt) || copy("tutor_choice_instruction", "Choose one answer.")}</span>
           </p>
           <div className="choice-grid-v2 tutor-choice-grid-v2">
             {choiceOptions.map((option) => (
@@ -5261,6 +5274,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         <>
           <p className="tutor-task-copy-v2">{display(tutorLesson.writing_task) || copy("tutor_writing_instruction", "Write your own answer using the lesson words.")}</p>
           {renderAnswerVariants(tutorLesson.answer_variants)}
+          {tutorPhraseCandidates(tutorLesson.answer_variants).length ? <PhraseQuickSave candidates={tutorPhraseCandidates(tutorLesson.answer_variants)} savePhrase={savePhrase} copy={copy} /> : null}
         </>
       );
     }
@@ -5304,6 +5318,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
           <strong>{copy("tutor_user_turn", "Your turn")}</strong>
           {tutorLesson.dialogue_prompt ? <p className="tutor-dialogue__prompt">{display(tutorLesson.dialogue_prompt)}</p> : null}
           {renderAnswerVariants(tutorLesson.dialogue_variants)}
+          {tutorPhraseCandidates(tutorLesson.dialogue_variants).length ? <PhraseQuickSave candidates={tutorPhraseCandidates(tutorLesson.dialogue_variants)} savePhrase={savePhrase} copy={copy} /> : null}
         </div>
       );
     }
@@ -5319,7 +5334,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         <>
           <p className="tutor-task-copy-v2">
             <strong>{copy("tutor_final_check_progress", "Word check")} {Math.min(finalCheckIndex + 1, Math.max(finalCheckItems.length, 1))}/{Math.max(finalCheckItems.length, 1)}</strong>
-            <span>{display(activeFinalCheck.prompt) || display(tutorLesson.final_word_check?.prompt) || copy("tutor_step_final_check", "Final word check")}</span>
+            <span>{cleanTutorPrompt(activeFinalCheck.prompt) || copy("tutor_step_final_check", "Final word check")}</span>
           </p>
           <div className="choice-grid-v2 tutor-choice-grid-v2 tutor-final-check-v2">
             {finalCheckOptions.map((option) => (
@@ -5350,6 +5365,23 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         </>
       );
     }
+    if (activeStage.id === "assessment") {
+      const summaryItems = (tutorLesson.review_summary || []).map(display).filter(Boolean);
+      const phraseCandidates = [
+        ...tutorPhraseCandidates(tutorLesson.answer_variants),
+        ...tutorPhraseCandidates(tutorLesson.dialogue_variants),
+      ].slice(0, 4);
+      return (
+        <>
+          <div className="tutor-review-summary-v2 tutor-summary-block-v2">
+            <strong>{copy("tutor_final_assessment", "Tutor assessment")}</strong>
+            {renderTutorSummaryBlock()}
+            {summaryItems.length ? summaryItems.map((item) => <span key={item}>{item}</span>) : <span>{copy("tutor_final_assessment_empty", "No extra weak spots found.")}</span>}
+          </div>
+          {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
+        </>
+      );
+    }
     return (
       <>
         {renderTutorSummaryBlock()}
@@ -5360,10 +5392,10 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         ) : null}
         <div className="tutor-srs" role="group" aria-label={copy("tutor_srs", "Memory schedule")}>
           {[
-            { value: srs?.again || copy("tutor_srs_again", "Again today"), label: copy("tutor_srs_again", "Again today") },
-            { value: srs?.hard || copy("tutor_srs_hard", "Hard tomorrow"), label: copy("tutor_srs_hard", "Hard tomorrow") },
-            { value: srs?.good || copy("tutor_srs_good", "Good in 2 days"), label: copy("tutor_srs_good", "Good in 2 days") },
-            { value: srs?.easy || copy("tutor_srs_easy", "Easy next week"), label: copy("tutor_srs_easy", "Easy next week") },
+            { value: copy("tutor_srs_again", "Again today"), label: copy("tutor_srs_again", "Again today") },
+            { value: copy("tutor_srs_hard", "Hard tomorrow"), label: copy("tutor_srs_hard", "Hard tomorrow") },
+            { value: copy("tutor_srs_good", "Good in 2 days"), label: copy("tutor_srs_good", "Good in 2 days") },
+            { value: copy("tutor_srs_easy", "Easy next week"), label: copy("tutor_srs_easy", "Easy next week") },
           ].map((item) => (
             <button key={item.label} type="button" className={cn(srsSelection === item.value && "is-selected")} onClick={() => setSrsSelection(item.value)}>
               {item.label}
@@ -5392,7 +5424,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
           <div className="tutor-hero__meta">
             <span>{copy("tutor_duration", "5-10 minutes")}</span>
             {tutorLesson?.lesson_number && tutorLesson?.course_size ? <span>{copy("tutor_course_label", "Course")} {tutorLesson.lesson_number}/{tutorLesson.course_size}</span> : null}
-            <span>{display(tutorLesson?.source) || "local-a1-a2-course-core"}</span>
+            {tutorSourceLabel ? <span>{tutorSourceLabel}</span> : null}
           </div>
         </div>
         <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
@@ -6387,8 +6419,9 @@ function RecordDetails({
 function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string }> }) {
   const uniqueClips = clips
     .map((clip) => {
-      const generic = !clip.text && !clip.wordId && /^(Раздел|Section|Mục)$/i.test(cleanAppText(clip.label));
-      return generic ? null : clip;
+      const generic = /^(Раздел|Section|Mục)$/i.test(cleanAppText(clip.label));
+      if (generic && !clip.text && !clip.wordId) return null;
+      return generic ? { ...clip, label: "Audio" } : clip;
     })
     .filter((clip): clip is { label: string; text: string; wordId?: string; targetLanguage?: string } => clip !== null)
     .filter((clip) => Boolean(clip.text || clip.wordId))

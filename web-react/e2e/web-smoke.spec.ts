@@ -299,7 +299,7 @@ async function mockApi(page: Page) {
               ],
             },
             {
-              prompt: "Что уточняет заказ?",
+              prompt: "Question 2\nHow does the person get to the office?\n\nHow does the person get to the office?",
               correct_answer_id: "detail:correct",
               feedback: "Верно: это уточняет заказ.",
               options: [
@@ -321,7 +321,7 @@ async function mockApi(page: Page) {
               ],
             },
           ],
-          writing_task: "Напишите одну живую реплику для кафе: вежливое начало, заказ coffee и деталь for breakfast.",
+          writing_task: "Напишите 2-3 предложения для кафе: вежливое начало, заказ coffee и деталь for breakfast.",
           writing_expected: ["coffee", "for breakfast"],
           answer_variants: [
             { id: "writing:1", label: "Базовый ответ", text: "Coffee for breakfast, please.", why: "Есть заказ coffee и деталь for breakfast.", level: "A1", use_case: "минимум" },
@@ -343,27 +343,29 @@ async function mockApi(page: Page) {
             { id: "dialogue:4", label: "Не использовать", text: "cup / football.", why: "Это список слов, а не ответ человеку.", level: "avoid", use_case: "не повторять", avoid: true },
           ],
           final_word_check: {
-            prompt: "Final word check",
+            prompt: "Word recall",
             required_correct: 2,
             summary_pass: "Words checked. Now choose review timing.",
             summary_retry: "Repeat the weak words before finishing.",
             items: [
               {
-                prompt: "Choose the lesson word: coffee",
+                prompt: "кофе",
                 correct_answer_id: "en:coffee",
                 options: [
-                  { id: "en:coffee", text: "coffee", label: "Correct", why: "Key order word." },
-                  { id: "en:menu", text: "menu", label: "Close, but not this", why: "This is another step." },
-                  { id: "en:football", text: "football", label: "Unrelated", why: "Not an order detail.", avoid: true },
+                  { id: "en:coffee", text: "coffee" },
+                  { id: "en:menu", text: "menu" },
+                  { id: "en:football", text: "football" },
+                  { id: "en:breakfast", text: "breakfast" },
                 ],
               },
               {
-                prompt: "Choose the lesson word: breakfast",
+                prompt: "завтрак",
                 correct_answer_id: "en:breakfast",
                 options: [
-                  { id: "en:breakfast", text: "breakfast", label: "Correct", why: "Key detail." },
-                  { id: "en:football", text: "football", label: "Unrelated", why: "Not an order detail.", avoid: true },
-                  { id: "en:menu", text: "menu", label: "Close, but not this", why: "This is another step." },
+                  { id: "en:breakfast", text: "breakfast" },
+                  { id: "en:football", text: "football" },
+                  { id: "en:menu", text: "menu" },
+                  { id: "en:coffee", text: "coffee" },
                 ],
               },
             ],
@@ -869,6 +871,28 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "send_report",
     "bug_report_image_only",
     "bug_report_sent",
+    "tutor_step_pronunciation",
+    "tutor_step_final_check",
+    "tutor_step_assessment",
+    "tutor_final_check_instruction",
+    "tutor_final_check_progress",
+    "tutor_final_check_done",
+    "tutor_final_check_results",
+    "tutor_pronunciation_instruction",
+    "tutor_pronunciation_target",
+    "tutor_need_voice",
+    "tutor_voice_ready",
+    "tutor_voice_hint",
+    "tutor_pronunciation_retry",
+    "tutor_pronunciation_feedback",
+    "tutor_audio_word",
+    "tutor_audio_example",
+    "tutor_audio_question",
+    "tutor_audio_system",
+    "tutor_final_assessment",
+    "tutor_final_assessment_instruction",
+    "tutor_final_assessment_review",
+    "tutor_final_assessment_empty",
   ];
   expect(appLocaleCodes).toHaveLength(35);
   for (const code of appLocaleCodes) {
@@ -976,6 +1000,28 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "payment_stars_instruction",
     "payment_crypto_instruction",
     "payment_usdt_trc20_instruction",
+    "tutor_step_pronunciation",
+    "tutor_step_final_check",
+    "tutor_step_assessment",
+    "tutor_final_check_instruction",
+    "tutor_final_check_progress",
+    "tutor_final_check_done",
+    "tutor_final_check_results",
+    "tutor_pronunciation_instruction",
+    "tutor_pronunciation_target",
+    "tutor_need_voice",
+    "tutor_voice_ready",
+    "tutor_voice_hint",
+    "tutor_pronunciation_retry",
+    "tutor_pronunciation_feedback",
+    "tutor_audio_word",
+    "tutor_audio_example",
+    "tutor_audio_question",
+    "tutor_audio_system",
+    "tutor_final_assessment",
+    "tutor_final_assessment_instruction",
+    "tutor_final_assessment_review",
+    "tutor_final_assessment_empty",
   ];
   for (const code of appLocaleCodes.filter((locale) => locale !== "en")) {
     for (const key of noEnglishFallbackKeys) {
@@ -1190,29 +1236,14 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-workspace")).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("Еда и заказ");
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
-  await expect(page.locator(".tutor-step-v2")).toHaveCount(9);
+  await expect(page.locator(".tutor-step-v2")).toHaveCount(10);
   await expect(page.locator(".tutor-context-v2")).toContainText("Новые слова");
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("menu");
-  await expect(page.locator(".tutor-result-list-v2")).toHaveCount(0);
-  await expect(page.locator(".tutor-word-grid--compact")).toHaveCount(0);
-  await expect(page.locator(".tutor-choice-grid-v2 button").first()).not.toContainText("меню");
+  await expect(page.locator(".tutor-word-grid .tutor-word")).toHaveCount(4);
+  await expect(page.locator(".tutor-word-grid .tutor-word").first()).toContainText("menu");
+  await expect(page.locator(".tutor-word-grid .audio-wave-button-v2").first()).toContainText("Озвучка слова");
+  await expect(page.locator(".tutor-choice-grid-v2")).toHaveCount(0);
 
   const tutorSubmit = page.locator(".tutor-context-v2 .tutor-composer-v2 button").last();
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "футбол" }).click();
-  await tutorSubmit.click();
-  await expect(page.locator(".tutor-feedback-v2")).toContainText("Пока нет");
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("1/4");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "меню" }).click();
-  await tutorSubmit.click();
-  await expect(page.locator(".tutor-result-list-v2")).toContainText("menu");
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("football");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "футбол" }).click();
-  await tutorSubmit.click();
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("coffee");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "кофе" }).click();
-  await tutorSubmit.click();
-  await expect(page.locator(".tutor-word-check-v2")).toContainText("breakfast");
-  await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "завтрак" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Мини-объяснение");
   await expect(page.locator(".tutor-context-v2")).toContainText("One pattern");
@@ -1227,8 +1258,8 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Паттерн A2:");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("В ответе должно быть");
   await page.locator(".tutor-step-v2").first().click();
-  await expect(page.locator(".tutor-context-v2")).toContainText("Слова проверены");
-  await expect(page.locator(".tutor-result-list-v2")).toContainText("menu");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Слова изучены");
+  await expect(page.locator(".tutor-word-grid--compact")).toContainText("menu");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Мини-объяснение");
   await tutorSubmit.click();
@@ -1243,6 +1274,10 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "Could I see the menu and have coffee" }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Вопрос 2/3");
+  await expect(page.locator(".tutor-context-v2")).toContainText("How does the person get to the office?");
+  const secondQuestionText = await page.locator(".tutor-task-copy-v2").innerText();
+  expect((secondQuestionText.match(/How does the person get to the office\?/g) || []).length).toBe(1);
+  expect((secondQuestionText.match(/Question 2/g) || []).length).toBe(0);
   await expect(page.locator(".tutor-choice-grid-v2")).toContainText("for breakfast");
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "for breakfast" }).click();
   await tutorSubmit.click();
@@ -1254,6 +1289,7 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Сильный вариант");
   await expect(page.locator(".tutor-answer-variants-v2")).toContainText("Не использовать");
   await expect(page.locator(".tutor-answer-variants-v2")).not.toContainText("have football");
+  await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2 button")).toHaveCount(3);
   await page.locator(isMobile ? '.mobile-bottom-nav-v2 [data-view="home"]' : '.function-ribbon [data-view="home"]').click();
   await expect(page.locator(".context-display")).toHaveAttribute("data-view", "home");
   await page.locator(isMobile ? '.mobile-bottom-nav-v2 [data-view="tutor"]' : '.function-ribbon [data-view="tutor"]').click();
@@ -1261,6 +1297,10 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await page.locator(".tutor-answer-variant-v2").filter({ hasText: "Could I see the menu first" }).click();
   await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue(/Could I see the menu first\?/);
   await page.locator(".tutor-context-v2 textarea").fill("Coffee for breakfast, please.");
+  await tutorSubmit.click();
+  await expect(page.locator(".tutor-feedback-v2")).toContainText("минимум два");
+  await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Письмо");
+  await page.locator(".tutor-context-v2 textarea").fill("Coffee for breakfast, please. Could I see the menu first?");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("Хорошо");
   await expect(page.locator(".tutor-context-v2")).toContainText("Письмо");
@@ -1315,12 +1355,17 @@ test("AI Tutor cafe scenario uses slots for explanation choices and dialogue", a
   await tutorSubmit.click();
   await expect(page.locator(".tutor-feedback-v2")).toContainText("ответ подходит");
   await tutorSubmit.click();
-  await expect(page.locator(".tutor-context-v2")).toContainText("Final word check");
-  await expect(page.locator(".tutor-context-v2")).toContainText("Choose the lesson word: coffee");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Повторяйка");
+  await expect(page.locator(".tutor-context-v2")).toContainText("кофе");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Choose the lesson word: coffee");
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "coffee" }).click();
   await tutorSubmit.click();
-  await expect(page.locator(".tutor-context-v2")).toContainText("Choose the lesson word: breakfast");
+  await expect(page.locator(".tutor-context-v2")).toContainText("завтрак");
   await page.locator(".tutor-choice-grid-v2 button").filter({ hasText: "breakfast" }).click();
+  await tutorSubmit.click();
+  await expect(page.locator(".tutor-context-v2")).toContainText("Разбор репетитора");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Coffee for breakfast, please.");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Could I see the menu and have coffee for breakfast, please?");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Повторение");
   await expect(page.locator(".tutor-context-v2")).toContainText("Сценарий заверш");
