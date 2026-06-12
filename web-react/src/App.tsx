@@ -655,6 +655,11 @@ function cleanTutorPrompt(value: unknown) {
     .join("\n");
 }
 
+function sameTutorText(left: string, right: string) {
+  const normalize = (value: string) => cleanTutorPrompt(value).replace(/\s+/g, " ").trim().toLowerCase();
+  return Boolean(normalize(left) && normalize(left) === normalize(right));
+}
+
 function hasMojibakeText(value: string) {
   return /пїЅ|Гђ|Г‘|Ð|Ñ|Р[\u0400-\u045f]|С[\u0400-\u045f]|Г[\u0400-\u045f]|б»|бє|бї|аё|а№|а¤|аҐ|а¦|а§|а®|а°/u.test(value);
 }
@@ -1377,7 +1382,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
     if (message.role === "user") continue;
     const details = getRecord(message.details);
     const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : "lesson";
-    const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example", "lesson", "reply", "feedback", "result"];
+    const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example"];
     for (const field of fields) {
       pushCandidate(recordField(details, [field]), source, details);
     }
@@ -4853,10 +4858,18 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const needsText = aiTutorStep?.kind === "free_text" || (aiTutorStep?.kind === "word_recall" && options.length === 0);
   const canContinue = aiTutorStep?.kind === "story" || aiTutorStep?.kind === "word_learn";
   const isChoiceStage = options.length > 0 && !canContinue;
+  const isReviewChoiceStage = Boolean(aiTutorStep && ["rating", "review"].includes(aiTutorStep.kind));
   const isComplete = aiTutorStep?.kind === "complete" || aiTutorStep?.stage === "complete";
   const isProduction = aiTutorStep?.stage === "production";
+  const defaultReviewChoice = aiTutorStep?.stage === "review_schedule" ? "no_review" : aiTutorStep?.stage === "lesson_feedback" ? "good" : "";
   const productionSentenceCount = countTutorSentences(tutorDraft);
   const textBlocked = needsText && (!tutorDraft.trim() || (isProduction && productionSentenceCount < 2));
+  const submitIcon = busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : isChoiceStage && !isReviewChoiceStage ? <Check size={16} /> : needsText ? <Send size={16} /> : <ChevronRight size={16} />;
+  const submitLabel = isChoiceStage && !isReviewChoiceStage
+    ? copy("tutor_check_answer", "Check answer")
+    : needsText
+      ? copy("send", "Send")
+      : copy("tutor_continue", "Continue");
 
   useEffect(() => {
     if (!isComplete || !aiTutorStep) return;
@@ -4880,8 +4893,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
       return;
     }
     if (isChoiceStage) {
-      if (!selectedChoice) return;
-      void submitAiTutorStep("", selectedChoice);
+      if (!selectedChoice && !isReviewChoiceStage) return;
+      void submitAiTutorStep("", selectedChoice || defaultReviewChoice);
       return;
     }
     if (needsText) {
@@ -4894,6 +4907,15 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const renderWord = () => {
     const word = aiTutorStep?.word;
     if (!word) return null;
+    const isRecall = aiTutorStep?.kind === "word_recall" || /^word_recall_\d+$/.test(aiTutorStep?.stage || "");
+    if (isRecall) {
+      const prompt = display(word.interface_translation || aiTutorStep?.title);
+      return prompt ? (
+        <div className="tutor-word-check-v2 tutor-word-check-v2--recall">
+          <strong>{prompt}</strong>
+        </div>
+      ) : null;
+    }
     const clips = [
       { label: copy("tutor_audio_word", "Word audio"), text: display(word.audio_text_target || word.target), targetLanguage: user.learning_language },
       { label: copy("tutor_audio_example", "Example audio"), text: display(word.example_audio_text_target || word.example_sentence_target), targetLanguage: user.learning_language },
@@ -4918,11 +4940,13 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     const storyText = display(lesson?.story?.text_target);
     const storyAudioText = display(lesson?.story?.audio_text_target || lesson?.story?.text_target);
     const localInstruction = stageInstruction(aiTutorStep.stage);
+    const questionText = cleanTutorPrompt(aiTutorStep.question?.question_target);
     const instruction = cleanTutorPrompt(
-      ["lesson_feedback", "review_schedule", "complete"].includes(aiTutorStep.stage)
+      ["lesson_feedback", "review_schedule", "complete"].includes(aiTutorStep.stage) || /^word_recall_\d+$/.test(aiTutorStep.stage)
         ? localInstruction
         : aiTutorStep.instruction || localInstruction,
     );
+    const showQuestionText = Boolean(questionText && !sameTutorText(questionText, instruction));
     return (
       <article className="tutor-message-v2 is-active">
         <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
@@ -4936,7 +4960,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
             </>
           ) : null}
           {renderWord()}
-          {aiTutorStep.question?.question_target ? <p className="tutor-task-copy-v2">{cleanTutorPrompt(aiTutorStep.question.question_target)}</p> : null}
+          {showQuestionText ? <p className="tutor-task-copy-v2">{questionText}</p> : null}
           {isComplete ? (
             <div className="tutor-review-summary-v2">
               <span>{copy("tutor_complete_body", "You finished the guided AI Tutor lesson.")}</span>
@@ -5050,15 +5074,6 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
             </div>
 
             {feedbackMessage ? <p className={cn("tutor-feedback-v2", feedbackOK ? "is-success" : "is-error")}>{feedbackMessage}</p> : null}
-            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
-            {mistakeCandidates.length ? (
-              <div className="tutor-answer-variants-v2 tutor-notes-suggestions-v2" aria-label={copy("tutor_mistake_notes", "Mistake notes")}>
-                <strong>{copy("tutor_mistake_notes", "Mistake notes")}</strong>
-                <span>{copy("tutor_mistake_notes_hint", "Save corrections to the mistake notes section.")}</span>
-                <PhraseQuickSave candidates={mistakeCandidates} savePhrase={savePhrase} copy={copy} />
-              </div>
-            ) : null}
-
             {!isComplete ? (
               <form
                 className="tutor-composer-v2"
@@ -5082,10 +5097,10 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
                 ) : null}
                 <Button
                   type="submit"
-                  disabled={busy === "tutor" || (isChoiceStage && !selectedChoice) || textBlocked}
+                  disabled={busy === "tutor" || (isChoiceStage && !isReviewChoiceStage && !selectedChoice) || textBlocked}
                 >
-                  {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : isChoiceStage ? <Check size={16} /> : needsText ? <Send size={16} /> : <ChevronRight size={16} />}
-                  <span>{isChoiceStage ? copy("tutor_check_answer", "Check answer") : needsText ? copy("send", "Send") : copy("tutor_continue", "Continue")}</span>
+                  {submitIcon}
+                  <span>{submitLabel}</span>
                 </Button>
               </form>
             ) : (
@@ -5096,6 +5111,15 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
                 </Button>
               </div>
             )}
+
+            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
+            {mistakeCandidates.length ? (
+              <div className="tutor-answer-variants-v2 tutor-notes-suggestions-v2" aria-label={copy("tutor_mistake_notes", "Mistake notes")}>
+                <strong>{copy("tutor_mistake_notes", "Mistake notes")}</strong>
+                <span>{copy("tutor_mistake_notes_hint", "Save corrections to the mistake notes section.")}</span>
+                <PhraseQuickSave candidates={mistakeCandidates} savePhrase={savePhrase} copy={copy} />
+              </div>
+            ) : null}
           </section>
         </div>
       )}
@@ -5173,9 +5197,6 @@ function aiTutorPhraseCandidates(feedback: ApiRecord, savePhrase: ViewRendererPr
   };
   add(feedback.corrected_answer_target, "AI Tutor correction");
   add(feedback.corrected_version_target, "AI Tutor correction");
-  if (Array.isArray(feedback.recommendations_interface)) {
-    feedback.recommendations_interface.forEach((item) => add(item, "AI Tutor recommendation"));
-  }
   return candidates.slice(0, 4);
 }
 
@@ -5194,7 +5215,7 @@ function aiTutorMistakeCandidates(feedback: ApiRecord, savePhrase: ViewRendererP
   if (Array.isArray(feedback.mistakes)) {
     feedback.mistakes.forEach((item) => {
       const record = getRecord(item);
-      add(record.correction || record.corrected || record.expected || item, cleanAppText(record.explanation || record.issue || "AI Tutor mistake"));
+      add(record.correction || record.corrected || record.expected, cleanAppText(record.explanation || record.issue || "AI Tutor mistake"));
     });
   }
   add(feedback.corrected_answer_target, "AI Tutor correction");
@@ -6719,6 +6740,23 @@ function SettingsView({
   const passwordTooShort = newPassword.length > 0 && newPassword.length < 8;
   const passwordsMatch = newPassword.length > 0 && newPasswordConfirm.length > 0 && newPassword === newPasswordConfirm;
   const passwordsMismatch = newPasswordConfirm.length > 0 && newPassword !== newPasswordConfirm;
+
+  useEffect(() => {
+    setInterfaceLanguage(user.interface_language || "ru");
+  }, [user.interface_language]);
+
+  useEffect(() => {
+    setLearningLanguage(user.learning_language || "en");
+  }, [user.learning_language]);
+
+  useEffect(() => {
+    setLevel(user.level || "A1");
+  }, [user.level]);
+
+  useEffect(() => {
+    setLearningFocus(user.learning_focus || "");
+  }, [user.learning_focus]);
+
   const submitPassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (passwordTooShort || passwordsMismatch || !currentPassword || !newPassword) return;

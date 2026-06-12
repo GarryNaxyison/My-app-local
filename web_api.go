@@ -1346,9 +1346,10 @@ func (api *webAPI) handleSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		InterfaceLanguage string `json:"interface_language"`
-		LearningLanguage  string `json:"learning_language"`
-		Level             string `json:"level"`
+		InterfaceLanguage string  `json:"interface_language"`
+		LearningLanguage  string  `json:"learning_language"`
+		Level             string  `json:"level"`
+		LearningFocus     *string `json:"learning_focus"`
 	}
 	if !decodeJSONRequest(w, r, &req) {
 		return
@@ -1367,6 +1368,12 @@ func (api *webAPI) handleSettings(w http.ResponseWriter, r *http.Request) {
 	}
 	if strings.TrimSpace(req.Level) != "" {
 		if err := api.bot.store.setUserLevel(user.TelegramID, req.Level); err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	if req.LearningFocus != nil {
+		if err := api.bot.store.setLearningFocus(user.TelegramID, *req.LearningFocus); err != nil {
 			writeAPIError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -3946,6 +3953,7 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"telegram_account":           telegramAccount,
 		"created_at":                 createdAt,
 		"level":                      user.Level,
+		"learning_focus":             strings.TrimSpace(user.LearningFocus),
 		"plan":                       planName(user),
 		"premium":                    user.isPremium(time.Now()),
 		"premium_until":              premiumUntil,

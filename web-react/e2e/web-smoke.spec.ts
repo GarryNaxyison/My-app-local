@@ -1241,10 +1241,10 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await page.locator(".tutor-context-v2 textarea").fill("Mia wakes up at seven and goes to work.");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Вопрос 1");
-  await expect(page.locator(".tutor-task-copy-v2")).toContainText("What time does the person wake up?");
-  const questionText = await page.locator(".tutor-task-copy-v2").innerText();
-  expect((questionText.match(/What time does the person wake up\?/g) || []).length).toBe(1);
-  expect(questionText).not.toContain("Question 1");
+  await expect(page.locator(".tutor-message-v2.is-active")).toContainText("What time does the person wake up?");
+  const questionCardText = await page.locator(".tutor-message-v2.is-active").innerText();
+  expect((questionCardText.match(/What time does the person wake up\?/g) || []).length).toBe(1);
+  expect(questionCardText).not.toContain("Question 1");
   await page.locator(".tutor-context-v2 textarea").fill("At seven.");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Вопрос 2");
@@ -1264,6 +1264,10 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   }
 
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Проверка слов 1");
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Recall the target word.");
+  await expect(page.locator(".tutor-word-check-v2")).toContainText("просыпаться");
+  await expect(page.locator(".tutor-word-check-v2")).not.toContainText("wake up");
+  await expect(page.locator(".tutor-word-check-v2 .phrase-quick-save-v2")).toHaveCount(0);
   const firstRecallOptions = await page.locator(".tutor-srs button").allInnerTexts();
   expect(firstRecallOptions).not.toEqual(["wake up", "get ready", "routine", "leave"]);
   await page.locator(".tutor-srs button").filter({ hasText: "wake up" }).click();
@@ -1281,8 +1285,18 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await page.locator(".tutor-context-v2 textarea").fill("I wake up at seven. I get ready quickly.");
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Разбор репетитора");
+  await expect(tutorSubmit).toContainText(appCopy("ru", "tutor_continue"));
+  await expect(tutorSubmit).not.toContainText(appCopy("ru", "tutor_check_answer"));
+  await expect(tutorSubmit).toBeEnabled();
   await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2 button").filter({ hasText: "I wake up at seven" }).first()).toBeVisible();
+  await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2 button").filter({ hasText: "Repeat wake up tomorrow" })).toHaveCount(0);
   await expect(page.locator(".tutor-notes-suggestions-v2")).toContainText(appCopy("ru", "tutor_mistake_notes"));
+  const composerBeforeNotes = await page.locator(".tutor-context-v2").evaluate((node) => {
+    const composer = node.querySelector(".tutor-composer-v2");
+    const saveBlock = node.querySelector(".phrase-quick-save-v2");
+    return Boolean(composer && saveBlock && (composer.compareDocumentPosition(saveBlock) & Node.DOCUMENT_POSITION_FOLLOWING));
+  });
+  expect(composerBeforeNotes).toBe(true);
 
   await page.locator(".tutor-srs button").filter({ hasText: "good" }).click();
   await tutorSubmit.click();

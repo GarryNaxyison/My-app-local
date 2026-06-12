@@ -104,6 +104,32 @@ func TestWebUserDTOIncludesTelegramAccountIdentity(t *testing.T) {
 	}
 }
 
+func TestWebSettingsSavesLearningFocus(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	focus := "business calls and meetings"
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/settings", map[string]any{
+		"interface_language": "ru",
+		"learning_language":  "en",
+		"level":              "A2",
+		"learning_focus":     focus,
+	})
+	user, ok := body["user"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing user in settings response: %#v", body)
+	}
+	if user["learning_focus"] != focus {
+		t.Fatalf("settings response learning_focus = %#v, want %q", user["learning_focus"], focus)
+	}
+	stored, _, err := store.getUser(-42)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stored.LearningFocus != focus {
+		t.Fatalf("stored LearningFocus = %q, want %q", stored.LearningFocus, focus)
+	}
+}
+
 func TestWebTelegramCodeFlowStartsBotLinkAndVerifiesSiteCode(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	start := requestJSON(t, api, cookie, http.MethodPost, "/api/auth/telegram/start", map[string]any{})
