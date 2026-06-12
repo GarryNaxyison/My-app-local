@@ -94,23 +94,23 @@ Error generating stack: `+l.message+`
     margin-right: `).concat(p,"px ").concat(o,`;
     `),i==="padding"&&"padding-right: ".concat(p,"px ").concat(o,";")].filter(Boolean).join(""),`
   }
-
+  
   .`).concat(ec,` {
     right: `).concat(p,"px ").concat(o,`;
   }
-
+  
   .`).concat(tc,` {
     margin-right: `).concat(p,"px ").concat(o,`;
   }
-
+  
   .`).concat(ec," .").concat(ec,` {
     right: 0 `).concat(o,`;
   }
-
+  
   .`).concat(tc," .").concat(tc,` {
     margin-right: 0 `).concat(o,`;
   }
-
+  
   body[`).concat(zo,`] {
     `).concat(z6,": ").concat(p,`px;
   }
