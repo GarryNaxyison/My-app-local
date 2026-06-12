@@ -121,12 +121,16 @@ type userState struct {
 }
 
 type jsonStore struct {
-	path                  string
-	mu                    sync.Mutex
-	users                 map[int64]userState
-	tutorLessons          map[string]tutorLesson
-	tutorUserLessons      map[int64]map[string]time.Time
-	tutorCompletedLessons map[int64]map[string]time.Time
+	path                 string
+	mu                   sync.Mutex
+	users                map[int64]userState
+	tutorLessons         map[string]tutorLesson
+	tutorUserLessons     map[int64]map[string]time.Time
+	aiTutorLessons       map[string]aiTutorLessonRecord
+	aiTutorSessions      map[string]aiTutorSessionRecord
+	aiTutorAnswers       map[string]aiTutorAnswerRecord
+	aiTutorReviews       map[string]aiTutorReviewRecord
+	aiTutorQualityChecks map[string]aiTutorQualityCheckRecord
 }
 
 type leaderboardEntry struct {
@@ -177,10 +181,10 @@ type store interface {
 	setLearningFocus(telegramID int64, focus string) error
 	setNavigationLayout(telegramID int64, layout navigationLayout) error
 	addXP(telegramID int64, amount int) error
+	recordAITutorCompletion(telegramID int64, amount int) error
 	recordHabitLogin(telegramID int64) error
 	claimDailyBonus(telegramID int64, date string, amount int) (bool, error)
 	saveLesson(telegramID int64, prompt string) error
-	completeTutorLesson(telegramID int64, lessonID string, amount int) (bool, error)
 	incrementPractice(telegramID int64) error
 	savePracticeHistory(telegramID int64, history []string) error
 	incrementVoice(telegramID int64) error
@@ -194,6 +198,17 @@ type store interface {
 	removeMistake(telegramID int64, language string, word string, correction string) error
 	clearMistakes(telegramID int64, language string) error
 	nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error)
+	saveAITutorLesson(lesson aiTutorLessonRecord) error
+	getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error)
+	findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error)
+	createAITutorSession(session aiTutorSessionRecord) error
+	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
+	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
+	saveAITutorAnswer(answer aiTutorAnswerRecord) error
+	saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error
+	updateAITutorLessonQuality(lessonID string, status string, postScore int) error
+	scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error
+	clearLegacyTutorLessonBase() error
 	referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error)
 	leaderboard(limit int) []leaderboardEntry
 	languageLeaderboard(language string, limit int) []languageLeaderboardEntry
@@ -206,7 +221,7 @@ type store interface {
 func newStore(cfg config) (store, error) {
 	switch strings.ToLower(strings.TrimSpace(cfg.StorageDriver)) {
 	case "", "sqlite":
-		return newSQLiteStore(cfg.DatabasePath, cfg.DataPath)
+		return newSQLiteStore(cfg.DatabasePath, cfg.DataPath, cfg.AITutorDatabasePath)
 	case "json":
 		return newJSONStore(cfg.DataPath)
 	default:
@@ -220,11 +235,15 @@ func newJSONStore(path string) (*jsonStore, error) {
 	}
 
 	store := &jsonStore{
-		path:                  path,
-		users:                 map[int64]userState{},
-		tutorLessons:          map[string]tutorLesson{},
-		tutorUserLessons:      map[int64]map[string]time.Time{},
-		tutorCompletedLessons: map[int64]map[string]time.Time{},
+		path:                 path,
+		users:                map[int64]userState{},
+		tutorLessons:         map[string]tutorLesson{},
+		tutorUserLessons:     map[int64]map[string]time.Time{},
+		aiTutorLessons:       map[string]aiTutorLessonRecord{},
+		aiTutorSessions:      map[string]aiTutorSessionRecord{},
+		aiTutorAnswers:       map[string]aiTutorAnswerRecord{},
+		aiTutorReviews:       map[string]aiTutorReviewRecord{},
+		aiTutorQualityChecks: map[string]aiTutorQualityCheckRecord{},
 	}
 
 	bytes, err := os.ReadFile(path)
@@ -469,6 +488,18 @@ func (s *jsonStore) addXP(telegramID int64, amount int) error {
 	})
 }
 
+func (s *jsonStore) recordAITutorCompletion(telegramID int64, amount int) error {
+	if amount <= 0 {
+		return nil
+	}
+	return s.update(telegramID, func(user *userState) {
+		user.XP += amount
+		user.LessonCount++
+		user.LessonsToday++
+		recordHabitDay(user, time.Now().UTC(), true)
+	})
+}
+
 func (s *jsonStore) recordHabitLogin(telegramID int64) error {
 	return s.update(telegramID, func(user *userState) {
 		recordHabitDay(user, time.Now().UTC(), true)
@@ -527,42 +558,6 @@ func (s *jsonStore) saveLesson(telegramID int64, prompt string) error {
 		user.LessonsToday++
 		recordHabitDay(user, time.Now().UTC(), true)
 	})
-}
-
-func (s *jsonStore) completeTutorLesson(telegramID int64, lessonID string, amount int) (bool, error) {
-	lessonID = strings.TrimSpace(lessonID)
-	if telegramID == 0 || lessonID == "" || amount <= 0 {
-		return false, nil
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.ensureTutorLessonMapsLocked()
-	if _, assigned := s.tutorUserLessons[telegramID][lessonID]; !assigned {
-		return false, nil
-	}
-	if s.tutorCompletedLessons[telegramID] == nil {
-		s.tutorCompletedLessons[telegramID] = map[string]time.Time{}
-	}
-	if _, alreadyCompleted := s.tutorCompletedLessons[telegramID][lessonID]; alreadyCompleted {
-		return false, nil
-	}
-
-	now := time.Now().UTC()
-	user, ok := s.users[telegramID]
-	if !ok {
-		user = newUserState(telegramID, now)
-	}
-	normalizeUser(&user, now)
-	s.tutorCompletedLessons[telegramID][lessonID] = now
-	user.XP += amount
-	user.LessonCount++
-	user.LessonsToday++
-	recordHabitDay(&user, now, true)
-	user.UpdatedAt = now
-	s.users[telegramID] = user
-	s.rewardReferralLevelLocked(telegramID, now)
-	return true, s.saveLocked()
 }
 
 func (s *jsonStore) incrementPractice(telegramID int64) error {
@@ -811,9 +806,6 @@ func (s *jsonStore) ensureTutorLessonMapsLocked() {
 	if s.tutorUserLessons == nil {
 		s.tutorUserLessons = map[int64]map[string]time.Time{}
 	}
-	if s.tutorCompletedLessons == nil {
-		s.tutorCompletedLessons = map[int64]map[string]time.Time{}
-	}
 }
 
 func (s *jsonStore) assignTutorLessonLocked(telegramID int64, lessonID string) {
@@ -838,6 +830,233 @@ func (s *jsonStore) tutorAssignedLessonCountLocked(telegramID int64, language st
 		}
 	}
 	return count
+}
+
+func (s *jsonStore) saveAITutorLesson(lesson aiTutorLessonRecord) error {
+	if strings.TrimSpace(lesson.ID) == "" {
+		return errors.New("ai tutor lesson id is empty")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	now := formatDBTime(time.Now().UTC())
+	if lesson.CreatedAt == "" {
+		lesson.CreatedAt = now
+	}
+	lesson.UpdatedAt = now
+	lesson.LearningLanguage = normalizeLearningLanguage(lesson.LearningLanguage)
+	lesson.InterfaceLanguage = normalizeInterfaceLanguage(lesson.InterfaceLanguage)
+	lesson.ExactLevel = normalizeCEFRLevel(lesson.ExactLevel)
+	if strings.TrimSpace(lesson.LevelBand) == "" {
+		lesson.LevelBand = aiTutorLevelBand(lesson.ExactLevel)
+	} else {
+		lesson.LevelBand = aiTutorLevelBand(lesson.LevelBand)
+	}
+	if lesson.Fingerprint == "" {
+		lesson.Fingerprint = aiTutorFingerprint(lesson.Payload)
+	}
+	s.aiTutorLessons[lesson.ID] = lesson
+	return nil
+}
+
+func (s *jsonStore) findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	language = normalizeLearningLanguage(language)
+	interfaceLanguage = normalizeInterfaceLanguage(interfaceLanguage)
+	levelBand = aiTutorLevelBand(levelBand)
+
+	usedLessonIDs := map[string]bool{}
+	for _, session := range s.aiTutorSessions {
+		if session.TelegramID == telegramID {
+			usedLessonIDs[session.LessonID] = true
+		}
+	}
+	ids := make([]string, 0, len(s.aiTutorLessons))
+	for id, lesson := range s.aiTutorLessons {
+		if usedLessonIDs[id] {
+			continue
+		}
+		if lesson.Status == aiTutorStatusApproved &&
+			normalizeLearningLanguage(lesson.LearningLanguage) == language &&
+			normalizeInterfaceLanguage(lesson.InterfaceLanguage) == interfaceLanguage &&
+			aiTutorLevelBand(lesson.LevelBand) == levelBand {
+			ids = append(ids, id)
+		}
+	}
+	sort.SliceStable(ids, func(i, j int) bool {
+		left := s.aiTutorLessons[ids[i]]
+		right := s.aiTutorLessons[ids[j]]
+		if left.PostScore != right.PostScore {
+			return left.PostScore > right.PostScore
+		}
+		if left.PreflightScore != right.PreflightScore {
+			return left.PreflightScore > right.PreflightScore
+		}
+		return left.CreatedAt < right.CreatedAt
+	})
+	if len(ids) == 0 {
+		return aiTutorLessonRecord{}, false, nil
+	}
+	return s.aiTutorLessons[ids[0]], true, nil
+}
+
+func (s *jsonStore) getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	lesson, ok := s.aiTutorLessons[strings.TrimSpace(lessonID)]
+	return lesson, ok, nil
+}
+
+func (s *jsonStore) createAITutorSession(session aiTutorSessionRecord) error {
+	if strings.TrimSpace(session.ID) == "" {
+		return errors.New("ai tutor session id is empty")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	now := formatDBTime(time.Now().UTC())
+	if session.StartedAt == "" {
+		session.StartedAt = now
+	}
+	if session.UpdatedAt == "" {
+		session.UpdatedAt = now
+	}
+	if session.Status == "" {
+		session.Status = aiTutorSessionActive
+	}
+	s.aiTutorSessions[session.ID] = session
+	return nil
+}
+
+func (s *jsonStore) getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	session, ok := s.aiTutorSessions[strings.TrimSpace(sessionID)]
+	return session, ok, nil
+}
+
+func (s *jsonStore) updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	session, ok := s.aiTutorSessions[strings.TrimSpace(sessionID)]
+	if !ok {
+		return errors.New("ai tutor session not found")
+	}
+	session.CurrentStage = strings.TrimSpace(stage)
+	if strings.TrimSpace(status) != "" {
+		session.Status = strings.TrimSpace(status)
+	}
+	session.CompletedAt = strings.TrimSpace(completedAt)
+	session.UpdatedAt = formatDBTime(time.Now().UTC())
+	s.aiTutorSessions[session.ID] = session
+	return nil
+}
+
+func (s *jsonStore) saveAITutorAnswer(answer aiTutorAnswerRecord) error {
+	if strings.TrimSpace(answer.SessionID) == "" || strings.TrimSpace(answer.Stage) == "" {
+		return errors.New("ai tutor answer session and stage are required")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	if answer.CreatedAt == "" {
+		answer.CreatedAt = formatDBTime(time.Now().UTC())
+	}
+	s.aiTutorAnswers[answer.SessionID+"|"+answer.Stage] = answer
+	return nil
+}
+
+func (s *jsonStore) saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error {
+	if strings.TrimSpace(check.ID) == "" {
+		return errors.New("ai tutor quality check id is empty")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	if check.CreatedAt == "" {
+		check.CreatedAt = formatDBTime(time.Now().UTC())
+	}
+	s.aiTutorQualityChecks[check.ID] = check
+	return nil
+}
+
+func (s *jsonStore) updateAITutorLessonQuality(lessonID string, status string, postScore int) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	lesson, ok := s.aiTutorLessons[strings.TrimSpace(lessonID)]
+	if !ok {
+		return errors.New("ai tutor lesson not found")
+	}
+	lesson.Status = strings.TrimSpace(status)
+	lesson.PostScore = postScore
+	lesson.UpdatedAt = formatDBTime(time.Now().UTC())
+	s.aiTutorLessons[lesson.ID] = lesson
+	return nil
+}
+
+func (s *jsonStore) scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error {
+	if telegramID == 0 || strings.TrimSpace(lessonID) == "" || strings.TrimSpace(intervalCode) == "" || strings.TrimSpace(intervalCode) == "no_review" {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	now := formatDBTime(time.Now().UTC())
+	id := itoa(int(telegramID)) + "|" + strings.TrimSpace(lessonID) + "|" + strings.TrimSpace(intervalCode)
+	s.aiTutorReviews[id] = aiTutorReviewRecord{
+		ID:           id,
+		TelegramID:   telegramID,
+		LessonID:     strings.TrimSpace(lessonID),
+		DueAt:        strings.TrimSpace(dueAt),
+		IntervalCode: strings.TrimSpace(intervalCode),
+		Status:       "scheduled",
+		CreatedAt:    now,
+		UpdatedAt:    now,
+	}
+	return nil
+}
+
+func (s *jsonStore) clearLegacyTutorLessonBase() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.tutorLessons = map[string]tutorLesson{}
+	s.tutorUserLessons = map[int64]map[string]time.Time{}
+	return nil
+}
+
+func (s *jsonStore) ensureAITutorMapsLocked() {
+	if s.aiTutorLessons == nil {
+		s.aiTutorLessons = map[string]aiTutorLessonRecord{}
+	}
+	if s.aiTutorSessions == nil {
+		s.aiTutorSessions = map[string]aiTutorSessionRecord{}
+	}
+	if s.aiTutorAnswers == nil {
+		s.aiTutorAnswers = map[string]aiTutorAnswerRecord{}
+	}
+	if s.aiTutorReviews == nil {
+		s.aiTutorReviews = map[string]aiTutorReviewRecord{}
+	}
+	if s.aiTutorQualityChecks == nil {
+		s.aiTutorQualityChecks = map[string]aiTutorQualityCheckRecord{}
+	}
 }
 
 func (s *jsonStore) dueReminderUsers(now time.Time, limit int) ([]reminderTarget, error) {
@@ -1225,7 +1444,7 @@ func normalizePhrasebookEntries(items []phrasebookEntry, fallbackLanguage string
 
 func normalizePhrasebookSource(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "lesson", "practice", "roleplay", "manual":
+	case "lesson", "practice", "roleplay", "mistake", "manual":
 		return strings.ToLower(strings.TrimSpace(value))
 	default:
 		return "manual"

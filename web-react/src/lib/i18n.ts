@@ -4251,9 +4251,14 @@ appLocaleCodes.forEach((code) => {
   const progress = target.progress || terms.growth;
   const next = target.next || terms.open;
   const check = target.check || target.done || terms.ready;
+  const story = code === "en" ? "Story" : code === "ru" ? "История" : code === "de" ? "Geschichte" : target.new_lesson || learn;
+  const retell = code === "en" ? "Retell" : code === "ru" ? "Пересказ" : code === "de" ? "Nacherzählen" : target.practice || learn;
+  const storyAudio = code === "en" ? "Story audio" : code === "ru" ? "Аудио истории" : code === "de" ? "Geschichten-Audio" : target.question_audio || target.listen || listening;
   const generic: Record<string, string> = {
     tutor_context_title: target.ai_tutor || learn,
     tutor_progress_label: progress,
+    tutor_step_story: story,
+    tutor_step_retell: retell,
     tutor_step_words: words,
     tutor_step_explain: target.tutor_grammar || learn,
     tutor_step_choice: target.tutor_choice || check,
@@ -4265,6 +4270,8 @@ appLocaleCodes.forEach((code) => {
     tutor_step_assessment: target.assessment || progress,
     tutor_step_review: target.tutor_review || terms.words,
     tutor_words_instruction: `${words}: ${target.tutor_short_hint || learn}`,
+    tutor_story_instruction: code === "en" ? "Read and listen to the story, then continue." : `${story}: ${next}`,
+    tutor_retell_instruction: code === "en" ? "Retell the story in your own words." : `${retell}: ${target.lesson_answer_placeholder || target.input || learn}`,
     tutor_word_check_progress: words,
     tutor_word_need_choice: target.try_again || terms.unavailable,
     tutor_word_correct_next: target.done || terms.ready,
@@ -4329,8 +4336,12 @@ appLocaleCodes.forEach((code) => {
     tutor_course_label: target.course || learn,
     tutor_audio_word: words,
     tutor_audio_example: target.example || learn,
+    tutor_story_audio: storyAudio,
     tutor_audio_question: target.question || check,
     tutor_audio_system: target.ai_tutor || learn,
+    tutor_mistake_notes: target.mistakes || target.phrasebook || terms.words,
+    tutor_mistake_notes_hint: `${target.mistakes || target.phrasebook || terms.words}: ${target.save_to_phrasebook || terms.open}`,
+    phrase_source_mistake: target.mistakes || terms.words,
     tutor_final_assessment: target.assessment || progress,
     tutor_final_assessment_review: target.tutor_review || progress,
     tutor_final_assessment_empty: target.done || terms.ready,
@@ -4419,7 +4430,23 @@ function mojibakeScore(value: string) {
 }
 
 const fallbackLeakAllowedKeys = new Set([
+  "app_guide_body",
+  "app_guide_step_1_body",
+  "app_guide_step_1_title",
+  "app_guide_step_2_body",
+  "app_guide_step_2_title",
+  "app_guide_step_3_body",
+  "app_guide_step_3_title",
+  "app_guide_step_4_body",
+  "app_guide_step_4_title",
+  "app_guide_step_5_body",
+  "app_guide_step_5_title",
+  "app_guide_title",
+  "guide",
   "pay_stars",
+  "tutor_completed_lessons_body",
+  "tutor_completed_lessons_empty",
+  "tutor_reward_saved",
 ]);
 
 function isLikelyFallbackLeak(locale: AppLocaleCode, key: string, value: string, fallback?: string) {

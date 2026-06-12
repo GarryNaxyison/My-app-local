@@ -65,23 +65,62 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 	}
 }
 
-func TestMenuTutorCallbackStartsTutorLesson(t *testing.T) {
-	var methods []string
+func TestAITutorTelegramRecallKeyboardUsesStructuredOptions(t *testing.T) {
+	lesson := validAITutorLessonPayloadForTest()
+	step := aiTutorBuildStep(lesson, aiTutorWordRecallStage(1))
+	keyboard := aiTutorTelegramKeyboard("session-1", step, ui(userState{InterfaceLanguage: "ru"}))
+	callbacks := collectCallbackData(t, keyboard)
+
+	for _, want := range []string{"ait|session-1|choice|w1", "ait|session-1|choice|w2", "back_menu"} {
+		if !callbacks[want] {
+			t.Fatalf("recall keyboard is missing callback %q; got %#v", want, callbacks)
+		}
+	}
+	if callbacks["ait|session-1|choice|continue"] {
+		t.Fatalf("recall keyboard must use answer choices, got continue callback: %#v", callbacks)
+	}
+}
+
+func TestAITutorTelegramAudioClipsUseGeneratedAudioText(t *testing.T) {
+	lesson := validAITutorLessonPayloadForTest()
+
+	storyClips := aiTutorTelegramAudioClips(aiTutorBuildStep(lesson, aiTutorStageStoryIntro))
+	if len(storyClips) != 1 || storyClips[0].Text != lesson.Story.AudioTextTarget {
+		t.Fatalf("story clips = %#v", storyClips)
+	}
+
+	wordClips := aiTutorTelegramAudioClips(aiTutorBuildStep(lesson, aiTutorWordLearnStage(1)))
+	if len(wordClips) != 2 {
+		t.Fatalf("word clips count = %d, want 2: %#v", len(wordClips), wordClips)
+	}
+	if wordClips[0].Text != lesson.Words[0].AudioTextTarget || wordClips[1].Text != lesson.Words[0].ExampleAudioTextTarget {
+		t.Fatalf("word clips use wrong audio text: %#v", wordClips)
+	}
+
+	recallClips := aiTutorTelegramAudioClips(aiTutorBuildStep(lesson, aiTutorWordRecallStage(1)))
+	if len(recallClips) != 0 {
+		t.Fatalf("recall clips should not reveal the answer: %#v", recallClips)
+	}
+}
+
+func TestTelegramAITutorMenuStartsInteractiveSession(t *testing.T) {
 	var payloads []map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var payload map[string]any
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			t.Fatalf("decode payload: %v", err)
 		}
-		methods = append(methods, r.URL.Path)
 		payloads = append(payloads, payload)
 		_, _ = w.Write([]byte(`{"ok":true}`))
 	}))
 	defer server.Close()
 
 	store := &jsonStore{
-		path:  filepath.Join(t.TempDir(), "users.json"),
-		users: map[int64]userState{},
+		path:            filepath.Join(t.TempDir(), "users.json"),
+		users:           map[int64]userState{},
+		aiTutorLessons:  map[string]aiTutorLessonRecord{},
+		aiTutorSessions: map[string]aiTutorSessionRecord{},
+		aiTutorAnswers:  map[string]aiTutorAnswerRecord{},
 	}
 	user := userState{
 		TelegramID:        123,
@@ -94,6 +133,9 @@ func TestMenuTutorCallbackStartsTutorLesson(t *testing.T) {
 		Level:             "A1",
 	}
 	store.users[user.TelegramID] = user
+	if err := store.saveAITutorLesson(aiTutorLessonRecord{ID: "lesson-tg-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
 	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
 
 	err := b.handleCallbackQuery(context.Background(), callbackQuery{
@@ -104,15 +146,113 @@ func TestMenuTutorCallbackStartsTutorLesson(t *testing.T) {
 	if err != nil {
 		t.Fatalf("handleCallbackQuery(menu_tutor) error = %v", err)
 	}
-	if len(methods) < 2 || methods[0] != "/answerCallbackQuery" || methods[len(methods)-1] != "/sendMessage" {
-		t.Fatalf("expected callback answer and tutor message, got methods=%v payloads=%#v", methods, payloads)
+	refreshed := store.users[user.TelegramID]
+	if !strings.HasPrefix(refreshed.Mode, "ai_tutor:") {
+		t.Fatalf("mode = %q, want ai_tutor session", refreshed.Mode)
 	}
 	text, _ := payloads[len(payloads)-1]["text"].(string)
-	if strings.Contains(text, ui(user).UnknownButton) {
-		t.Fatalf("menu_tutor fell through to unknown button: %q", text)
+	if !strings.Contains(text, "A Morning Visit") {
+		t.Fatalf("expected story step title, got %q", text)
 	}
-	if !strings.Contains(text, "AI Репетитор") || !strings.Contains(text, "Паттерн:") || !strings.Contains(text, "Какая реплика лучше") {
-		t.Fatalf("expected rendered tutor lesson, got %q", text)
+}
+
+func TestMenuTutorDoesNotUseLocalCourseBank(t *testing.T) {
+	var sentText string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		sentText, _ = payload["text"].(string)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	store := &jsonStore{
+		path:            filepath.Join(t.TempDir(), "users.json"),
+		users:           map[int64]userState{},
+		aiTutorLessons:  map[string]aiTutorLessonRecord{},
+		aiTutorSessions: map[string]aiTutorSessionRecord{},
+		aiTutorAnswers:  map[string]aiTutorAnswerRecord{},
+	}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		TimezoneSelected:  true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+		Level:             "A1",
+	}
+	store.users[user.TelegramID] = user
+	if err := store.saveAITutorLesson(aiTutorLessonRecord{ID: "lesson-tg-local-regression", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+
+	err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:   "cb-1",
+		From: telegramUser{ID: user.TelegramID, FirstName: user.FirstName},
+		Data: "menu_tutor",
+	})
+	if err != nil {
+		t.Fatalf("handleCallbackQuery(menu_tutor) error = %v", err)
+	}
+
+	if !strings.Contains(sentText, "A Morning Visit") {
+		t.Fatalf("menu_tutor did not render AI tutor story step: %q", sentText)
+	}
+	for _, oldMarker := range []string{"local-a1-a2-course-core", "Final word check", "Pattern:"} {
+		if strings.Contains(sentText, oldMarker) {
+			t.Fatalf("menu_tutor leaked local course bank marker %q in text: %q", oldMarker, sentText)
+		}
+	}
+}
+
+func TestTelegramAITutorTextRoutesToActiveSession(t *testing.T) {
+	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}, aiTutorLessons: map[string]aiTutorLessonRecord{}, aiTutorSessions: map[string]aiTutorSessionRecord{}, aiTutorAnswers: map[string]aiTutorAnswerRecord{}}
+	user := userState{TelegramID: 123, FirstName: "Test", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1", Mode: "ai_tutor:session-1"}
+	store.users[user.TelegramID] = user
+	_ = store.saveAITutorLesson(aiTutorLessonRecord{ID: "lesson-tg-2", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()})
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: user.TelegramID, LessonID: "lesson-tg-2", Surface: "telegram", CurrentStage: aiTutorStageStoryIntro, Status: aiTutorSessionActive})
+	var sent string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&payload)
+		sent, _ = payload["text"].(string)
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+	if err := b.handleAITutorText(context.Background(), user.TelegramID, user, "continue"); err != nil {
+		t.Fatalf("handleAITutorText() error = %v", err)
+	}
+	session, _, _ := store.getAITutorSession("session-1")
+	if session.CurrentStage != aiTutorStageRetell {
+		t.Fatalf("stage = %q, want retell", session.CurrentStage)
+	}
+	if !strings.Contains(sent, "Retell") {
+		t.Fatalf("sent text = %q", sent)
+	}
+}
+
+func TestTelegramAITutorCallbackRoutesToActiveSession(t *testing.T) {
+	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}, aiTutorLessons: map[string]aiTutorLessonRecord{}, aiTutorSessions: map[string]aiTutorSessionRecord{}, aiTutorAnswers: map[string]aiTutorAnswerRecord{}}
+	user := userState{TelegramID: 123, FirstName: "Test", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1", Mode: "ai_tutor:session-1"}
+	store.users[user.TelegramID] = user
+	_ = store.saveAITutorLesson(aiTutorLessonRecord{ID: "lesson-tg-3", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()})
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: user.TelegramID, LessonID: "lesson-tg-3", Surface: "telegram", CurrentStage: aiTutorStageReviewSchedule, Status: aiTutorSessionActive})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte(`{"ok":true}`)) }))
+	defer server.Close()
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+	err := b.handleCallbackQuery(context.Background(), callbackQuery{ID: "cb-1", From: telegramUser{ID: user.TelegramID, FirstName: user.FirstName}, Data: "ait|session-1|choice|no_review"})
+	if err != nil {
+		t.Fatalf("handleCallbackQuery() error = %v", err)
+	}
+	session, _, _ := store.getAITutorSession("session-1")
+	if session.Status != aiTutorSessionComplete {
+		t.Fatalf("status = %q, want complete", session.Status)
 	}
 }
 

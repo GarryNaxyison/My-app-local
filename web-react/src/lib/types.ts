@@ -110,10 +110,49 @@ export type PhrasebookItem = {
   phrase: string;
   translation?: string;
   note?: string;
-  source?: "lesson" | "practice" | "roleplay" | "manual";
+  source?: "lesson" | "practice" | "roleplay" | "mistake" | "manual";
   language?: string;
   createdAt?: string;
   created_at?: string;
+};
+
+export type AiTutorStep = {
+  stage: string;
+  kind: string;
+  title?: string;
+  instruction?: string;
+  lesson?: {
+    title?: string;
+    level?: string;
+    theme?: string;
+    lesson_goal?: string;
+    story?: { text_target?: string; audio_text_target?: string };
+    words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string }>;
+  };
+  word?: { id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string };
+  question?: { id?: string; question_target?: string };
+  options?: Array<string | { id?: string; text?: string; correct?: boolean }>;
+};
+
+export type AiTutorSession = {
+  ID?: string;
+  id?: string;
+  CurrentStage?: string;
+  current_stage?: string;
+  Status?: string;
+  status?: string;
+};
+
+export type AiTutorResponse = {
+  session?: AiTutorSession;
+  lesson?: AiTutorStep["lesson"];
+  current_stage?: string;
+  next_step?: AiTutorStep;
+  feedback?: { ok?: boolean; message?: string; json?: string };
+  xp?: number;
+  reward_xp?: number;
+  reward_title?: string;
+  user?: unknown;
 };
 
 export type SessionData = {

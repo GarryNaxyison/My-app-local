@@ -1,4 +1,4 @@
-﻿import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
+import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ClipboardEvent } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
@@ -36,6 +36,7 @@ import {
   Mic,
   PenLine,
   Play,
+  RefreshCw,
   Repeat2,
   Search,
   Send,
@@ -55,6 +56,8 @@ import {
 } from "lucide-react";
 import { ApiError, api, apiForm, loadSession, logout } from "./lib/api";
 import type {
+  AiTutorResponse,
+  AiTutorStep,
   ChatMessage,
   ChoiceOption,
   LanguageOption,
@@ -216,6 +219,7 @@ type XPGainNotice = {
 };
 
 type MistakeCategory = "grammar" | "word-order" | "vocabulary" | "politeness" | "spelling";
+type AiTutorFeedbackState = NonNullable<AiTutorResponse["feedback"]>;
 
 type TelegramCodeRequest = {
   token: string;
@@ -349,7 +353,7 @@ type TutorCompletedLessonRecord = {
   topic: string;
   level: string;
   completedAt: string;
-  lesson: TutorLesson;
+  lesson?: TutorLesson;
 };
 
 function tutorStableHash(value: string) {
@@ -861,15 +865,16 @@ function readTutorCompletedLessons(key: string): TutorCompletedLessonRecord[] {
         const record = getRecord(item);
         const lesson = asTutorLesson(record.lesson);
         const id = cleanAppText(record.id || lesson?.id).trim();
-        if (!id || !lesson) return null;
-        return {
+        if (!id) return null;
+        const completed: TutorCompletedLessonRecord = {
           id,
-          title: cleanAppText(record.title || lesson.title).trim() || "AI Tutor",
-          topic: cleanAppText(record.topic || lesson.topic).trim(),
-          level: cleanAppText(record.level || lesson.level).trim(),
+          title: cleanAppText(record.title || lesson?.title).trim() || "AI Tutor",
+          topic: cleanAppText(record.topic || lesson?.topic).trim(),
+          level: cleanAppText(record.level || lesson?.level).trim(),
           completedAt: cleanAppText(record.completedAt || record.completed_at).trim() || new Date().toISOString(),
-          lesson,
-        } satisfies TutorCompletedLessonRecord;
+          lesson: lesson || undefined,
+        };
+        return completed;
       })
       .filter((item): item is TutorCompletedLessonRecord => Boolean(item))
       .sort((left, right) => right.completedAt.localeCompare(left.completedAt));
@@ -878,7 +883,7 @@ function readTutorCompletedLessons(key: string): TutorCompletedLessonRecord[] {
   }
 }
 
-function writeTutorCompletedLesson(key: string, lesson: TutorLesson) {
+function writeTutorCompletedLesson(key: string, lesson: { id: string; title: string; topic: string; level: string; lesson?: TutorLesson }) {
   if (!key || !lesson?.id) return;
   const record: TutorCompletedLessonRecord = {
     id: lesson.id,
@@ -886,7 +891,7 @@ function writeTutorCompletedLesson(key: string, lesson: TutorLesson) {
     topic: cleanAppText(lesson.topic).trim(),
     level: cleanAppText(lesson.level).trim(),
     completedAt: new Date().toISOString(),
-    lesson,
+    lesson: lesson.lesson,
   };
   const current = readTutorCompletedLessons(key).filter((item) => item.id !== record.id);
   localStorage.setItem(key, JSON.stringify([record, ...current].slice(0, 100)));
@@ -1221,7 +1226,7 @@ function normalizePhrasebookItems(value: unknown): PhrasebookItem[] {
       phrase,
       translation: cleanAppText(asText(record.translation, "")),
       note: cleanAppText(asText(record.note, "")),
-      source: (["lesson", "practice", "roleplay", "manual"].includes(asText(record.source, "")) ? asText(record.source, "") : "manual") as PhrasebookSource,
+      source: (["lesson", "practice", "roleplay", "mistake", "manual"].includes(asText(record.source, "")) ? asText(record.source, "") : "manual") as PhrasebookSource,
       language: cleanAppText(asText(record.language, "")),
       createdAt: cleanAppText(asText(record.createdAt || record.created_at, "")) || new Date().toISOString(),
     });
@@ -1449,7 +1454,9 @@ export function App() {
   const [wordChallenge, setWordChallenge] = useState<WordChallenge | null>(null);
   const [wordResult, setWordResult] = useState<TrainerResult | null>(null);
   const [wordGameResult, setWordGameResult] = useState<TrainerResult | null>(null);
-  const [tutorLesson, setTutorLesson] = useState<TutorLesson | null>(null);
+  const [aiTutorSessionId, setAiTutorSessionId] = useState("");
+  const [aiTutorStep, setAiTutorStep] = useState<AiTutorStep | null>(null);
+  const [aiTutorFeedback, setAiTutorFeedback] = useState<AiTutorFeedbackState | null>(null);
   const [tutorLoadError, setTutorLoadError] = useState("");
   const [spellingChallenge, setSpellingChallenge] = useState<SpellingChallenge | null>(null);
   const [spellingResult, setSpellingResult] = useState<TrainerResult | null>(null);
@@ -1828,7 +1835,7 @@ export function App() {
       absorbPayload(payload, {
         preserveLanguage: label === "daily-bonus",
         suppressXPGain: label === "daily-bonus",
-        rewardTitle: label === "tutor-complete" ? copy("ai_tutor", "AI Tutor") : undefined,
+        rewardTitle: label === "tutor" ? copy("ai_tutor", "AI Tutor") : undefined,
       });
       if (success) setStatus({ kind: "ok", text: success });
       return payload;
@@ -1856,13 +1863,15 @@ export function App() {
   };
 
   const startTutor = async () => {
-    setTutorLesson(null);
+    setAiTutorSessionId("");
+    setAiTutorStep(null);
+    setAiTutorFeedback(null);
     setTutorLoadError("");
     const payload = await runAction("tutor", async () => {
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 30000);
       try {
-        return await api<ApiRecord>("/api/tutor/start", { method: "POST", body: {}, signal: controller.signal });
+        return await api<AiTutorResponse>("/api/ai-tutor/start", { method: "POST", body: {}, signal: controller.signal });
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           throw new Error(copy("tutor_timeout", "Tutor lesson is taking too long. Try again."));
@@ -1873,22 +1882,26 @@ export function App() {
       }
     }, copy("tutor_ready", "Tutor lesson is ready."));
     if (!payload) return;
-    const record = getRecord(payload);
-    const lesson = asTutorLesson(record.tutor_lesson);
-    if (!lesson) {
+    const response = payload as AiTutorResponse;
+    const step = response.next_step || null;
+    const sessionID = String(response.session?.id || response.session?.ID || "");
+    const lessonPayload = response.lesson || step?.lesson;
+    if (!step || !sessionID) {
       const text = copy("request_failed", "Request failed");
       setTutorLoadError(text);
       setStatus({ kind: "error", text });
       return;
     }
     setTutorLoadError("");
-    setTutorLesson(lesson);
+    setAiTutorSessionId(sessionID);
+    setAiTutorStep(step);
+    setAiTutorFeedback(response.feedback || null);
     setMessages((current) => [
       panelMessage(
-        [lesson.goal, lesson.grammar, lesson.listening_text].map((item) => cleanAppText(item)).filter(Boolean).join("\n\n"),
+        [lessonPayload?.lesson_goal || step.instruction, lessonPayload?.story?.text_target].map((item) => cleanAppText(item)).filter(Boolean).join("\n\n"),
         "default",
-        lesson.title || copy("ai_tutor", "AI Tutor"),
-        record,
+        cleanAppText(lessonPayload?.title || step.title || copy("ai_tutor", "AI Tutor")),
+        getRecord(payload),
         "tutor",
       ),
       ...current,
@@ -1896,19 +1909,19 @@ export function App() {
     setView("tutor");
   };
 
-  const completeTutorLesson = async (lessonId: string, review: string) => {
+  const submitAiTutorStep = async (text: string, choice = "") => {
+    if (!aiTutorSessionId) return;
     const payload = await runAction(
-      "tutor-complete",
-      () => api<ApiRecord>("/api/tutor/complete", { method: "POST", body: { lesson_id: lessonId, review } }),
-      copy("tutor_reward_saved", "Tutor lesson completed."),
+      "tutor",
+      () => api<AiTutorResponse>("/api/ai-tutor/answer", { method: "POST", body: { session_id: aiTutorSessionId, text, choice } }),
+      copy("tutor_answer_saved", "Answer saved"),
     );
-    return payload ? getRecord(payload) : null;
-  };
-
-  const openTutorLesson = (lesson: TutorLesson) => {
-    setTutorLoadError("");
-    setTutorLesson(lesson);
-    setView("tutor");
+    if (!payload) return;
+    const response = payload as AiTutorResponse;
+    const sessionID = String(response.session?.id || response.session?.ID || aiTutorSessionId);
+    if (sessionID) setAiTutorSessionId(sessionID);
+    setAiTutorStep(response.next_step || null);
+    setAiTutorFeedback(response.feedback || null);
   };
 
   const submitLearningAnswer = async (mode: "lesson" | "practice") => {
@@ -2658,11 +2671,11 @@ export function App() {
     setVoiceFile,
     setImageFile,
     setView: activateView,
-    tutorLesson,
+    aiTutorStep,
+    aiTutorFeedback,
+    submitAiTutorStep,
     tutorLoadError,
     startTutor,
-    completeTutorLesson,
-    openTutorLesson,
     startLesson,
     submitLesson: () => submitLearningAnswer("lesson"),
     submitPractice: () => submitLearningAnswer("practice"),
@@ -3112,7 +3125,7 @@ function AuthStandaloneView({
       <SignInPage
         mode={mode}
         title={<span>{mode === "register" ? copy("auth_create_account", "Create account") : copy("auth_welcome", "Welcome back")}</span>}
-        description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_login_password_hint", "Введите логин и пароль.")}
+        description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_fill_required", "Enter login and password.")}
         heroImageSrc={heroImageSrc}
         testimonials={testimonials}
         status={status ? <span className={`is-${status.kind}`}>{status.text}</span> : null}
@@ -4630,11 +4643,11 @@ type ViewRendererProps = {
   setVoiceFile: (file: File | null) => void;
   setImageFile: (file: File | null) => void;
   setView: (view: ViewId) => void;
-  tutorLesson: TutorLesson | null;
+  aiTutorStep: AiTutorStep | null;
+  aiTutorFeedback: AiTutorFeedbackState | null;
+  submitAiTutorStep: (text: string, choice?: string) => Promise<void>;
   tutorLoadError: string;
   startTutor: () => Promise<void>;
-  completeTutorLesson: (lessonId: string, review: string) => Promise<ApiRecord | null>;
-  openTutorLesson: (lesson: TutorLesson) => void;
   startLesson: () => Promise<void>;
   submitLesson: () => Promise<void>;
   submitPractice: () => Promise<void>;
@@ -4741,240 +4754,49 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imageFile, setVoiceFile, setImageFile, startTutor, completeTutorLesson, openTutorLesson, busy, copy, savePhrase }: ViewRendererProps) {
-  useEffect(() => {
-    if (!tutorLesson && !busy && !tutorLoadError) void startTutor();
-  }, [Boolean(tutorLesson), Boolean(busy), tutorLoadError]);
-
-  const words = tutorLesson?.words || [];
-  const review = tutorLesson?.review || [];
+function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, startTutor, busy, copy, savePhrase }: ViewRendererProps) {
   const display = (value: unknown) => cleanAppText(value).trim();
-  const [currentStageIndex, setCurrentStageIndex] = useState(0);
-  const [unlockedStageIndex, setUnlockedStageIndex] = useState(0);
-  const [wordQuizIndex, setWordQuizIndex] = useState(0);
-  const [wordQuizSelection, setWordQuizSelection] = useState("");
-  const [wordQuizAttempts, setWordQuizAttempts] = useState(0);
-  const [wordQuizResults, setWordQuizResults] = useState<Array<{ id: string; word: string; answer: string; attempts: number }>>([]);
-  const [choiceCheckIndex, setChoiceCheckIndex] = useState(0);
-  const [choiceCheckResults, setChoiceCheckResults] = useState<Array<{ id: string; answer: string }>>([]);
-  const [choiceSelection, setChoiceSelection] = useState("");
-  const [finalCheckIndex, setFinalCheckIndex] = useState(0);
-  const [finalCheckSelection, setFinalCheckSelection] = useState("");
-  const [finalCheckResults, setFinalCheckResults] = useState<Array<{ id: string; answer: string }>>([]);
   const [tutorDraft, setTutorDraft] = useState("");
-  const [srsSelection, setSrsSelection] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [feedbackTone, setFeedbackTone] = useState<TutorFeedbackTone>("idle");
-  const [tutorVoiceChecking, setTutorVoiceChecking] = useState(false);
-  const [tutorPronunciation, setTutorPronunciation] = useState<PronunciationAssessment | null>(null);
-  const [tutorPronunciationCorrection, setTutorPronunciationCorrection] = useState("");
-  const [pendingAdvanceNote, setPendingAdvanceNote] = useState("");
-  const [completedNotes, setCompletedNotes] = useState<Record<string, string>>({});
+  const [selectedChoice, setSelectedChoice] = useState("");
   const [completedLessonsOpen, setCompletedLessonsOpen] = useState(false);
   const [completedLessonPage, setCompletedLessonPage] = useState(0);
   const [completedLessonsVersion, setCompletedLessonsVersion] = useState(0);
-  const tutorProgressAccountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
-  const tutorProgressKey = tutorLesson?.id ? `poliglot-tutor-progress-v2:${tutorProgressAccountKey}:${tutorLesson.id}` : "";
-  const tutorCompletedLessonsKey = `poliglot-tutor-completed-v2:${tutorProgressAccountKey}`;
-  const tutorProgressSkipSaveRef = useRef("");
-  const resetTutorProgressState = () => {
-    setCurrentStageIndex(0);
-    setUnlockedStageIndex(0);
-    setWordQuizIndex(0);
-    setWordQuizSelection("");
-    setWordQuizAttempts(0);
-    setWordQuizResults([]);
-    setChoiceCheckIndex(0);
-    setChoiceCheckResults([]);
-    setChoiceSelection("");
-    setFinalCheckIndex(0);
-    setFinalCheckSelection("");
-    setFinalCheckResults([]);
+  const completedRecordedRef = useRef("");
+  const accountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
+  const completedLessonsKey = `poliglot-tutor-completed-v3:${accountKey}`;
+
+  useEffect(() => {
+    if (!aiTutorStep && !busy && !tutorLoadError) void startTutor();
+  }, [Boolean(aiTutorStep), Boolean(busy), tutorLoadError]);
+
+  useEffect(() => {
     setTutorDraft("");
-    setSrsSelection("");
-    setFeedback("");
-    setFeedbackTone("idle");
-    setTutorVoiceChecking(false);
-    setTutorPronunciation(null);
-    setTutorPronunciationCorrection("");
-    setPendingAdvanceNote("");
-    setCompletedNotes({});
-  };
-  const safeTutorIndex = (value: unknown) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(64, Number(value))) : 0;
-  const safeTutorText = (value: unknown) => typeof value === "string" ? value : "";
-  const safeTutorResults = <T extends ApiRecord>(value: unknown, normalize: (record: ApiRecord) => T | null): T[] => {
-    if (!Array.isArray(value)) return [];
-    return value.map((item) => normalize(getRecord(item))).filter((item): item is T => Boolean(item));
-  };
+    setSelectedChoice("");
+  }, [aiTutorStep?.stage]);
 
-  useEffect(() => {
-    if (tutorLesson?.id && tutorProgressKey) {
-      tutorProgressSkipSaveRef.current = tutorProgressKey;
-      try {
-        const snapshot = JSON.parse(localStorage.getItem(tutorProgressKey) || "null") as Partial<TutorProgressSnapshot> | null;
-        if (snapshot?.lessonId === tutorLesson.id) {
-          setCurrentStageIndex(safeTutorIndex(snapshot.currentStageIndex));
-          setUnlockedStageIndex(safeTutorIndex(snapshot.unlockedStageIndex));
-          setWordQuizIndex(safeTutorIndex(snapshot.wordQuizIndex));
-          setWordQuizSelection(safeTutorText(snapshot.wordQuizSelection));
-          setWordQuizAttempts(safeTutorIndex(snapshot.wordQuizAttempts));
-          setWordQuizResults(safeTutorResults(snapshot.wordQuizResults, (record) => {
-            const id = safeTutorText(record.id);
-            const word = safeTutorText(record.word);
-            const answer = safeTutorText(record.answer);
-            return id && word && answer ? { id, word, answer, attempts: safeTutorIndex(record.attempts) } : null;
-          }));
-          setChoiceCheckIndex(safeTutorIndex(snapshot.choiceCheckIndex));
-          setChoiceCheckResults(safeTutorResults(snapshot.choiceCheckResults, (record) => {
-            const id = safeTutorText(record.id);
-            const answer = safeTutorText(record.answer);
-            return id && answer ? { id, answer } : null;
-          }));
-          setChoiceSelection(safeTutorText(snapshot.choiceSelection));
-          setFinalCheckIndex(safeTutorIndex(snapshot.finalCheckIndex));
-          setFinalCheckSelection(safeTutorText(snapshot.finalCheckSelection));
-          setFinalCheckResults(safeTutorResults(snapshot.finalCheckResults, (record) => {
-            const id = safeTutorText(record.id);
-            const answer = safeTutorText(record.answer);
-            return id && answer ? { id, answer } : null;
-          }));
-          setTutorDraft(safeTutorText(snapshot.tutorDraft));
-          setSrsSelection(safeTutorText(snapshot.srsSelection));
-          setFeedback(safeTutorText(snapshot.feedback));
-          setFeedbackTone(snapshot.feedbackTone === "success" || snapshot.feedbackTone === "error" ? snapshot.feedbackTone : "idle");
-          setTutorVoiceChecking(false);
-          setTutorPronunciation(getRecord(snapshot.tutorPronunciation) as PronunciationAssessment | null);
-          setTutorPronunciationCorrection(safeTutorText(snapshot.tutorPronunciationCorrection));
-          setPendingAdvanceNote(safeTutorText(snapshot.pendingAdvanceNote));
-          setCompletedNotes(getRecord(snapshot.completedNotes) as Record<string, string>);
-          setVoiceFile(null);
-          return;
-        }
-      } catch {
-        // Fall back to a fresh lesson state if a stored snapshot is malformed.
-      }
-    }
-    resetTutorProgressState();
-    setVoiceFile(null);
-  }, [tutorLesson?.id, tutorProgressKey]);
+  const serverStages = useMemo(() => {
+    const stages = [
+      "story_intro",
+      "retell",
+      "question_1",
+      "question_2",
+      "question_3",
+      ...Array.from({ length: 6 }, (_, index) => `word_learn_${index + 1}`),
+      ...Array.from({ length: 6 }, (_, index) => `word_recall_${index + 1}`),
+      "production",
+      "lesson_feedback",
+      "review_schedule",
+      "complete",
+    ];
+    return stages;
+  }, []);
 
-  useEffect(() => {
-    if (!tutorLesson?.id || !tutorProgressKey) return;
-    if (tutorProgressSkipSaveRef.current === tutorProgressKey) {
-      tutorProgressSkipSaveRef.current = "";
-      return;
-    }
-    const snapshot: TutorProgressSnapshot = {
-      lessonId: tutorLesson.id,
-      currentStageIndex,
-      unlockedStageIndex,
-      wordQuizIndex,
-      wordQuizSelection,
-      wordQuizAttempts,
-      wordQuizResults,
-      choiceCheckIndex,
-      choiceCheckResults,
-      choiceSelection,
-      finalCheckIndex,
-      finalCheckSelection,
-      finalCheckResults,
-      tutorDraft,
-      srsSelection,
-      feedback,
-      feedbackTone,
-      tutorPronunciation,
-      tutorPronunciationCorrection,
-      pendingAdvanceNote,
-      completedNotes,
-    };
-    localStorage.setItem(tutorProgressKey, JSON.stringify(snapshot));
-  }, [
-    tutorLesson?.id,
-    tutorProgressKey,
-    currentStageIndex,
-    unlockedStageIndex,
-    wordQuizIndex,
-    wordQuizSelection,
-    wordQuizAttempts,
-    wordQuizResults,
-    choiceCheckIndex,
-    choiceCheckResults,
-    choiceSelection,
-    finalCheckIndex,
-    finalCheckSelection,
-    finalCheckResults,
-    tutorDraft,
-    srsSelection,
-    feedback,
-    feedbackTone,
-    tutorPronunciation,
-    tutorPronunciationCorrection,
-    pendingAdvanceNote,
-    completedNotes,
-  ]);
-
-  const tutorStages = useMemo<Array<{ id: TutorStageId; title: string; instruction: string }>>(() => [
-    {
-      id: "words",
-      title: copy("tutor_step_words", "New words"),
-      instruction: copy("tutor_words_instruction", "Read the theme words. The tutor will use them in the tasks below."),
-    },
-    {
-      id: "explain",
-      title: copy("tutor_step_explain", "Mini explanation"),
-      instruction: copy("tutor_explain_instruction", "One pattern for this lesson. Keep it in mind before answering."),
-    },
-    {
-      id: "choice",
-      title: copy("tutor_step_choice", "Choice"),
-      instruction: copy("tutor_choice_instruction", "Choose one answer. The tutor checks it before moving on."),
-    },
-    {
-      id: "writing",
-      title: copy("tutor_step_writing", "Writing"),
-      instruction: copy("tutor_writing_instruction", "Write your own answer using the lesson words."),
-    },
-    {
-      id: "listening",
-      title: copy("tutor_step_listening", "Listening"),
-      instruction: copy("tutor_listening_instruction", "Listen without seeing the text, then type 2-3 key details you heard."),
-    },
-    {
-      id: "pronunciation",
-      title: copy("tutor_step_pronunciation", "Pronunciation"),
-      instruction: copy("tutor_pronunciation_instruction", "Now read the same line, listen to the model, and record your repeat for scoring."),
-    },
-    {
-      id: "dialogue",
-      title: copy("tutor_step_dialogue", "Mini dialogue"),
-      instruction: copy("tutor_dialogue_instruction", "Answer the tutor's line in the target language."),
-    },
-    {
-      id: "final-check",
-      title: copy("tutor_step_final_check", "Final word check"),
-      instruction: copy("tutor_final_check_instruction", "Check the lesson words once more before scheduling review."),
-    },
-    {
-      id: "assessment",
-      title: copy("tutor_step_assessment", "Tutor assessment"),
-      instruction: copy("tutor_final_assessment_instruction", "Review the useful phrases and weak spots before scheduling the next review."),
-    },
-    {
-      id: "review",
-      title: copy("tutor_step_review", "Memory review"),
-      instruction: copy("tutor_review_instruction", "Choose how hard the lesson felt to schedule review."),
-    },
-  ], [copy]);
-
-  const activeStage = currentStageIndex < tutorStages.length ? tutorStages[currentStageIndex] : null;
-  const lessonComplete = Boolean(tutorLesson && unlockedStageIndex >= tutorStages.length);
-  const viewingCompleteSummary = Boolean(tutorLesson && currentStageIndex >= tutorStages.length);
-  const viewingPastStage = Boolean(activeStage && currentStageIndex < unlockedStageIndex);
-  const completedCount = Math.min(unlockedStageIndex, tutorStages.length);
-  const progressPercent = Math.round((completedCount / tutorStages.length) * 100);
+  const currentStageIndex = Math.max(0, serverStages.indexOf(aiTutorStep?.stage || "story_intro"));
+  const completedCount = aiTutorStep?.stage === "complete" ? serverStages.length : currentStageIndex;
+  const progressPercent = Math.round((completedCount / Math.max(serverStages.length, 1)) * 100);
   const completedLessons = useMemo(
-    () => readTutorCompletedLessons(tutorCompletedLessonsKey),
-    [tutorCompletedLessonsKey, completedLessonsVersion, completedLessonsOpen],
+    () => readTutorCompletedLessons(completedLessonsKey),
+    [completedLessonsKey, completedLessonsVersion, completedLessonsOpen],
   );
   const completedLessonPageSize = 10;
   const completedLessonPageCount = Math.max(1, Math.ceil(completedLessons.length / completedLessonPageSize));
@@ -4983,601 +4805,165 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
     safeCompletedLessonPage * completedLessonPageSize,
     safeCompletedLessonPage * completedLessonPageSize + completedLessonPageSize,
   );
-  const interfaceLocale = languageCode(user.interface_language);
-  const localizedTutorTopic = (() => {
-    const topic = display(tutorLesson?.topic);
-    const hotelScenario = roleplayScenarios.find((scenario) => scenario.id === "hotel");
-    if (interfaceLocale !== "ru" && hotelScenario && /hotel|отел|поезд|travel|trip/i.test(topic)) return roleplayScenarioTitle(hotelScenario, user);
-    if (interfaceLocale !== "ru" && /[А-Яа-яЁё]/.test(topic)) return copy("tutor_words_title", "Theme vocabulary");
-    return topic;
-  })();
-  const localizedTutorGoal = interfaceLocale === "ru" ? display(tutorLesson?.goal) : "";
-  const tutorSourceLabel = (() => {
-    const source = display(tutorLesson?.source);
-    if (!source || isGenericSectionCopy(source)) return "";
-    return source;
-  })();
-  const tutorChecks = useMemo(() => {
-    const sourceChecks = (tutorLesson?.checks || []).filter((check) => (check.options || []).length && check.correct_answer_id);
-    if (sourceChecks.length) return sourceChecks;
-    if (tutorLesson?.choice?.options?.length && tutorLesson.choice.correct_answer_id) return [tutorLesson.choice];
-    return [];
-  }, [tutorLesson]);
-  const activeChoiceCheck = tutorChecks[Math.min(choiceCheckIndex, Math.max(tutorChecks.length - 1, 0))];
-  const choiceOptions = useMemo(
-    () => tutorStableShuffle(activeChoiceCheck?.options || [], `${tutorLesson?.id || "tutor"}:${activeChoiceCheck?.prompt || "choice"}:${choiceCheckIndex}`),
-    [activeChoiceCheck, tutorLesson?.id, choiceCheckIndex],
-  );
-  const finalCheckItems = useMemo(() => {
-    return (tutorLesson?.final_word_check?.items || []).filter((item) => (item.options || []).length && item.correct_answer_id);
-  }, [tutorLesson]);
-  const activeFinalCheck = finalCheckItems[Math.min(finalCheckIndex, Math.max(finalCheckItems.length - 1, 0))];
-  const finalCheckOptions = useMemo(
-    () => tutorStableShuffle(activeFinalCheck?.options || [], `${tutorLesson?.id || "tutor"}:${activeFinalCheck?.prompt || "final"}:${finalCheckIndex}`),
-    [activeFinalCheck, tutorLesson?.id, finalCheckIndex],
-  );
-  const currentQuizWord = words[wordQuizIndex];
-  const wordQuizOptions = useMemo(() => {
-    if (!currentQuizWord) return [];
-    const seen = new Set<string>();
-    const options = words
-      .map((word) => ({ id: word.id, label: display(word.translation), word: display(word.word) }))
-      .filter((item) => {
-        const key = item.label.toLowerCase();
-        if (!item.label || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    const correctIndex = options.findIndex((item) => item.id === currentQuizWord.id);
-    const baseOptions = correctIndex >= 0 ? [options[correctIndex], ...options.filter((_, index) => index !== correctIndex)].slice(0, 4) : options.slice(0, 4);
-    const shuffled = tutorStableShuffle(baseOptions, `${tutorLesson?.id || "tutor"}:${currentQuizWord.id}:${wordQuizIndex}`);
-    if (shuffled.length > 1 && shuffled[0]?.id === currentQuizWord.id) {
-      return [shuffled[1], shuffled[0], ...shuffled.slice(2)];
-    }
-    return shuffled;
-  }, [words, wordQuizIndex, tutorLesson?.id]);
-  const choiceCorrectAnswerId =
-    activeChoiceCheck?.correct_answer_id ||
-    words.find((word) => {
-      const prompt = display(activeChoiceCheck?.prompt).toLowerCase();
-      return prompt.includes(display(word.word).toLowerCase()) || prompt.includes(display(word.translation).toLowerCase());
-    })?.id ||
-    "";
-  const answerUsesLessonWord = (answer: string) => {
-    const normalized = answer.toLowerCase();
-    return words.some((word) => {
-      const target = display(word.word).toLowerCase();
-      return target.length > 1 && normalized.includes(target);
-    });
-  };
-  const expectedMatchCount = (answer: string, expected: string[] = []) => {
-    const normalized = answer.toLowerCase();
-    return expected.reduce((count, item) => {
-      const value = display(item).toLowerCase();
-      return value.length > 1 && normalized.includes(value) ? count + 1 : count;
-    }, 0);
-  };
-  const answerContainsExpected = (answer: string, expected: string[] = [], minimum = 1) => {
-    return expectedMatchCount(answer, expected) >= minimum;
-  };
-  const tutorAcceptedAnswerNote = (stage: TutorStageId, answer: string) => {
-    const visibleAnswer = answer.length > 90 ? `${answer.slice(0, 90)}...` : answer;
-    if (stage === "writing") return `${copy("tutor_writing_feedback", "Good: you used the lesson words in a usable line.")} ${visibleAnswer}`;
-    if (stage === "listening") return `${copy("tutor_listening_feedback", "Good: the key listening details were found.")} ${visibleAnswer}`;
-    if (stage === "dialogue") return `${copy("tutor_dialogue_feedback", "Good: your reply answers the tutor's last line.")} ${visibleAnswer}`;
-    return `${copy("tutor_answer_saved", "Answer saved")}: ${visibleAnswer}`;
-  };
-  const applyTutorVariant = (variant: TutorAnswerVariant) => {
-    setTutorDraft(display(variant.text));
-    setFeedback("");
-    setFeedbackTone("idle");
-    setPendingAdvanceNote("");
-  };
-  const tutorPhraseCandidates = (variants: TutorAnswerVariant[] = []) => {
-    const items: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
-    const seen = new Set<string>();
-    variants.forEach((variant) => {
-      const phrase = display(variant.text);
-      if (!isUsefulPhraseCandidate(phrase) || variant.avoid) return;
-      const key = phrase.toLowerCase();
-      if (seen.has(key)) return;
-      seen.add(key);
-      items.push({
-        phrase,
-        source: "lesson",
-        details: {
-          note: display(variant.why || variant.use_case || variant.label),
-          context: display(tutorLesson?.topic || tutorLesson?.goal),
-        },
-      });
-    });
-    return items.slice(0, 4);
-  };
-  const renderAnswerVariants = (variants: TutorAnswerVariant[] = []) => {
-    const visibleVariants = variants.filter((variant) => display(variant.text)).slice(0, 4);
-    if (!visibleVariants.length) return null;
-    return (
-      <div className="tutor-answer-variants-v2" aria-label={copy("tutor_answer_variants", "Answer variants")}>
-        <div className="tutor-answer-variants-v2__head">
-          <strong>{copy("tutor_answer_variants", "Answer variants")}</strong>
-          <span>{copy("tutor_answer_variants_hint", "Pick one, then adapt it.")}</span>
-        </div>
-        <div className="tutor-answer-variant-grid-v2">
-          {visibleVariants.map((variant) => (
-            <button
-              key={variant.id || variant.text}
-              type="button"
-              className={cn("tutor-answer-variant-v2", variant.avoid && "is-avoid")}
-              onClick={() => applyTutorVariant(variant)}
-            >
-              <span>
-                <b>{display(variant.label) || copy("tutor_variant_model", "Model")}</b>
-                {variant.level ? <small>{display(variant.level)}</small> : null}
-              </span>
-              <strong>{display(variant.text)}</strong>
-              {variant.why ? <em>{display(variant.why)}</em> : null}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
+
+  const stageLabel = (stage: string) => {
+    if (stage === "story_intro") return copy("tutor_step_story", "Story");
+    if (stage === "retell") return copy("tutor_step_retell", "Retell");
+    if (/^question_\d+$/.test(stage)) return `${copy("tutor_choice_progress", "Question")} ${stage.replace("question_", "")}`;
+    if (/^word_learn_\d+$/.test(stage)) return `${copy("tutor_step_words", "New words")} ${stage.replace("word_learn_", "")}`;
+    if (/^word_recall_\d+$/.test(stage)) return `${copy("tutor_final_check_progress", "Word check")} ${stage.replace("word_recall_", "")}`;
+    if (stage === "production") return copy("tutor_step_writing", "Writing");
+    if (stage === "lesson_feedback") return copy("tutor_step_assessment", "Tutor assessment");
+    if (stage === "review_schedule") return copy("tutor_step_review", "Memory review");
+    if (stage === "complete") return copy("tutor_lesson_complete", "Lesson complete");
+    return copy("ai_tutor", "AI Tutor");
   };
 
-  const advanceTutorStage = (note: string) => {
-    if (!activeStage) return;
-    setCompletedNotes((previous) => ({ ...previous, [activeStage.id]: note }));
-    const nextStageIndex = Math.min(currentStageIndex + 1, tutorStages.length);
-    setUnlockedStageIndex((index) => Math.max(index, nextStageIndex));
-    setCurrentStageIndex(nextStageIndex);
-    setChoiceSelection("");
-    setFinalCheckSelection("");
-    setTutorDraft("");
-    setSrsSelection("");
-    setFeedback("");
-    setFeedbackTone("idle");
-    setTutorPronunciation(null);
-    setTutorPronunciationCorrection("");
-    setVoiceFile(null);
-    setPendingAdvanceNote("");
+  const stageInstruction = (stage: string) => {
+    if (stage === "story_intro") return copy("tutor_story_instruction", "Read and listen to the story, then continue.");
+    if (stage === "retell") return copy("tutor_retell_instruction", "Retell the story in your own words.");
+    if (/^question_\d+$/.test(stage)) return copy("tutor_question_instruction", "Answer the question before moving on.");
+    if (/^word_learn_\d+$/.test(stage)) return copy("tutor_words_instruction", "Study this word and the example, then continue.");
+    if (/^word_recall_\d+$/.test(stage)) return copy("tutor_final_check_instruction", "Choose the target-language word.");
+    if (stage === "production") return copy("tutor_writing_instruction", "Write 2-3 sentences using the lesson words.");
+    if (stage === "lesson_feedback") return copy("tutor_final_assessment_instruction", "Choose how this lesson felt.");
+    if (stage === "review_schedule") return copy("tutor_review_instruction", "Choose when to review this lesson.");
+    if (stage === "complete") return copy("tutor_complete_body", "You finished the guided AI Tutor lesson.");
+    return "";
   };
 
-  const rememberCompletedLesson = () => {
-    if (!tutorLesson) return;
-    writeTutorCompletedLesson(tutorCompletedLessonsKey, tutorLesson);
+  const lesson = aiTutorStep?.lesson;
+  const words = lesson?.words || [];
+  const options = (aiTutorStep?.options || [])
+    .map((option) => {
+      if (typeof option === "string") return { id: option, text: option.replaceAll("_", " ") };
+      const id = display(option.id || option.text);
+      const text = display(option.text || option.id);
+      return id && text ? { id, text } : null;
+    })
+    .filter((option): option is { id: string; text: string } => Boolean(option));
+  const feedbackMessage = display(aiTutorFeedback?.message);
+  const feedbackOK = aiTutorFeedback?.ok !== false;
+  const parsedFeedback = useMemo(() => parseAITutorFeedbackJSON(aiTutorFeedback?.json), [aiTutorFeedback?.json]);
+  const phraseCandidates = useMemo(() => aiTutorPhraseCandidates(parsedFeedback, savePhrase), [parsedFeedback, savePhrase]);
+  const mistakeCandidates = useMemo(() => aiTutorMistakeCandidates(parsedFeedback, savePhrase), [parsedFeedback, savePhrase]);
+  const heroTopic = display(lesson?.theme || lesson?.title || aiTutorStep?.title);
+  const heroLevel = display(lesson?.level || user.level || "A1");
+  const heroGoal = display(lesson?.lesson_goal || aiTutorStep?.instruction) || copy("tutor_subtitle", "One server-guided AI Tutor lesson with checked answers.");
+  const needsText = aiTutorStep?.kind === "free_text" || (aiTutorStep?.kind === "word_recall" && options.length === 0);
+  const canContinue = aiTutorStep?.kind === "story" || aiTutorStep?.kind === "word_learn";
+  const isChoiceStage = options.length > 0 && !canContinue;
+  const isComplete = aiTutorStep?.kind === "complete" || aiTutorStep?.stage === "complete";
+  const isProduction = aiTutorStep?.stage === "production";
+  const productionSentenceCount = countTutorSentences(tutorDraft);
+  const textBlocked = needsText && (!tutorDraft.trim() || (isProduction && productionSentenceCount < 2));
+
+  useEffect(() => {
+    if (!isComplete || !aiTutorStep) return;
+    const completedID = display((aiTutorStep as AiTutorStep).lesson?.title || heroTopic || aiTutorStep.stage);
+    const key = `${accountKey}:${completedID}:${heroLevel}`;
+    if (completedRecordedRef.current === key) return;
+    completedRecordedRef.current = key;
+    writeTutorCompletedLesson(completedLessonsKey, {
+      id: key,
+      title: display(lesson?.title || copy("ai_tutor", "AI Tutor")),
+      topic: heroTopic || copy("ai_tutor", "AI Tutor"),
+      level: heroLevel,
+    });
     setCompletedLessonsVersion((version) => version + 1);
+  }, [isComplete, aiTutorStep?.stage, accountKey, completedLessonsKey, heroLevel, heroTopic, lesson?.title]);
+
+  const submitCurrentStep = () => {
+    if (!aiTutorStep || busy === "tutor") return;
+    if (canContinue) {
+      void submitAiTutorStep("", "continue");
+      return;
+    }
+    if (isChoiceStage) {
+      if (!selectedChoice) return;
+      void submitAiTutorStep("", selectedChoice);
+      return;
+    }
+    if (needsText) {
+      if (!tutorDraft.trim()) return;
+      if (isProduction && productionSentenceCount < 2) return;
+      void submitAiTutorStep(tutorDraft.trim(), "");
+    }
   };
 
-  const handleTutorAction = async () => {
-    if (!activeStage || !tutorLesson) return;
-    if (viewingPastStage) {
-      setCurrentStageIndex(lessonComplete ? tutorStages.length : Math.min(unlockedStageIndex, tutorStages.length - 1));
-      setFeedback("");
-      setFeedbackTone("idle");
-      setPendingAdvanceNote("");
-      return;
-    }
-    if (activeStage.id === "words") {
-      advanceTutorStage(`${copy("tutor_word_result", "Words studied")}: ${words.length}`);
-      return;
-    }
-    if (activeStage.id === "choice") {
-      if (!activeChoiceCheck) {
-        advanceTutorStage(copy("tutor_choice_result", "Scenario checks completed"));
-        return;
-      }
-      if (!choiceSelection) {
-        setFeedback(copy("tutor_need_choice", "Choose an answer first."));
-        setFeedbackTone("error");
-        return;
-      }
-      if (choiceSelection !== choiceCorrectAnswerId) {
-        setFeedback(copy("tutor_feedback_wrong", "Not yet. Look at the theme words and choose again."));
-        setFeedbackTone("error");
-        return;
-      }
-      const option = choiceOptions.find((item) => item.id === choiceSelection);
-      const nextResults = [...choiceCheckResults, { id: activeChoiceCheck.correct_answer_id || choiceSelection, answer: display(option?.text) }];
-      setChoiceCheckResults(nextResults);
-      if (choiceCheckIndex + 1 < tutorChecks.length) {
-        setChoiceCheckIndex((index) => index + 1);
-        setChoiceSelection("");
-        setFeedback(display(activeChoiceCheck.feedback) || copy("tutor_feedback_correct", "Correct."));
-        setFeedbackTone("success");
-        return;
-      }
-      advanceTutorStage(`${copy("tutor_choice_result", "Scenario checks completed")}: ${nextResults.length}/${Math.max(tutorChecks.length, 1)}`);
-      return;
-    }
-    if (activeStage.id === "writing" || activeStage.id === "listening" || activeStage.id === "pronunciation" || activeStage.id === "dialogue") {
-      if (pendingAdvanceNote) {
-        advanceTutorStage(pendingAdvanceNote);
-        return;
-      }
-      const answer = tutorDraft.trim();
-      const isPronunciationStage = activeStage.id === "pronunciation";
-      if (isPronunciationStage && !voiceFile) {
-        setFeedback(copy("tutor_need_voice", "Record your voice first."));
-        setFeedbackTone("error");
-        return;
-      }
-      if (answer.length < 2 && !isPronunciationStage) {
-        setFeedback(copy("tutor_need_answer", "Type a short answer first."));
-        setFeedbackTone("error");
-        return;
-      }
-      const expected =
-        activeStage.id === "writing"
-          ? tutorLesson.writing_expected || []
-          : activeStage.id === "listening"
-            ? tutorLesson.listening_expected || []
-            : tutorLesson.writing_expected || tutorLesson.listening_expected || [];
-      if (isPronunciationStage && voiceFile) {
-        setTutorVoiceChecking(true);
-        setFeedback("");
-        setFeedbackTone("idle");
-        try {
-          const target = display(tutorLesson.pronunciation_text || tutorLesson.listening_text);
-          const record = await apiForm<ApiRecord>("/api/pronunciation/check", buildShadowingForm("", voiceFile, target));
-          const transcript = recordField(record, ["transcript", "text"]);
-          const pronunciation = pronunciationFrom(record);
-          setTutorPronunciation(pronunciation);
-          setTutorPronunciationCorrection(recordField(record, ["correction_audio_text", "corrected_text"]) || display(pronunciation?.corrected_text) || target);
-          const score = Number(pronunciation?.score || pronunciation?.similarity || 0);
-          if (score > 0 && score < 60) {
-            setFeedback(`${copy("pronunciation_score", "Pronunciation")}: ${Math.round(score)}/100. ${copy("tutor_pronunciation_retry", "Repeat once more before moving on.")}`);
-            setFeedbackTone("error");
-            return;
-          }
-          const scoreLabel = score ? `${copy("pronunciation_score", "Pronunciation")}: ${Math.round(score)}/100.` : "";
-          const note = `${copy("tutor_pronunciation_feedback", "Pronunciation checked.")} ${scoreLabel} ${transcript || copy("voice_message", "Voice message")}`.trim();
-          setPendingAdvanceNote(note);
-          setFeedback(note);
-          setFeedbackTone("success");
-          setVoiceFile(null);
-        } catch (error) {
-          setFeedback(error instanceof Error ? error.message : copy("request_failed", "Request failed"));
-          setFeedbackTone("error");
-        } finally {
-          setTutorVoiceChecking(false);
-        }
-        return;
-      }
-      const writingTask = display(tutorLesson.writing_task);
-      const requiresMultipleSentences = activeStage.id === "writing" && /(?:2\s*[-–]\s*3|two\s+or\s+three|дв[ае]\s*[-–]\s*три).*(?:sentence|sentences|предлож)/i.test(writingTask);
-      const sentenceCount = answer.split(/[.!?]+/).map((part) => part.trim()).filter((part) => part.length > 1).length;
-      if (requiresMultipleSentences && sentenceCount < 2) {
-        setFeedback(copy("tutor_need_two_sentences", "Write at least two complete sentences before moving on."));
-        setFeedbackTone("error");
-        return;
-      }
-      const requiredExpected = activeStage.id === "listening" ? Math.min(2, Math.max(1, expected.length)) : 1;
-      const hasExpected = answerContainsExpected(answer, expected, requiredExpected);
-      if (words.length && !hasExpected && !answerUsesLessonWord(answer)) {
-        setFeedback(activeStage.id === "listening" ? copy("tutor_need_listening_detail", "Use at least two key words you heard.") : copy("tutor_need_lesson_word", "Use at least one word from this lesson."));
-        setFeedbackTone("error");
-        return;
-      }
-      const note = tutorAcceptedAnswerNote(activeStage.id, answer);
-      setPendingAdvanceNote(note);
-      setFeedback(note);
-      setFeedbackTone("success");
-      return;
-    }
-    if (activeStage.id === "final-check") {
-      if (!activeFinalCheck) {
-        advanceTutorStage(display(tutorLesson.final_word_check?.summary_pass) || copy("tutor_final_check_done", "Final word check completed."));
-        return;
-      }
-      if (!finalCheckSelection) {
-        setFeedback(copy("tutor_need_choice", "Choose an answer first."));
-        setFeedbackTone("error");
-        return;
-      }
-      if (finalCheckSelection !== activeFinalCheck.correct_answer_id) {
-        setFeedback(display(tutorLesson.final_word_check?.summary_retry) || copy("tutor_feedback_wrong", "Not yet. Look at the theme words and choose again."));
-        setFeedbackTone("error");
-        return;
-      }
-      const option = finalCheckOptions.find((item) => item.id === finalCheckSelection);
-      const nextResults = [
-        ...finalCheckResults,
-        { id: activeFinalCheck.correct_answer_id || finalCheckSelection, answer: display(option?.text) },
-      ];
-      setFinalCheckResults(nextResults);
-      if (finalCheckIndex + 1 < finalCheckItems.length) {
-        setFinalCheckIndex((index) => index + 1);
-        setFinalCheckSelection("");
-        setFeedback(copy("tutor_word_correct_next", "Correct. Next word."));
-        setFeedbackTone("success");
-        return;
-      }
-      const requiredCorrect = tutorLesson.final_word_check?.required_correct || finalCheckItems.length;
-      advanceTutorStage(`${display(tutorLesson.final_word_check?.summary_pass) || copy("tutor_final_check_done", "Final word check completed.")} ${nextResults.length}/${Math.max(requiredCorrect, 1)}`);
-      return;
-    }
-    if (activeStage.id === "review") {
-      if (!srsSelection) {
-        setFeedback(copy("tutor_need_srs", "Choose a review button first."));
-        setFeedbackTone("error");
-        return;
-      }
-      const payload = await completeTutorLesson(tutorLesson.id, srsSelection);
-      if (!payload) {
-        setFeedback(copy("request_failed", "Request failed"));
-        setFeedbackTone("error");
-        return;
-      }
-      rememberCompletedLesson();
-      advanceTutorStage(`${copy("tutor_review_scheduled", "Review scheduled")}: ${srsSelection}`);
-      return;
-    }
-    advanceTutorStage(copy("tutor_explanation_seen", "Pattern reviewed"));
-  };
-
-  const primaryActionLabel = (() => {
-    if (tutorVoiceChecking || busy === "tutor-complete") return copy("checking", "Checking...");
-    if (!activeStage) return copy("tutor_continue", "Continue");
-    if (viewingPastStage) return copy("tutor_back_to_current", "Back to current task");
-    if (pendingAdvanceNote) return copy("tutor_next_step", "Next");
-    if (activeStage.id === "words") return copy("tutor_check_answer", "Check answer");
-    if (activeStage.id === "choice") return copy("tutor_check_answer", "Check answer");
-    if (activeStage.id === "final-check") return copy("tutor_check_answer", "Check answer");
-    if (activeStage.id === "review") return copy("tutor_finish_lesson", "Finish lesson");
-    if (activeStage.id === "pronunciation") return copy("tutor_check_pronunciation", "Check pronunciation");
-    if (activeStage.id === "writing" || activeStage.id === "listening" || activeStage.id === "dialogue") return copy("send", "Send");
-    return copy("tutor_continue", "Continue");
-  })();
-
-  const renderTutorSummaryBlock = () => {
-    const summary = tutorLesson?.tutor_summary;
-    if (!summary) return null;
-    const canSay = display(summary.can_say);
-    const strongItems = (summary.strong_items || []).map(display).filter(Boolean);
-    const weakItems = (summary.weak_items || []).map(display).filter(Boolean);
-    const nextReview = display(summary.next_review);
-    if (!canSay && !strongItems.length && !weakItems.length && !nextReview) return null;
+  const renderWord = () => {
+    const word = aiTutorStep?.word;
+    if (!word) return null;
+    const clips = [
+      { label: copy("tutor_audio_word", "Word audio"), text: display(word.audio_text_target || word.target), targetLanguage: user.learning_language },
+      { label: copy("tutor_audio_example", "Example audio"), text: display(word.example_audio_text_target || word.example_sentence_target), targetLanguage: user.learning_language },
+    ].filter((clip) => clip.text);
     return (
-      <div className="tutor-review-summary-v2 tutor-summary-block-v2">
-        {canSay ? <span><b>{copy("tutor_summary_can_say", "Can say")}:</b> {canSay}</span> : null}
-        {strongItems.length ? <span><b>{copy("tutor_summary_strong", "Strong words")}:</b> {strongItems.join(", ")}</span> : null}
-        {weakItems.length ? <span><b>{copy("tutor_summary_weak", "Repeat")}:</b> {weakItems.join(", ")}</span> : null}
-        {nextReview ? <span><b>{copy("tutor_final_assessment_review", "Next review")}:</b> {nextReview}</span> : null}
+      <div className="tutor-word-check-v2">
+        <strong>{display(word.target)}</strong>
+        {word.interface_translation ? <span>{display(word.interface_translation)}</span> : null}
+        {word.example_sentence_target ? <p>{display(word.example_sentence_target)}</p> : null}
+        {clips.length ? <AudioActionRow clips={clips} /> : null}
+        <PhraseQuickSave
+          candidates={aiTutorWordPhraseCandidates(word, savePhrase)}
+          savePhrase={savePhrase}
+          copy={copy}
+        />
       </div>
     );
   };
 
-  const renderTutorMaterial = () => {
-    if (!tutorLesson || !activeStage) return null;
-    if (activeStage.id === "words") {
-      if (viewingPastStage) {
-        return (
-          <>
-            <div className="tutor-word-grid tutor-word-grid--compact">
-              {words.map((word) => (
-                <article className="tutor-word" key={word.id}>
-                  <strong>{display(word.word)}</strong>
-                  <span>{display(word.translation)}</span>
-                  {word.example ? <small>{display(word.example)}</small> : null}
-                </article>
+  const renderMaterial = () => {
+    if (!aiTutorStep) return null;
+    const storyText = display(lesson?.story?.text_target);
+    const storyAudioText = display(lesson?.story?.audio_text_target || lesson?.story?.text_target);
+    const localInstruction = stageInstruction(aiTutorStep.stage);
+    const instruction = cleanTutorPrompt(
+      ["lesson_feedback", "review_schedule", "complete"].includes(aiTutorStep.stage)
+        ? localInstruction
+        : aiTutorStep.instruction || localInstruction,
+    );
+    return (
+      <article className="tutor-message-v2 is-active">
+        <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
+        <div>
+          <strong>{stageLabel(aiTutorStep.stage)}</strong>
+          {instruction ? <p>{instruction}</p> : null}
+          {aiTutorStep.kind === "story" && storyText ? (
+            <>
+              <p className="tutor-task-copy-v2">{storyText}</p>
+              {storyAudioText ? <AudioActionRow clips={[{ label: copy("tutor_story_audio", "Story audio"), text: storyAudioText, targetLanguage: user.learning_language }]} /> : null}
+            </>
+          ) : null}
+          {renderWord()}
+          {aiTutorStep.question?.question_target ? <p className="tutor-task-copy-v2">{cleanTutorPrompt(aiTutorStep.question.question_target)}</p> : null}
+          {isComplete ? (
+            <div className="tutor-review-summary-v2">
+              <span>{copy("tutor_complete_body", "You finished the guided AI Tutor lesson.")}</span>
+              <span>{copy("ai_tutor_xp_awarded", "+40 XP awarded for this AI Tutor lesson.")}</span>
+            </div>
+          ) : null}
+          {options.length ? (
+            <div className="tutor-srs" role="group" aria-label={copy("tutor_options", "Options")}>
+              {options.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={cn(selectedChoice === option.id && "is-selected")}
+                  onClick={() => setSelectedChoice(option.id)}
+                >
+                  {option.text}
+                </button>
               ))}
             </div>
-          </>
-        );
-      }
-      return (
-        <div className="tutor-word-grid">
-          {words.map((word) => (
-            <article className="tutor-word" key={word.id}>
-              <strong>{display(word.word)}</strong>
-              <span>{display(word.translation)}</span>
-              {word.example ? <small>{display(word.example)}</small> : null}
-              <AudioActionRow clips={[{ label: copy("tutor_audio_word", "Word audio"), text: display(word.word), wordId: word.id, targetLanguage: user.learning_language }]} />
-            </article>
-          ))}
-        </div>
-      );
-    }
-    if (activeStage.id === "explain") {
-      const teachingPoint = tutorLesson.teaching_point;
-      const teachingTitle = display(teachingPoint?.title);
-      const teachingExplanation = display(teachingPoint?.explanation || tutorLesson.mini_explanation || tutorLesson.grammar || tutorLesson.scenario || "");
-      const teachingPattern = display(teachingPoint?.pattern || teachingPoint?.model_answer || tutorLesson.pronunciation_text || "");
-      const teachingModel = display(teachingPoint?.model_answer);
-      const sceneOrder = (teachingPoint?.scene_order || []).map(display).filter(Boolean);
-      return (
-        <div className="tutor-lesson-card-v2 tutor-mini-explanation-v2">
-          {teachingTitle ? <strong className="tutor-card-title-v2">{teachingTitle}</strong> : null}
-          {teachingExplanation ? <p>{teachingExplanation}</p> : null}
-          {sceneOrder.length ? (
-            <div className="tutor-scene-order-v2" aria-label={copy("tutor_scene_order", "Scene order")}>
-              {sceneOrder.map((item, index) => <span key={`${item}:${index}`}>{item}</span>)}
+          ) : null}
+          {words.length && aiTutorStep.kind === "story" ? (
+            <div className="tutor-review-list">
+              {words.slice(0, 6).map((word) => <span key={word.id || word.target}>{display(word.target)} ? {display(word.interface_translation)}</span>)}
             </div>
           ) : null}
-          {teachingPattern ? (
-            <p className="tutor-pattern-line-v2">
-              <span>Pattern</span>
-              <strong>{teachingPattern}</strong>
-            </p>
-          ) : null}
-          {teachingModel && teachingModel !== teachingPattern ? (
-            <p className="tutor-pattern-line-v2">
-              <span>Model</span>
-              <strong>{teachingModel}</strong>
-            </p>
-          ) : null}
         </div>
-      );
-    }
-    if (activeStage.id === "choice") {
-      return (
-        <>
-          <p className="tutor-task-copy-v2">
-            <strong>{copy("tutor_choice_progress", "Question")} {Math.min(choiceCheckIndex + 1, Math.max(tutorChecks.length, 1))}/{Math.max(tutorChecks.length, 1)}</strong>
-            <span>{cleanTutorPrompt(activeChoiceCheck?.prompt) || copy("tutor_choice_instruction", "Choose one answer.")}</span>
-          </p>
-          <div className="choice-grid-v2 tutor-choice-grid-v2">
-            {choiceOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={cn(
-                  choiceSelection === option.id && "is-selected",
-                  feedbackTone === "error" && choiceSelection === option.id && "is-wrong",
-                )}
-                onClick={() => {
-                  setChoiceSelection(option.id);
-                  setFeedback("");
-                  setFeedbackTone("idle");
-                }}
-              >
-                {option.label ? <small>{display(option.label)}</small> : null}
-                <span>{display(option.text)}</span>
-                {option.why ? <em>{display(option.why)}</em> : null}
-              </button>
-            ))}
-          </div>
-        </>
-      );
-    }
-    if (activeStage.id === "writing") {
-      return (
-        <>
-          <p className="tutor-task-copy-v2">{display(tutorLesson.writing_task) || copy("tutor_writing_instruction", "Write your own answer using the lesson words.")}</p>
-          {renderAnswerVariants(tutorLesson.answer_variants)}
-          {tutorPhraseCandidates(tutorLesson.answer_variants).length ? <PhraseQuickSave candidates={tutorPhraseCandidates(tutorLesson.answer_variants)} savePhrase={savePhrase} copy={copy} /> : null}
-        </>
-      );
-    }
-    if (activeStage.id === "listening") {
-      return (
-        <>
-          <p className="tutor-task-copy-v2">{display(tutorLesson.listening_task) || copy("tutor_listening_instruction", "Listen and repeat.")}</p>
-          {tutorLesson.listening_question ? <p className="tutor-task-copy-v2 tutor-task-question-v2">{display(tutorLesson.listening_question)}</p> : null}
-          {tutorLesson.listening_text ? <AudioActionRow clips={[{ label: interfaceLocale === "ru" ? "Аудио задания" : "Task audio", text: display(tutorLesson.listening_text), targetLanguage: user.learning_language }]} /> : null}
-        </>
-      );
-    }
-    if (activeStage.id === "pronunciation") {
-      const target = display(tutorLesson.pronunciation_text || tutorLesson.listening_text);
-      return (
-        <div className="tutor-pronunciation-stage-v2">
-          <div className="tutor-pronunciation-primary-v2">
-            <div className="tutor-pronunciation-target-v2">
-              <span>{copy("tutor_pronunciation_target", "Repeat exactly")}</span>
-              <strong>{target}</strong>
-            </div>
-            {target ? <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: target, targetLanguage: user.learning_language }]} /> : null}
-            {tutorPronunciationCorrection ? <AudioActionRow clips={[{ label: interfaceLocale === "ru" ? "Исправленный образец" : "Corrected model", text: tutorPronunciationCorrection, targetLanguage: user.learning_language }]} /> : null}
-          </div>
-          <div className="tutor-pronunciation-tools-v2">
-            {!viewingPastStage ? (
-              <div className="tutor-listening-voice-v2">
-                <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
-                <p>{voiceFile ? copy("tutor_voice_ready", "Voice answer is ready for pronunciation check.") : copy("tutor_voice_hint", "Record your repeat for pronunciation scoring.")}</p>
-              </div>
-            ) : null}
-            {tutorPronunciation ? <PronunciationReport pronunciation={tutorPronunciation} copy={copy} compact /> : null}
-          </div>
-        </div>
-      );
-    }
-    if (activeStage.id === "dialogue") {
-      return (
-        <div className="tutor-dialogue">
-          {(tutorLesson.dialogue || []).map((line) => <p key={line}>{display(line)}</p>)}
-          <strong>{copy("tutor_user_turn", "Your turn")}</strong>
-          {tutorLesson.dialogue_prompt ? <p className="tutor-dialogue__prompt">{display(tutorLesson.dialogue_prompt)}</p> : null}
-          {renderAnswerVariants(tutorLesson.dialogue_variants)}
-          {tutorPhraseCandidates(tutorLesson.dialogue_variants).length ? <PhraseQuickSave candidates={tutorPhraseCandidates(tutorLesson.dialogue_variants)} savePhrase={savePhrase} copy={copy} /> : null}
-        </div>
-      );
-    }
-    if (activeStage.id === "final-check") {
-      if (!activeFinalCheck) {
-        return (
-          <div className="tutor-lesson-card-v2">
-            <p>{display(tutorLesson.final_word_check?.summary_pass) || copy("tutor_final_check_done", "Final word check completed.")}</p>
-          </div>
-        );
-      }
-      return (
-        <>
-          <p className="tutor-task-copy-v2">
-            <strong>{copy("tutor_final_check_progress", "Word check")} {Math.min(finalCheckIndex + 1, Math.max(finalCheckItems.length, 1))}/{Math.max(finalCheckItems.length, 1)}</strong>
-            <span>{cleanTutorPrompt(activeFinalCheck.prompt) || copy("tutor_step_final_check", "Final word check")}</span>
-          </p>
-          <div className="choice-grid-v2 tutor-choice-grid-v2 tutor-final-check-v2">
-            {finalCheckOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={cn(
-                  finalCheckSelection === option.id && "is-selected",
-                  feedbackTone === "error" && finalCheckSelection === option.id && "is-wrong",
-                )}
-                onClick={() => {
-                  setFinalCheckSelection(option.id);
-                  setFeedback("");
-                  setFeedbackTone("idle");
-                }}
-              >
-                {option.label ? <small>{display(option.label)}</small> : null}
-                <span>{display(option.text)}</span>
-                {option.why ? <em>{display(option.why)}</em> : null}
-              </button>
-            ))}
-          </div>
-          {finalCheckResults.length ? (
-            <div className="tutor-result-list-v2" aria-label={copy("tutor_final_check_results", "Final word check results")}>
-              {finalCheckResults.map((item) => <span key={item.id}>{item.answer}</span>)}
-            </div>
-          ) : null}
-        </>
-      );
-    }
-    if (activeStage.id === "assessment") {
-      const summaryItems = (tutorLesson.review_summary || []).map(display).filter(Boolean);
-      const phraseCandidates = [
-        ...tutorPhraseCandidates(tutorLesson.answer_variants),
-        ...tutorPhraseCandidates(tutorLesson.dialogue_variants),
-      ].slice(0, 4);
-      return (
-        <>
-          <div className="tutor-review-summary-v2 tutor-summary-block-v2">
-            <strong>{copy("tutor_final_assessment", "Tutor assessment")}</strong>
-            {renderTutorSummaryBlock()}
-            {summaryItems.length ? summaryItems.map((item) => <span key={item}>{item}</span>) : <span>{copy("tutor_final_assessment_empty", "No extra weak spots found.")}</span>}
-          </div>
-          {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
-        </>
-      );
-    }
-    return (
-      <>
-        {renderTutorSummaryBlock()}
-        {(tutorLesson.review_summary || []).length ? (
-          <div className="tutor-review-summary-v2">
-            {(tutorLesson.review_summary || []).map((item) => <span key={item}>{display(item)}</span>)}
-          </div>
-        ) : null}
-        <div className="tutor-srs" role="group" aria-label={copy("tutor_srs", "Memory schedule")}>
-          {[
-            { value: copy("tutor_srs_again", "Again today"), label: copy("tutor_srs_again", "Again today") },
-            { value: copy("tutor_srs_hard", "Hard tomorrow"), label: copy("tutor_srs_hard", "Hard tomorrow") },
-            { value: copy("tutor_srs_good", "Good in 2 days"), label: copy("tutor_srs_good", "Good in 2 days") },
-            { value: copy("tutor_srs_easy", "Easy next week"), label: copy("tutor_srs_easy", "Easy next week") },
-          ].map((item) => (
-            <button key={item.label} type="button" className={cn(srsSelection === item.value && "is-selected")} onClick={() => setSrsSelection(item.value)}>
-              {item.label}
-            </button>
-          ))}
-        </div>
-        {review.length || words.length ? (
-          <div className="tutor-review-list">
-            {(review.length ? review : words).slice(0, 4).map((word) => <span key={word.id}>{display(word.word)} · {display(word.translation)}</span>)}
-          </div>
-        ) : null}
-      </>
+      </article>
     );
   };
 
@@ -5589,12 +4975,11 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         </div>
         <div className="tutor-hero__copy">
           <span className="eyebrow">{copy("ai_tutor", "AI Tutor")}</span>
-          <h2>{tutorLesson ? `${display(tutorLesson.level)} · ${localizedTutorTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
-          <p>{localizedTutorGoal || copy("tutor_subtitle", "Words, grammar, listening, writing, dialogue, and review in one context window.")}</p>
+          <h2>{aiTutorStep ? `${heroLevel} ? ${heroTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
+          <p>{heroGoal}</p>
           <div className="tutor-hero__meta">
             <span>{copy("tutor_duration", "5-10 minutes")}</span>
-            {tutorLesson?.lesson_number && tutorLesson?.course_size ? <span>{copy("tutor_course_label", "Course")} {tutorLesson.lesson_number}/{tutorLesson.course_size}</span> : null}
-            {tutorSourceLabel ? <span>{tutorSourceLabel}</span> : null}
+            <span>{copy("tutor_course_label", "Course")}: AI</span>
           </div>
         </div>
         <div className="tutor-hero__actions">
@@ -5609,22 +4994,22 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
         </div>
       </section>
 
-      {!tutorLesson ? (
+      {!aiTutorStep ? (
         <section className={cn("v2-panel tutor-loading-panel", tutorLoadError && "is-error")}>
           {tutorLoadError ? (
             <>
               <AlertCircle size={34} />
-              <h3>{copy("tutor_start_failed", "Не удалось собрать урок")}</h3>
+              <h3>{copy("tutor_start_failed", "Could not build the lesson")}</h3>
               <p>{tutorLoadError}</p>
               <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
                 {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <Repeat2 size={16} />}
-                {copy("retry", "Повторить")}
+                {copy("retry", "Retry")}
               </Button>
             </>
           ) : (
             <>
               <Spinner size="large" show />
-              <p>{copy("tutor_loading_body", "Building a local A1-A2 lesson from the course vocabulary.")}</p>
+              <p>{copy("tutor_loading_body", "Building a checked AI Tutor lesson.")}</p>
             </>
           )}
         </section>
@@ -5637,38 +5022,17 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
             </div>
             <div className="tutor-progress-v2" aria-hidden="true"><span style={{ width: `${progressPercent}%` }} /></div>
             <div className="tutor-step-list-v2">
-              {tutorStages.map((stage, index) => (
+              {serverStages.map((stage, index) => (
                 <button
-                  key={stage.id}
+                  key={stage}
                   type="button"
-                  className={cn("tutor-step-v2", index < unlockedStageIndex && "is-done", index === currentStageIndex && !viewingCompleteSummary && "is-active")}
-                  onClick={() => {
-                    if (index === currentStageIndex && !viewingCompleteSummary) {
-                      setCurrentStageIndex(index);
-                      setFeedback("");
-                      setFeedbackTone("idle");
-                      setPendingAdvanceNote("");
-                    }
-                  }}
-                  disabled={index !== currentStageIndex || viewingCompleteSummary}
+                  className={cn("tutor-step-v2", index < currentStageIndex && "is-done", stage === aiTutorStep.stage && "is-active")}
+                  disabled
                 >
-                  <span>{index < unlockedStageIndex ? <Check size={13} /> : index + 1}</span>
-                  <strong>{stage.title}</strong>
+                  <span>{index < currentStageIndex ? <Check size={13} /> : index + 1}</span>
+                  <strong>{stageLabel(stage)}</strong>
                 </button>
               ))}
-              {lessonComplete ? (
-                <button
-                  type="button"
-                  className={cn("tutor-step-v2", viewingCompleteSummary && "is-active")}
-                  onClick={() => {
-                    if (viewingCompleteSummary) setCurrentStageIndex(tutorStages.length);
-                  }}
-                  disabled={!viewingCompleteSummary}
-                >
-                  <span><Check size={13} /></span>
-                  <strong>{copy("tutor_summary", "Summary")}</strong>
-                </button>
-              ) : null}
             </div>
           </aside>
 
@@ -5676,81 +5040,52 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
             <div className="tutor-context-v2__head">
               <div>
                 <span className="eyebrow">{copy("tutor_context_title", "Tutor context")}</span>
-                <h2>{viewingCompleteSummary ? copy("tutor_lesson_complete", "Lesson complete") : activeStage?.title}</h2>
+                <h2>{stageLabel(aiTutorStep.stage)}</h2>
               </div>
-              <span>{completedCount}/{tutorStages.length}</span>
+              <span>{completedCount}/{serverStages.length}</span>
             </div>
 
             <div className="tutor-transcript-v2" aria-live="polite">
-              {tutorStages.slice(0, currentStageIndex).map((stage) => (
-                <article key={stage.id} className="tutor-message-v2 is-complete">
-                  <div className="tutor-message-v2__avatar"><Check size={15} /></div>
-                  <div>
-                    <strong>{stage.title}</strong>
-                    <p>{completedNotes[stage.id] || copy("tutor_completed_step", "Completed")}</p>
-                  </div>
-                </article>
-              ))}
-
-              {viewingCompleteSummary ? (
-                <article className="tutor-message-v2">
-                  <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
-                  <div>
-                    <strong>{copy("tutor_lesson_complete", "Lesson complete")}</strong>
-                    <p>{copy("tutor_complete_body", "You finished the guided sequence: words, pattern, answer, writing, listening, pronunciation, dialogue, final word check, and review.")}</p>
-                    {renderTutorSummaryBlock()}
-                    {(tutorLesson.review_summary || []).length ? (
-                      <div className="tutor-review-summary-v2">
-                        {(tutorLesson.review_summary || []).map((item) => <span key={item}>{display(item)}</span>)}
-                      </div>
-                    ) : null}
-                    <div className="tutor-review-list">
-                      {words.slice(0, 4).map((word) => <span key={word.id}>{display(word.word)} · {display(word.translation)}</span>)}
-                    </div>
-                  </div>
-                </article>
-              ) : activeStage ? (
-                <article className="tutor-message-v2 is-active">
-                  <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
-                  <div>
-                    <strong>{activeStage?.title}</strong>
-                    <p>{activeStage?.instruction}</p>
-                    {renderTutorMaterial()}
-                    {viewingPastStage ? <p className="tutor-result-note-v2">{completedNotes[activeStage.id] || copy("tutor_completed_step", "Completed")}</p> : null}
-                  </div>
-                </article>
-              ) : null}
+              {renderMaterial()}
             </div>
 
-            {!viewingCompleteSummary ? (
+            {feedbackMessage ? <p className={cn("tutor-feedback-v2", feedbackOK ? "is-success" : "is-error")}>{feedbackMessage}</p> : null}
+            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
+            {mistakeCandidates.length ? (
+              <div className="tutor-answer-variants-v2 tutor-notes-suggestions-v2" aria-label={copy("tutor_mistake_notes", "Mistake notes")}>
+                <strong>{copy("tutor_mistake_notes", "Mistake notes")}</strong>
+                <span>{copy("tutor_mistake_notes_hint", "Save corrections to the mistake notes section.")}</span>
+                <PhraseQuickSave candidates={mistakeCandidates} savePhrase={savePhrase} copy={copy} />
+              </div>
+            ) : null}
+
+            {!isComplete ? (
               <form
                 className="tutor-composer-v2"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  void handleTutorAction();
+                  submitCurrentStep();
                 }}
               >
-                {activeStage && !viewingPastStage && ["writing", "listening", "dialogue"].includes(activeStage.id) ? (
+                {needsText ? (
                   <div className="composer-textarea-shell-v2">
                     <textarea
                       value={tutorDraft}
-                      onChange={(event) => {
-                        setTutorDraft(event.target.value);
-                        setFeedback("");
-                        setFeedbackTone("idle");
-                        setTutorPronunciation(null);
-                        setTutorPronunciationCorrection("");
-                        setPendingAdvanceNote("");
-                      }}
-                      placeholder={activeStage.id === "listening" ? "Type 2-3 details you heard." : copy("tutor_answer_placeholder", "Type your answer for this tutor step.")}
+                      onChange={(event) => setTutorDraft(event.target.value)}
+                      placeholder={isProduction ? copy("tutor_production_placeholder", "Write 2-3 complete sentences.") : copy("tutor_answer_placeholder", "Type your answer for this tutor step.")}
                       rows={3}
                     />
                   </div>
                 ) : null}
-                {feedback ? <p className={cn("tutor-feedback-v2", feedbackTone === "error" && "is-error", feedbackTone === "success" && "is-success")}>{feedback}</p> : null}
-                <Button type="submit" disabled={tutorVoiceChecking || busy === "tutor-complete"}>
-                  {tutorVoiceChecking || busy === "tutor-complete" ? <Spinner size="small" className="button-spinner-v2" /> : activeStage?.id === "choice" || activeStage?.id === "final-check" ? <Check size={16} /> : activeStage?.id === "review" ? <ListChecks size={16} /> : <ChevronRight size={16} />}
-                  <span>{primaryActionLabel}</span>
+                {isProduction && tutorDraft.trim() && productionSentenceCount < 2 ? (
+                  <p className="tutor-feedback-v2 is-error">{copy("tutor_need_two_sentences", "Write at least two complete sentences before moving on.")}</p>
+                ) : null}
+                <Button
+                  type="submit"
+                  disabled={busy === "tutor" || (isChoiceStage && !selectedChoice) || textBlocked}
+                >
+                  {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : isChoiceStage ? <Check size={16} /> : needsText ? <Send size={16} /> : <ChevronRight size={16} />}
+                  <span>{isChoiceStage ? copy("tutor_check_answer", "Check answer") : needsText ? copy("send", "Send") : copy("tutor_continue", "Continue")}</span>
                 </Button>
               </form>
             ) : (
@@ -5764,6 +5099,7 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
           </section>
         </div>
       )}
+
       {completedLessonsOpen ? (
         <Dialog open onOpenChange={(open) => { if (!open) setCompletedLessonsOpen(false); }}>
           <DialogContent className="v2-dialog-content tutor-completed-lessons-dialog-v2">
@@ -5773,18 +5109,10 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
               <DialogDescription>{copy("tutor_completed_lessons_body", "Choose a finished tutor lesson to review its topic, level, and summary.")}</DialogDescription>
               <div className="tutor-completed-lessons-list-v2">
                 {visibleCompletedLessons.length ? visibleCompletedLessons.map((item) => (
-                  <button
-                    className="tutor-completed-lesson-v2"
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      openTutorLesson(item.lesson);
-                      setCompletedLessonsOpen(false);
-                    }}
-                  >
+                  <button className="tutor-completed-lesson-v2" key={item.id} type="button" onClick={() => setCompletedLessonsOpen(false)}>
                     <span>
                       <strong>{item.topic || item.title}</strong>
-                      <small>{item.title}</small>
+                      <small>{prettyDate(item.completedAt)}</small>
                     </span>
                     <em>{item.level || copy("level_label", "Level")}</em>
                   </button>
@@ -5815,6 +5143,77 @@ function TutorView({ user, session, tutorLesson, tutorLoadError, voiceFile, imag
       ) : null}
     </div>
   );
+}
+
+function countTutorSentences(text: string) {
+  const parts = cleanAppText(text).split(/[.!????]+/).map((part) => part.trim()).filter((part) => part.length > 1);
+  if (parts.length) return parts.length;
+  return cleanAppText(text).trim() ? 1 : 0;
+}
+
+function parseAITutorFeedbackJSON(raw?: string) {
+  if (!raw) return {} as ApiRecord;
+  try {
+    return getRecord(JSON.parse(raw));
+  } catch {
+    return {} as ApiRecord;
+  }
+}
+
+function aiTutorPhraseCandidates(feedback: ApiRecord, savePhrase: ViewRendererProps["savePhrase"]) {
+  const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  const seen = new Set<string>();
+  const add = (phrase: unknown, note = "") => {
+    const text = cleanAppText(phrase).trim();
+    if (!isUsefulPhraseCandidate(text)) return;
+    const key = text.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    candidates.push({ phrase: text, source: "lesson", details: { note } });
+  };
+  add(feedback.corrected_answer_target, "AI Tutor correction");
+  add(feedback.corrected_version_target, "AI Tutor correction");
+  if (Array.isArray(feedback.recommendations_interface)) {
+    feedback.recommendations_interface.forEach((item) => add(item, "AI Tutor recommendation"));
+  }
+  return candidates.slice(0, 4);
+}
+
+function aiTutorMistakeCandidates(feedback: ApiRecord, savePhrase: ViewRendererProps["savePhrase"]) {
+  void savePhrase;
+  const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  const seen = new Set<string>();
+  const add = (phrase: unknown, note = "") => {
+    const text = cleanAppText(phrase).trim();
+    if (!text || text.length < 2) return;
+    const key = text.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    candidates.push({ phrase: text, source: "mistake", details: { note: note || "AI Tutor mistake" } });
+  };
+  if (Array.isArray(feedback.mistakes)) {
+    feedback.mistakes.forEach((item) => {
+      const record = getRecord(item);
+      add(record.correction || record.corrected || record.expected || item, cleanAppText(record.explanation || record.issue || "AI Tutor mistake"));
+    });
+  }
+  add(feedback.corrected_answer_target, "AI Tutor correction");
+  add(feedback.corrected_version_target, "AI Tutor correction");
+  return candidates.slice(0, 4);
+}
+
+function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, savePhrase: ViewRendererProps["savePhrase"]) {
+  void savePhrase;
+  const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  const example = cleanAppText(word.example_sentence_target).trim();
+  const target = cleanAppText(word.target).trim();
+  if (isUsefulPhraseCandidate(example)) {
+    candidates.push({ phrase: example, source: "lesson", details: { translation: cleanAppText(word.interface_translation), note: target } });
+  }
+  if (target) {
+    candidates.push({ phrase: target, source: "lesson", details: { translation: cleanAppText(word.interface_translation), note: cleanAppText(word.example_sentence_target) } });
+  }
+  return candidates;
 }
 
 function HomeView(props: ViewRendererProps) {

@@ -464,28 +464,6 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 	before = currentXP()
 	mistake := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": "She goes home"})
 	assertXPDelta("mistake", before, 8, mistake)
-
-	tutorStart := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/start", map[string]any{})
-	tutorLesson, ok := tutorStart["tutor_lesson"].(map[string]any)
-	if !ok {
-		t.Fatalf("tutor start response missing lesson: %#v", tutorStart)
-	}
-	tutorLessonID, _ := tutorLesson["id"].(string)
-	if tutorLessonID == "" {
-		t.Fatalf("tutor lesson id is empty: %#v", tutorLesson)
-	}
-	before = currentXP()
-	tutorComplete := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/complete", map[string]any{"lesson_id": tutorLessonID, "review": "good"})
-	assertXPDelta("tutor complete", before, 40, tutorComplete)
-	if completed, _ := tutorComplete["completed"].(bool); !completed {
-		t.Fatalf("first tutor completion should be marked completed: %#v", tutorComplete)
-	}
-	before = currentXP()
-	tutorRepeat := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/complete", map[string]any{"lesson_id": tutorLessonID, "review": "good"})
-	assertXPDelta("tutor repeat", before, 0, tutorRepeat)
-	if completed, _ := tutorRepeat["completed"].(bool); completed {
-		t.Fatalf("repeated tutor completion should not be rewarded again: %#v", tutorRepeat)
-	}
 }
 
 func TestWebTranslatorSpeechRequiresPaidAudioBudget(t *testing.T) {
@@ -1319,6 +1297,88 @@ func TestTelegramStarsSuccessfulPaymentNotifiesOpsRecipient(t *testing.T) {
 		if !strings.Contains(text, want) {
 			t.Fatalf("ops payment text %q does not contain %q", text, want)
 		}
+	}
+}
+
+func TestWebAITutorStartReturnsSessionStep(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	if _, ok := body["session"].(map[string]any); !ok {
+		t.Fatalf("missing session in response: %#v", body)
+	}
+	next, ok := body["next_step"].(map[string]any)
+	if !ok || next["stage"] != aiTutorStageStoryIntro {
+		t.Fatalf("next_step = %#v", body["next_step"])
+	}
+}
+
+func TestWebTutorStartUsesAITutorEngine(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-legacy-route", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/tutor/start", map[string]any{})
+	if _, ok := body["next_step"].(map[string]any); !ok {
+		t.Fatalf("legacy tutor route did not return AI tutor step: %#v", body)
+	}
+	if _, ok := body["tutor_lesson"]; ok {
+		t.Fatalf("legacy tutor route returned local tutor lesson payload: %#v", body)
+	}
+}
+
+func TestWebAITutorAnswerAdvancesSession(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-2", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	start := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	session := start["session"].(map[string]any)
+	sessionID, _ := session["ID"].(string)
+	if sessionID == "" {
+		sessionID, _ = session["id"].(string)
+	}
+	answer := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/answer", map[string]any{"session_id": sessionID, "text": "continue"})
+	if answer["current_stage"] != aiTutorStageRetell {
+		t.Fatalf("current_stage = %#v response=%#v", answer["current_stage"], answer)
+	}
+}
+
+func TestWebAITutorReviewCompletesSession(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-3", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	start := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	session := start["session"].(map[string]any)
+	sessionID, _ := session["ID"].(string)
+	if sessionID == "" {
+		sessionID, _ = session["id"].(string)
+	}
+	if err := store.updateAITutorSessionStage(sessionID, aiTutorStageReviewSchedule, aiTutorSessionActive, ""); err != nil {
+		t.Fatalf("updateAITutorSessionStage() error = %v", err)
+	}
+	done := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/review", map[string]any{"session_id": sessionID, "choice": "no_review"})
+	if done["current_stage"] != aiTutorStageComplete {
+		t.Fatalf("current_stage = %#v response=%#v", done["current_stage"], done)
+	}
+	user, ok := done["user"].(map[string]any)
+	if !ok {
+		t.Fatalf("missing refreshed user in response: %#v", done)
+	}
+	if xp, _ := user["xp"].(float64); int(xp) < aiTutorCompletionXP {
+		t.Fatalf("AI Tutor completion XP missing from response user: %#v", user)
 	}
 }
 

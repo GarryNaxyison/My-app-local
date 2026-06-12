@@ -58,6 +58,7 @@ func TestAppPromptsFileCoversCorePromptKeys(t *testing.T) {
 		"coach.system",
 		"lesson.generate.user",
 		"lesson.feedback.user",
+		"ai_tutor.lesson.generate.user",
 		"practice.chat.user",
 		"tools.translation_pair.user",
 		"vocabulary.example.user",
@@ -67,6 +68,17 @@ func TestAppPromptsFileCoversCorePromptKeys(t *testing.T) {
 	} {
 		if strings.TrimSpace(appPromptTemplate(key)) == "" {
 			t.Fatalf("missing prompt template for %s", key)
+		}
+	}
+	aiTutorPrompt := appPromptTemplate("ai_tutor.lesson.generate.user")
+	for _, want := range []string{
+		"word_recall",
+		"review_options",
+		"tomorrow",
+		"no_review",
+	} {
+		if !strings.Contains(aiTutorPrompt, want) {
+			t.Fatalf("AI Tutor runtime prompt misses %q:\n%s", want, aiTutorPrompt)
 		}
 	}
 }
