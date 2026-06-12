@@ -330,6 +330,21 @@ const en: Record<string, string> = {
   platinum_month_title: "Platinum",
   platinum_month_tier: "Platinum",
   platinum_month_body: "Maximum daily limits for intensive learning",
+  free_plan_price: "Included",
+  current_plan: "Current plan",
+  tutor_premium_title: "AI Tutor is included with Premium",
+  tutor_premium_body: "Free keeps basic text practice, word training, phrasebook, and progress overview. Upgrade to Premium for guided AI Tutor lessons.",
+  tutor_premium_cta: "Upgrade to Premium",
+  tutor_premium_required: "AI Tutor is available with Premium.",
+  free_feature_daily: "Daily habit, starter lessons, and basic word training",
+  free_feature_phrasebook: "Phrasebook and progress overview",
+  free_feature_no_ai_tutor: "AI Tutor is locked until Premium",
+  premium_feature_ai_tutor: "AI Tutor guided lessons included",
+  premium_feature_voice: "Voice, pronunciation, photo, and translator tools",
+  premium_feature_limits: "Expanded daily limits for steady learning",
+  platinum_feature_ai_tutor: "AI Tutor with intensive daily limits",
+  platinum_feature_voice: "Maximum voice, pronunciation, and roleplay practice",
+  platinum_feature_priority: "Best tier for heavy daily learning",
   auth_password_mismatch: "Passwords do not match.",
   auth_failed: "Authentication failed",
   auth_error_invalid_login_length: "Login must be 3 to 32 characters.",
@@ -3649,6 +3664,39 @@ const planAndNoteFieldOverrides: Record<AppLocaleCode, Record<string, string>> =
 };
 
 Object.entries(planAndNoteFieldOverrides).forEach(([locale, values]) => {
+  const code = locale as AppLocaleCode;
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
+});
+
+const aiTutorPremiumCopyOverrides: Partial<Record<AppLocaleCode, Record<string, string>>> = {
+  ru: {
+    free_plan_body: "Базовое текстовое обучение, тренировка слов, заметки и обзор прогресса. AI Репетитор доступен только с Premium.",
+    premium_month_body: "AI Репетитор, учебные AI-уроки, проверка голоса, фото-инструменты и расширенные дневные лимиты.",
+    platinum_month_body: "AI Репетитор с максимальными дневными лимитами, голосовой практикой, глубокими ролевыми сценариями и интенсивным повторением.",
+    free_plan_price: "Включено",
+    current_plan: "Текущий план",
+    tutor_premium_title: "AI Репетитор входит в Premium",
+    tutor_premium_body: "В бесплатном плане остаются базовые текстовые упражнения, слова, заметки и прогресс. Для учебных AI-уроков подключите Premium.",
+    tutor_premium_cta: "Перейти на Premium",
+    tutor_premium_required: "AI Репетитор доступен с Premium.",
+    free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов",
+    free_feature_phrasebook: "Заметки и обзор прогресса",
+    free_feature_no_ai_tutor: "AI Репетитор закрыт до Premium",
+    premium_feature_ai_tutor: "AI Репетитор и учебные AI-уроки включены",
+    premium_feature_voice: "Голос, произношение, фото и переводчик",
+    premium_feature_limits: "Расширенные дневные лимиты для стабильного обучения",
+    platinum_feature_ai_tutor: "AI Репетитор с интенсивными дневными лимитами",
+    platinum_feature_voice: "Максимум голосовой, произносительной и ролевой практики",
+    platinum_feature_priority: "Лучший тариф для плотного ежедневного обучения",
+  },
+  en: {
+    free_plan_body: "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only.",
+    premium_month_body: "AI Tutor, guided AI lessons, voice checks, photo tools, and expanded daily limits.",
+    platinum_month_body: "AI Tutor with the highest daily limits, voice practice, roleplay depth, and intensive review.",
+  },
+};
+
+Object.entries(aiTutorPremiumCopyOverrides).forEach(([locale, values]) => {
   const code = locale as AppLocaleCode;
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
 });

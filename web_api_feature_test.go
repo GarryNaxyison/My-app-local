@@ -1328,6 +1328,7 @@ func TestTelegramStarsSuccessfulPaymentNotifiesOpsRecipient(t *testing.T) {
 
 func TestWebAITutorStartReturnsSessionStep(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	payload := validAITutorLessonPayloadForTest()
 	lesson := aiTutorLessonRecord{ID: "lesson-web-1", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -1343,8 +1344,27 @@ func TestWebAITutorStartReturnsSessionStep(t *testing.T) {
 	}
 }
 
+func TestWebAITutorStartRequiresPremium(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-web-free-blocked", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+
+	status, body := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/ai-tutor/start", map[string]any{})
+	if status != http.StatusPaymentRequired {
+		t.Fatalf("start status = %d body=%#v, want 402", status, body)
+	}
+	apiError, _ := body["error"].(map[string]any)
+	if apiError["code"] != "premium_required" {
+		t.Fatalf("error = %#v, want premium_required", body["error"])
+	}
+}
+
 func TestWebTutorStartUsesAITutorEngine(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	payload := validAITutorLessonPayloadForTest()
 	lesson := aiTutorLessonRecord{ID: "lesson-web-legacy-route", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -1362,6 +1382,7 @@ func TestWebTutorStartUsesAITutorEngine(t *testing.T) {
 
 func TestWebAITutorAnswerAdvancesSession(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	payload := validAITutorLessonPayloadForTest()
 	lesson := aiTutorLessonRecord{ID: "lesson-web-2", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -1381,6 +1402,7 @@ func TestWebAITutorAnswerAdvancesSession(t *testing.T) {
 
 func TestWebAITutorReviewCompletesSession(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	payload := validAITutorLessonPayloadForTest()
 	lesson := aiTutorLessonRecord{ID: "lesson-web-3", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -1410,6 +1432,7 @@ func TestWebAITutorReviewCompletesSession(t *testing.T) {
 
 func TestWebAITutorCompletedLessonsReturnsFinishedSessions(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	payload := validAITutorLessonPayloadForTest()
 	payload.Title = "Sports Sunday"
 	payload.Theme = "sports"
@@ -1445,6 +1468,7 @@ func TestWebAITutorCompletedLessonsReturnsFinishedSessions(t *testing.T) {
 
 func TestWebAITutorRestartCreatesNewSessionForCompletedLesson(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	payload := validAITutorLessonPayloadForTest()
 	lesson := aiTutorLessonRecord{ID: "lesson-restart-history", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -1469,6 +1493,7 @@ func TestWebAITutorRestartCreatesNewSessionForCompletedLesson(t *testing.T) {
 
 func TestWebAITutorRestartRejectsUnrelatedLesson(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
 	lesson := aiTutorLessonRecord{ID: "lesson-restart-forbidden", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
 	if err := store.saveAITutorLesson(lesson); err != nil {
 		t.Fatalf("saveAITutorLesson() error = %v", err)
@@ -1515,6 +1540,22 @@ func newTestWebAPI(t *testing.T) (*webAPI, *sqliteStore, *http.Cookie) {
 		t.Fatal("expected session cookie")
 	}
 	return api, store, cookies[0]
+}
+
+func grantTestPremium(t *testing.T, store *sqliteStore, telegramID int64) {
+	t.Helper()
+	user, ok, err := store.getUser(telegramID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok {
+		t.Fatalf("test user %d not found", telegramID)
+	}
+	user.Plan = "premium"
+	user.PremiumUntil = time.Now().UTC().Add(30 * 24 * time.Hour)
+	if err := store.saveUser(user); err != nil {
+		t.Fatalf("grant premium: %v", err)
+	}
 }
 
 func addLearnedTestWord(t *testing.T, store *sqliteStore, userID int64, wordID string) {

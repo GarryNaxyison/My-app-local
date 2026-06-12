@@ -898,6 +898,51 @@ select {
   color: var(--teal);
 }
 
+.tutor-paywall-v2 {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tutor-paywall-v2__icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 16%, var(--surface-strong));
+  border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--line));
+}
+
+.tutor-paywall-v2 h2,
+.tutor-paywall-v2 p {
+  overflow-wrap: anywhere;
+}
+
+.tutor-paywall-v2__features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.tutor-paywall-v2__features span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--surface-strong) 68%, transparent);
+  color: var(--muted);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .tutor-completed-lessons-dialog-v2,
 .app-guide-dialog-v2 {
   width: min(560px, calc(100vw - 28px));
@@ -1108,16 +1153,52 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .tutor-workspace,
+  .tutor-session-v2,
+  .tutor-context-v2,
+  .tutor-plan-v2,
+  .tutor-message-v2,
+  .tutor-paywall-v2,
+  .premium-grid-v2,
+  .plan-card-v2 {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .tutor-session-v2 {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
   }
 
   .tutor-plan-v2 {
+    order: 2;
     position: static;
   }
 
   .tutor-context-v2 {
+    order: 1;
     min-height: 520px;
+  }
+
+  .tutor-context-v2__head {
+    flex-wrap: wrap;
+  }
+
+  .tutor-context-v2__head > span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .tutor-paywall-v2__features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tutor-srs button,
+  .tutor-composer-v2 button,
+  .tutor-hero__actions button {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
   }
 
   .tutor-pronunciation-stage-v2 {
@@ -2917,6 +2998,8 @@ select {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .plan-card-v2 > span {
@@ -2932,6 +3015,62 @@ select {
 
 .plan-card-v2 strong {
   font-size: 26px;
+  overflow-wrap: anywhere;
+}
+
+.plan-card-v2 h2,
+.plan-card-v2 p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.plan-card-v2.is-free {
+  border-color: color-mix(in srgb, var(--line) 82%, var(--muted));
+}
+
+.plan-card-v2.is-free > span {
+  background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
+  color: var(--muted);
+}
+
+.plan-card-v2.is-platinum {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+}
+
+.plan-features-v2 {
+  display: grid;
+  gap: 8px;
+  margin: 2px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-features-v2 li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.plan-features-v2 li svg {
+  color: var(--teal);
+}
+
+.plan-features-v2 li.is-highlight {
+  color: var(--text);
+}
+
+.plan-features-v2 li.is-locked {
+  color: var(--faint);
+}
+
+.plan-features-v2 li.is-locked svg {
+  color: var(--rose);
 }
 
 .activation-v2 {

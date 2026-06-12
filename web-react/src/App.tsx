@@ -177,6 +177,12 @@ type PaymentState = {
   info?: ApiRecord | null;
 };
 
+type PremiumPlanFeature = {
+  text: string;
+  locked?: boolean;
+  highlight?: boolean;
+};
+
 type PaymentNotice = {
   kind: "success" | "not-found";
   title: string;
@@ -1191,29 +1197,82 @@ function premiumPeriodLabel(plan: PremiumPlan | undefined, copy: (key: string, f
   return cleanAppText(plan?.days_label) || copy("premium_period", "Premium");
 }
 
+function premiumPlanSource(plan: PremiumPlan | undefined) {
+  return `${plan?.product || ""} ${plan?.title || ""} ${plan?.tier || ""} ${plan?.days_label || ""}`.toLowerCase();
+}
+
+function premiumPlanIsFree(plan: PremiumPlan | undefined) {
+  const source = premiumPlanSource(plan);
+  return source.includes("free") || source.includes("basic") || plan?.product === "free";
+}
+
+function premiumPlanIsPlatinum(plan: PremiumPlan | undefined) {
+  return premiumPlanSource(plan).includes("platinum");
+}
+
+function premiumPlanIsPremium(plan: PremiumPlan | undefined) {
+  const source = premiumPlanSource(plan);
+  return !premiumPlanIsPlatinum(plan) && (source.includes("premium") || source.includes("month") || source.includes("year"));
+}
+
 function premiumPlanTitle(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
-  const product = String(plan.product || "").toLowerCase();
-  const source = `${product} ${plan.title || ""}`.toLowerCase();
+  const source = premiumPlanSource(plan);
+  if (premiumPlanIsFree(plan)) return copy("free_plan_title", cleanAppText(plan.title || "Free"));
   if (source.includes("year") || source.includes("365")) return copy("premium_year_title", "Premium for a year");
-  if (source.includes("platinum")) return copy("platinum_month_title", cleanAppText(plan.title || "Platinum"));
-  if (source.includes("premium")) return copy("premium_month_title", cleanAppText(plan.title || "Premium"));
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_title", cleanAppText(plan.title || "Platinum"));
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_title", cleanAppText(plan.title || "Premium"));
   return cleanAppText(plan.title || plan.product || copy("premium", "Premium"));
 }
 
 function premiumPlanTier(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
-  const source = `${plan.product || ""} ${plan.title || ""}`.toLowerCase();
-  if (source.includes("platinum")) return copy("platinum_month_tier", "Platinum");
-  if (source.includes("premium")) return copy("premium_month_tier", "Premium");
+  if (premiumPlanIsFree(plan)) return copy("free_plan_tier", "Basic");
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_tier", "Platinum");
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_tier", "Premium");
   return cleanAppText(plan.tier || plan.product || copy("premium", "Premium"));
 }
 
 function premiumPlanBody(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
-  const source = `${plan.product || ""} ${plan.title || ""} ${plan.days_label || ""}`.toLowerCase();
-  if (source.includes("platinum")) return copy("platinum_month_body", "18 AI audio actions per day: pronunciation checks, listening audio, corrected TTS, plus maximum text practice limits.");
-  if (source.includes("premium")) return copy("premium_month_body", "6 AI audio actions per day: listening audio, pronunciation checks, corrected TTS, image tools, and larger practice limits.");
-  if (source.includes("free")) return copy("free_plan_body", "Text learning plus audio only for words you have already learned.");
+  const source = premiumPlanSource(plan);
+  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only.");
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with the highest daily limits, voice practice, roleplay depth, and intensive review.");
   if (source.includes("year") || source.includes("365")) return copy("premium_year_body", "Same daily AI audio limits, paid yearly.");
-  return cleanAppText(plan.days_label) || copy("premium_month_body", "Premium learning limits, voice tools, image practice, and focused daily training.");
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "AI Tutor, guided AI lessons, voice checks, photo tools, and expanded daily limits.");
+  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, voice tools, image practice, and focused daily training.");
+}
+
+function premiumPlanCatalog(plans: PremiumPlan[], copy: (key: string, fallback: string) => string) {
+  const fallback = fallbackPlans(copy);
+  const source = plans.length ? plans : fallback;
+  const catalog = source.some((plan) => premiumPlanIsFree(plan)) ? source : [fallback[0], ...source];
+  const seen = new Set<string>();
+  return catalog.filter((plan) => {
+    const key = String(plan.product || plan.title || premiumPlanTier(plan, copy)).toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function premiumPlanFeatures(plan: PremiumPlan, copy: (key: string, fallback: string) => string): PremiumPlanFeature[] {
+  if (premiumPlanIsFree(plan)) {
+    return [
+      { text: copy("free_feature_daily", "Daily habit, starter lessons, and basic word training") },
+      { text: copy("free_feature_phrasebook", "Phrasebook and progress overview") },
+      { text: copy("free_feature_no_ai_tutor", "AI Tutor is locked until Premium"), locked: true },
+    ];
+  }
+  if (premiumPlanIsPlatinum(plan)) {
+    return [
+      { text: copy("platinum_feature_ai_tutor", "AI Tutor with intensive daily limits"), highlight: true },
+      { text: copy("platinum_feature_voice", "Maximum voice, pronunciation, and roleplay practice") },
+      { text: copy("platinum_feature_priority", "Best tier for heavy daily learning") },
+    ];
+  }
+  return [
+    { text: copy("premium_feature_ai_tutor", "AI Tutor guided lessons included"), highlight: true },
+    { text: copy("premium_feature_voice", "Voice, pronunciation, photo, and translator tools") },
+    { text: copy("premium_feature_limits", "Expanded daily limits for steady learning") },
+  ];
 }
 
 function paymentAmountLine(info: ApiRecord) {
@@ -1915,6 +1974,16 @@ export function App() {
   };
 
   const startTutor = async () => {
+    if (!user.premium) {
+      const text = copy("tutor_premium_required", "AI Tutor is available with Premium.");
+      setAiTutorSessionId("");
+      setAiTutorStep(null);
+      setAiTutorFeedback(null);
+      setTutorLoadError(text);
+      setStatus({ kind: "info", text });
+      setView("premium");
+      return;
+    }
     setAiTutorSessionId("");
     setAiTutorStep(null);
     setAiTutorFeedback(null);
@@ -1962,6 +2031,13 @@ export function App() {
   };
 
   const restartTutorLesson = async (lessonId: string) => {
+    if (!user.premium) {
+      const text = copy("tutor_premium_required", "AI Tutor is available with Premium.");
+      setTutorLoadError(text);
+      setStatus({ kind: "info", text });
+      setView("premium");
+      return false;
+    }
     const cleanLessonId = cleanAppText(lessonId).trim();
     if (!cleanLessonId) return false;
     setTutorLoadError("");
@@ -1999,6 +2075,13 @@ export function App() {
   };
 
   const submitAiTutorStep = async (text: string, choice = "") => {
+    if (!user.premium) {
+      const notice = copy("tutor_premium_required", "AI Tutor is available with Premium.");
+      setTutorLoadError(notice);
+      setStatus({ kind: "info", text: notice });
+      setView("premium");
+      return;
+    }
     if (!aiTutorSessionId) return;
     const payload = await runAction(
       "tutor",
@@ -4845,8 +4928,9 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase }: ViewRendererProps) {
+function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, setView }: ViewRendererProps) {
   const display = (value: unknown) => cleanAppText(value).trim();
+  const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
   const [selectedChoice, setSelectedChoice] = useState("");
   const [completedLessonsOpen, setCompletedLessonsOpen] = useState(false);
@@ -4862,8 +4946,9 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const completedLessonsKey = `poliglot-tutor-completed-v3:${accountKey}`;
 
   useEffect(() => {
+    if (tutorPremiumLocked) return;
     if (!aiTutorStep && !busy && !tutorLoadError) void startTutor();
-  }, [Boolean(aiTutorStep), Boolean(busy), tutorLoadError]);
+  }, [tutorPremiumLocked, Boolean(aiTutorStep), Boolean(busy), tutorLoadError]);
 
   useEffect(() => {
     setTutorDraft("");
@@ -5142,8 +5227,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
         </div>
         <div className="tutor-hero__copy">
           <span className="eyebrow">{copy("ai_tutor", "AI Tutor")}</span>
-          <h2>{aiTutorStep ? `${heroLevel} ? ${heroTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
-          <p>{heroGoal}</p>
+          <h2>{tutorPremiumLocked ? copy("tutor_premium_title", "AI Tutor is included with Premium") : aiTutorStep ? `${heroLevel} ? ${heroTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
+          <p>{tutorPremiumLocked ? copy("tutor_premium_body", "Free keeps basic text practice. Upgrade to Premium to use guided AI Tutor lessons.") : heroGoal}</p>
           <div className="tutor-hero__meta">
             <span>{copy("tutor_duration", "5-10 minutes")}</span>
             <span>{copy("tutor_course_label", "Course")}: AI</span>
@@ -5154,14 +5239,32 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
             <BookOpen size={17} />
             <span>{copy("tutor_completed_lessons", "Completed lessons")}</span>
           </Button>
-          <Button type="button" onClick={() => void startTutor()} disabled={busy === "tutor"}>
-            {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : <Sparkles size={18} />}
-            <span>{copy("tutor_new_lesson", "New tutor lesson")}</span>
+          <Button type="button" onClick={() => tutorPremiumLocked ? setView("premium") : void startTutor()} disabled={busy === "tutor"}>
+            {busy === "tutor" ? <Spinner size="small" className="button-spinner-v2" /> : tutorPremiumLocked ? <Crown size={18} /> : <Sparkles size={18} />}
+            <span>{tutorPremiumLocked ? copy("tutor_premium_cta", "Upgrade to Premium") : copy("tutor_new_lesson", "New tutor lesson")}</span>
           </Button>
         </div>
       </section>
 
-      {!aiTutorStep ? (
+      {tutorPremiumLocked ? (
+        <section className="v2-panel tutor-paywall-v2">
+          <div className="tutor-paywall-v2__icon"><Crown size={24} /></div>
+          <div>
+            <span className="eyebrow">{copy("premium", "Premium")}</span>
+            <h2>{copy("tutor_premium_title", "AI Tutor is included with Premium")}</h2>
+            <p>{copy("tutor_premium_body", "Free keeps basic text practice. Upgrade to Premium to use guided AI Tutor lessons.")}</p>
+          </div>
+          <div className="tutor-paywall-v2__features">
+            <span><ShieldCheck size={16} />{copy("free_feature_daily", "Daily habit, starter lessons, and basic word training")}</span>
+            <span><Sparkles size={16} />{copy("premium_feature_ai_tutor", "AI Tutor guided lessons included")}</span>
+            <span><Crown size={16} />{copy("platinum_feature_priority", "Best tier for heavy daily learning")}</span>
+          </div>
+          <Button type="button" onClick={() => setView("premium")}>
+            <Crown size={18} />
+            <span>{copy("tutor_premium_cta", "Upgrade to Premium")}</span>
+          </Button>
+        </section>
+      ) : !aiTutorStep ? (
         <section className={cn("v2-panel tutor-loading-panel", tutorLoadError && "is-error")}>
           {tutorLoadError ? (
             <>
@@ -6865,17 +6968,32 @@ function PremiumView({ premiumPlans, loadPremiumPlans, paymentHistory, busy, act
   useEffect(() => {
     if (!premiumPlans.length && busy !== "premium-plans") void loadPremiumPlans();
   }, []);
+  const plans = premiumPlanCatalog(premiumPlans, copy);
   return (
     <div className="premium-grid-v2">
-      {(premiumPlans.length ? premiumPlans : fallbackPlans(copy)).map((plan) => (
-        <section className="v2-panel plan-card-v2" key={plan.product}>
+      {plans.map((plan) => {
+        const isFree = premiumPlanIsFree(plan);
+        return (
+        <section className={cn("v2-panel plan-card-v2", isFree && "is-free", premiumPlanIsPlatinum(plan) && "is-platinum")} key={plan.product}>
           <span>{premiumPlanTier(plan, copy)}</span>
           <h2>{premiumPlanTitle(plan, copy)}</h2>
-          <strong>{plan.rub_price ? `${plan.rub_price} RUB` : plan.usdt_price ? `${plan.usdt_price} USDT` : copy("available", "Available")}</strong>
+          <strong>{isFree ? copy("free_plan_price", "Included") : plan.rub_price ? `${plan.rub_price} RUB` : plan.usdt_price ? `${plan.usdt_price} USDT` : copy("available", "Available")}</strong>
           <p>{premiumPlanBody(plan, copy)}</p>
-          <Button onClick={() => setPayment({ plan })} disabled={busy === "premium-plans"}><CircleDollarSign size={18} />{copy("payment_options", "Payment options")}</Button>
+          <ul className="plan-features-v2">
+            {premiumPlanFeatures(plan, copy).map((feature) => (
+              <li key={feature.text} className={cn(feature.locked && "is-locked", feature.highlight && "is-highlight")}>
+                {feature.locked ? <X size={15} /> : <Check size={15} />}
+                <span>{feature.text}</span>
+              </li>
+            ))}
+          </ul>
+          <Button variant={isFree ? "outline" : "default"} onClick={() => setPayment({ plan })} disabled={isFree || busy === "premium-plans"}>
+            {isFree ? <ShieldCheck size={18} /> : <CircleDollarSign size={18} />}
+            {isFree ? copy("current_plan", "Current plan") : copy("payment_options", "Payment options")}
+          </Button>
         </section>
-      ))}
+        );
+      })}
       <form className="v2-panel activation-v2" onSubmit={activateKey}>
         <span className="eyebrow">{copy("activation_key", "Activation key")}</span>
         <h2>{copy("serial_premium_access", "Serial Premium access")}</h2>
@@ -7539,9 +7657,9 @@ function formatLimit(value: unknown, max: unknown) {
 
 function fallbackPlans(copy: (key: string, fallback: string) => string): PremiumPlan[] {
   return [
-    { product: "free", title: copy("free_plan_title", "Free"), tier: copy("free_plan_tier", "Basic"), days_label: copy("free_plan_body", "Text learning plus learned-word audio"), rub_price: "0" },
-    { product: "premium_month", title: copy("premium_month_title", "Premium"), tier: copy("premium_month_tier", "Premium"), days_label: copy("premium_month_body", "6 AI audio actions per day plus image tools"), rub_price: "300" },
-    { product: "platinum_month", title: copy("platinum_month_title", "Platinum"), tier: copy("platinum_month_tier", "Platinum"), days_label: copy("platinum_month_body", "18 AI audio actions per day for intensive learning"), rub_price: "590" },
+    { product: "free", title: copy("free_plan_title", "Free"), tier: copy("free_plan_tier", "Basic"), days_label: copy("free_plan_body", "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only."), rub_price: "0" },
+    { product: "premium_month", title: copy("premium_month_title", "Premium"), tier: copy("premium_month_tier", "Premium"), days_label: copy("premium_month_body", "AI Tutor, guided AI lessons, voice checks, photo tools, and expanded daily limits."), rub_price: "300" },
+    { product: "platinum_month", title: copy("platinum_month_title", "Platinum"), tier: copy("platinum_month_tier", "Platinum"), days_label: copy("platinum_month_body", "AI Tutor with the highest daily limits, voice practice, roleplay depth, and intensive review."), rub_price: "590" },
   ];
 }
 

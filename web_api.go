@@ -1455,6 +1455,14 @@ func (api *webAPI) handleTutorStart(w http.ResponseWriter, r *http.Request) {
 	api.handleAITutorStart(w, r)
 }
 
+func (api *webAPI) requireAITutorPremium(w http.ResponseWriter, user userState) bool {
+	if user.isPremium(time.Now()) {
+		return true
+	}
+	writeAPIErrorCode(w, http.StatusPaymentRequired, "premium_required", "AI Tutor is available with Premium.")
+	return false
+}
+
 func (api *webAPI) handleAITutorStart(w http.ResponseWriter, r *http.Request) {
 	if !allowMethod(w, r, http.MethodPost) {
 		return
@@ -1462,6 +1470,9 @@ func (api *webAPI) handleAITutorStart(w http.ResponseWriter, r *http.Request) {
 	user, err := api.currentUser(w, r)
 	if err != nil {
 		api.writeCurrentUserError(w, err)
+		return
+	}
+	if !api.requireAITutorPremium(w, user) {
 		return
 	}
 	if api.bot == nil || api.bot.store == nil {
@@ -1483,6 +1494,9 @@ func (api *webAPI) handleAITutorSession(w http.ResponseWriter, r *http.Request) 
 	user, err := api.currentUser(w, r)
 	if err != nil {
 		api.writeCurrentUserError(w, err)
+		return
+	}
+	if !api.requireAITutorPremium(w, user) {
 		return
 	}
 	sessionID := strings.TrimSpace(r.URL.Query().Get("session_id"))
@@ -1510,6 +1524,9 @@ func (api *webAPI) handleAITutorCompleted(w http.ResponseWriter, r *http.Request
 	user, err := api.currentUser(w, r)
 	if err != nil {
 		api.writeCurrentUserError(w, err)
+		return
+	}
+	if !api.requireAITutorPremium(w, user) {
 		return
 	}
 	if api.bot == nil || api.bot.store == nil {
@@ -1592,6 +1609,9 @@ func (api *webAPI) handleAITutorAnswer(w http.ResponseWriter, r *http.Request) {
 		api.writeCurrentUserError(w, err)
 		return
 	}
+	if !api.requireAITutorPremium(w, user) {
+		return
+	}
 	var req struct {
 		SessionID string `json:"session_id"`
 		Text      string `json:"text"`
@@ -1617,6 +1637,9 @@ func (api *webAPI) handleAITutorReview(w http.ResponseWriter, r *http.Request) {
 		api.writeCurrentUserError(w, err)
 		return
 	}
+	if !api.requireAITutorPremium(w, user) {
+		return
+	}
 	var req struct {
 		SessionID string `json:"session_id"`
 		Choice    string `json:"choice"`
@@ -1639,6 +1662,9 @@ func (api *webAPI) handleAITutorFinish(w http.ResponseWriter, r *http.Request) {
 	user, err := api.currentUser(w, r)
 	if err != nil {
 		api.writeCurrentUserError(w, err)
+		return
+	}
+	if !api.requireAITutorPremium(w, user) {
 		return
 	}
 	var req struct {

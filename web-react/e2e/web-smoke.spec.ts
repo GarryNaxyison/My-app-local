@@ -316,6 +316,26 @@ async function mockApi(page: Page) {
     aiTutorStage = "story_intro";
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(aiTutorResponse()) });
   });
+  await page.route("**/api/ai-tutor/completed", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        items: [
+          {
+            session_id: "session-ai-tutor-completed",
+            lesson_id: "lesson-ai-tutor-morning",
+            title: aiTutorLesson.title,
+            topic: aiTutorLesson.theme,
+            level: aiTutorLesson.level,
+            completed_at: "2026-06-12T12:00:00Z",
+            lesson: aiTutorLesson,
+          },
+        ],
+        total: 1,
+      }),
+    }),
+  );
   await page.route("**/api/ai-tutor/answer", async (route) => {
     const body = route.request().postDataJSON() as { text?: string; choice?: string };
     if (aiTutorStage === "production" && String(body.text || "").split(/[.!?]+/).map((part) => part.trim()).filter(Boolean).length < 2) {
@@ -622,10 +642,12 @@ async function expectNoMojibake(page: Page) {
 }
 
 async function useInterfaceLanguage(page: Page, code: string) {
+  const base = testSessionPayloadOverride || sessionPayload;
   const payload = {
-    ...sessionPayload,
-    user: { ...sessionPayload.user, interface_language: code },
+    ...base,
+    user: { ...base.user, interface_language: code },
   };
+  testSessionPayloadOverride = payload;
   await page.unroute("**/api/session").catch(() => undefined);
   await page.unroute("**/api/settings").catch(() => undefined);
   await page.unroute("**/api/navigation-layout").catch(() => undefined);
@@ -1224,7 +1246,37 @@ test("bug report paste keeps one clipboard image and no generic section text", a
   await expect(dialog.locator(".bug-report-dialog-v2__upload")).not.toContainText("2 ");
 });
 
+test("free users see AI Tutor premium paywall instead of starting a lesson", async ({ page }) => {
+  let startCalled = false;
+  await page.unroute("**/api/ai-tutor/start").catch(() => undefined);
+  await page.route("**/api/ai-tutor/start", (route) => {
+    startCalled = true;
+    return route.fulfill({
+      status: 402,
+      contentType: "application/json",
+      body: JSON.stringify({ error: { code: "premium_required", message: "AI Tutor is available with Premium." } }),
+    });
+  });
+
+  await page.goto("/app/?view=tutor");
+  await expect(page.locator(".tutor-paywall-v2")).toContainText(ru("tutor_premium_title", "AI Tutor is included with Premium"));
+  await expect(page.locator(".tutor-session-v2")).toHaveCount(0);
+  expect(startCalled).toBe(false);
+});
+
 test("AI Tutor server-driven lesson blocks old local flow and awards XP", async ({ page, isMobile }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      lesson_limit: 50,
+      practice_limit: 200,
+      voice_limit: 20,
+    },
+  };
   await page.goto("/app/?view=tutor");
   await expect(page.locator('.function-ribbon [data-view="tutor"]')).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("Утренняя рутина");
@@ -1329,9 +1381,31 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]')).toContainText("AI Репетитор");
   await page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]').click();
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
+  const mobileTutorMetrics = await page.evaluate(() => {
+    const rect = (selector: string) => {
+      const box = document.querySelector(selector)?.getBoundingClientRect();
+      return box ? { left: box.left, right: box.right, top: box.top, width: box.width } : null;
+    };
+    return {
+      innerWidth: window.innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      context: rect(".tutor-context-v2"),
+      plan: rect(".tutor-plan-v2"),
+    };
+  });
+  expect(mobileTutorMetrics.context).not.toBeNull();
+  expect(mobileTutorMetrics.plan).not.toBeNull();
+  expect(mobileTutorMetrics.context!.top).toBeLessThan(mobileTutorMetrics.plan!.top);
+  expect(mobileTutorMetrics.scrollWidth).toBeLessThanOrEqual(mobileTutorMetrics.innerWidth + 1);
+  expect(mobileTutorMetrics.context!.right).toBeLessThanOrEqual(mobileTutorMetrics.innerWidth + 1);
+  expect(mobileTutorMetrics.plan!.right).toBeLessThanOrEqual(mobileTutorMetrics.innerWidth + 1);
 });
 
 test("AI Tutor completed lessons modal paginates finished lesson history", async ({ page }) => {
+  await page.unroute("**/api/ai-tutor/completed").catch(() => undefined);
+  await page.route("**/api/ai-tutor/completed", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], total: 0 }) }),
+  );
   await page.addInitScript(() => {
     const lessons = Array.from({ length: 12 }, (_, index) => ({
       id: `completed-${index + 1}`,
@@ -1449,7 +1523,7 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
   );
 
   await page.goto("/app/?view=premium");
-  await page.locator(".plan-card-v2 button").first().click();
+  await page.locator(".plan-card-v2:not(.is-free) button").first().click();
   await expect(page.locator(".v2-payment-modal")).toBeVisible();
   await page.locator(".payment-method-button-v2").filter({ hasText: "Telegram Stars" }).click();
   await expect(page.locator(".v2-payment-modal")).toContainText("Оплата Telegram Stars откроется в Telegram");
@@ -1461,6 +1535,16 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
   await expect(page.locator(".v2-payment-modal")).toContainText("Комментарий");
   await expect(page.locator(".v2-payment-modal")).toContainText("Истекает");
   await expect(page.locator(".payment-invoice-v2")).not.toContainText("Раздел");
+});
+
+test("premium plans show AI Tutor as a paid-only upgrade ladder", async ({ page }) => {
+  await page.goto("/app/?view=premium");
+  const cards = page.locator(".plan-card-v2");
+  await expect(cards).toHaveCount(3);
+  await expect(cards.nth(0)).toContainText(ru("free_feature_no_ai_tutor", "AI Tutor is locked until Premium"));
+  await expect(cards.nth(0).locator("button")).toBeDisabled();
+  await expect(cards.nth(1)).toContainText(ru("premium_feature_ai_tutor", "AI Tutor guided lessons included"));
+  await expect(cards.nth(2)).toContainText(ru("platinum_feature_priority", "Best tier for heavy daily learning"));
 });
 
 test("auth login page uses React sign-in component, Cloudflare slot and current login API", async ({ page }) => {
@@ -1682,7 +1766,7 @@ test("payment history shows only confirmed payments", async ({ page }) => {
 test("mobile payment requisites modal stays above bottom navigation and scrolls", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile payment layout assertion");
   await page.goto("/app/?view=premium");
-  await page.locator(".plan-card-v2 button").first().click();
+  await page.locator(".plan-card-v2:not(.is-free) button").first().click();
   await expect(page.locator(".v2-payment-modal")).toBeVisible();
   await page.getByRole("button", { name: /TON|USDT/ }).click();
   await expect(page.locator(".payment-invoice-v2")).toBeVisible();
@@ -1909,6 +1993,18 @@ test("desktop pronunciation workspace makes the target phrase the primary panel"
 });
 
 test("AI Tutor failed start stops loading loop and shows retry", async ({ page }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      lesson_limit: 50,
+      practice_limit: 200,
+      voice_limit: 20,
+    },
+  };
   let tutorStartCalls = 0;
   await page.unroute("**/api/ai-tutor/start");
   await page.route("**/api/ai-tutor/start", (route) => {
