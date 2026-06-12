@@ -1895,6 +1895,96 @@ func (s *sqliteStore) getAITutorSession(sessionID string) (aiTutorSessionRecord,
 	return session, true, nil
 }
 
+func (s *sqliteStore) completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error) {
+	if telegramID == 0 {
+		return nil, nil
+	}
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	rows, err := s.db.Query(
+		`SELECT
+			s.id, s.telegram_id, s.lesson_id, s.surface, s.current_stage, s.status, s.started_at, s.completed_at, s.updated_at,
+			l.id, l.learning_language, l.interface_language, l.exact_level, l.level_band, l.theme, l.status,
+			l.payload_json, l.fingerprint, l.preflight_score, l.post_score, l.completion_count, l.average_rating, l.created_at, l.updated_at
+		FROM ai_tutor_sessions s
+		JOIN ai_tutor_lessons l ON l.id = s.lesson_id
+		WHERE s.telegram_id = ? AND (s.status = ? OR s.completed_at <> '')
+		ORDER BY COALESCE(NULLIF(s.completed_at, ''), s.updated_at, s.started_at) DESC
+		LIMIT ?`,
+		telegramID,
+		aiTutorSessionComplete,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]aiTutorCompletedLessonRecord, 0)
+	for rows.Next() {
+		var session aiTutorSessionRecord
+		var lesson aiTutorLessonRecord
+		var payload string
+		if err := rows.Scan(
+			&session.ID,
+			&session.TelegramID,
+			&session.LessonID,
+			&session.Surface,
+			&session.CurrentStage,
+			&session.Status,
+			&session.StartedAt,
+			&session.CompletedAt,
+			&session.UpdatedAt,
+			&lesson.ID,
+			&lesson.LearningLanguage,
+			&lesson.InterfaceLanguage,
+			&lesson.ExactLevel,
+			&lesson.LevelBand,
+			&lesson.Theme,
+			&lesson.Status,
+			&payload,
+			&lesson.Fingerprint,
+			&lesson.PreflightScore,
+			&lesson.PostScore,
+			&lesson.CompletionCount,
+			&lesson.AverageRating,
+			&lesson.CreatedAt,
+			&lesson.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal([]byte(payload), &lesson.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, aiTutorCompletedLessonFromRecords(session, lesson))
+	}
+	return items, rows.Err()
+}
+
+func (s *sqliteStore) userCanRestartAITutorLesson(telegramID int64, lessonID string) (bool, error) {
+	lessonID = strings.TrimSpace(lessonID)
+	if telegramID == 0 || lessonID == "" {
+		return false, nil
+	}
+	var exists int
+	err := s.db.QueryRow(
+		`SELECT 1
+		FROM ai_tutor_sessions
+		WHERE telegram_id = ? AND lesson_id = ?
+		LIMIT 1`,
+		telegramID,
+		lessonID,
+	).Scan(&exists)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return exists == 1, nil
+}
+
 func (s *sqliteStore) updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error {
 	_, err := s.db.Exec(
 		`UPDATE ai_tutor_sessions

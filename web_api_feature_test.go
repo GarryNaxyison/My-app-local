@@ -1408,6 +1408,78 @@ func TestWebAITutorReviewCompletesSession(t *testing.T) {
 	}
 }
 
+func TestWebAITutorCompletedLessonsReturnsFinishedSessions(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	payload.Title = "Sports Sunday"
+	payload.Theme = "sports"
+	lesson := aiTutorLessonRecord{ID: "lesson-completed-history", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	session := aiTutorSessionRecord{ID: "session-completed-history", TelegramID: -42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageComplete, Status: aiTutorSessionComplete, CompletedAt: "2026-06-12T12:00:00Z"}
+	if err := store.createAITutorSession(session); err != nil {
+		t.Fatalf("createAITutorSession() error = %v", err)
+	}
+	otherLesson := aiTutorLessonRecord{ID: "lesson-completed-other-user", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
+	if err := store.saveAITutorLesson(otherLesson); err != nil {
+		t.Fatalf("saveAITutorLesson(other) error = %v", err)
+	}
+	if err := store.createAITutorSession(aiTutorSessionRecord{ID: "session-completed-other-user", TelegramID: -7, LessonID: otherLesson.ID, Surface: "web", CurrentStage: aiTutorStageComplete, Status: aiTutorSessionComplete, CompletedAt: "2026-06-12T13:00:00Z"}); err != nil {
+		t.Fatalf("createAITutorSession(other) error = %v", err)
+	}
+
+	body := requestJSON(t, api, cookie, http.MethodGet, "/api/ai-tutor/completed", nil)
+	items, _ := body["items"].([]any)
+	if len(items) != 1 {
+		t.Fatalf("items = %#v, want one completed lesson for current user", body["items"])
+	}
+	item, _ := items[0].(map[string]any)
+	if item["lesson_id"] != lesson.ID || item["session_id"] != session.ID || item["title"] != "Sports Sunday" {
+		t.Fatalf("completed lesson item mismatch: %#v", item)
+	}
+	if _, ok := item["lesson"].(map[string]any); !ok {
+		t.Fatalf("completed lesson item missing lesson payload: %#v", item)
+	}
+}
+
+func TestWebAITutorRestartCreatesNewSessionForCompletedLesson(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	payload := validAITutorLessonPayloadForTest()
+	lesson := aiTutorLessonRecord{ID: "lesson-restart-history", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: payload}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	if err := store.createAITutorSession(aiTutorSessionRecord{ID: "session-old-restart", TelegramID: -42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorStageComplete, Status: aiTutorSessionComplete, CompletedAt: "2026-06-12T12:00:00Z"}); err != nil {
+		t.Fatalf("createAITutorSession() error = %v", err)
+	}
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/restart", map[string]any{"lesson_id": lesson.ID})
+	if body["current_stage"] != aiTutorStageStoryIntro {
+		t.Fatalf("current_stage = %#v response=%#v", body["current_stage"], body)
+	}
+	session, _ := body["session"].(map[string]any)
+	if session["LessonID"] != lesson.ID && session["lesson_id"] != lesson.ID {
+		t.Fatalf("restart returned wrong lesson session: %#v", session)
+	}
+	if session["ID"] == "session-old-restart" || session["id"] == "session-old-restart" {
+		t.Fatalf("restart reused the old completed session: %#v", session)
+	}
+}
+
+func TestWebAITutorRestartRejectsUnrelatedLesson(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	lesson := aiTutorLessonRecord{ID: "lesson-restart-forbidden", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+
+	status, body := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/ai-tutor/restart", map[string]any{"lesson_id": lesson.ID})
+	if status != http.StatusForbidden {
+		t.Fatalf("restart status = %d body=%#v, want 403", status, body)
+	}
+}
+
 func newTestWebAPI(t *testing.T) (*webAPI, *sqliteStore, *http.Cookie) {
 	t.Helper()
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")

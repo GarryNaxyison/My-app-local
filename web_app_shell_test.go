@@ -75,6 +75,8 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 		`/api/auth/logout`,
 		`/login`,
 		`/api/ai-tutor/start`,
+		`/api/ai-tutor/completed`,
+		`/api/ai-tutor/restart`,
 		`/api/ai-tutor/answer`,
 		`/api/lesson/start`,
 		`/api/lesson/answer`,

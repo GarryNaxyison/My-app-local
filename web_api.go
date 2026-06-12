@@ -179,6 +179,8 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/tutor/start", api.handleTutorStart)
 	mux.HandleFunc("/api/ai-tutor/start", api.handleAITutorStart)
 	mux.HandleFunc("/api/ai-tutor/session", api.handleAITutorSession)
+	mux.HandleFunc("/api/ai-tutor/completed", api.handleAITutorCompleted)
+	mux.HandleFunc("/api/ai-tutor/restart", api.handleAITutorRestart)
 	mux.HandleFunc("/api/ai-tutor/answer", api.handleAITutorAnswer)
 	mux.HandleFunc("/api/ai-tutor/review", api.handleAITutorReview)
 	mux.HandleFunc("/api/ai-tutor/finish", api.handleAITutorFinish)
@@ -1496,6 +1498,86 @@ func (api *webAPI) handleAITutorSession(w http.ResponseWriter, r *http.Request) 
 	result, err := api.loadAITutorSessionResult(user, sessionID)
 	if err != nil {
 		writeAPIError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) handleAITutorCompleted(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodGet) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	if api.bot == nil || api.bot.store == nil {
+		writeAPIError(w, http.StatusInternalServerError, "AI Tutor is not configured")
+		return
+	}
+	limit := 100
+	if raw := strings.TrimSpace(r.URL.Query().Get("limit")); raw != "" {
+		if parsed, err := strconv.Atoi(raw); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+	items, err := api.bot.store.completedAITutorLessons(user.TelegramID, limit)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"items": items,
+		"total": len(items),
+	})
+}
+
+func (api *webAPI) handleAITutorRestart(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	if api.bot == nil || api.bot.store == nil {
+		writeAPIError(w, http.StatusInternalServerError, "AI Tutor is not configured")
+		return
+	}
+	var req struct {
+		LessonID string `json:"lesson_id"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	lessonID := strings.TrimSpace(req.LessonID)
+	if lessonID == "" {
+		writeAPIError(w, http.StatusBadRequest, "lesson_id is required")
+		return
+	}
+	allowed, err := api.bot.store.userCanRestartAITutorLesson(user.TelegramID, lessonID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !allowed {
+		writeAPIError(w, http.StatusForbidden, "This AI Tutor lesson is not available in your history.")
+		return
+	}
+	lesson, ok, err := api.bot.store.getAITutorLesson(lessonID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !ok {
+		writeAPIError(w, http.StatusNotFound, "AI Tutor lesson not found")
+		return
+	}
+	result, err := api.bot.aiTutorEngine().createSessionForLesson(user, "web", lesson)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))

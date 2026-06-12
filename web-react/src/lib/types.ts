@@ -128,6 +128,8 @@ export type AiTutorStep = {
     lesson_goal?: string;
     story?: { text_target?: string; audio_text_target?: string };
     words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string }>;
+    comprehension_questions?: Array<{ id?: string; question_target?: string }>;
+    production_task?: { instruction_interface?: string };
   };
   word?: { id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string };
   question?: { id?: string; question_target?: string };
@@ -153,6 +155,21 @@ export type AiTutorResponse = {
   reward_xp?: number;
   reward_title?: string;
   user?: unknown;
+};
+
+export type AiTutorCompletedLesson = {
+  session_id?: string;
+  lesson_id?: string;
+  title?: string;
+  topic?: string;
+  level?: string;
+  completed_at?: string;
+  lesson?: AiTutorStep["lesson"];
+};
+
+export type AiTutorCompletedLessonsResponse = {
+  items?: AiTutorCompletedLesson[];
+  total?: number;
 };
 
 export type SessionData = {

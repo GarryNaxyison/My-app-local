@@ -204,6 +204,8 @@ type store interface {
 	createAITutorSession(session aiTutorSessionRecord) error
 	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
 	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
+	completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error)
+	userCanRestartAITutorLesson(telegramID int64, lessonID string) (bool, error)
 	saveAITutorAnswer(answer aiTutorAnswerRecord) error
 	saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error
 	updateAITutorLessonQuality(lessonID string, status string, postScore int) error
@@ -942,6 +944,54 @@ func (s *jsonStore) getAITutorSession(sessionID string) (aiTutorSessionRecord, b
 	s.ensureAITutorMapsLocked()
 	session, ok := s.aiTutorSessions[strings.TrimSpace(sessionID)]
 	return session, ok, nil
+}
+
+func (s *jsonStore) completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error) {
+	if telegramID == 0 {
+		return nil, nil
+	}
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	items := make([]aiTutorCompletedLessonRecord, 0)
+	for _, session := range s.aiTutorSessions {
+		if session.TelegramID != telegramID || !aiTutorSessionIsCompleted(session) {
+			continue
+		}
+		lesson, ok := s.aiTutorLessons[strings.TrimSpace(session.LessonID)]
+		if !ok {
+			continue
+		}
+		items = append(items, aiTutorCompletedLessonFromRecords(session, lesson))
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		return items[i].CompletedAt > items[j].CompletedAt
+	})
+	if len(items) > limit {
+		items = items[:limit]
+	}
+	return items, nil
+}
+
+func (s *jsonStore) userCanRestartAITutorLesson(telegramID int64, lessonID string) (bool, error) {
+	lessonID = strings.TrimSpace(lessonID)
+	if telegramID == 0 || lessonID == "" {
+		return false, nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	for _, session := range s.aiTutorSessions {
+		if session.TelegramID == telegramID && strings.TrimSpace(session.LessonID) == lessonID {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (s *jsonStore) updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error {

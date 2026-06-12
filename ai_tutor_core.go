@@ -133,6 +133,37 @@ type aiTutorSessionRecord struct {
 	UpdatedAt    string
 }
 
+type aiTutorCompletedLessonRecord struct {
+	SessionID   string               `json:"session_id"`
+	LessonID    string               `json:"lesson_id"`
+	Title       string               `json:"title"`
+	Topic       string               `json:"topic"`
+	Level       string               `json:"level"`
+	CompletedAt string               `json:"completed_at"`
+	Lesson      aiTutorLessonPayload `json:"lesson"`
+}
+
+func aiTutorSessionIsCompleted(session aiTutorSessionRecord) bool {
+	return strings.TrimSpace(session.Status) == aiTutorSessionComplete || strings.TrimSpace(session.CompletedAt) != ""
+}
+
+func aiTutorCompletedLessonFromRecords(session aiTutorSessionRecord, lesson aiTutorLessonRecord) aiTutorCompletedLessonRecord {
+	payload := lesson.Payload
+	completedAt := firstNonEmpty(session.CompletedAt, session.UpdatedAt, session.StartedAt)
+	title := firstNonEmpty(payload.Title, payload.Theme, lesson.Theme, "AI Tutor")
+	topic := firstNonEmpty(payload.Theme, lesson.Theme, payload.Title)
+	level := firstNonEmpty(payload.Level, lesson.ExactLevel, lesson.LevelBand)
+	return aiTutorCompletedLessonRecord{
+		SessionID:   strings.TrimSpace(session.ID),
+		LessonID:    strings.TrimSpace(lesson.ID),
+		Title:       strings.TrimSpace(title),
+		Topic:       strings.TrimSpace(topic),
+		Level:       strings.TrimSpace(level),
+		CompletedAt: strings.TrimSpace(completedAt),
+		Lesson:      payload,
+	}
+}
+
 type aiTutorAnswerRecord struct {
 	SessionID    string
 	Stage        string

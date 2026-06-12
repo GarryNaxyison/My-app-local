@@ -419,8 +419,15 @@ select {
   border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
 }
 
+.tutor-step-v2.is-preview {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--teal) 58%, var(--line));
+  background: color-mix(in srgb, var(--teal) 10%, var(--surface-strong));
+}
+
 .tutor-step-v2.is-active span,
-.tutor-step-v2.is-done span {
+.tutor-step-v2.is-done span,
+.tutor-step-v2.is-preview span {
   color: var(--primary);
   background: color-mix(in srgb, var(--primary) 16%, transparent);
 }
@@ -958,6 +965,16 @@ select {
   background: color-mix(in srgb, var(--primary) 10%, var(--surface-strong));
 }
 
+.tutor-completed-lesson-v2:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.tutor-completed-lesson-v2:disabled:hover {
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--surface-muted) 76%, transparent);
+}
+
 .tutor-completed-lesson-v2 span {
   display: grid;
   gap: 3px;
@@ -1018,6 +1035,10 @@ select {
   justify-content: space-between;
   gap: 10px;
   padding: 0 24px 22px;
+}
+
+.tutor-composer-v2--preview {
+  justify-content: flex-end;
 }
 
 .app-guide-step-v2 {
