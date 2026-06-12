@@ -72,6 +72,7 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 	page := string(appSource) + "\n" + string(apiSource)
 	for _, want := range []string{
 		`/api/session`,
+		`/api/daily/claim`,
 		`/api/auth/logout`,
 		`/login`,
 		`/api/ai-tutor/start`,
@@ -102,9 +103,22 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 		`/api/settings`,
 		`telegram_account`,
 		`referral_code`,
+		`premium_audio_required`,
+		`premium_pronunciation_required`,
+		`complete_daily_first`,
+		`cleanTutorHistoryLabel`,
+		`to talk about`,
 	} {
 		if !strings.Contains(page, want) {
 			t.Fatalf("React frontend is missing Go API contract marker %q", want)
+		}
+	}
+	for _, want := range []string{
+		"Listening and pronunciation",
+		"AI Tutor, listening, pronunciation",
+	} {
+		if !strings.Contains(page, want) {
+			t.Fatalf("React premium copy is missing %q", want)
 		}
 	}
 	for _, forbidden := range []string{
@@ -114,6 +128,29 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 	} {
 		if strings.Contains(page, forbidden) {
 			t.Fatalf("React frontend should not expose Telegram unlink action %q", forbidden)
+		}
+	}
+}
+
+func TestReactFrontendContainsTutorOverflowGuards(t *testing.T) {
+	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cssSource, err := os.ReadFile(filepath.Join("web-react", "src", "styles", "app.css"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(appSource) + "\n" + string(cssSource)
+	for _, want := range []string{
+		"tutor-composer-v2 textarea",
+		"tutor-feedback-v2",
+		"tutor-completed-lesson-v2",
+		"overflow-wrap: anywhere",
+		"min-width: 0",
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("React tutor overflow guard is missing %q", want)
 		}
 	}
 }

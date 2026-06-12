@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -79,7 +80,11 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	} else if ok {
 		return e.createSessionForLesson(user, surface, approved)
 	}
-	lesson, err := e.generateLesson(ctx, user)
+	usedCount, err := e.store.aiTutorSessionCountForContext(user.TelegramID, language, interfaceLanguage, levelBand)
+	if err != nil {
+		return aiTutorResult{}, err
+	}
+	lesson, err := e.generateLesson(ctx, user, usedCount)
 	if err != nil {
 		return aiTutorResult{}, err
 	}
@@ -326,13 +331,14 @@ func (e *aiTutorEngine) createSessionForLesson(user userState, surface string, l
 	}, nil
 }
 
-func (e *aiTutorEngine) generateLesson(ctx context.Context, user userState) (aiTutorLessonRecord, error) {
+func (e *aiTutorEngine) generateLesson(ctx context.Context, user userState, usedCount int) (aiTutorLessonRecord, error) {
 	if e.ai == nil {
 		return aiTutorLessonRecord{}, errors.New("ai tutor client is not configured")
 	}
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
-	raw, err := e.ai.complete(ctx, aiTutorLessonGenerationPrompt(language, interfaceLanguage, user.Level, user.LearningFocus, nil), 0.4, 4000)
+	topicSeed := aiTutorTopicSeed(user, usedCount)
+	raw, err := e.ai.complete(ctx, aiTutorLessonGenerationPrompt(language, interfaceLanguage, user.Level, topicSeed, nil), 0.4, 4000)
 	if err != nil {
 		return aiTutorLessonRecord{}, err
 	}
@@ -384,6 +390,15 @@ func (e *aiTutorEngine) generateLesson(ctx context.Context, user userState) (aiT
 		return aiTutorLessonRecord{}, errors.New("generated lesson failed preflight")
 	}
 	return record, nil
+}
+
+func aiTutorTopicSeed(user userState, usedCount int) string {
+	focus := strings.TrimSpace(user.LearningFocus)
+	sequence := tutorLessonSequence(user) + usedCount
+	if focus != "" {
+		return fmt.Sprintf("%s; rotation %d", focus, sequence+1)
+	}
+	return fmt.Sprintf("daily life rotation %d", sequence+1)
 }
 
 func aiTutorStageNeedsChecker(stage string) bool {

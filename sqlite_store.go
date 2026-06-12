@@ -1895,6 +1895,30 @@ func (s *sqliteStore) getAITutorSession(sessionID string) (aiTutorSessionRecord,
 	return session, true, nil
 }
 
+func (s *sqliteStore) aiTutorSessionCountForContext(telegramID int64, language string, interfaceLanguage string, levelBand string) (int, error) {
+	if telegramID == 0 {
+		return 0, nil
+	}
+	language = normalizeLearningLanguage(language)
+	interfaceLanguage = normalizeInterfaceLanguage(interfaceLanguage)
+	levelBand = aiTutorLevelBand(levelBand)
+	var count int
+	err := s.db.QueryRow(
+		`SELECT COUNT(*)
+		FROM ai_tutor_sessions s
+		JOIN ai_tutor_lessons l ON l.id = s.lesson_id
+		WHERE s.telegram_id = ?
+			AND l.learning_language = ?
+			AND l.interface_language = ?
+			AND l.level_band = ?`,
+		telegramID,
+		language,
+		interfaceLanguage,
+		levelBand,
+	).Scan(&count)
+	return count, err
+}
+
 func (s *sqliteStore) completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error) {
 	if telegramID == 0 {
 		return nil, nil

@@ -201,6 +201,7 @@ type store interface {
 	saveAITutorLesson(lesson aiTutorLessonRecord) error
 	getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error)
 	findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error)
+	aiTutorSessionCountForContext(telegramID int64, language string, interfaceLanguage string, levelBand string) (int, error)
 	createAITutorSession(session aiTutorSessionRecord) error
 	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
 	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
@@ -913,6 +914,35 @@ func (s *jsonStore) getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool
 	s.ensureAITutorMapsLocked()
 	lesson, ok := s.aiTutorLessons[strings.TrimSpace(lessonID)]
 	return lesson, ok, nil
+}
+
+func (s *jsonStore) aiTutorSessionCountForContext(telegramID int64, language string, interfaceLanguage string, levelBand string) (int, error) {
+	if telegramID == 0 {
+		return 0, nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	language = normalizeLearningLanguage(language)
+	interfaceLanguage = normalizeInterfaceLanguage(interfaceLanguage)
+	levelBand = aiTutorLevelBand(levelBand)
+	count := 0
+	for _, session := range s.aiTutorSessions {
+		if session.TelegramID != telegramID {
+			continue
+		}
+		lesson, ok := s.aiTutorLessons[strings.TrimSpace(session.LessonID)]
+		if !ok {
+			continue
+		}
+		if normalizeLearningLanguage(lesson.LearningLanguage) == language &&
+			normalizeInterfaceLanguage(lesson.InterfaceLanguage) == interfaceLanguage &&
+			aiTutorLevelBand(lesson.LevelBand) == levelBand {
+			count++
+		}
+	}
+	return count, nil
 }
 
 func (s *jsonStore) createAITutorSession(session aiTutorSessionRecord) error {

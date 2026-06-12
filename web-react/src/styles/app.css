@@ -888,6 +888,10 @@ select {
   margin: 0;
   color: var(--muted);
   font-weight: 800;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .tutor-feedback-v2.is-error {
@@ -1028,9 +1032,10 @@ select {
 
 .tutor-completed-lesson-v2 strong,
 .tutor-completed-lesson-v2 small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .tutor-completed-lesson-v2 small {
@@ -1048,6 +1053,35 @@ select {
   font-style: normal;
   font-weight: 900;
   white-space: nowrap;
+}
+
+.tutor-session-v2,
+.tutor-context-v2,
+.tutor-transcript-v2,
+.tutor-composer-v2,
+.tutor-composer-v2 textarea,
+.tutor-step-v2,
+.tutor-completed-lessons-dialog-v2,
+.tutor-completed-lessons-list-v2,
+.tutor-completed-lesson-v2 {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tutor-transcript-v2,
+.tutor-transcript-v2 *,
+.tutor-composer-v2 textarea,
+.tutor-step-v2,
+.tutor-step-v2 *,
+.tutor-completed-lessons-dialog-v2,
+.tutor-completed-lessons-dialog-v2 *,
+.tutor-completed-lesson-v2,
+.tutor-completed-lesson-v2 * {
+  overflow-wrap: anywhere;
+}
+
+.tutor-composer-v2 textarea {
+  white-space: pre-wrap;
 }
 
 .tutor-completed-lessons-empty-v2 {

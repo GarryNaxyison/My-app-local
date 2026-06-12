@@ -492,6 +492,38 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 	assertXPDelta("mistake", before, 8, mistake)
 }
 
+func TestWebDailyClaimInsideTwentyFourHoursDoesNotAwardXP(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	beforeUser, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	first := requestJSON(t, api, cookie, http.MethodPost, "/api/daily/claim", map[string]any{"date": "2026-06-12"})
+	if first["claimed"] != true {
+		t.Fatalf("first daily claim response = %#v, want claimed=true", first)
+	}
+	afterFirst, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if afterFirst.XP != beforeUser.XP+25 {
+		t.Fatalf("XP after first claim = %d, want %d", afterFirst.XP, beforeUser.XP+25)
+	}
+
+	second := requestJSON(t, api, cookie, http.MethodPost, "/api/daily/claim", map[string]any{"date": "2026-06-12"})
+	if second["claimed"] != false {
+		t.Fatalf("second daily claim response = %#v, want claimed=false", second)
+	}
+	afterSecond, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if afterSecond.XP != afterFirst.XP {
+		t.Fatalf("XP after rejected claim = %d, want unchanged %d", afterSecond.XP, afterFirst.XP)
+	}
+}
+
 func TestWebTranslatorSpeechRequiresPaidAudioBudget(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	api.cfg.OpenRouterTTSModel = "google/gemini-3.1-flash-tts-preview"

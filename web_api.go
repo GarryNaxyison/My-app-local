@@ -175,6 +175,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/session", api.handleSession)
 	mux.HandleFunc("/api/settings", api.handleSettings)
 	mux.HandleFunc("/api/navigation-layout", api.handleNavigationLayout)
+	mux.HandleFunc("/api/daily/claim", api.handleDailyClaim)
 	mux.HandleFunc("/api/leaderboard", api.handleLeaderboard)
 	mux.HandleFunc("/api/tutor/start", api.handleTutorStart)
 	mux.HandleFunc("/api/ai-tutor/start", api.handleAITutorStart)
@@ -1424,6 +1425,48 @@ func (api *webAPI) handleNavigationLayout(w http.ResponseWriter, r *http.Request
 		return
 	}
 	api.writeSession(w, refreshed)
+}
+
+func (api *webAPI) handleDailyClaim(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req struct {
+		Date string `json:"date"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	date := strings.TrimSpace(req.Date)
+	if date == "" {
+		date = localDateForUser(user, time.Now().UTC())
+	}
+	const amount = 25
+	claimed, err := api.bot.store.claimDailyBonus(user.TelegramID, date, amount)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	refreshed, err := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	claimedAt := ""
+	if !refreshed.DailyBonusLastClaimedAt.IsZero() {
+		claimedAt = refreshed.DailyBonusLastClaimedAt.Format(time.RFC3339)
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"claimed":    claimed,
+		"xp":         amount,
+		"claimed_at": claimedAt,
+		"user":       api.userDTO(refreshed),
+	})
 }
 
 func (api *webAPI) handleLeaderboard(w http.ResponseWriter, r *http.Request) {
@@ -4041,6 +4084,10 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 	if !user.PremiumUntil.IsZero() {
 		premiumUntil = user.PremiumUntil.Format(time.RFC3339)
 	}
+	dailyBonusLastClaimedAt := ""
+	if !user.DailyBonusLastClaimedAt.IsZero() {
+		dailyBonusLastClaimedAt = user.DailyBonusLastClaimedAt.Format(time.RFC3339)
+	}
 	createdAt := ""
 	if !user.CreatedAt.IsZero() {
 		createdAt = user.CreatedAt.Format(time.RFC3339)
@@ -4055,44 +4102,46 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		}
 	}
 	return map[string]any{
-		"interface_language":         user.InterfaceLanguage,
-		"learning_language":          user.LearningLanguage,
-		"telegram_linked":            user.TelegramID > 0,
-		"telegram_account":           telegramAccount,
-		"created_at":                 createdAt,
-		"level":                      user.Level,
-		"learning_focus":             strings.TrimSpace(user.LearningFocus),
-		"plan":                       planName(user),
-		"premium":                    user.isPremium(time.Now()),
-		"premium_until":              premiumUntil,
-		"referral_code":              user.ReferralCode,
-		"referral_count":             user.ReferralCount,
-		"referral_balance_kopecks":   user.ReferralBalanceKopecks,
-		"referral_balance":           formatRubKopecks(user.ReferralBalanceKopecks),
-		"referral_balance_usdt":      formatUSDTFromKopecks(user.ReferralBalanceKopecks),
-		"referral_withdraw_min":      formatRubKopecks(referralWithdrawalMinKopecks),
-		"referral_withdraw_min_usdt": formatUSDTFromKopecks(referralWithdrawalMinKopecks),
-		"referral_invitees":          referralInvitees,
-		"invited_by":                 user.InvitedBy,
-		"xp":                         user.XP,
-		"xp_level":                   level,
-		"xp_title":                   title,
-		"xp_current":                 currentXP,
-		"xp_needed":                  neededXP,
-		"lessons_today":              user.LessonsToday,
-		"lesson_limit":               lessonLimit,
-		"practice_today":             user.PracticeToday,
-		"practice_limit":             practiceLimit,
-		"voice_today":                user.VoiceToday,
-		"voice_limit":                voiceLimitFor(user),
-		"lesson_count":               user.LessonCount,
-		"practice_count":             user.PracticeCount,
-		"word_game_count":            user.WordGameCount,
-		"learned_words":              len(learnedWordsForLanguage(user)),
-		"mistakes":                   len(mistakesForLanguage(user)),
-		"phrasebook":                 user.Phrasebook,
-		"habit_log":                  user.HabitLog,
-		"navigation_layout":          normalizeNavigationLayout(user.NavigationLayout),
+		"interface_language":          user.InterfaceLanguage,
+		"learning_language":           user.LearningLanguage,
+		"telegram_linked":             user.TelegramID > 0,
+		"telegram_account":            telegramAccount,
+		"created_at":                  createdAt,
+		"level":                       user.Level,
+		"learning_focus":              strings.TrimSpace(user.LearningFocus),
+		"plan":                        planName(user),
+		"premium":                     user.isPremium(time.Now()),
+		"premium_until":               premiumUntil,
+		"referral_code":               user.ReferralCode,
+		"referral_count":              user.ReferralCount,
+		"referral_balance_kopecks":    user.ReferralBalanceKopecks,
+		"referral_balance":            formatRubKopecks(user.ReferralBalanceKopecks),
+		"referral_balance_usdt":       formatUSDTFromKopecks(user.ReferralBalanceKopecks),
+		"referral_withdraw_min":       formatRubKopecks(referralWithdrawalMinKopecks),
+		"referral_withdraw_min_usdt":  formatUSDTFromKopecks(referralWithdrawalMinKopecks),
+		"referral_invitees":           referralInvitees,
+		"invited_by":                  user.InvitedBy,
+		"xp":                          user.XP,
+		"xp_level":                    level,
+		"xp_title":                    title,
+		"xp_current":                  currentXP,
+		"xp_needed":                   neededXP,
+		"lessons_today":               user.LessonsToday,
+		"lesson_limit":                lessonLimit,
+		"practice_today":              user.PracticeToday,
+		"practice_limit":              practiceLimit,
+		"voice_today":                 user.VoiceToday,
+		"voice_limit":                 voiceLimitFor(user),
+		"daily_bonus_claims":          user.DailyBonusClaims,
+		"daily_bonus_last_claimed_at": dailyBonusLastClaimedAt,
+		"lesson_count":                user.LessonCount,
+		"practice_count":              user.PracticeCount,
+		"word_game_count":             user.WordGameCount,
+		"learned_words":               len(learnedWordsForLanguage(user)),
+		"mistakes":                    len(mistakesForLanguage(user)),
+		"phrasebook":                  user.Phrasebook,
+		"habit_log":                   user.HabitLog,
+		"navigation_layout":           normalizeNavigationLayout(user.NavigationLayout),
 	}
 }
 

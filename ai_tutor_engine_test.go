@@ -61,6 +61,45 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 	}
 }
 
+func TestAITutorStartUsesUnusedGeneratedSequenceForRepeatedStarts(t *testing.T) {
+	store := newTestJSONStore(t)
+	firstPayload := validAITutorLessonPayloadForTest()
+	firstBody, _ := json.Marshal(firstPayload)
+	secondPayload := validAITutorLessonPayloadForTest()
+	secondPayload.Title = "A Park Visit"
+	secondPayload.Theme = "sports routines"
+	secondBody, _ := json.Marshal(secondPayload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(firstBody),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+		string(secondBody),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	engine.now = func() time.Time { return time.Date(2026, 6, 10, 12, 0, 0, 0, time.UTC) }
+	user := userState{TelegramID: 81, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+
+	first, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("first Start() error = %v", err)
+	}
+	second, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("second Start() error = %v", err)
+	}
+	if first.Lesson.ID == second.Lesson.ID {
+		t.Fatalf("second start reused generated lesson %q", first.Lesson.ID)
+	}
+	if len(ai.messages) < 4 {
+		t.Fatalf("captured AI messages = %d, want two generation calls and two preflight calls", len(ai.messages))
+	}
+	firstPrompt := ai.messages[0][1].Content
+	secondPrompt := ai.messages[2][1].Content
+	if firstPrompt == secondPrompt {
+		t.Fatalf("second generation prompt reused the same topic seed:\n%s", secondPrompt)
+	}
+}
+
 func TestAITutorStartUsesLearningFocusAsTopicSeed(t *testing.T) {
 	store := newTestJSONStore(t)
 	payload := validAITutorLessonPayloadForTest()

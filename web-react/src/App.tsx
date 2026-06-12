@@ -871,6 +871,17 @@ function asTutorLesson(value: unknown): TutorLesson | null {
   return lesson;
 }
 
+function cleanTutorHistoryLabel(value: unknown, fallback = "AI Tutor") {
+  const cleaned = cleanAppText(value).replace(/\s+/g, " ").trim();
+  if (!cleaned) return fallback;
+  const lower = cleaned.toLowerCase();
+  const blockedPrefixes = ["to talk about", "topic/theme seed", "goal:", "lesson goal:", "return strict json", "create one complete"];
+  if (blockedPrefixes.some((prefix) => lower.startsWith(prefix))) return fallback;
+  if (/^(story|retell|question|new words|word check|writing|memory review|complete)$/i.test(cleaned)) return fallback;
+  if (/^(topic|theme|level|section|раздел):\s*/i.test(cleaned)) return fallback;
+  return cleaned;
+}
+
 function readTutorCompletedLessons(key: string): TutorCompletedLessonRecord[] {
   if (!key) return [];
   try {
@@ -888,8 +899,8 @@ function readTutorCompletedLessons(key: string): TutorCompletedLessonRecord[] {
           id,
           lessonId: cleanAppText(record.lessonId || record.lesson_id || lesson?.id).trim(),
           sessionId: cleanAppText(record.sessionId || record.session_id).trim(),
-          title: cleanAppText(record.title || lesson?.title).trim() || "AI Tutor",
-          topic: cleanAppText(record.topic || lesson?.topic).trim(),
+          title: cleanTutorHistoryLabel(record.title || lesson?.title),
+          topic: cleanTutorHistoryLabel(record.topic || lesson?.topic, ""),
           level: cleanAppText(record.level || lesson?.level).trim(),
           completedAt: cleanAppText(record.completedAt || record.completed_at).trim() || new Date().toISOString(),
           aiLesson,
@@ -910,8 +921,8 @@ function writeTutorCompletedLesson(key: string, lesson: { id: string; title: str
     id: lesson.id,
     lessonId: cleanAppText(lesson.lessonId).trim(),
     sessionId: cleanAppText(lesson.sessionId).trim(),
-    title: cleanAppText(lesson.title).trim() || "AI Tutor",
-    topic: cleanAppText(lesson.topic).trim(),
+    title: cleanTutorHistoryLabel(lesson.title),
+    topic: cleanTutorHistoryLabel(lesson.topic, ""),
     level: cleanAppText(lesson.level).trim(),
     completedAt: new Date().toISOString(),
     aiLesson: lesson.aiLesson,
@@ -928,13 +939,13 @@ function tutorCompletedLessonFromAPI(item: AiTutorCompletedLesson): TutorComplet
   if (!id) return null;
   const aiLessonRecord = getRecord(item.lesson);
   const aiLesson = Object.keys(aiLessonRecord).length ? (aiLessonRecord as AiTutorStep["lesson"]) : undefined;
-  const title = cleanAppText(item.title || aiLesson?.title || item.topic || "AI Tutor").trim();
+  const title = cleanTutorHistoryLabel(item.title || aiLesson?.title || item.topic);
   return {
     id,
     lessonId,
     sessionId,
-    title: title || "AI Tutor",
-    topic: cleanAppText(item.topic || aiLesson?.theme || title).trim(),
+    title,
+    topic: cleanTutorHistoryLabel(item.topic || aiLesson?.theme || title, ""),
     level: cleanAppText(item.level || aiLesson?.level).trim(),
     completedAt: cleanAppText(item.completed_at).trim() || new Date().toISOString(),
     aiLesson,
@@ -1233,11 +1244,11 @@ function premiumPlanTier(plan: PremiumPlan, copy: (key: string, fallback: string
 
 function premiumPlanBody(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
   const source = premiumPlanSource(plan);
-  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only.");
-  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with the highest daily limits, voice practice, roleplay depth, and intensive review.");
+  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks are Premium-only.");
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with the highest daily limits, Listening and pronunciation practice, roleplay depth, and intensive review.");
   if (source.includes("year") || source.includes("365")) return copy("premium_year_body", "Same daily AI audio limits, paid yearly.");
-  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "AI Tutor, guided AI lessons, voice checks, photo tools, and expanded daily limits.");
-  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, voice tools, image practice, and focused daily training.");
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits.");
+  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, listening, pronunciation, voice tools, image practice, and focused daily training.");
 }
 
 function premiumPlanCatalog(plans: PremiumPlan[], copy: (key: string, fallback: string) => string) {
@@ -1259,18 +1270,19 @@ function premiumPlanFeatures(plan: PremiumPlan, copy: (key: string, fallback: st
       { text: copy("free_feature_daily", "Daily habit, starter lessons, and basic word training") },
       { text: copy("free_feature_phrasebook", "Phrasebook and progress overview") },
       { text: copy("free_feature_no_ai_tutor", "AI Tutor is locked until Premium"), locked: true },
+      { text: copy("free_feature_no_audio", "Listening and pronunciation are locked until Premium"), locked: true },
     ];
   }
   if (premiumPlanIsPlatinum(plan)) {
     return [
       { text: copy("platinum_feature_ai_tutor", "AI Tutor with intensive daily limits"), highlight: true },
-      { text: copy("platinum_feature_voice", "Maximum voice, pronunciation, and roleplay practice") },
+      { text: copy("platinum_feature_voice", "Maximum Listening and pronunciation practice") },
       { text: copy("platinum_feature_priority", "Best tier for heavy daily learning") },
     ];
   }
   return [
     { text: copy("premium_feature_ai_tutor", "AI Tutor guided lessons included"), highlight: true },
-    { text: copy("premium_feature_voice", "Voice, pronunciation, photo, and translator tools") },
+    { text: copy("premium_feature_voice", "Listening and pronunciation, photo, and translator tools") },
     { text: copy("premium_feature_limits", "Expanded daily limits for steady learning") },
   ];
 }
@@ -1836,11 +1848,8 @@ export function App() {
     const claimedAt = asText(record.claimed_at || record.claimedAt || new Date().toISOString(), new Date().toISOString());
     if (record.claimed === false) {
       setStatus({ kind: "info", text: copy("daily_bonus_already_claimed", "Daily bonus is available once every 24 hours.") });
-      setHabitLog((currentLog) => {
-        const next = { ...currentLog, [todayKey]: { ...(currentLog[todayKey] || {}), claimed: true, claimedAt, complete: true, login: true } };
-        localStorage.setItem(habitKey, JSON.stringify(next));
-        return next;
-      });
+      const payloadUser = getPayloadUser(payload);
+      if (payloadUser) setSession((currentSession) => updateSessionUser(currentSession, payloadUser));
       return;
     }
     const xp = Number(record.xp || 25);
@@ -2030,6 +2039,15 @@ export function App() {
     setView("tutor");
   };
 
+  const requirePremiumFeature = (messageKey: string, fallback: string) => {
+    if (user.premium) return true;
+    const text = copy(messageKey, fallback);
+    setStatus({ kind: "info", text });
+    setView("premium");
+    void loadPremiumPlans();
+    return false;
+  };
+
   const restartTutorLesson = async (lessonId: string) => {
     if (!user.premium) {
       const text = copy("tutor_premium_required", "AI Tutor is available with Premium.");
@@ -2165,6 +2183,7 @@ export function App() {
   };
 
   const startShadowing = async () => {
+    if (!requirePremiumFeature("premium_audio_required", "Listening is available with Premium.")) return;
     const previous = cleanAppText(shadowingTarget);
     const payload = await runAction("shadowing", () => api<ApiRecord>("/api/shadowing/start", { method: "POST", body: { previous } }), copy("phrase_ready", "Phrase is ready."));
     if (!payload) return;
@@ -2175,6 +2194,7 @@ export function App() {
   };
 
   const submitShadowing = async () => {
+    if (!requirePremiumFeature("premium_audio_required", "Listening is available with Premium.")) return;
     const text = draft.trim();
     if (!text && !voiceFile) {
       setStatus({ kind: "error", text: copy("add_input_first", "Add text, voice, or a practice photo first.") });
@@ -2193,6 +2213,7 @@ export function App() {
   };
 
   const startPronunciation = async () => {
+    if (!requirePremiumFeature("premium_pronunciation_required", "Pronunciation practice is available with Premium.")) return;
     const previous = cleanAppText(pronunciationTarget || shadowingTarget);
     const payload = await runAction("pronunciation-start", () => api<ApiRecord>("/api/pronunciation/start", { method: "POST", body: { previous } }), copy("phrase_ready", "Phrase is ready."));
     if (!payload) return;
@@ -2210,6 +2231,7 @@ export function App() {
   };
 
   const submitPronunciation = async (target: string) => {
+    if (!requirePremiumFeature("premium_pronunciation_required", "Pronunciation practice is available with Premium.")) return null;
     const cleanTarget = cleanAppText(target).trim();
     if (!cleanTarget) {
       setStatus({ kind: "error", text: copy("pronunciation_target_missing", "Нет фразы для проверки произношения.") });
@@ -2746,6 +2768,8 @@ export function App() {
 
   const activateView = (view: ViewId) => {
     view = normalizeView(view);
+    if (view === "shadowing" && !requirePremiumFeature("premium_audio_required", "Listening is available with Premium.")) return;
+    if (view === "pronunciation" && !requirePremiumFeature("premium_pronunciation_required", "Pronunciation practice is available with Premium.")) return;
     setNotFoundPath("");
     setActiveView(view);
     if (view === "lesson") void startLesson();
@@ -2774,6 +2798,12 @@ export function App() {
     bootstrappedRef.current = true;
     if (activeView === "lesson") void startLesson();
     if (activeView === "shadowing") void startShadowing();
+    if (activeView === "pronunciation" && !user.premium) {
+      setStatus({ kind: "info", text: copy("premium_pronunciation_required", "Pronunciation practice is available with Premium.") });
+      setActiveView("premium");
+      void loadPremiumPlans();
+      return;
+    }
     if (activeView === "words") void startWord();
     if (activeView === "word-game") void startWordGame();
     if (activeView === "spelling") void startSpelling();
@@ -2799,7 +2829,7 @@ export function App() {
     if (activeView === "practice") return submitLearningAnswer("practice");
     if (activeView === "roleplay") return setActiveView("roleplay");
     if (activeView === "shadowing") return startShadowing();
-    if (activeView === "pronunciation") return setActiveView("pronunciation");
+    if (activeView === "pronunciation") return requirePremiumFeature("premium_pronunciation_required", "Pronunciation practice is available with Premium.") ? setActiveView("pronunciation") : undefined;
     if (activeView === "words") return startWord();
     if (activeView === "word-game") return startWordGame();
     if (activeView === "spelling") return startSpelling();
@@ -5093,8 +5123,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     completedRecordedRef.current = key;
     writeTutorCompletedLesson(completedLessonsKey, {
       id: key,
-      title: display(lesson?.title || copy("ai_tutor", "AI Tutor")),
-      topic: heroTopic || copy("ai_tutor", "AI Tutor"),
+      title: cleanTutorHistoryLabel(lesson?.title || copy("ai_tutor", "AI Tutor")),
+      topic: cleanTutorHistoryLabel(heroTopic, copy("ai_tutor", "AI Tutor")),
       level: heroLevel,
       aiLesson: lesson,
     });
@@ -5549,6 +5579,11 @@ function HomeView(props: ViewRendererProps) {
   const currentHabit = habitLog[todayKey] || updateHabitForToday({}, user)[todayKey];
   const bonusLocked = dailyBonusLocked(currentHabit, user);
   const canClaimBonus = Boolean(currentHabit?.complete && !bonusLocked);
+  const bonusButtonLabel = bonusLocked
+    ? copy("bonus_claimed", "Bonus already claimed")
+    : currentHabit?.complete
+      ? copy("claim_daily_bonus", "Claim XP")
+      : copy("complete_daily_first", "Complete daily first");
   const streak = habitStreak(habitLog);
   const quests = [
     { label: copy("new_lesson", "Новый урок"), value: user.lessons_today || 0, max: Math.max(2, Number(user.lesson_limit || 1)), icon: BookOpen, action: startLesson, detail: copy("quest_lesson_detail", "2 коротких урока") },
@@ -5651,7 +5686,7 @@ function HomeView(props: ViewRendererProps) {
             <small>{copy("today_goal", "Сегодня")}: {currentHabit?.complete ? copy("done", "Готово") : copy("in_progress", "В процессе")}</small>
             <Button type="button" onClick={() => void claimDailyBonus()} disabled={!canClaimBonus || busy === "daily-bonus"}>
               {busy === "daily-bonus" ? <Spinner size="small" className="button-spinner-v2" /> : <Flame size={16} />}
-              {bonusLocked ? copy("bonus_claimed", "Бонус получен") : copy("claim_daily_bonus", "Забрать бонус XP")}
+              {bonusButtonLabel}
             </Button>
           </div>
         </div>
