@@ -1117,6 +1117,7 @@ func (b *bot) handleAITutorText(ctx context.Context, chatID int64, user userStat
 	if err != nil {
 		return b.telegram.sendMessageWithCopy(ctx, chatID, err.Error(), ui(user))
 	}
+	b.deletePreviousWordPronunciation(ctx, chatID)
 	if result.Session.Status == aiTutorSessionComplete {
 		_ = b.store.setMode(user.TelegramID, "idle")
 	}
@@ -1134,6 +1135,7 @@ func (b *bot) handleAITutorCallback(ctx context.Context, chatID int64, user user
 	if err != nil {
 		return b.telegram.sendMessageWithCopy(ctx, chatID, err.Error(), ui(user))
 	}
+	b.deletePreviousWordPronunciation(ctx, chatID)
 	if result.Session.Status == aiTutorSessionComplete {
 		_ = b.store.setMode(user.TelegramID, "idle")
 	}
@@ -4132,12 +4134,34 @@ func mistakesActionsKeyboard(page int, totalPages int, copies ...uiCopy) map[str
 		rows = append(rows, row)
 	}
 	rows = append(rows,
-		[]map[string]any{{"text": "🛠 " + copy.Mistakes, "callback_data": "practice_mistakes"}},
-		[]map[string]any{{"text": "🗑 " + copy.Mistakes, "callback_data": "clear_mistakes"}},
+		[]map[string]any{{"text": "🛠 " + mistakesPracticeActionLabel(copy), "callback_data": "practice_mistakes"}},
+		[]map[string]any{{"text": "🗑 " + mistakesClearActionLabel(copy), "callback_data": "clear_mistakes"}},
 		[]map[string]any{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 	)
 	return map[string]any{
 		"inline_keyboard": rows,
+	}
+}
+
+func mistakesPracticeActionLabel(copy uiCopy) string {
+	switch {
+	case copy.Mistakes == ui(userState{InterfaceLanguage: "ru"}).Mistakes:
+		return "Исправить ошибки"
+	case copy.Mistakes == englishUICopy().Mistakes || strings.TrimSpace(copy.Mistakes) == "":
+		return "Fix mistakes"
+	default:
+		return "Fix " + copy.Mistakes
+	}
+}
+
+func mistakesClearActionLabel(copy uiCopy) string {
+	switch {
+	case copy.Mistakes == ui(userState{InterfaceLanguage: "ru"}).Mistakes:
+		return "Очистить словарь"
+	case copy.Mistakes == englishUICopy().Mistakes || strings.TrimSpace(copy.Mistakes) == "":
+		return "Clear mistakes"
+	default:
+		return "Clear " + copy.Mistakes
 	}
 }
 

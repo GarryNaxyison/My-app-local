@@ -103,6 +103,72 @@ func TestAITutorTelegramAudioClipsUseGeneratedAudioText(t *testing.T) {
 	}
 }
 
+func TestTelegramAITutorCallbackDeletesPreviousAudioMessages(t *testing.T) {
+	var deleted []int64
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		if r.URL.Path == "/deleteMessage" {
+			id, _ := payload["message_id"].(float64)
+			deleted = append(deleted, int64(id))
+		}
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}, aiTutorLessons: map[string]aiTutorLessonRecord{}, aiTutorSessions: map[string]aiTutorSessionRecord{}, aiTutorAnswers: map[string]aiTutorAnswerRecord{}}
+	user := userState{TelegramID: 123, FirstName: "Test", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1", Mode: "ai_tutor:session-1"}
+	store.users[user.TelegramID] = user
+	_ = store.saveAITutorLesson(aiTutorLessonRecord{ID: "lesson-tg-audio-cleanup", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()})
+	_ = store.createAITutorSession(aiTutorSessionRecord{ID: "session-1", TelegramID: user.TelegramID, LessonID: "lesson-tg-audio-cleanup", Surface: "telegram", CurrentStage: aiTutorStageStoryIntro, Status: aiTutorSessionActive})
+	b := &bot{
+		store:                 store,
+		telegram:              &telegramClient{baseURL: server.URL, http: server.Client()},
+		pronunciationMessages: map[int64][]int64{user.TelegramID: []int64{901, 902}},
+	}
+
+	err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-1",
+		From:    telegramUser{ID: user.TelegramID, FirstName: user.FirstName},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: user.TelegramID}},
+		Data:    "ait|session-1|choice|continue",
+	})
+	if err != nil {
+		t.Fatalf("handleCallbackQuery() error = %v", err)
+	}
+	if len(deleted) != 2 || deleted[0] != 901 || deleted[1] != 902 {
+		t.Fatalf("deleted audio message IDs = %#v, want [901 902]", deleted)
+	}
+	if remaining := b.pronunciationMessages[user.TelegramID]; len(remaining) != 0 {
+		t.Fatalf("pronunciationMessages still has chat entries: %#v", b.pronunciationMessages)
+	}
+}
+
+func TestMistakesActionsKeyboardUsesDistinctActionLabels(t *testing.T) {
+	english := englishUICopy()
+	keyboard := mistakesActionsKeyboard(0, 1, english)
+
+	practiceText := buttonTextByCallback(t, keyboard, "practice_mistakes")
+	if !strings.Contains(practiceText, "Fix") || strings.Contains(practiceText, english.Mistakes) {
+		t.Fatalf("practice_mistakes text = %q, want a fix-action label distinct from %q", practiceText, english.Mistakes)
+	}
+	clearText := buttonTextByCallback(t, keyboard, "clear_mistakes")
+	if !strings.Contains(clearText, "Clear") || strings.Contains(clearText, english.Mistakes) {
+		t.Fatalf("clear_mistakes text = %q, want a clear-action label distinct from %q", clearText, english.Mistakes)
+	}
+
+	russian := ui(userState{InterfaceLanguage: "ru"})
+	russianKeyboard := mistakesActionsKeyboard(0, 1, russian)
+	if got := buttonTextByCallback(t, russianKeyboard, "practice_mistakes"); strings.Contains(got, russian.Mistakes) {
+		t.Fatalf("Russian practice_mistakes text still repeats the dictionary title: %q", got)
+	}
+	if got := buttonTextByCallback(t, russianKeyboard, "clear_mistakes"); strings.Contains(got, russian.Mistakes) {
+		t.Fatalf("Russian clear_mistakes text still repeats the dictionary title: %q", got)
+	}
+}
+
 func TestTelegramAITutorMenuStartsInteractiveSession(t *testing.T) {
 	var payloads []map[string]any
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -634,4 +700,22 @@ func collectCallbackData(t *testing.T, keyboard map[string]any) map[string]bool 
 		}
 	}
 	return result
+}
+
+func buttonTextByCallback(t *testing.T, keyboard map[string]any, callback string) string {
+	t.Helper()
+	rows, ok := keyboard["inline_keyboard"].([][]map[string]any)
+	if !ok {
+		t.Fatalf("unexpected keyboard shape: %#v", keyboard)
+	}
+	for _, row := range rows {
+		for _, button := range row {
+			if button["callback_data"] == callback {
+				text, _ := button["text"].(string)
+				return text
+			}
+		}
+	}
+	t.Fatalf("missing callback %q in keyboard %#v", callback, keyboard)
+	return ""
 }
