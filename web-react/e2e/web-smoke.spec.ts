@@ -397,6 +397,8 @@ async function mockApi(page: Page) {
         translation,
         context: "Saved.",
         example,
+        xp: correct ? 15 : 0,
+        user: correct ? { ...sessionPayload.user, xp: sessionPayload.user.xp + 15 } : sessionPayload.user,
       }),
     });
   });
@@ -546,7 +548,7 @@ async function mockApi(page: Page) {
     return route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ phrase, target: phrase, user: sessionPayload.user }),
+      body: JSON.stringify({ phrase, target: phrase, user: (testSessionPayloadOverride || sessionPayload).user }),
     });
   });
   await page.route("**/api/shadowing/answer", (route) => {
@@ -1936,6 +1938,16 @@ test("pronunciation map is compact and removes repeated advice", async ({ page }
 });
 
 test("pronunciation is a standalone sample, voice input, result and next sample flow", async ({ page }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      voice_limit: 20,
+    },
+  };
   await page.goto("/app/?view=pronunciation");
   await expect(page.locator(".context-display--pronunciation")).toBeVisible();
   await expect(page.locator(".context-display--shadowing")).toHaveCount(0);
@@ -1960,8 +1972,97 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toHaveCount(0);
 });
 
+test("regression: lesson tab keeps one active task until the learner submits", async ({ page }) => {
+  let lessonStarts = 0;
+  await page.unroute("**/api/lesson/start").catch(() => undefined);
+  await page.route("**/api/lesson/start", (route) => {
+    lessonStarts += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        prompt: `Lesson task ${lessonStarts}`,
+        example: "I have a reservation under the name Ivan Petrov.",
+        question_audio_text: "Could you please show me your passport?",
+      }),
+    });
+  });
+
+  await page.goto("/app/?view=lesson");
+  await page.locator(".lesson-new-button-v2").click();
+  await expect(page.locator(".context-display--lesson")).toContainText("Lesson task 1");
+  await page.locator('[data-view="words"]:visible').first().click();
+  await expect(page.locator(".context-display--words")).toBeVisible();
+  await page.locator('[data-view="lesson"]:visible').first().click();
+  await expect(page.locator(".context-display--lesson")).toContainText("Lesson task 1");
+  await expect(page.locator(".context-display--lesson")).not.toContainText("Lesson task 2");
+  expect(lessonStarts).toBe(1);
+
+  await page.locator(".context-display--lesson textarea").fill("I have a reservation under the name Ivan Petrov.");
+  await page.locator(".context-display--lesson").getByRole("button", { name: /Отправить|Send/ }).click();
+  await expect(page.locator(".context-display--lesson")).toContainText("Use under the name for reservations.");
+  await page.locator(".lesson-new-button-v2").click();
+  await expect(page.locator(".context-display--lesson")).toContainText("Lesson task 2");
+  expect(lessonStarts).toBe(2);
+});
+
+test("regression: mobile composer and recording controls expose clear labels", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      voice_limit: 20,
+    },
+  };
+  await page.goto("/app/?view=lesson");
+  const sendButton = page.locator(".context-display--lesson .composer-submit-v2");
+  await expect(sendButton).toBeVisible();
+  await expect(sendButton).toContainText("Отправить");
+  const sendFits = await sendButton.evaluate((node) => {
+    const element = node as HTMLElement;
+    return element.scrollWidth <= element.clientWidth + 1 && element.scrollHeight <= element.clientHeight + 1;
+  });
+  expect(sendFits).toBe(true);
+
+  await page.goto("/app/?view=pronunciation");
+  const checkButton = page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Проверить|Check/ }).first();
+  await expect(checkButton).toBeVisible();
+  await expect(checkButton).toContainText("Проверить");
+});
+
+test("regression: mobile XP gain notice stays compact", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  await page.goto("/app/?view=home");
+  const wordsNav = page.locator('[data-view="words"]:visible').first();
+  await expect(wordsNav).toBeVisible();
+  await wordsNav.click();
+  await expect(page.locator(".context-display--words")).toBeVisible();
+  await expect(page.locator(".choice-grid-v2 button")).toHaveCount(4);
+  await page.locator(".choice-grid-v2 button", { hasText: "apple" }).click();
+  const notice = page.locator(".xp-gain-pop-v2");
+  await expect(notice).toBeVisible();
+  const box = await notice.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeLessThanOrEqual(360);
+  expect(box!.height).toBeLessThanOrEqual(112);
+});
+
 test("desktop pronunciation workspace makes the target phrase the primary panel", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop layout assertion");
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      voice_limit: 20,
+    },
+  };
   await page.goto("/app/?view=pronunciation");
   await expect(page.locator(".context-display--pronunciation")).toBeVisible();
   await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
@@ -1990,6 +2091,48 @@ test("desktop pronunciation workspace makes the target phrase the primary panel"
   await expect(targetPanel).toBeVisible();
   await expect(toolsPanel.locator(".pronunciation-report-v2")).toContainText("67/100");
   await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
+});
+
+test("regression: desktop function ribbon arrows stay inside the menu frame", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.goto("/app/?view=pronunciation");
+  const shell = page.locator(".function-ribbon-shell");
+  const ribbon = page.locator(".function-ribbon");
+  const leftArrow = shell.locator(".ribbon-morph-arrow").first();
+  const rightArrow = shell.locator(".ribbon-morph-arrow").last();
+  await expect(shell).toBeVisible();
+
+  const metrics = await shell.evaluate((node) => {
+    const shellBox = node.getBoundingClientRect();
+    const ribbonBox = node.querySelector(".function-ribbon")?.getBoundingClientRect();
+    const arrows = Array.from(node.querySelectorAll(".ribbon-morph-arrow")).map((arrow) => arrow.getBoundingClientRect());
+    const leftArrowCenter = { x: (arrows[0]?.left || 0) + (arrows[0]?.width || 0) / 2, y: (arrows[0]?.top || 0) + (arrows[0]?.height || 0) / 2 };
+    const rightArrowCenter = { x: (arrows[1]?.left || 0) + (arrows[1]?.width || 0) / 2, y: (arrows[1]?.top || 0) + (arrows[1]?.height || 0) / 2 };
+    const leftHit = document.elementFromPoint(leftArrowCenter.x, leftArrowCenter.y);
+    const rightHit = document.elementFromPoint(rightArrowCenter.x, rightArrowCenter.y);
+    return {
+      shellLeft: shellBox.left,
+      shellRight: shellBox.right,
+      ribbonLeft: ribbonBox?.left || 0,
+      ribbonRight: ribbonBox?.right || 0,
+      leftArrowLeft: arrows[0]?.left || 0,
+      leftArrowRight: arrows[0]?.right || 0,
+      rightArrowLeft: arrows[1]?.left || 0,
+      rightArrowRight: arrows[1]?.right || 0,
+      leftHitIsChip: Boolean(leftHit?.closest(".function-chip")),
+      rightHitIsChip: Boolean(rightHit?.closest(".function-chip")),
+    };
+  });
+
+  await expect(ribbon).toBeVisible();
+  await expect(leftArrow).toBeVisible();
+  await expect(rightArrow).toBeVisible();
+  expect(metrics.leftArrowLeft).toBeGreaterThanOrEqual(metrics.shellLeft - 1);
+  expect(metrics.rightArrowRight).toBeLessThanOrEqual(metrics.shellRight + 1);
+  expect(metrics.ribbonLeft).toBeGreaterThanOrEqual(metrics.leftArrowRight - 2);
+  expect(metrics.ribbonRight).toBeLessThanOrEqual(metrics.rightArrowLeft + 2);
+  expect(metrics.leftHitIsChip).toBe(false);
+  expect(metrics.rightHitIsChip).toBe(false);
 });
 
 test("AI Tutor failed start stops loading loop and shows retry", async ({ page }) => {
@@ -2359,7 +2502,7 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await expect(page.getByText(/ROLEPLAY DIALOGUE|Диалоговая сцена/)).toHaveCount(0);
   await expect(page.locator(".roleplay-dialog-head-v2 button")).toBeVisible();
   await expect(page.locator(".roleplay-dialog-scroll-v2")).toBeVisible();
-  await expect(page.locator(".roleplay-dialog-scroll-v2").getByText(/Озвучка задания|Question audio/)).toBeVisible();
+  await expect(page.locator(".roleplay-dialog-scroll-v2")).not.toContainText("Short polite request.");
   await expect(page.locator(".roleplay-composer-v2 textarea")).toBeVisible();
 
   const dialog = await page.locator(".roleplay-dialog-scroll-v2").boundingBox();
@@ -2773,13 +2916,15 @@ test("regression: mobile awards header stays compact and mistakes open as list t
   await expect(page.locator(".mistake-practice-v2")).toHaveCount(0);
   await page.locator(".mistake-list-card-v2 button").first().click();
   await expect(page.locator(".mistake-practice-v2")).toBeVisible();
-  await expect(page.locator(".mistake-dictionary-v2")).toHaveCount(0);
+  await expect(page.locator(".mistake-dictionary-v2")).toHaveCount(1);
+  await expect(page.locator(".mistake-dictionary-v2--practice")).toBeVisible();
   const practice = await page.locator(".mistake-practice-v2").boundingBox();
   expect(practice).not.toBeNull();
   expect(practice!.height).toBeGreaterThan(340);
   await page.locator(".mistake-practice-v2 input").fill("Correct phrase 1.");
   await page.locator(".mistake-practice-v2 button", { hasText: ru("check", "Check") }).click();
   await expect(page.locator(".mistake-dictionary-v2")).toBeVisible();
+  await expect(page.locator(".mistake-dictionary-v2--practice")).toHaveCount(0);
   await expect(page.locator(".mistake-practice-v2")).toHaveCount(0);
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Mic } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
@@ -70,16 +70,29 @@ export function VoiceInput({
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") onClickHandler();
         }}
+        aria-label={listening ? "Stop recording" : "Start recording"}
       >
         <div className="flex h-6 w-6 items-center justify-center">
           {listening ? (
             <motion.div
-              className="h-4 w-4 rounded-sm bg-primary"
-              animate={{ rotate: [0, 180, 360] }}
-              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-            />
+              key="stop-recording"
+              initial={{ scale: 0.5, rotate: -90, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              exit={{ scale: 0.5, rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            >
+              <Square fill="currentColor" strokeWidth={2.8} />
+            </motion.div>
           ) : (
-            <Mic />
+            <motion.div
+              key="start-recording"
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              <Mic />
+            </motion.div>
           )}
         </div>
         <AnimatePresence mode="wait">

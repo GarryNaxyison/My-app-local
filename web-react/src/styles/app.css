@@ -7549,6 +7549,55 @@ select {
   transform: translateX(-22px) scale(0.62);
 }
 
+.function-ribbon-shell {
+  grid-template-columns: 54px minmax(0, 1fr) 54px;
+  gap: 8px;
+  padding: 6px 10px;
+}
+
+.function-ribbon {
+  scroll-padding-inline: 30px;
+  padding-inline: 28px;
+  clip-path: inset(0 0 0 0 round 16px);
+}
+
+.function-ribbon::before,
+.function-ribbon::after {
+  content: "";
+  flex: 0 0 16px;
+}
+
+.function-ribbon-shell .ribbon-morph-arrow,
+.function-ribbon-shell > .ribbon-morph-arrow:last-child {
+  width: 48px;
+  margin-inline: 0;
+  transform: scale(0.58);
+  overflow: hidden;
+}
+
+.lesson-empty-v2 {
+  min-height: 100%;
+  align-content: end;
+  gap: 12px;
+}
+
+.lesson-new-button-v2 {
+  justify-self: start;
+}
+
+.voice-input-shell svg {
+  width: 20px;
+  height: 20px;
+}
+
+.record-button-v2.is-recording .voice-input-shell {
+  min-width: 132px;
+  border-color: color-mix(in srgb, var(--rose) 70%, var(--line));
+  background: color-mix(in srgb, var(--rose) 16%, var(--surface-strong));
+  color: var(--rose);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--rose) 18%, transparent);
+}
+
 .context-display--leaderboard,
 .context-display--mistakes,
 .context-display--phrasebook,
@@ -7750,6 +7799,64 @@ select {
 }
 
 @media (max-width: 760px) {
+  .composer-textarea-shell-v2 textarea,
+  .roleplay-composer-v2 textarea,
+  .tool-input-shell-v2 textarea {
+    padding-right: 118px;
+    padding-bottom: 62px;
+  }
+
+  .composer-submit-v2,
+  .roleplay-submit-v2,
+  .tools-submit-v2 {
+    min-width: 104px;
+    min-height: 44px;
+    padding: 0 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+
+  .composer-submit-v2 span,
+  .roleplay-submit-v2 span,
+  .tools-submit-v2 span {
+    display: inline !important;
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .record-button-v2.is-recording .voice-input-shell {
+    min-width: 118px;
+  }
+
+  .xp-gain-pop-v2 {
+    width: min(330px, calc(100vw - 32px));
+    min-height: 92px;
+    gap: 10px;
+    border-radius: 20px;
+    padding: 14px 16px;
+  }
+
+  .xp-gain-pop-v2::before {
+    inset: -14px;
+  }
+
+  .xp-gain-pop-v2::after {
+    display: none;
+  }
+
+  .xp-gain-pop-v2__burst {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
+
+  .xp-gain-pop-v2 strong {
+    font-size: 2rem;
+  }
+
   .context-display--words .trainer-display,
   .context-display--word-game .trainer-display {
     gap: 10px;
@@ -7886,7 +7993,7 @@ select {
     overflow: visible !important;
   }
 
-  .context-display--mistakes .mistake-layout-v2--practice .mistake-dictionary-v2 {
+  .context-display--mistakes .mistake-layout-v2--practice .mistake-dictionary-v2:not(.mistake-dictionary-v2--practice) {
     display: none !important;
   }
 

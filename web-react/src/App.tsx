@@ -1571,6 +1571,7 @@ export function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     panelMessage(appCopy("ru", "ready_body"), "default", appCopy("ru", "ready_title")),
   ]);
+  const [activeLessonTaskId, setActiveLessonTaskId] = useState("");
   const [draft, setDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1751,7 +1752,7 @@ export function App() {
     if (!amount) return;
     if (xpGainTimerRef.current) window.clearTimeout(xpGainTimerRef.current);
     setXPGain({ xp: amount, total: Number.isFinite(total) ? Math.round(Number(total)) : undefined, title });
-    xpGainTimerRef.current = window.setTimeout(() => setXPGain(null), 2600);
+    xpGainTimerRef.current = window.setTimeout(() => setXPGain(null), 4000);
   };
 
   useEffect(() => {
@@ -1938,10 +1939,11 @@ export function App() {
       : payloadUser;
     const previousXP = Number(user.xp || 0);
     const nextXP = Number(nextUser.xp || previousXP);
-    if (!options?.suppressXPGain && Number.isFinite(nextXP) && nextXP > previousXP) {
-      const record = getRecord(payload);
-      const explicitRewardXP = Number(recordField(record, ["xp", "reward_xp", "awarded_xp"]));
-      const rewardXP = Number.isFinite(explicitRewardXP) && explicitRewardXP > 0 ? explicitRewardXP : nextXP - previousXP;
+    const record = getRecord(payload);
+    const explicitRewardXP = Number(recordField(record, ["xp", "reward_xp", "awarded_xp"]));
+    const hasExplicitReward = Number.isFinite(explicitRewardXP) && explicitRewardXP > 0;
+    if (!options?.suppressXPGain && ((Number.isFinite(nextXP) && nextXP > previousXP) || hasExplicitReward)) {
+      const rewardXP = hasExplicitReward ? explicitRewardXP : nextXP - previousXP;
       showXPGain(rewardXP, nextXP, options?.rewardTitle || recordField(record, ["reward_title", "source_title"]));
     }
     setSession((current) => updateSessionUser(current, nextUser));
@@ -1975,9 +1977,11 @@ export function App() {
     if (!payload) return;
     const record = getRecord(payload);
     const body = recordField(record, ["lesson", "prompt", "question", "task", "message"]) || copy("lesson_generated", "Lesson generated.");
+    const taskId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    setActiveLessonTaskId(taskId);
     setMessages((current) => [
-      panelMessage(body, "default", asText(record.instruction, copy("new_lesson_title", "New lesson")), record, "lesson"),
-      ...current,
+      panelMessage(body, "default", asText(record.instruction, copy("new_lesson_title", "New lesson")), { ...record, task_id: taskId }, "lesson"),
+      ...current.filter((message) => message.meta !== "lesson"),
     ]);
     setView("lesson");
   };
@@ -2135,26 +2139,33 @@ export function App() {
     const responseText = formatLearningRecord(record, copy, copy("done", "Done."));
     const transcript = asText(record.transcript || text || (voiceFile ? copy("voice_message", "Voice message") : imageFile ? copy("image_message", "Image message") : ""), "");
     const nextMessages = [
-      panelMessage(responseText, "success", mode === "lesson" ? copy("lesson_feedback", "Lesson feedback") : copy("practice_feedback", "Practice feedback"), record, mode),
+      panelMessage(responseText, "success", mode === "lesson" ? copy("lesson_feedback", "Lesson feedback") : copy("practice_feedback", "Practice feedback"), mode === "lesson" ? { ...record, task_id: activeLessonTaskId } : record, mode),
     ];
     if (transcript) nextMessages.push({ id: `${Date.now()}-user`, role: "user", title: copy("you", "You"), body: transcript, meta: mode });
-    setMessages((current) => [...nextMessages, ...current].slice(0, 12));
+    setMessages((current) => [
+      ...nextMessages,
+      ...(mode === "lesson" ? current.filter((message) => message.meta !== "lesson") : current),
+    ].slice(0, 12));
+    if (mode === "lesson") setActiveLessonTaskId("");
     setDraft("");
     setVoiceFile(null);
     setImageFile(null);
   };
 
   const startRoleplayScenario = async (scenario: RoleplayScenario) => {
-    const prompt = buildRoleplayScenarioPrompt(scenario, user, session as SessionData, copy);
     const title = roleplayScenarioTitle(scenario, user);
-    const payload = await runAction("roleplay", () => api<ApiRecord>("/api/practice", { method: "POST", body: { text: prompt } }));
-    if (!payload) return;
-    const record = getRecord(payload);
-    const result = panelMessage(formatLearningRecord(record, copy, copy("roleplay_ready", "Roleplay is ready.")), "success", title, record, "roleplay");
+    const description = roleplayScenarioDescription(scenario, user);
+    const aiLine = copy("roleplay_opening_line", "Hi! Do you have a minute?");
+    const body = [
+      description,
+      `${copy("roleplay_ai_line", "AI")}: ${aiLine}`,
+      copy("roleplay_your_turn", "Твоя очередь: ответь одной фразой, и я продолжу сцену."),
+    ].map((line) => cleanAppText(line)).filter(Boolean).join("\n\n");
+    const result = panelMessage(body, "default", title, { scenario_id: scenario.id, source: "roleplay" }, "roleplay");
     setRoleplayResult(result);
     setMessages((current) => [
       result,
-      ...current,
+      ...current.filter((message) => message.meta !== "roleplay"),
     ].slice(0, 12));
     setDraft("");
     setView("roleplay");
@@ -2221,10 +2232,7 @@ export function App() {
     const target = cleanAppText(recordField(record, ["target", "phrase", "text"]));
     if (target) {
       setPronunciationTarget(target);
-      setMessages((current) => [
-        panelMessage(target, "default", copy("pronunciation_target", "Text to pronounce"), record, "pronunciation"),
-        ...current,
-      ].slice(0, 12));
+      setMessages((current) => current.filter((message) => message.meta !== "pronunciation"));
     }
     const refreshed = record.user && typeof record.user === "object" ? record.user as UserProfile : null;
     if (refreshed) setSession((current) => current ? updateSessionUser(current, refreshed) : current);
@@ -2250,7 +2258,7 @@ export function App() {
     setMessages((current) => [
       panelMessage(responseText, "success", copy("pronunciation_feedback", "Проверка произношения"), record, "pronunciation"),
       userMessage(transcript, copy("you", "You"), "pronunciation"),
-      ...current,
+      ...current.filter((message) => message.meta !== "pronunciation"),
     ].slice(0, 12));
     const refreshed = record.user && typeof record.user === "object" ? record.user as UserProfile : null;
     if (refreshed) setSession((current) => current ? updateSessionUser(current, refreshed) : current);
@@ -2772,7 +2780,6 @@ export function App() {
     if (view === "pronunciation" && !requirePremiumFeature("premium_pronunciation_required", "Pronunciation practice is available with Premium.")) return;
     setNotFoundPath("");
     setActiveView(view);
-    if (view === "lesson") void startLesson();
     if (view === "shadowing") void startShadowing();
     if (view === "words") void startWord();
     if (view === "word-game") void startWordGame();
@@ -2796,7 +2803,6 @@ export function App() {
   useEffect(() => {
     if (!session?.authenticated || bootstrappedRef.current) return;
     bootstrappedRef.current = true;
-    if (activeView === "lesson") void startLesson();
     if (activeView === "shadowing") void startShadowing();
     if (activeView === "pronunciation" && !user.premium) {
       setStatus({ kind: "info", text: copy("premium_pronunciation_required", "Pronunciation practice is available with Premium.") });
@@ -5879,8 +5885,8 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
             <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
             <div className="home-insights-v2__actions pronunciation-tool-actions-v2">
               <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
-                {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <Mic size={16} />}
-                {copy("record_and_check", "Record and check")}
+                {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <CheckCircle size={16} />}
+                {copy("check", "Check")}
               </Button>
               <Button type="button" variant="outline" size="sm" onClick={nextPronunciationSample} disabled={busy === "pronunciation-start"}>
                 {busy === "pronunciation-start" ? <Spinner size="small" className="button-spinner-v2" /> : <ChevronRight size={16} />}
@@ -5892,7 +5898,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
             <div className="pronunciation-tool-card-v2 pronunciation-report-window-v2">
               <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
               <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
-              <PronunciationReport pronunciation={practiceResult} copy={copy} />
+              <PronunciationReport pronunciation={practiceResult} user={user} copy={copy} />
             </div>
           ) : null}
         </aside>
@@ -6242,10 +6248,28 @@ function ChatWorkView({
     <div className={cn("chat-workspace", `chat-workspace--${mode}`, isShadowing && !visibleMessages.length && "chat-workspace--single")} data-work-mode={mode}>
       {showOutput ? (
         <div className="chat-workspace__output">
-          <ChatPanel messages={visibleMessages} copy={copy} targetLanguage={user.learning_language} />
+          {isLesson && !visibleMessages.length ? (
+            <section className="v2-panel lesson-empty-v2">
+              <span className="eyebrow">{copy("new_lesson_title", "New lesson")}</span>
+              <h2>{copy("lesson_waiting_title", "Нажмите «Новый урок»")}</h2>
+              <p>{copy("lesson_waiting_body", "Задание появится здесь и не будет перезапускаться при переходе между вкладками.")}</p>
+              <Button type="button" onClick={() => void startLesson()} disabled={busy === "lesson"}>
+                {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
+                {copy("new_lesson", "Новый урок")}
+              </Button>
+            </section>
+          ) : (
+            <ChatPanel messages={visibleMessages} copy={copy} targetLanguage={user.learning_language} />
+          )}
         </div>
       ) : null}
       <section className="v2-panel composer-panel-v2">
+        {isLesson ? (
+          <Button className="lesson-new-button-v2" type="button" variant="outline" size="sm" onClick={() => void startLesson()} disabled={busy === "lesson"}>
+            {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={15} />}
+            {copy("new_lesson", "Новый урок")}
+          </Button>
+        ) : null}
         {isShadowing && shadowingTarget ? (
           <div className="task-box-v2">
             <span>{copy("spoken_model", "Spoken model")}</span>
@@ -6402,7 +6426,7 @@ function RecordDetails({
           ))}
         </div>
       ) : null}
-      {p ? <PronunciationReport pronunciation={p} copy={copy} compact /> : null}
+      {p ? <PronunciationReport pronunciation={p} user={{ interface_language: languageCode(navigator.language || "en") } as UserProfile} copy={copy} compact /> : null}
     </section>
   );
 }
@@ -6427,12 +6451,11 @@ function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string;
   );
 }
 
-function PronunciationReport({ pronunciation, copy, compact = false }: { pronunciation: PronunciationAssessment; copy: (key: string, fallback: string) => string; compact?: boolean }) {
+function PronunciationReport({ pronunciation, user, copy, compact = false }: { pronunciation: PronunciationAssessment; user: UserProfile; copy: (key: string, fallback: string) => string; compact?: boolean }) {
   const problems = Array.isArray(pronunciation.problem_words) ? pronunciation.problem_words.slice(0, compact ? 1 : 5) : [];
   const phonemes = Array.isArray(pronunciation.phoneme_issues) ? pronunciation.phoneme_issues.slice(0, compact ? 2 : 5) : [];
   const tips = recordList(pronunciation.tips).slice(0, compact ? 1 : 4);
   const diagnostics = [pronunciation.stress, pronunciation.rhythm, pronunciation.intonation].map((item) => cleanAppText(item).trim()).filter(Boolean).slice(0, compact ? 2 : 3);
-  const reportUser = { interface_language: languageCode(navigator.language || "en") } as UserProfile;
   return (
     <div className={cn("pronunciation-report-v2", compact && "is-compact")}>
       <div className="pronunciation-metrics-v2">
@@ -6456,7 +6479,7 @@ function PronunciationReport({ pronunciation, copy, compact = false }: { pronunc
               <span key={`${item.word || item.spoken || index}-${index}`}>
                 {label.word}
                 {label.confidence ? ` ${label.confidence}` : ""}
-                {` - ${pronunciationProblemText(item, reportUser, copy)}`}
+                {` - ${pronunciationProblemText(item, user, copy)}`}
               </span>
             );
           })}
@@ -6856,7 +6879,7 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
   if (mistakePractice) {
     return (
       <div className="mistake-layout-v2 mistake-layout-v2--practice">
-        <section className="v2-panel trainer-display mistake-practice-v2">
+        <section className="v2-panel mistake-dictionary-v2 mistake-dictionary-v2--practice mistake-practice-v2">
         <div className="panel-head">
           <div>
             <span className="eyebrow">{copy("mistake_practice", "Mistake practice")}</span>
