@@ -4626,6 +4626,75 @@ select {
   white-space: nowrap;
 }
 
+.tutor-note-strip-v2 {
+  width: 100%;
+  min-width: 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+}
+
+.tutor-note-strip-v2__label {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.tutor-note-strip-v2__chips {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+.tutor-note-strip-v2__chips button {
+  flex: 0 0 auto;
+  max-width: min(420px, 76vw);
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--v2-border);
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: color-mix(in srgb, var(--v2-panel-strong) 70%, transparent);
+  color: var(--v2-text);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.tutor-note-strip-v2__chips button.is-saved {
+  border-color: color-mix(in srgb, var(--teal) 72%, var(--line));
+  background: color-mix(in srgb, var(--teal) 16%, var(--surface-strong));
+  color: color-mix(in srgb, var(--teal) 78%, var(--text));
+}
+
+.tutor-note-strip-v2__chips span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tutor-actual-errors-v2 span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
 .trainer-result-v2 .trainer-word-save-v2 {
   width: 100%;
   margin-top: 0;

@@ -187,6 +187,34 @@ func TestWebAppAITutorWordReportUIWiring(t *testing.T) {
 	}
 }
 
+func TestWebAppAITutorLessonUICleanupWiring(t *testing.T) {
+	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	copySource, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cssSource, err := os.ReadFile(filepath.Join("web-react", "src", "styles", "app.css"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(appSource) + "\n" + string(copySource) + "\n" + string(cssSource)
+	for _, want := range []string{
+		`isTutorWordLearnStage`,
+		`tutor-word-report-action-v2`,
+		`tutor-note-strip-v2`,
+		`tutorActualErrorLines`,
+		`ai_tutor_next_lesson`,
+		`Следующий урок`,
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("missing ai tutor lesson cleanup wiring %q", want)
+		}
+	}
+}
+
 func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
 	if err != nil {

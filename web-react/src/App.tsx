@@ -647,6 +647,46 @@ function isGenericSectionCopy(value: string) {
   return /^[^\s:]+:\s*[a-z0-9_ -]+$/i.test(text) || /^(Section|Раздел|Mục):\s*/i.test(text);
 }
 
+function isTutorWordLearnStage(stage?: string | null) {
+  return Boolean(stage && /^word_learn_\d+$/.test(stage));
+}
+
+function isTutorWordRecallStage(stage?: string | null) {
+  return Boolean(stage && /^word_recall_\d+$/.test(stage));
+}
+
+function isTutorKnownInstructionStage(stage?: string | null) {
+  return Boolean(
+    stage &&
+      (stage === "story_intro" ||
+        stage === "retell" ||
+        stage === "production" ||
+        stage === "lesson_feedback" ||
+        stage === "review_schedule" ||
+        stage === "complete" ||
+        /^question_\d+$/.test(stage) ||
+        isTutorWordLearnStage(stage) ||
+        isTutorWordRecallStage(stage)),
+  );
+}
+
+function localizedTutorOptionText(id: string, text: string, copy: (key: string, fallback: string) => string) {
+  const normalized = cleanAppText(id || text).trim();
+  const fallback = cleanAppText(text || id).trim().replaceAll("_", " ");
+  const keys: Record<string, [string, string]> = {
+    easy: ["ai_tutor_option_easy", "Easy"],
+    good: ["ai_tutor_option_good", "Good"],
+    hard: ["ai_tutor_option_hard", "Hard"],
+    bad: ["ai_tutor_option_bad", "Bad"],
+    tomorrow: ["ai_tutor_option_tomorrow", "Tomorrow"],
+    "3_days": ["ai_tutor_option_3_days", "In 3 days"],
+    "1_week": ["ai_tutor_option_1_week", "In 1 week"],
+    no_review: ["ai_tutor_option_no_review", "No review"],
+  };
+  const entry = keys[normalized];
+  return entry ? copy(entry[0], entry[1]) : fallback;
+}
+
 function cleanTutorPrompt(value: unknown) {
   const text = cleanAppText(value).trim();
   if (!text) return "";
@@ -2052,6 +2092,9 @@ export function App() {
       panelMessage(body, "default", asText(record.instruction, copy("new_lesson_title", "New lesson")), { ...record, task_id: taskId }, "lesson"),
       ...current.filter((message) => message.meta !== "lesson"),
     ]);
+    setDraft("");
+    setVoiceFile(null);
+    setImageFile(null);
     setView("lesson");
   };
 
@@ -2250,6 +2293,7 @@ export function App() {
     setDraft("");
     setVoiceFile(null);
     setImageFile(null);
+    if (mode === "lesson") setActiveLessonTaskId("");
   };
 
   const startRoleplayScenario = async (scenario: RoleplayScenario) => {
@@ -2980,6 +3024,7 @@ export function App() {
     copy,
     busy,
     messages,
+    activeLessonTaskId,
     draft,
     setDraft,
     voiceFile,
@@ -4973,6 +5018,7 @@ type ViewRendererProps = {
   copy: (key: string, fallback: string) => string;
   busy: string | null;
   messages: ChatMessage[];
+  activeLessonTaskId: string;
   draft: string;
   setDraft: (value: string) => void;
   voiceFile: File | null;
@@ -5195,8 +5241,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     if (stage === "story_intro") return copy("tutor_step_story", "Story");
     if (stage === "retell") return copy("tutor_step_retell", "Retell");
     if (/^question_\d+$/.test(stage)) return `${copy("tutor_choice_progress", "Question")} ${stage.replace("question_", "")}`;
-    if (/^word_learn_\d+$/.test(stage)) return `${copy("tutor_step_words", "New words")} ${stage.replace("word_learn_", "")}`;
-    if (/^word_recall_\d+$/.test(stage)) return `${copy("tutor_final_check_progress", "Word check")} ${stage.replace("word_recall_", "")}`;
+    if (isTutorWordLearnStage(stage)) return `${copy("tutor_step_words", "New words")} ${stage.replace("word_learn_", "")}`;
+    if (isTutorWordRecallStage(stage)) return `${copy("tutor_final_check_progress", "Word check")} ${stage.replace("word_recall_", "")}`;
     if (stage === "production") return copy("tutor_step_writing", "Writing");
     if (stage === "lesson_feedback") return copy("tutor_step_assessment", "Tutor assessment");
     if (stage === "review_schedule") return copy("tutor_step_review", "Memory review");
@@ -5208,12 +5254,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     if (stage === "story_intro") return copy("tutor_story_instruction", "Read and listen to the story, then continue.");
     if (stage === "retell") return copy("tutor_retell_instruction", "Retell the story in your own words.");
     if (/^question_\d+$/.test(stage)) return copy("tutor_question_instruction", "Answer the question before moving on.");
-    if (/^word_learn_\d+$/.test(stage)) return copy("tutor_words_instruction", "Study this word and the example, then continue.");
-    if (/^word_recall_\d+$/.test(stage)) return copy("tutor_final_check_instruction", "Choose the target-language word.");
+    if (isTutorWordLearnStage(stage)) return copy("tutor_words_instruction", "Study this word and the example, then continue.");
+    if (isTutorWordRecallStage(stage)) return copy("tutor_final_check_instruction", "Choose the target-language word.");
     if (stage === "production") return copy("tutor_writing_instruction", "Write 2-3 sentences using the lesson words.");
     if (stage === "lesson_feedback") return copy("tutor_final_assessment_instruction", "Choose how this lesson felt.");
     if (stage === "review_schedule") return copy("tutor_review_instruction", "Choose when to review this lesson.");
-    if (stage === "complete") return copy("tutor_complete_body", "You finished the guided AI Tutor lesson.");
+    if (stage === "complete") return "";
     return "";
   };
 
@@ -5228,9 +5274,9 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const words = lesson?.words || [];
   const options = (visibleTutorStep?.options || [])
     .map((option) => {
-      if (typeof option === "string") return { id: option, text: option.replaceAll("_", " ") };
-      const id = display(option.id || option.text);
-      const text = display(option.text || option.id);
+      const id = typeof option === "string" ? display(option) : display(option.id || option.text);
+      const rawText = typeof option === "string" ? display(option) : display(option.text || option.id);
+      const text = localizedTutorOptionText(id, rawText, copy);
       return id && text ? { id, text } : null;
     })
     .filter((option): option is { id: string; text: string } => Boolean(option));
@@ -5239,11 +5285,13 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const parsedFeedback = useMemo(() => parseAITutorFeedbackJSON(aiTutorFeedback?.json), [aiTutorFeedback?.json]);
   const phraseCandidates = useMemo(() => aiTutorPhraseCandidates(parsedFeedback, savePhrase), [parsedFeedback, savePhrase]);
   const mistakeCandidates = useMemo(() => aiTutorMistakeCandidates(parsedFeedback, savePhrase), [parsedFeedback, savePhrase]);
+  const tutorNoteCandidates = useMemo(() => mergeTutorNoteCandidates(phraseCandidates, mistakeCandidates), [phraseCandidates, mistakeCandidates]);
+  const tutorActualErrorLines = useMemo(() => aiTutorActualErrorLines(parsedFeedback), [parsedFeedback]);
   const heroTopic = display(currentLesson?.theme || currentLesson?.title || aiTutorStep?.title);
   const heroLevel = display(currentLesson?.level || user.level || "A1");
-  const heroGoal = display(currentLesson?.lesson_goal || aiTutorStep?.instruction) || copy("tutor_subtitle", "One server-guided AI Tutor lesson with checked answers.");
-  const needsText = visibleTutorStep?.kind === "free_text" || (visibleTutorStep?.kind === "word_recall" && options.length === 0);
-  const canContinue = visibleTutorStep?.kind === "story" || visibleTutorStep?.kind === "word_learn";
+  const heroGoal = display(currentLesson?.lesson_goal) || copy("tutor_subtitle", "One server-guided AI Tutor lesson with checked answers.");
+  const needsText = visibleTutorStep?.kind === "free_text" || ((visibleTutorStep?.kind === "word_recall" || isTutorWordRecallStage(visibleTutorStep?.stage)) && options.length === 0);
+  const canContinue = visibleTutorStep?.kind === "story" || visibleTutorStep?.kind === "word_learn" || isTutorWordLearnStage(visibleTutorStep?.stage);
   const isChoiceStage = options.length > 0 && !canContinue;
   const isReviewChoiceStage = Boolean(aiTutorStep && ["rating", "review"].includes(aiTutorStep.kind));
   const isComplete = aiTutorStep?.kind === "complete" || aiTutorStep?.stage === "complete";
@@ -5304,7 +5352,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
 
   const submitAiTutorWordReport = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!aiTutorStep || aiTutorStep.kind !== "word_learn") return;
+    if (!aiTutorStep || !isTutorWordLearnStage(aiTutorStep.stage)) return;
     const proposedWord = wordReportWord.trim();
     const proposedTranslation = wordReportTranslation.trim();
     if (!proposedWord || !proposedTranslation) {
@@ -5346,7 +5394,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const renderWord = () => {
     const word = visibleTutorStep?.word;
     if (!word) return null;
-    const isRecall = visibleTutorStep?.kind === "word_recall" || /^word_recall_\d+$/.test(visibleTutorStep?.stage || "");
+    const isRecall = visibleTutorStep?.kind === "word_recall" || isTutorWordRecallStage(visibleTutorStep?.stage);
     if (isRecall) {
       const prompt = display(word.interface_translation || visibleTutorStep?.title);
       return prompt ? (
@@ -5371,7 +5419,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
           isPhraseSaved={isPhraseSaved}
           copy={copy}
         />
-        {!isPreviewing && aiTutorStep?.kind === "word_learn" ? (
+        {!isPreviewing && isTutorWordLearnStage(aiTutorStep?.stage) ? (
           <Button className="tutor-word-report-action-v2" type="button" variant="outline" size="sm" onClick={openAiTutorWordReport}>
             <Bug size={15} />
             <span>{copy("ai_tutor_word_report_button", "Report mistake")}</span>
@@ -5388,7 +5436,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     const localInstruction = stageInstruction(visibleTutorStep.stage);
     const questionText = cleanTutorPrompt(visibleTutorStep.question?.question_target);
     const instruction = cleanTutorPrompt(
-      ["lesson_feedback", "review_schedule", "complete"].includes(visibleTutorStep.stage) || /^word_recall_\d+$/.test(visibleTutorStep.stage)
+      isTutorKnownInstructionStage(visibleTutorStep.stage)
         ? localInstruction
         : visibleTutorStep.instruction || localInstruction,
     );
@@ -5591,12 +5639,11 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
               </div>
             )}
 
-            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
-            {mistakeCandidates.length ? (
-              <div className="tutor-answer-variants-v2 tutor-notes-suggestions-v2" aria-label={copy("tutor_mistake_notes", "Mistake notes")}>
-                <strong>{copy("tutor_mistake_notes", "Mistake notes")}</strong>
-                <span>{copy("tutor_mistake_notes_hint", "Save corrections to the mistake notes section.")}</span>
-                <PhraseQuickSave candidates={mistakeCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} />
+            {tutorNoteCandidates.length ? <TutorNoteStrip candidates={tutorNoteCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
+            {tutorActualErrorLines.length ? (
+              <div className="tutor-answer-variants-v2 tutor-actual-errors-v2" aria-label={copy("mistakes", "Mistakes")}>
+                <strong>{copy("mistakes", "Mistakes")}</strong>
+                {tutorActualErrorLines.map((line) => <span key={line}>{line}</span>)}
               </div>
             ) : null}
           </section>
@@ -5800,6 +5847,44 @@ function aiTutorMistakeCandidates(feedback: ApiRecord, savePhrase: ViewRendererP
   add(feedback.corrected_answer_target, "AI Tutor correction");
   add(feedback.corrected_version_target, "AI Tutor correction");
   return candidates.slice(0, 4);
+}
+
+function mergeTutorNoteCandidates(...groups: Array<Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }>>) {
+  const seen = new Set<string>();
+  const merged: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  for (const group of groups) {
+    for (const item of group) {
+      const text = cleanAppText(item.phrase).replace(/\s+/g, " ").trim();
+      if (!isUsefulPhraseCandidate(text)) continue;
+      const key = text.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push({ ...item, phrase: text });
+    }
+  }
+  return merged.slice(0, 6);
+}
+
+function aiTutorActualErrorLines(feedback: ApiRecord) {
+  if (!Array.isArray(feedback.mistakes)) return [];
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  feedback.mistakes.forEach((item) => {
+    const record = getRecord(item);
+    const original = cleanAppText(record.word || record.original || record.issue).trim();
+    const correction = cleanAppText(record.correction || record.corrected || record.expected).trim();
+    const explanation = cleanAppText(record.explanation || record.context || record.reason).trim();
+    const line = [
+      original && correction ? `${original} -> ${correction}` : correction || original,
+      explanation,
+    ].filter(Boolean).join(": ");
+    if (!line || /save|phrasebook|notes?|сохран/i.test(line)) return;
+    const key = line.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    lines.push(line);
+  });
+  return lines.slice(0, 4);
 }
 
 function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, savePhrase: ViewRendererProps["savePhrase"]) {
@@ -6474,6 +6559,7 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
 function ChatWorkView({
   mode,
   messages,
+  activeLessonTaskId,
   draft,
   setDraft,
   voiceFile,
@@ -6503,6 +6589,10 @@ function ChatWorkView({
     : scopedMessages;
   const showOutput = !isShadowing || visibleMessages.length > 0;
   const phraseCandidates = isLesson || isPractice ? phraseCandidatesFromMessages(scopedMessages) : [];
+  const lessonHasActiveTask = isLesson && Boolean(activeLessonTaskId);
+  const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
+  const lessonComposerLocked = isLesson && !lessonHasActiveTask;
+  const lessonActionLabel = lessonHasCompletedAnswer ? copy("ai_tutor_next_lesson", "Next lesson") : copy("new_lesson", "New lesson");
   return (
     <div className={cn("chat-workspace", `chat-workspace--${mode}`, isShadowing && !visibleMessages.length && "chat-workspace--single")} data-work-mode={mode}>
       {showOutput ? (
@@ -6526,7 +6616,7 @@ function ChatWorkView({
         {isLesson ? (
           <Button className="lesson-new-button-v2" type="button" variant="outline" size="sm" onClick={() => void startLesson()} disabled={busy === "lesson"}>
             {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={15} />}
-            {copy("new_lesson", "Новый урок")}
+            {lessonActionLabel}
           </Button>
         ) : null}
         {isShadowing && shadowingTarget ? (
@@ -6539,29 +6629,33 @@ function ChatWorkView({
             </Button>
           </div>
         ) : null}
-        <div className="panel-head">
-          <span className="eyebrow">{copy("input", "Input")}</span>
-          <h2>{isLesson ? copy("lesson_answer", "Lesson answer") : isPractice ? copy("practice", "Practice") : copy("listening_answer", "Listening answer")}</h2>
-        </div>
-        <div className="composer-textarea-shell-v2">
-          <textarea
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                void submit();
-              }
-            }}
-            placeholder={isPractice ? copy("practice_prompt", "Write a phrase, question, or short text for practice.") : isShadowing ? copy("listening_placeholder", "Type the phrase if voice is unavailable.") : copy("lesson_answer_placeholder", "Write your answer to the active lesson.")}
-          />
-          <Button className="composer-submit-v2" onClick={() => void submit()} disabled={busy === mode} aria-label={copy("send", "Send")}>
-            {busy === mode ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={18} />}
-            <span>{copy("send", "Send")}</span>
-          </Button>
-        </div>
-        <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
-        {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
+        {!lessonComposerLocked ? (
+          <>
+            <div className="panel-head">
+              <span className="eyebrow">{copy("input", "Input")}</span>
+              <h2>{isLesson ? copy("lesson_answer", "Lesson answer") : isPractice ? copy("practice", "Practice") : copy("listening_answer", "Listening answer")}</h2>
+            </div>
+            <div className="composer-textarea-shell-v2">
+              <textarea
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void submit();
+                  }
+                }}
+                placeholder={isPractice ? copy("practice_prompt", "Write a phrase, question, or short text for practice.") : isShadowing ? copy("listening_placeholder", "Type the phrase if voice is unavailable.") : copy("lesson_answer_placeholder", "Write your answer to the active lesson.")}
+              />
+              <Button className="composer-submit-v2" onClick={() => void submit()} disabled={busy === mode} aria-label={copy("send", "Send")}>
+                {busy === mode ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={18} />}
+                <span>{copy("send", "Send")}</span>
+              </Button>
+            </div>
+            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
+            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
+          </>
+        ) : null}
       </section>
     </div>
   );
@@ -6620,6 +6714,35 @@ function PhraseQuickSave({
           const saved = Boolean(isPhraseSaved?.(item.phrase));
           return (
             <button key={item.phrase} className={cn(saved && "is-saved")} type="button" aria-pressed={saved} onClick={() => savePhrase(item.phrase, item.source, item.details)}>
+              <Bookmark size={14} fill={saved ? "currentColor" : "none"} />
+              <span>{item.phrase}</span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function TutorNoteStrip({
+  candidates,
+  savePhrase,
+  isPhraseSaved,
+  copy,
+}: {
+  candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }>;
+  savePhrase: (phrase: string, source: PhrasebookSource, details?: ApiRecord) => void;
+  isPhraseSaved?: (phrase: string) => boolean;
+  copy: (key: string, fallback: string) => string;
+}) {
+  return (
+    <section className="tutor-note-strip-v2" aria-label={copy("save_to_phrasebook", "Save to notes")}>
+      <span className="tutor-note-strip-v2__label"><Bookmark size={14} />{copy("save_to_phrasebook", "Save to notes")}</span>
+      <div className="tutor-note-strip-v2__chips">
+        {candidates.map((item) => {
+          const saved = Boolean(isPhraseSaved?.(item.phrase));
+          return (
+            <button key={`${item.source}-${item.phrase}`} className={cn(saved && "is-saved")} type="button" aria-pressed={saved} onClick={() => savePhrase(item.phrase, item.source, item.details)}>
               <Bookmark size={14} fill={saved ? "currentColor" : "none"} />
               <span>{item.phrase}</span>
             </button>
