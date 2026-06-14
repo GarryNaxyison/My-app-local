@@ -1744,6 +1744,191 @@ func TestAITutorWordReportCreatesTelegramNotificationAndSkipsWord(t *testing.T) 
 	}
 }
 
+func TestWebWordsNextIncludesReportMetadata(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		{
+			ID:           "en:western",
+			Language:     "en",
+			English:      "western",
+			Russian:      "западный",
+			Translations: map[string]string{"ru": "западный"},
+			Context:      "Side of the world where the sun sets.",
+			Level:        "A1",
+		},
+	})
+	api, _, cookie := newTestWebAPI(t)
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/words/next", map[string]any{})
+	if body["word_id"] != "en:western" {
+		t.Fatalf("word_id = %#v body=%#v, want en:western", body["word_id"], body)
+	}
+	if body["word"] != "western" || body["translation"] != "западный" {
+		t.Fatalf("word metadata mismatch: %#v", body)
+	}
+	if body["reportable"] != true {
+		t.Fatalf("reportable = %#v body=%#v, want true", body["reportable"], body)
+	}
+}
+
+func TestWebWordsReportCreatesTelegramNotification(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		{
+			ID:           "en:western",
+			Language:     "en",
+			English:      "western",
+			Russian:      "западный",
+			Translations: map[string]string{"ru": "западный"},
+			Context:      "Side of the world where the sun sets.",
+			Level:        "A1",
+		},
+	})
+	api, store, cookie := newTestWebAPI(t)
+	var telegramPayloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode telegram payload: %v", err)
+		}
+		telegramPayloads = append(telegramPayloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":88}}`))
+	}))
+	defer server.Close()
+	api.cfg.TelegramOpsRecipients = []telegramOpsRecipient{{ChatID: "12345"}}
+	api.bot.cfg = api.cfg
+	api.bot.telegram = &telegramClient{baseURL: server.URL, http: server.Client()}
+
+	next := requestJSON(t, api, cookie, http.MethodPost, "/api/words/next", map[string]any{})
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/words/report", map[string]any{
+		"word_id":              next["word_id"],
+		"proposed_word":        "westward",
+		"proposed_translation": "на запад",
+		"comment":              "current card uses adjective instead of direction",
+	})
+	if body["ok"] != true {
+		t.Fatalf("report response = %#v, want ok true", body)
+	}
+
+	var stored aiTutorWordReportRecord
+	rows, err := store.db.Query(`SELECT ` + aiTutorWordReportSelectColumns + ` FROM ai_tutor_word_reports`)
+	if err != nil {
+		t.Fatalf("query reports: %v", err)
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		t.Fatal("expected stored report row")
+	}
+	stored, err = scanAITutorWordReportRecord(rows)
+	if err != nil {
+		t.Fatalf("scan stored report: %v", err)
+	}
+	if stored.Stage != "vocabulary_word" || stored.LessonID != "en:western" || stored.SessionID != "vocabulary|ru|en:western" {
+		t.Fatalf("stored vocabulary report routing mismatch: %#v", stored)
+	}
+	if stored.OriginalWord != "western" || stored.OriginalTranslation != "западный" || stored.ProposedWord != "westward" || stored.ProposedTranslation != "на запад" {
+		t.Fatalf("stored report content mismatch: %#v", stored)
+	}
+	if len(telegramPayloads) == 0 {
+		t.Fatal("expected telegram ops notification")
+	}
+	text, _ := telegramPayloads[0]["text"].(string)
+	for _, want := range []string{
+		"Vocabulary word report",
+		stored.ID,
+		"western - западный",
+		"westward - на запад",
+		"vocabulary_words",
+		"vocabulary_ai_translations",
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("telegram text missing %q: %q", want, text)
+		}
+	}
+	keyboardJSON, _ := json.Marshal(telegramPayloads[0]["reply_markup"])
+	for _, want := range []string{"ait_word_report|" + stored.ID + "|accept", "ait_word_report|" + stored.ID + "|reject", "ait_word_report|" + stored.ID + "|fix"} {
+		if !strings.Contains(string(keyboardJSON), want) {
+			t.Fatalf("telegram keyboard missing %q: %s", want, string(keyboardJSON))
+		}
+	}
+}
+
+func TestTelegramVocabularyWordReportAcceptAppliesSQLiteCorrection(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		{
+			ID:           "en:western",
+			Language:     "en",
+			English:      "western",
+			Russian:      "западный",
+			Translations: map[string]string{"ru": "западный"},
+			Context:      "Side of the world where the sun sets.",
+			Level:        "A1",
+		},
+	})
+	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = store.db.Close() })
+	report := aiTutorWordReportRecord{
+		ID:                  "report-vocabulary-accept",
+		TelegramID:          -42,
+		SessionID:           "vocabulary|ru|en:western",
+		LessonID:            "en:western",
+		Stage:               "vocabulary_word",
+		WordIndex:           -1,
+		OriginalWord:        "western",
+		OriginalTranslation: "западный",
+		ProposedWord:        "westward",
+		ProposedTranslation: "на запад",
+		Status:              aiTutorWordReportPending,
+	}
+	if _, _, err := store.createAITutorWordReport(report); err != nil {
+		t.Fatalf("createAITutorWordReport() error = %v", err)
+	}
+	var telegramPayloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode telegram payload: %v", err)
+		}
+		telegramPayloads = append(telegramPayloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":89}}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "12345"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.acceptAITutorWordReport(context.Background(), 12345, report); err != nil {
+		t.Fatalf("acceptAITutorWordReport() error = %v", err)
+	}
+
+	db := currentSQLiteVocabularyDB()
+	if db == nil {
+		t.Fatal("expected configured SQLite vocabulary DB")
+	}
+	var word, russian, translated, aiSource, aiTranslation string
+	if err := db.QueryRow(`SELECT word, russian, source FROM vocabulary_words WHERE id = ?`, "en:western").Scan(&word, &russian, &aiSource); err != nil {
+		t.Fatalf("query vocabulary_words: %v", err)
+	}
+	if err := db.QueryRow(`SELECT text FROM vocabulary_translations WHERE word_id = ? AND language = ?`, "en:western", "ru").Scan(&translated); err != nil {
+		t.Fatalf("query vocabulary_translations: %v", err)
+	}
+	if err := db.QueryRow(`SELECT translation FROM vocabulary_ai_translations WHERE word_id = ? AND target_language = ?`, "en:western", "ru").Scan(&aiTranslation); err != nil {
+		t.Fatalf("query vocabulary_ai_translations: %v", err)
+	}
+	if word != "westward" || russian != "на запад" || translated != "на запад" || aiTranslation != "на запад" {
+		t.Fatalf("SQLite correction mismatch: word=%q russian=%q translated=%q aiTranslation=%q", word, russian, translated, aiTranslation)
+	}
+	if !strings.Contains(aiSource, "report") {
+		t.Fatalf("vocabulary source = %q, want report marker", aiSource)
+	}
+	if len(telegramPayloads) == 0 {
+		t.Fatal("expected resolved notice")
+	}
+}
+
 func TestAITutorWordReportRejectsStaleStage(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	grantTestPremium(t, store, -42)

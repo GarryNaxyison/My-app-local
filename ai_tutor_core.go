@@ -27,6 +27,8 @@ const (
 	aiTutorStageReviewSchedule = "review_schedule"
 	aiTutorStageComplete       = "complete"
 
+	aiTutorStageVocabularyWordReport = "vocabulary_word"
+
 	aiTutorWordReportPending  aiTutorWordReportStatus = "pending"
 	aiTutorWordReportAccepted aiTutorWordReportStatus = "accepted"
 	aiTutorWordReportRejected aiTutorWordReportStatus = "rejected"

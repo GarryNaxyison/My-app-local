@@ -260,6 +260,10 @@ export type WordChallenge = {
   options?: ChoiceOption[];
   instruction?: string;
   correct_answer_id?: string;
+  word_id?: string;
+  word?: string;
+  translation?: string;
+  reportable?: boolean;
 };
 
 export type SpellingChallenge = {

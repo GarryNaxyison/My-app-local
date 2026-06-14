@@ -776,6 +776,13 @@ select {
   resize: vertical;
 }
 
+.form-error-v2 {
+  margin: 0;
+  color: var(--rose);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .tutor-word-report-dialog-v2__footer {
   gap: 10px;
 }

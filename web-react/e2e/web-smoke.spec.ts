@@ -376,6 +376,7 @@ async function mockApi(page: Page) {
   await page.route("**/api/words/next", (route) => {
     const round = wordRounds[wordRoundIndex % wordRounds.length];
     wordRoundIndex += 1;
+    const correctOption = round.options.find((option) => option.id === round.correct);
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -387,9 +388,20 @@ async function mockApi(page: Page) {
         options: round.options,
         correct_answer_id: round.correct,
         instruction: "Choose answer",
+        word_id: round.correct,
+        word: correctOption?.text,
+        translation: round.prompt,
+        reportable: true,
       }),
     });
   });
+  await page.route("**/api/words/report", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, word_report: { id: "report-word-test" } }),
+    }),
+  );
   await page.route("**/api/words/answer", async (route) => {
     const answer = route.request().postDataJSON();
     const answerId = String(answer.answer_id || "");
@@ -1563,6 +1575,68 @@ test("word trainer shuffles options away from API order", async ({ page }) => {
   } else {
     expect(optionTexts).not.toEqual(["train", "window", "meeting", "market"]);
   }
+});
+
+test("word trainer reports the active word with its word id", async ({ page }) => {
+  let reportPayload: Record<string, unknown> | null = null;
+  await page.unroute("**/api/words/next").catch(() => undefined);
+  await page.route("**/api/words/next", (route) => {
+    const round = reportPayload
+      ? { id: "en:train", prompt: "поезд", word: "train" }
+      : { id: "en:apple", prompt: "яблоко", word: "apple" };
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        empty: false,
+        prompt: round.prompt,
+        context: "Pick the target-language word.",
+        direction: "RU -> EN",
+        options: [
+          { id: round.id, text: round.word },
+          { id: "en:station", text: "station" },
+          { id: "en:ticket", text: "ticket" },
+          { id: "en:coffee", text: "coffee" },
+        ],
+        correct_answer_id: round.id,
+        instruction: "Choose answer",
+        word_id: round.id,
+        word: round.word,
+        translation: round.prompt,
+        reportable: true,
+      }),
+    });
+  });
+  await page.unroute("**/api/words/report").catch(() => undefined);
+  await page.route("**/api/words/report", async (route) => {
+    reportPayload = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, word_report: { id: "report-word-test" } }),
+    });
+  });
+
+  await page.goto("/app/?view=words");
+  await expect(page.locator(".trainer-display h2")).toContainText("яблоко");
+  const reportButton = page.locator(".context-display--words .word-report-action-v2");
+  await expect(reportButton).toBeVisible();
+  await reportButton.click();
+
+  const dialog = page.locator(".tutor-word-report-dialog-v2");
+  await expect(dialog).toBeVisible();
+  await dialog.locator("input").nth(0).fill("apple tree");
+  await dialog.locator("input").nth(1).fill("яблоня");
+  await dialog.locator("textarea").fill("bad dictionary row");
+  await dialog.getByRole("button", { name: /Отправить|Send report/ }).click();
+
+  await expect.poll(() => reportPayload).toMatchObject({
+    word_id: "en:apple",
+    proposed_word: "apple tree",
+    proposed_translation: "яблоня",
+    comment: "bad dictionary row",
+  });
+  await expect(page.locator(".trainer-display h2")).toContainText("поезд");
 });
 
 test("standalone listening hides the target text and leaves only audio playback", async ({ page }) => {

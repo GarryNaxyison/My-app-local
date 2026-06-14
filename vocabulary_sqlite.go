@@ -920,6 +920,28 @@ func sqliteVocabularyAITranslationSet(word vocabWord, targetLanguage string, mod
 	return nil
 }
 
+type sqliteVocabularyWordCorrection struct {
+	ReportID             string
+	WordID               string
+	LearningLanguage     string
+	InterfaceLanguage    string
+	OriginalWord         string
+	FinalWord            string
+	FinalTranslation     string
+	Context              string
+	Level                string
+	Topic                string
+	PartOfSpeech         string
+	Source               string
+	FrequencyRank        int
+	Model                string
+	Prompt               string
+	FallbackSource       string
+	FallbackLevel        string
+	FallbackTopic        string
+	FallbackPartOfSpeech string
+}
+
 func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, lesson aiTutorLessonRecord, finalWord string, finalTranslation string) error {
 	db := currentSQLiteVocabularyDB()
 	if db == nil {
@@ -935,14 +957,71 @@ func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, 
 	if wordID == "" {
 		return nil
 	}
-	language := normalizeLearningLanguage(firstNonEmpty(lesson.LearningLanguage, lesson.Payload.TargetLanguage))
-	interfaceLanguage := normalizeInterfaceLanguage(firstNonEmpty(lesson.InterfaceLanguage, lesson.Payload.InterfaceLanguage, "ru"))
-	finalWord = cleanDictionaryDisplay(finalWord)
-	finalTranslation = cleanDictionaryDisplay(finalTranslation)
-	if language == "" || interfaceLanguage == "" || finalWord == "" || finalTranslation == "" {
+	return sqliteVocabularyApplyWordCorrection(db, sqliteVocabularyWordCorrection{
+		ReportID:             strings.TrimSpace(report.ID),
+		WordID:               wordID,
+		LearningLanguage:     normalizeLearningLanguage(firstNonEmpty(lesson.LearningLanguage, lesson.Payload.TargetLanguage)),
+		InterfaceLanguage:    normalizeInterfaceLanguage(firstNonEmpty(lesson.InterfaceLanguage, lesson.Payload.InterfaceLanguage, "ru")),
+		OriginalWord:         strings.TrimSpace(report.OriginalWord),
+		FinalWord:            finalWord,
+		FinalTranslation:     finalTranslation,
+		Level:                normalizeCEFRLevel(lesson.ExactLevel),
+		Topic:                cleanDictionaryDisplay(lesson.Theme),
+		PartOfSpeech:         cleanDictionaryDisplay(lesson.Payload.Words[report.WordIndex].PartOfSpeech),
+		Source:               "ai_tutor_report",
+		Model:                "admin",
+		Prompt:               "ai_tutor_word_report:" + strings.TrimSpace(report.ID),
+		FallbackSource:       "ai_tutor_report",
+		FallbackLevel:        normalizeCEFRLevel(lesson.ExactLevel),
+		FallbackTopic:        cleanDictionaryDisplay(lesson.Theme),
+		FallbackPartOfSpeech: cleanDictionaryDisplay(lesson.Payload.Words[report.WordIndex].PartOfSpeech),
+	})
+}
+
+func sqliteVocabularyApplyVocabularyWordCorrection(report aiTutorWordReportRecord, word vocabWord, interfaceLanguage string, finalWord string, finalTranslation string) error {
+	db := currentSQLiteVocabularyDB()
+	if db == nil {
 		return nil
 	}
+	wordID := strings.TrimSpace(word.ID)
+	if wordID == "" {
+		wordID = strings.TrimSpace(report.LessonID)
+	}
+	if wordID == "" {
+		return nil
+	}
+	return sqliteVocabularyApplyWordCorrection(db, sqliteVocabularyWordCorrection{
+		ReportID:             strings.TrimSpace(report.ID),
+		WordID:               wordID,
+		LearningLanguage:     normalizeLearningLanguage(firstNonEmpty(word.Language, "en")),
+		InterfaceLanguage:    normalizeInterfaceLanguage(firstNonEmpty(interfaceLanguage, "ru")),
+		OriginalWord:         strings.TrimSpace(report.OriginalWord),
+		FinalWord:            finalWord,
+		FinalTranslation:     finalTranslation,
+		Context:              cleanDictionaryDisplay(word.Context),
+		Level:                normalizeCEFRLevel(word.Level),
+		Topic:                cleanDictionaryDisplay(word.Topic),
+		PartOfSpeech:         cleanDictionaryDisplay(word.PartOfSpeech),
+		Source:               "vocabulary_report",
+		FrequencyRank:        word.FrequencyRank,
+		Model:                "admin",
+		Prompt:               "vocabulary_word_report:" + strings.TrimSpace(report.ID),
+		FallbackSource:       "vocabulary_report",
+		FallbackLevel:        normalizeCEFRLevel(word.Level),
+		FallbackTopic:        cleanDictionaryDisplay(word.Topic),
+		FallbackPartOfSpeech: cleanDictionaryDisplay(word.PartOfSpeech),
+	})
+}
 
+func sqliteVocabularyApplyWordCorrection(db *sql.DB, correction sqliteVocabularyWordCorrection) error {
+	wordID := strings.TrimSpace(correction.WordID)
+	language := normalizeLearningLanguage(correction.LearningLanguage)
+	interfaceLanguage := normalizeInterfaceLanguage(correction.InterfaceLanguage)
+	finalWord := cleanDictionaryDisplay(correction.FinalWord)
+	finalTranslation := cleanDictionaryDisplay(correction.FinalTranslation)
+	if wordID == "" || language == "" || interfaceLanguage == "" || finalWord == "" || finalTranslation == "" {
+		return nil
+	}
 	type metadata struct {
 		Context       string
 		Level         string
@@ -953,10 +1032,12 @@ func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, 
 		Position      int
 	}
 	meta := metadata{
-		Level:        normalizeCEFRLevel(lesson.ExactLevel),
-		Topic:        cleanDictionaryDisplay(lesson.Theme),
-		PartOfSpeech: cleanDictionaryDisplay(lesson.Payload.Words[report.WordIndex].PartOfSpeech),
-		Source:       "ai_tutor_report",
+		Context:       cleanDictionaryDisplay(correction.Context),
+		Level:         normalizeCEFRLevel(correction.Level),
+		Topic:         cleanDictionaryDisplay(correction.Topic),
+		PartOfSpeech:  cleanDictionaryDisplay(correction.PartOfSpeech),
+		Source:        strings.TrimSpace(correction.Source),
+		FrequencyRank: correction.FrequencyRank,
 	}
 	var existingID string
 	err := db.QueryRow(
@@ -970,22 +1051,25 @@ func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, 
 			FROM vocabulary_words
 			WHERE language = ? AND lower(word) = lower(?) LIMIT 1`,
 			language,
-			strings.TrimSpace(report.OriginalWord),
+			strings.TrimSpace(correction.OriginalWord),
 		).Scan(&existingID, &meta.Context, &meta.Level, &meta.Topic, &meta.PartOfSpeech, &meta.Source, &meta.FrequencyRank, &meta.Position)
 	} else if err != nil {
 		return err
 	}
 	if strings.TrimSpace(meta.Source) == "" {
-		meta.Source = "ai_tutor_report"
+		meta.Source = strings.TrimSpace(correction.FallbackSource)
 	}
 	if strings.TrimSpace(meta.Level) == "" {
-		meta.Level = normalizeCEFRLevel(lesson.ExactLevel)
+		meta.Level = normalizeCEFRLevel(correction.FallbackLevel)
 	}
 	if strings.TrimSpace(meta.Topic) == "" {
-		meta.Topic = cleanDictionaryDisplay(lesson.Theme)
+		meta.Topic = cleanDictionaryDisplay(correction.FallbackTopic)
 	}
 	if strings.TrimSpace(meta.PartOfSpeech) == "" {
-		meta.PartOfSpeech = cleanDictionaryDisplay(lesson.Payload.Words[report.WordIndex].PartOfSpeech)
+		meta.PartOfSpeech = cleanDictionaryDisplay(correction.FallbackPartOfSpeech)
+	}
+	if strings.TrimSpace(meta.Source) == "" {
+		meta.Source = "admin_report"
 	}
 
 	tx, err := db.Begin()
@@ -1063,11 +1147,11 @@ func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, 
 		normalizeCEFRLevel(meta.Level),
 		cleanDictionaryDisplay(meta.Topic),
 		cleanDictionaryDisplay(meta.PartOfSpeech),
-		"ai_tutor_report",
+		strings.TrimSpace(meta.Source),
 		meta.FrequencyRank,
 		string(translationsJSON),
-		"admin",
-		"ai_tutor_word_report:"+strings.TrimSpace(report.ID),
+		strings.TrimSpace(firstNonEmpty(correction.Model, "admin")),
+		strings.TrimSpace(correction.Prompt),
 		now,
 		now,
 	); err != nil {
@@ -1098,8 +1182,8 @@ func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, 
 		interfaceLanguage,
 		finalWord,
 		finalTranslation,
-		"admin",
-		"ai_tutor_word_report:"+strings.TrimSpace(report.ID),
+		strings.TrimSpace(firstNonEmpty(correction.Model, "admin")),
+		strings.TrimSpace(correction.Prompt),
 		now,
 		now,
 	); err != nil {

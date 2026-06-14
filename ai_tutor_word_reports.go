@@ -85,6 +85,9 @@ func (b *bot) promptAITutorWordReportFix(ctx context.Context, chatID int64, repo
 		return nil
 	}
 	text := "Ответьте на это сообщение в формате: word - translation\n\nПосле исправления слово будет заменено в SQLite: AI Tutor lesson payload + vocabulary runtime tables."
+	if aiTutorWordReportIsVocabulary(report) {
+		text = "Ответьте на это сообщение в формате: word - translation\n\nПосле исправления слово будет заменено в SQLite vocabulary tables: vocabulary_words, vocabulary_translations, vocabulary_ai_words, vocabulary_ai_translations."
+	}
 	messageID, err := b.telegram.sendInlineMessageToChat(ctx, chatID, text, nil)
 	if err != nil {
 		return err
@@ -137,7 +140,11 @@ func (b *bot) sendAITutorWordReportResolvedNotice(ctx context.Context, chatID in
 	if b == nil || b.telegram == nil {
 		return nil
 	}
-	text := fmt.Sprintf("AI Tutor word report %s: %s", strings.TrimSpace(report.ID), strings.TrimSpace(string(report.Status)))
+	label := "AI Tutor word report"
+	if aiTutorWordReportIsVocabulary(report) {
+		label = "Vocabulary word report"
+	}
+	text := fmt.Sprintf("%s %s: %s", label, strings.TrimSpace(report.ID), strings.TrimSpace(string(report.Status)))
 	if report.FinalWord != "" || report.FinalTranslation != "" {
 		text += "\n" + strings.TrimSpace(report.FinalWord) + " - " + strings.TrimSpace(report.FinalTranslation)
 	}
@@ -190,6 +197,9 @@ func applyAITutorWordReportCorrection(st store, report aiTutorWordReportRecord, 
 	if len([]rune(finalWord)) > 80 || len([]rune(finalTranslation)) > 160 {
 		return errors.New("final word correction is too long")
 	}
+	if aiTutorWordReportIsVocabulary(report) {
+		return applyVocabularyWordReportCorrection(report, finalWord, finalTranslation)
+	}
 	lesson, ok, err := st.getAITutorLesson(report.LessonID)
 	if err != nil {
 		return err
@@ -210,4 +220,42 @@ func applyAITutorWordReportCorrection(st store, report aiTutorWordReportRecord, 
 		return err
 	}
 	return sqliteVocabularyApplyAITutorWordCorrection(report, lesson, finalWord, finalTranslation)
+}
+
+func aiTutorWordReportIsVocabulary(report aiTutorWordReportRecord) bool {
+	return strings.TrimSpace(report.Stage) == aiTutorStageVocabularyWordReport
+}
+
+func vocabularyWordReportSessionID(user userState, wordID string) string {
+	interfaceLanguage := normalizeInterfaceLanguage(firstNonEmpty(user.InterfaceLanguage, "ru"))
+	return "vocabulary|" + interfaceLanguage + "|" + strings.TrimSpace(wordID)
+}
+
+func parseVocabularyWordReportSessionID(sessionID string) (string, string, bool) {
+	parts := strings.SplitN(strings.TrimSpace(sessionID), "|", 3)
+	if len(parts) != 3 || parts[0] != "vocabulary" {
+		return "", "", false
+	}
+	interfaceLanguage := normalizeInterfaceLanguage(parts[1])
+	wordID := strings.TrimSpace(parts[2])
+	return interfaceLanguage, wordID, interfaceLanguage != "" && wordID != ""
+}
+
+func applyVocabularyWordReportCorrection(report aiTutorWordReportRecord, finalWord string, finalTranslation string) error {
+	interfaceLanguage, wordID, ok := parseVocabularyWordReportSessionID(report.SessionID)
+	if !ok {
+		interfaceLanguage = normalizeInterfaceLanguage("ru")
+		wordID = strings.TrimSpace(report.LessonID)
+	}
+	if strings.TrimSpace(report.LessonID) != "" {
+		wordID = strings.TrimSpace(report.LessonID)
+	}
+	if wordID == "" {
+		return errors.New("vocabulary word report id is empty")
+	}
+	word, ok := findVocabWord(wordID)
+	if !ok {
+		return errors.New("vocabulary word not found")
+	}
+	return sqliteVocabularyApplyVocabularyWordCorrection(report, word, interfaceLanguage, finalWord, finalTranslation)
 }

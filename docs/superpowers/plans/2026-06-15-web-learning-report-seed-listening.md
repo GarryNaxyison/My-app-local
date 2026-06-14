@@ -31,15 +31,15 @@
 - Test: `telegram_test.go`
 - Test: `web-react/e2e/web-smoke.spec.ts`
 
-- [ ] Add a failing backend test for `POST /api/words/report`.
-- [ ] Add a failing Telegram moderation test proving Accept/Fix on a vocabulary report updates SQLite vocabulary tables.
-- [ ] Add a failing Playwright test proving `.context-display--words` shows `Сообщить об ошибке` and posts the current `word_id`.
-- [ ] Return `word_id`, `word`, `translation`, and `reportable` from `/api/words/next`.
-- [ ] Add `/api/words/report` with validation for active word, proposed word, proposed translation, and optional comment.
-- [ ] Extend report correction logic so stage `vocabulary_word` applies only to SQLite vocabulary tables.
-- [ ] Reuse the AI Tutor admin keyboard and adjust Telegram report text for vocabulary reports.
-- [ ] Add the Words report button and dialog in React.
-- [ ] Verify targeted Go tests and Playwright test.
+- [x] Add a failing backend test for `POST /api/words/report`.
+- [x] Add a failing Telegram moderation test proving Accept/Fix on a vocabulary report updates SQLite vocabulary tables.
+- [x] Add a failing Playwright test proving `.context-display--words` shows `Сообщить об ошибке` and posts the current `word_id`.
+- [x] Return `word_id`, `word`, `translation`, and `reportable` from `/api/words/next`.
+- [x] Add `/api/words/report` with validation for active word, proposed word, proposed translation, and optional comment.
+- [x] Extend report correction logic so stage `vocabulary_word` applies only to SQLite vocabulary tables.
+- [x] Reuse the AI Tutor admin keyboard and adjust Telegram report text for vocabulary reports.
+- [x] Add the Words report button and dialog in React.
+- [x] Verify targeted Go tests and Playwright test.
 - [ ] Commit with `feat: add word trainer report flow`.
 
 ### Task 3: Visible Next Lesson CTA

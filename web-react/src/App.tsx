@@ -2262,6 +2262,34 @@ export function App() {
     return true;
   };
 
+  const reportWord = async (input: { wordId: string; proposedWord: string; proposedTranslation: string; comment: string }) => {
+    if (!input.wordId) return false;
+    const payload = await runAction(
+      "word-report",
+      () => api<ApiRecord>("/api/words/report", {
+        method: "POST",
+        body: {
+          word_id: input.wordId,
+          proposed_word: input.proposedWord,
+          proposed_translation: input.proposedTranslation,
+          comment: input.comment,
+        },
+      }),
+      copy("ai_tutor_word_report_sent", "Report sent."),
+    );
+    if (!payload) return false;
+    const notice = copy("ai_tutor_word_report_sent", "Report sent.");
+    setStatus({ kind: "ok", text: notice });
+    setWordChallenge(null);
+    setWordResult(null);
+    const record = getRecord(payload);
+    setMessages((current) => [
+      panelMessage(notice, "default", copy("ai_tutor_word_report_title", "Word report"), record, "words"),
+      ...current,
+    ].slice(0, 12));
+    return true;
+  };
+
   const submitLearningAnswer = async (mode: "lesson" | "practice") => {
     const text = draft.trim();
     if (!text && !voiceFile && !(mode === "practice" && imageFile)) {
@@ -3054,6 +3082,7 @@ export function App() {
     startWord,
     wordChallenge,
     answerWord,
+    reportWord,
     wordResult,
     startWordGame,
     answerWordGame,
@@ -5048,6 +5077,7 @@ type ViewRendererProps = {
   startWord: () => Promise<void>;
   wordChallenge: WordChallenge | null;
   answerWord: (answerId: string) => Promise<void>;
+  reportWord: (input: { wordId: string; proposedWord: string; proposedTranslation: string; comment: string }) => Promise<boolean>;
   wordResult: TrainerResult | null;
   startWordGame: () => Promise<void>;
   answerWordGame: (answerId: string) => Promise<void>;
@@ -6892,8 +6922,13 @@ function PronunciationReport({ pronunciation, user, copy, compact = false }: { p
   );
 }
 
-function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, savePhrase, isPhraseSaved, busy, copy }: ViewRendererProps & { mode: "words" | "word-game" }) {
+function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, reportWord, savePhrase, isPhraseSaved, busy, copy }: ViewRendererProps & { mode: "words" | "word-game" }) {
   const challenge = wordChallenge;
+  const [wordReportOpen, setWordReportOpen] = useState(false);
+  const [wordReportWord, setWordReportWord] = useState("");
+  const [wordReportTranslation, setWordReportTranslation] = useState("");
+  const [wordReportComment, setWordReportComment] = useState("");
+  const [wordReportError, setWordReportError] = useState("");
   const options = useMemo(
     () => tutorStableShuffle(toChoiceOptions(challenge?.options), `${mode}:${challenge?.prompt || ""}:${challenge?.correct_answer_id || ""}`),
     [mode, challenge?.prompt, challenge?.correct_answer_id, challenge?.options],
@@ -6908,36 +6943,133 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
   useEffect(() => {
     if (!challenge && !result && !busy) void start();
   }, [mode, Boolean(challenge), Boolean(result), Boolean(busy)]);
+  useEffect(() => {
+    setWordReportOpen(false);
+    setWordReportError("");
+  }, [mode, challenge?.word_id]);
+  const canReportWord = mode === "words" && !result && Boolean(challenge?.word_id && challenge?.reportable && !challenge?.empty);
+  const openWordReport = () => {
+    setWordReportWord(challenge?.word || "");
+    setWordReportTranslation(challenge?.translation || challenge?.prompt || "");
+    setWordReportComment("");
+    setWordReportError("");
+    setWordReportOpen(true);
+  };
+  const submitWordReport = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const wordId = challenge?.word_id || "";
+    const proposedWord = wordReportWord.trim();
+    const proposedTranslation = wordReportTranslation.trim();
+    if (!wordId || !proposedWord || !proposedTranslation) {
+      setWordReportError(copy("ai_tutor_word_report_required", "Fill in the word and translation."));
+      return;
+    }
+    const ok = await reportWord({
+      wordId,
+      proposedWord,
+      proposedTranslation,
+      comment: wordReportComment.trim(),
+    });
+    if (!ok) return;
+    setWordReportOpen(false);
+    setWordReportWord("");
+    setWordReportTranslation("");
+    setWordReportComment("");
+    void start();
+  };
   return (
-    <section className="v2-panel trainer-display">
-      <span className="eyebrow">{title}</span>
-      <h2>{challenge?.empty ? copy("no_words_ready", "No words ready") : challenge?.prompt || (busy ? copy("loading", "Loading...") : copy("start_new_round", "Start a new round"))}</h2>
-      <p>{challenge?.context || description}</p>
-      {result ? <TrainerResultBox result={result} copy={copy} onNext={() => void start()} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} /> : null}
-      {options.length ? (
-        <div className="choice-grid-v2">
-          {options.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={cn(
-                result?.selectedId === option.id && "is-selected",
-                result?.correctId === option.id && result.tone === "success" && "is-correct",
-                result?.selectedId === option.id && result.tone === "warning" && "is-wrong",
-              )}
-              onClick={() => void answer(option.id)}
-              disabled={Boolean(busy) || result?.tone === "success"}
-            >
-              {option.text}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div className="trainer-loading-v2">
-          <Spinner size="small" show={Boolean(busy || (!challenge && !result))} />
-        </div>
-      )}
-    </section>
+    <>
+      <section className="v2-panel trainer-display">
+        <span className="eyebrow">{title}</span>
+        <h2>{challenge?.empty ? copy("no_words_ready", "No words ready") : challenge?.prompt || (busy ? copy("loading", "Loading...") : copy("start_new_round", "Start a new round"))}</h2>
+        {!result ? <p>{challenge?.context || description}</p> : null}
+        {canReportWord ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="word-report-action-v2 tutor-word-report-action-v2"
+            onClick={openWordReport}
+            disabled={busy === "word-report"}
+          >
+            <AlertCircle className="h-4 w-4" />
+            {copy("ai_tutor_word_report_button", "Сообщить об ошибке")}
+          </Button>
+        ) : null}
+        {result ? <TrainerResultBox result={result} copy={copy} onNext={() => void start()} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} /> : null}
+        {options.length ? (
+          <div className="choice-grid-v2">
+            {options.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={cn(
+                  result?.selectedId === option.id && "is-selected",
+                  result?.correctId === option.id && result.tone === "success" && "is-correct",
+                  result?.selectedId === option.id && result.tone === "warning" && "is-wrong",
+                )}
+                onClick={() => void answer(option.id)}
+                disabled={Boolean(busy) || result?.tone === "success"}
+              >
+                {option.text}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="trainer-loading-v2">
+            <Spinner size="small" show={Boolean(busy || (!challenge && !result))} />
+          </div>
+        )}
+      </section>
+      <Dialog open={wordReportOpen} onOpenChange={setWordReportOpen}>
+        <DialogContent className="tutor-word-report-dialog-v2">
+          <DialogTitle>
+            <AlertCircle className="h-5 w-5 tutor-word-report-dialog-v2__icon" />
+            {copy("ai_tutor_word_report_title", "Сообщить об ошибке в слове")}
+          </DialogTitle>
+          <DialogDescription>
+            {copy("ai_tutor_word_report_body", "Модератор проверит исправление перед заменой слова.")}
+          </DialogDescription>
+          <form id="word-report-form-v2" className="tutor-word-report-dialog-v2__body" onSubmit={submitWordReport}>
+            <label className="tutor-word-report-field-v2">
+              <span>{copy("ai_tutor_word_report_word_label", "Correct word")}</span>
+              <input
+                value={wordReportWord}
+                onChange={(event) => setWordReportWord(event.target.value)}
+                maxLength={80}
+                autoFocus
+              />
+            </label>
+            <label className="tutor-word-report-field-v2">
+              <span>{copy("ai_tutor_word_report_translation_label", "Correct translation")}</span>
+              <input
+                value={wordReportTranslation}
+                onChange={(event) => setWordReportTranslation(event.target.value)}
+                maxLength={160}
+              />
+            </label>
+            <label className="tutor-word-report-field-v2">
+              <span>{copy("ai_tutor_word_report_comment_label", "Comment")}</span>
+              <textarea
+                value={wordReportComment}
+                onChange={(event) => setWordReportComment(event.target.value)}
+                rows={3}
+                maxLength={500}
+              />
+            </label>
+            {wordReportError ? <p className="form-error-v2">{wordReportError}</p> : null}
+          </form>
+          <DialogFooter className="tutor-word-report-dialog-v2__footer">
+            <DialogClose asChild>
+              <Button type="button" variant="ghost">{copy("cancel", "Cancel")}</Button>
+            </DialogClose>
+            <Button type="submit" form="word-report-form-v2" disabled={busy === "word-report"}>
+              {busy === "word-report" ? copy("loading", "Sending...") : copy("ai_tutor_word_report_submit", "Send report")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
