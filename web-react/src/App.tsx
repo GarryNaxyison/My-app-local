@@ -3633,20 +3633,22 @@ function roleplayFallbackForKey(interfaceLanguage: string | undefined, key: stri
 function roleplayScenarioTitle(scenario: RoleplayScenario, user: UserProfile) {
   const lang = languageCode(user.interface_language);
   const fallbackLang = ["tg", "uz", "tt", "ky", "uk", "kk"].includes(lang) ? "ru" : "en";
+  const genericRoleplay = cleanAppText(appCopy(lang, "roleplay", "Roleplay"));
+  const copyCandidate = cleanAppText(appCopy(lang, `roleplay_scenario_${scenario.id}`, ""));
+  if (copyCandidate && copyCandidate !== `roleplay_scenario_${scenario.id}` && copyCandidate !== genericRoleplay && !hasMojibakeText(copyCandidate)) return copyCandidate;
   const concrete = cleanAppText(concreteRoleplayTitles[lang]?.[scenario.id] || "");
   if (concrete) return concrete;
   const localized = cleanAppText(roleplayTitles[scenario.id]?.[lang] || "");
   const english = cleanAppText(roleplayTitles[scenario.id]?.en || scenario.title);
-  const genericRoleplay = cleanAppText(appCopy(lang, "roleplay", "Roleplay"));
   if (localized && !hasMojibakeText(localized) && localized !== genericRoleplay) return localized;
-  const copyCandidate = cleanAppText(appCopy(lang, `roleplay_scenario_${scenario.id}`, ""));
-  if (copyCandidate && copyCandidate !== `roleplay_scenario_${scenario.id}` && copyCandidate !== genericRoleplay && !hasMojibakeText(copyCandidate)) return copyCandidate;
   return cleanAppText(roleplayTitles[scenario.id]?.[fallbackLang] || english || scenario.title);
 }
 
 function roleplayScenarioDescription(scenario: RoleplayScenario, user: UserProfile) {
   const lang = languageCode(user.interface_language);
   const genericRoleplay = cleanAppText(appCopy(lang, "roleplay", "Roleplay"));
+  const specificCopy = cleanAppText(appCopy(lang, `roleplay_scenario_${scenario.id}_description`, ""));
+  if (specificCopy && specificCopy !== `roleplay_scenario_${scenario.id}_description` && specificCopy !== genericRoleplay && !hasMojibakeText(specificCopy)) return specificCopy;
   const localized = cleanAppText(roleplayDescriptions[lang]?.[scenario.id] || roleplayGenericDescriptions[lang] || "");
   if (localized && localized !== genericRoleplay && !hasMojibakeText(localized)) return localized;
   const copyCandidate = cleanAppText(appCopy(lang, "roleplay_scenario_description", ""));
@@ -3977,7 +3979,7 @@ function FunctionRibbon({
   };
   return (
     <div className="function-ribbon-shell">
-      <MorphingArrowButton direction="left" onClick={() => scrollByTile(-1)} label={copy("back", "Back")} className="ribbon-morph-arrow" />
+      <MorphingArrowButton direction="left" onClick={() => scrollByTile(-1)} label={copy("back", "Back")} className="ribbon-morph-arrow" size="compact" />
       <nav
         ref={ribbonRef}
         className="function-ribbon"
@@ -4039,7 +4041,7 @@ function FunctionRibbon({
           </button>
         ))}
       </nav>
-      <MorphingArrowButton direction="right" onClick={() => scrollByTile(1)} label={copy("next", "Next")} className="ribbon-morph-arrow" />
+      <MorphingArrowButton direction="right" onClick={() => scrollByTile(1)} label={copy("next", "Next")} className="ribbon-morph-arrow" size="compact" />
     </div>
   );
 }

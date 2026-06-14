@@ -39,6 +39,19 @@ const mistakeItems = Array.from({ length: 18 }, (_, index) => ({
   explanation: index % 2 === 0 ? "Use the verb and article." : "Word order needs correction.",
 }));
 
+const roleplayScenarioIds = [
+  "restaurant",
+  "work",
+  "travel",
+  "exam",
+  "small-talk",
+  "hotel",
+  "shopping",
+  "doctor",
+  "job-interview",
+  "bank",
+];
+
 const leaderboardItems = Array.from({ length: 12 }, (_, index) => ({
   name: index === 0 ? "Irina" : `Learner ${index + 1}`,
   xp: 520 - index * 23,
@@ -836,10 +849,12 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "habit_calendar_title",
     "roleplay_title",
     "roleplay_subtitle",
-    "roleplay_scenario_restaurant",
-    "roleplay_scenario_work",
-    "roleplay_scenario_travel",
-    "roleplay_scenario_description",
+    ...roleplayScenarioIds.flatMap((id) => [`roleplay_scenario_${id}`, `roleplay_scenario_${id}_description`]),
+    "mistake_group_grammar",
+    "mistake_group_word_order",
+    "mistake_group_vocabulary",
+    "mistake_group_politeness",
+    "mistake_group_spelling",
     "security",
     "change_password",
     "current_password",
@@ -1156,6 +1171,59 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     expect(appCopy(code, "phrasebook_note_placeholder"), `${code}.phrasebook_note_placeholder must not collapse to notes`).not.toBe(phrasebook);
     expect(appCopy(code, "premium_month_title"), `${code}.premium_month_title must not collapse to premium`).not.toBe(premium);
     expect(appCopy(code, "platinum_month_title"), `${code}.platinum_month_title must not collapse to premium`).not.toBe(premium);
+  }
+});
+
+test("roleplay scenario copy and mistake category labels stay localized for all 35 languages", () => {
+  const englishFallbacks = [
+    "Hotel check-in",
+    "Shopping",
+    "Doctor visit",
+    "Job interview",
+    "Bank and payment",
+    "Ask for size",
+    "Describe symptoms",
+    "Introduce experience",
+    "Ask about a card",
+  ];
+  const mistakeGroupKeys = [
+    "mistake_group_grammar",
+    "mistake_group_word_order",
+    "mistake_group_vocabulary",
+    "mistake_group_politeness",
+    "mistake_group_spelling",
+  ];
+
+  for (const code of appLocaleCodes) {
+    for (const id of roleplayScenarioIds) {
+      const title = appCopy(code, `roleplay_scenario_${id}`);
+      const description = appCopy(code, `roleplay_scenario_${id}_description`);
+      expect(title, `${code}.${id}.title`).toBeTruthy();
+      expect(description, `${code}.${id}.description`).toBeTruthy();
+      expect(title, `${code}.${id}.title key leak`).not.toBe(`roleplay_scenario_${id}`);
+      expect(description, `${code}.${id}.description key leak`).not.toBe(`roleplay_scenario_${id}_description`);
+      expect(title, `${code}.${id}.title mojibake`).not.toMatch(mojibakePattern);
+      expect(description, `${code}.${id}.description mojibake`).not.toMatch(mojibakePattern);
+      if (code !== "en") {
+        expect(description, `${code}.${id}.description should be localized`).not.toBe(appCopy("en", `roleplay_scenario_${id}_description`));
+      }
+      if (code === "ru") {
+        for (const fragment of englishFallbacks) {
+          expect(`${title} ${description}`, `ru.${id} leaks ${fragment}`).not.toContain(fragment);
+        }
+      }
+    }
+
+    const groupLabels = mistakeGroupKeys.map((key) => appCopy(code, key));
+    expect(new Set(groupLabels).size, `${code}.mistake groups are distinct`).toBe(groupLabels.length);
+    for (const [index, label] of groupLabels.entries()) {
+      expect(label, `${code}.${mistakeGroupKeys[index]}`).toBeTruthy();
+      expect(label, `${code}.${mistakeGroupKeys[index]} key leak`).not.toBe(mistakeGroupKeys[index]);
+      expect(label, `${code}.${mistakeGroupKeys[index]} mojibake`).not.toMatch(mojibakePattern);
+      if (code !== "en") {
+        expect(label, `${code}.${mistakeGroupKeys[index]} should be localized`).not.toBe(appCopy("en", mistakeGroupKeys[index]));
+      }
+    }
   }
 });
 
@@ -1682,9 +1750,19 @@ test("desktop ribbon right arrow stays inside the app frame", async ({ page, isM
   test.skip(isMobile, "desktop layout assertion");
   await page.goto("/app/?view=home");
   const app = await page.locator(".v2-app").boundingBox();
+  const ribbon = await page.locator(".function-ribbon").boundingBox();
+  const leftArrow = await page.locator(".function-ribbon-shell .ribbon-morph-arrow").first().boundingBox();
   const rightArrow = await page.locator(".function-ribbon-shell .ribbon-morph-arrow").last().boundingBox();
   expect(app).not.toBeNull();
+  expect(ribbon).not.toBeNull();
+  expect(leftArrow).not.toBeNull();
   expect(rightArrow).not.toBeNull();
+  expect(leftArrow!.width).toBeLessThanOrEqual(60);
+  expect(rightArrow!.width).toBeLessThanOrEqual(60);
+  expect(leftArrow!.height).toBeLessThanOrEqual(48);
+  expect(rightArrow!.height).toBeLessThanOrEqual(48);
+  expect(leftArrow!.x + leftArrow!.width).toBeLessThanOrEqual(ribbon!.x);
+  expect(rightArrow!.x).toBeGreaterThanOrEqual(ribbon!.x + ribbon!.width);
   expect(rightArrow!.x + rightArrow!.width).toBeLessThanOrEqual(app!.x + app!.width - 6);
 
   for (const view of ["pronunciation", "phrasebook", "offline", "roleplay"]) {

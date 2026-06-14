@@ -7670,9 +7670,9 @@ select {
 
 /* Regression fixes: keep controls visible and document-flow based. */
 .function-ribbon-shell {
-  grid-template-columns: 58px minmax(0, 1fr) 58px;
-  column-gap: 12px;
-  padding-inline: 16px;
+  grid-template-columns: 48px minmax(0, 1fr) 56px;
+  column-gap: 10px;
+  padding-inline: 14px 18px;
 }
 
 .function-ribbon {
@@ -7688,11 +7688,17 @@ select {
 
 .function-ribbon-shell .ribbon-morph-arrow,
 .function-ribbon-shell > .ribbon-morph-arrow:last-child {
-  width: 48px;
-  min-width: 48px;
+  width: 46px;
+  min-width: 46px;
+  max-width: 46px;
   justify-self: center;
-  transform: scale(0.56);
+  transform: none;
   margin: 0;
+  overflow: visible;
+}
+
+.function-ribbon-shell > .ribbon-morph-arrow:last-child {
+  justify-self: end;
 }
 
 .tool-switch-v2 {
