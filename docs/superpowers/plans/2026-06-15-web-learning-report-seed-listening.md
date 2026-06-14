@@ -79,11 +79,11 @@
 - Modify: `web-react/src/styles/app.css`
 - Test: `web-react/e2e/web-smoke.spec.ts`
 
-- [ ] Add a failing Playwright test that Listening hides the target text before the learner answers.
-- [ ] Keep the Listening audio button visible before answer.
-- [ ] Show the target text only after the answer is checked.
-- [ ] Keep Pronunciation target text visible before recording.
-- [ ] Verify desktop/mobile smoke around Listening and Pronunciation.
+- [x] Add a failing Playwright test that Listening hides the target text before the learner answers.
+- [x] Keep the Listening audio button visible before answer.
+- [x] Show the target text only after the answer is checked.
+- [x] Keep Pronunciation target text visible before recording.
+- [x] Verify desktop/mobile smoke around Listening and Pronunciation.
 - [ ] Commit with `fix: separate listening and pronunciation flows`.
 
 ### Task 6: Unified Notes Strip

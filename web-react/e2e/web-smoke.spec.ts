@@ -1648,6 +1648,34 @@ test("standalone listening hides the target text and leaves only audio playback"
   await expect(listeningPanel.locator("strong")).toHaveCount(0);
 });
 
+test("standalone listening reveals the heard phrase after the answer is checked", async ({ page }) => {
+  usePremiumSession();
+  await page.unroute("**/api/shadowing/answer").catch(() => undefined);
+  await page.route("**/api/shadowing/answer", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        feedback: "Почти верно: проверь запятую и please.",
+        transcript: "Could you repeat that please",
+        target: "Could you repeat that, please?",
+        correction_audio_text: "Could you repeat that, please?",
+      }),
+    }),
+  );
+  await page.goto("/app/?view=shadowing");
+  const listeningPanel = page.locator(".chat-workspace--shadowing .task-box-v2");
+  await expect(listeningPanel.locator(".audio-wave-button-v2")).toBeVisible();
+  await expect(listeningPanel).not.toContainText("Could you repeat that, please?");
+
+  await page.locator(".composer-panel-v2 textarea").fill("Could you repeat that please");
+  await page.locator(".composer-panel-v2").getByRole("button", { name: /Send|Отправить|Надіслати/ }).click();
+
+  const feedback = page.locator(".chat-workspace--shadowing .chat-interface");
+  await expect(feedback).toContainText("Почти верно");
+  await expect(feedback).toContainText("Could you repeat that, please?");
+});
+
 test("pronunciation shows the text-to-pronounce block before the pronunciation summary", async ({ page }) => {
   testSessionPayloadOverride = {
     ...sessionPayload,

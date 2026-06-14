@@ -2394,7 +2394,11 @@ export function App() {
     const payload = await runAction("shadowing", () => apiForm<ApiRecord>("/api/shadowing/answer", buildShadowingForm(text, voiceFile, shadowingTarget)));
     if (!payload) return;
     const record = getRecord(payload);
-    const responseText = formatLearningRecord(record, copy, copy("answer_checked", "Answer checked."));
+    const heardPhrase = cleanAppText(recordField(record, ["target", "phrase", "correction_audio_text", "correction"]) || shadowingTarget);
+    let responseText = formatLearningRecord(record, copy, copy("answer_checked", "Answer checked."));
+    if (heardPhrase && !responseText.includes(heardPhrase)) {
+      responseText = [responseText, `${copy("listening_heard_phrase", "Heard phrase")}: ${heardPhrase}`].filter(Boolean).join("\n\n");
+    }
     const transcript = asText(record.transcript || text || (voiceFile ? copy("voice_message", "Voice message") : ""), "");
     const nextMessages = [panelMessage(responseText, "success", copy("listening_feedback", "Listening feedback"), record, "shadowing")];
     if (transcript) nextMessages.push({ id: `${Date.now()}-shadowing-user`, role: "user", title: copy("you", "You"), body: transcript, meta: "shadowing" });
