@@ -446,6 +446,46 @@ func TestTelegramAITutorWordReportFixReplyAppliesCorrection(t *testing.T) {
 	}
 }
 
+func TestTelegramAITutorWordReportFixPlainAdminMessageAppliesLatestPrompt(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":91}}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-fix",
+		From:    telegramUser{ID: 999, FirstName: "Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 999}},
+		Data:    "ait_word_report|" + report.ID + "|fix",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(fix) error = %v", err)
+	}
+
+	if err := b.handleUpdate(context.Background(), telegramUpdate{Message: &telegramMessage{
+		MessageID: 92,
+		From:      telegramUser{ID: 999, FirstName: "Admin"},
+		Chat:      telegramChat{ID: 999},
+		Text:      "local park - местный парк",
+	}}); err != nil {
+		t.Fatalf("handleUpdate(plain fix message) error = %v", err)
+	}
+
+	resolved, _, _ := store.getAITutorWordReport(report.ID)
+	if resolved.Status != aiTutorWordReportFixed || resolved.FinalWord != "local park" || resolved.FinalTranslation != "местный парк" {
+		t.Fatalf("fixed report mismatch: %#v", resolved)
+	}
+	lesson, _, _ := store.getAITutorLesson(report.LessonID)
+	if got := lesson.Payload.Words[0].Target; got != "local park" {
+		t.Fatalf("fixed lesson word target = %q, want local park", got)
+	}
+}
+
 func TestTelegramAITutorWordReportAdminOnly(t *testing.T) {
 	store, report := newAITutorWordReportModerationFixture(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

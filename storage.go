@@ -186,6 +186,7 @@ type store interface {
 	recordHabitLogin(telegramID int64) error
 	claimDailyBonus(telegramID int64, date string, amount int) (bool, error)
 	saveLesson(telegramID int64, prompt string) error
+	completeLesson(telegramID int64) error
 	incrementPractice(telegramID int64) error
 	savePracticeHistory(telegramID int64, history []string) error
 	incrementVoice(telegramID int64) error
@@ -570,6 +571,13 @@ func (s *jsonStore) saveLesson(telegramID int64, prompt string) error {
 		user.LessonCount++
 		user.LessonsToday++
 		recordHabitDay(user, time.Now().UTC(), true)
+	})
+}
+
+func (s *jsonStore) completeLesson(telegramID int64) error {
+	return s.update(telegramID, func(user *userState) {
+		user.Mode = "idle"
+		user.LastLessonPrompt = ""
 	})
 }
 
@@ -1220,13 +1228,23 @@ func (s *jsonStore) findPendingAITutorWordReportByFixPrompt(chatID string, messa
 
 	s.ensureAITutorMapsLocked()
 	chatID = strings.TrimSpace(chatID)
-	if chatID == "" || messageID == 0 {
+	if chatID == "" {
 		return aiTutorWordReportRecord{}, false, nil
 	}
+	var latest aiTutorWordReportRecord
 	for _, report := range s.aiTutorWordReports {
-		if report.Status == aiTutorWordReportPending && report.FixPromptChatID == chatID && report.FixPromptMessageID == messageID {
+		if report.Status != aiTutorWordReportPending || report.FixPromptChatID != chatID || report.FixPromptMessageID == 0 {
+			continue
+		}
+		if messageID != 0 && report.FixPromptMessageID == messageID {
 			return report, true, nil
 		}
+		if messageID == 0 && (latest.ID == "" || report.UpdatedAt > latest.UpdatedAt) {
+			latest = report
+		}
+	}
+	if latest.ID != "" {
+		return latest, true, nil
 	}
 	return aiTutorWordReportRecord{}, false, nil
 }

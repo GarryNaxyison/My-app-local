@@ -84,7 +84,7 @@ func (b *bot) promptAITutorWordReportFix(ctx context.Context, chatID int64, repo
 	if b == nil || b.telegram == nil {
 		return nil
 	}
-	text := "Ответьте на это сообщение в формате: word - translation"
+	text := "Ответьте на это сообщение в формате: word - translation\n\nПосле исправления слово будет заменено в SQLite: AI Tutor lesson payload + vocabulary runtime tables."
 	messageID, err := b.telegram.sendInlineMessageToChat(ctx, chatID, text, nil)
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (b *bot) promptAITutorWordReportFix(ctx context.Context, chatID int64, repo
 }
 
 func (b *bot) maybeHandleAITutorWordReportFixReply(ctx context.Context, message *telegramMessage) (bool, error) {
-	if b == nil || b.store == nil || message == nil || message.ReplyToMessage == nil {
+	if b == nil || b.store == nil || message == nil {
 		return false, nil
 	}
 	if !telegramOpsUserAllowed(b.cfg, message.From.ID) {
@@ -108,7 +108,11 @@ func (b *bot) maybeHandleAITutorWordReportFixReply(ctx context.Context, message 
 	if text == "" {
 		return false, nil
 	}
-	report, ok, err := b.store.findPendingAITutorWordReportByFixPrompt(strconv.FormatInt(message.Chat.ID, 10), message.ReplyToMessage.MessageID)
+	replyMessageID := int64(0)
+	if message.ReplyToMessage != nil {
+		replyMessageID = message.ReplyToMessage.MessageID
+	}
+	report, ok, err := b.store.findPendingAITutorWordReportByFixPrompt(strconv.FormatInt(message.Chat.ID, 10), replyMessageID)
 	if err != nil || !ok {
 		return ok, err
 	}

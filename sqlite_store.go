@@ -1519,6 +1519,13 @@ func (s *sqliteStore) saveLesson(telegramID int64, prompt string) error {
 	})
 }
 
+func (s *sqliteStore) completeLesson(telegramID int64) error {
+	return s.updateUser(telegramID, func(user *userState) {
+		user.Mode = "idle"
+		user.LastLessonPrompt = ""
+	})
+}
+
 func (s *sqliteStore) nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error) {
 	language, interfaceLanguage, level := tutorLessonStorageContext(user)
 	tx, err := s.db.Begin()
@@ -2320,18 +2327,19 @@ func (s *sqliteStore) resolveAITutorWordReport(reportID string, status aiTutorWo
 
 func (s *sqliteStore) findPendingAITutorWordReportByFixPrompt(chatID string, messageID int64) (aiTutorWordReportRecord, bool, error) {
 	chatID = strings.TrimSpace(chatID)
-	if chatID == "" || messageID == 0 {
+	if chatID == "" {
 		return aiTutorWordReportRecord{}, false, nil
 	}
-	row := s.db.QueryRow(
-		`SELECT `+aiTutorWordReportSelectColumns+`
+	query := `SELECT ` + aiTutorWordReportSelectColumns + `
 		FROM ai_tutor_word_reports
-		WHERE fix_prompt_chat_id = ? AND fix_prompt_message_id = ? AND status = ?
-		LIMIT 1`,
-		chatID,
-		messageID,
-		string(aiTutorWordReportPending),
-	)
+		WHERE fix_prompt_chat_id = ? AND fix_prompt_message_id <> 0 AND status = ?`
+	args := []any{chatID, string(aiTutorWordReportPending)}
+	if messageID != 0 {
+		query += ` AND fix_prompt_message_id = ?`
+		args = append(args, messageID)
+	}
+	query += ` ORDER BY updated_at DESC LIMIT 1`
+	row := s.db.QueryRow(query, args...)
 	report, err := scanAITutorWordReportRecord(row)
 	if errors.Is(err, sql.ErrNoRows) {
 		return aiTutorWordReportRecord{}, false, nil

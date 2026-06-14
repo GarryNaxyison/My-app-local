@@ -492,11 +492,10 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 	assertXPDelta("mistake", before, 8, mistake)
 }
 
-func TestWebLessonAnswerAwardsXPOnlyOnceForActiveLesson(t *testing.T) {
+func TestWebLessonAnswerCompletesActiveLessonAndRejectsReplay(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	responses := []string{
 		"First correction.\n" + mistakesSentinel + "\n[]",
-		"Second correction.\n" + mistakesSentinel + "\n[]",
 	}
 	call := 0
 	api.bot.openrouter = newOpenRouterClient("test-key", "xp-once-model", "http://localhost", "test", &http.Client{
@@ -539,10 +538,13 @@ func TestWebLessonAnswerAwardsXPOnlyOnceForActiveLesson(t *testing.T) {
 	if got, want := user.XP, before+20; got != want {
 		t.Fatalf("XP after first answer = %d, want %d", got, want)
 	}
+	if strings.TrimSpace(user.LastLessonPrompt) != "" {
+		t.Fatalf("LastLessonPrompt after first answer = %q, want cleared completed lesson", user.LastLessonPrompt)
+	}
 
-	second := requestJSON(t, api, cookie, http.MethodPost, "/api/lesson/answer", map[string]any{"text": "My second answer"})
-	if got := second["feedback"]; got != "Second correction." {
-		t.Fatalf("second feedback = %#v", got)
+	status, second := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/lesson/answer", map[string]any{"text": "My second answer"})
+	if status != http.StatusConflict {
+		t.Fatalf("second answer status = %d body=%#v, want 409", status, second)
 	}
 	user, err = store.getOrCreateUser(-42, "tester")
 	if err != nil {
@@ -551,8 +553,8 @@ func TestWebLessonAnswerAwardsXPOnlyOnceForActiveLesson(t *testing.T) {
 	if got, want := user.XP, before+20; got != want {
 		t.Fatalf("XP after second answer = %d, want %d", got, want)
 	}
-	if call != len(responses) {
-		t.Fatalf("expected %d OpenRouter calls, got %d", len(responses), call)
+	if call != 1 {
+		t.Fatalf("expected 1 OpenRouter call, got %d", call)
 	}
 }
 
@@ -1728,7 +1730,10 @@ func TestAITutorWordReportCreatesTelegramNotificationAndSkipsWord(t *testing.T) 
 		t.Fatal("expected telegram ops notification")
 	}
 	text, _ := telegramPayloads[0]["text"].(string)
-	if !strings.Contains(text, stored.ID) || !strings.Contains(text, "wake up - prosypatsya") || !strings.Contains(text, "get up - vstavat") {
+	if !strings.Contains(text, stored.ID) ||
+		!strings.Contains(text, "wake up - prosypatsya") ||
+		!strings.Contains(text, "get up - vstavat") ||
+		!strings.Contains(text, "vocabulary_ai_translations") {
 		t.Fatalf("telegram text missing report details: %q", text)
 	}
 	keyboardJSON, _ := json.Marshal(telegramPayloads[0]["reply_markup"])

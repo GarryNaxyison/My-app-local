@@ -2733,7 +2733,7 @@ func (b *bot) handleLessonAnswer(ctx context.Context, chatID int64, user userSta
 	}
 	correctionAudio := lessonCorrectionPronunciationText(feedback, entries)
 
-	if err := b.store.setMode(user.TelegramID, "idle"); err != nil {
+	if err := b.store.completeLesson(user.TelegramID); err != nil {
 		return err
 	}
 	if err := b.store.addXP(user.TelegramID, 20); err != nil {

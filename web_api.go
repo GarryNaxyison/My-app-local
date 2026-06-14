@@ -1864,7 +1864,8 @@ func aiTutorWordReportTelegramText(report aiTutorWordReportRecord, user userStat
 	if strings.TrimSpace(report.Comment) != "" {
 		lines = append(lines, "Comment: "+strings.TrimSpace(report.Comment))
 	}
-	lines = append(lines, "", "Reply with buttons: accept, reject, or fix.")
+	lines = append(lines, "", "Accept/Fix will replace this word in SQLite: ai_tutor_lessons payload, vocabulary_words, vocabulary_translations, vocabulary_ai_words, and vocabulary_ai_translations.")
+	lines = append(lines, "Reply with buttons: accept, reject, or fix.")
 	return strings.Join(lines, "\n")
 }
 
@@ -2051,7 +2052,7 @@ func (api *webAPI) handleLessonAnswer(w http.ResponseWriter, r *http.Request) {
 	if err := api.bot.store.addMistakes(user.TelegramID, user.LearningLanguage, entries); err != nil {
 		log.Printf("addMistakes (web lesson) for %d: %v", user.TelegramID, err)
 	}
-	if err := api.bot.store.setMode(user.TelegramID, "idle"); err != nil {
+	if err := api.bot.store.completeLesson(user.TelegramID); err != nil {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
