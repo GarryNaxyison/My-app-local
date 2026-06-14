@@ -365,6 +365,11 @@ func (b *bot) handleUpdate(ctx context.Context, update telegramUpdate) error {
 		}
 		return b.handleSuccessfulPayment(ctx, message.Chat.ID, user, *message.SuccessfulPayment)
 	}
+	if strings.TrimSpace(message.Text) != "" {
+		if handled, err := b.maybeHandleAITutorWordReportFixReply(ctx, message); handled || err != nil {
+			return err
+		}
+	}
 	if blocked, notify, until := b.checkMessageThrottle(message.From.ID, time.Now()); blocked {
 		if notify {
 			user, _ := b.store.getOrCreateUser(message.From.ID, telegramDisplayName(message.From))
@@ -812,6 +817,10 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 	if query.Message != nil {
 		chatID = query.Message.Chat.ID
 		ctx = contextWithTelegramEditTarget(ctx, chatID, query.Message.MessageID)
+	}
+
+	if strings.HasPrefix(query.Data, "ait_word_report|") {
+		return b.handleAITutorWordReportCallback(ctx, query, chatID)
 	}
 
 	if strings.HasPrefix(query.Data, "tz|") {

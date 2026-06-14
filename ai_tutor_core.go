@@ -26,7 +26,14 @@ const (
 	aiTutorStageLessonFeedback = "lesson_feedback"
 	aiTutorStageReviewSchedule = "review_schedule"
 	aiTutorStageComplete       = "complete"
+
+	aiTutorWordReportPending  aiTutorWordReportStatus = "pending"
+	aiTutorWordReportAccepted aiTutorWordReportStatus = "accepted"
+	aiTutorWordReportRejected aiTutorWordReportStatus = "rejected"
+	aiTutorWordReportFixed    aiTutorWordReportStatus = "fixed"
 )
+
+type aiTutorWordReportStatus string
 
 type aiTutorLessonPayload struct {
 	Title                  string                  `json:"title"`
@@ -197,6 +204,30 @@ type aiTutorQualityCheckRecord struct {
 	CreatedAt  string
 }
 
+type aiTutorWordReportRecord struct {
+	ID                  string
+	TelegramID          int64
+	SessionID           string
+	LessonID            string
+	Stage               string
+	WordIndex           int
+	OriginalWord        string
+	OriginalTranslation string
+	ProposedWord        string
+	ProposedTranslation string
+	Comment             string
+	Status              aiTutorWordReportStatus
+	FinalWord           string
+	FinalTranslation    string
+	AdminChatID         string
+	AdminMessageID      int64
+	FixPromptChatID     string
+	FixPromptMessageID  int64
+	CreatedAt           string
+	UpdatedAt           string
+	ResolvedAt          string
+}
+
 func aiTutorLevelBand(level string) string {
 	switch strings.ToUpper(strings.TrimSpace(level)) {
 	case "A1-A2", "B1-B2", "C1-C2":
@@ -362,13 +393,17 @@ func hasAITutorReviewOptions(options []string) bool {
 }
 
 func aiTutorFingerprint(lesson aiTutorLessonPayload) string {
-	seed := strings.ToLower(strings.Join([]string{
+	parts := []string{
 		lesson.LevelBand,
 		lesson.TargetLanguage,
 		lesson.InterfaceLanguage,
 		lesson.Theme,
 		lesson.Story.TextTarget,
-	}, "|"))
+	}
+	for _, word := range lesson.Words {
+		parts = append(parts, strings.TrimSpace(word.ID), strings.TrimSpace(word.Target), strings.TrimSpace(word.InterfaceTranslation))
+	}
+	seed := strings.ToLower(strings.Join(parts, "|"))
 	sum := sha256.Sum256([]byte(seed))
 	return hex.EncodeToString(sum[:])
 }

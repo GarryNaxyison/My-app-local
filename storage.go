@@ -131,6 +131,7 @@ type jsonStore struct {
 	aiTutorAnswers       map[string]aiTutorAnswerRecord
 	aiTutorReviews       map[string]aiTutorReviewRecord
 	aiTutorQualityChecks map[string]aiTutorQualityCheckRecord
+	aiTutorWordReports   map[string]aiTutorWordReportRecord
 }
 
 type leaderboardEntry struct {
@@ -209,6 +210,14 @@ type store interface {
 	userCanRestartAITutorLesson(telegramID int64, lessonID string) (bool, error)
 	saveAITutorAnswer(answer aiTutorAnswerRecord) error
 	saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error
+	createAITutorWordReport(report aiTutorWordReportRecord) (aiTutorWordReportRecord, bool, error)
+	getAITutorWordReport(reportID string) (aiTutorWordReportRecord, bool, error)
+	countAITutorWordReports(telegramID int64, sessionID string, since time.Time) (int, int, error)
+	countAITutorWordReportsSince(since time.Time) (int, error)
+	setAITutorWordReportAdminMessage(reportID string, chatID string, messageID int64) error
+	setAITutorWordReportFixPrompt(reportID string, chatID string, messageID int64) error
+	resolveAITutorWordReport(reportID string, status aiTutorWordReportStatus, finalWord string, finalTranslation string) (aiTutorWordReportRecord, bool, error)
+	findPendingAITutorWordReportByFixPrompt(chatID string, messageID int64) (aiTutorWordReportRecord, bool, error)
 	updateAITutorLessonQuality(lessonID string, status string, postScore int) error
 	scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error
 	clearLegacyTutorLessonBase() error
@@ -247,6 +256,7 @@ func newJSONStore(path string) (*jsonStore, error) {
 		aiTutorAnswers:       map[string]aiTutorAnswerRecord{},
 		aiTutorReviews:       map[string]aiTutorReviewRecord{},
 		aiTutorQualityChecks: map[string]aiTutorQualityCheckRecord{},
+		aiTutorWordReports:   map[string]aiTutorWordReportRecord{},
 	}
 
 	bytes, err := os.ReadFile(path)
@@ -1073,6 +1083,154 @@ func (s *jsonStore) saveAITutorQualityCheck(check aiTutorQualityCheckRecord) err
 	return nil
 }
 
+func (s *jsonStore) createAITutorWordReport(report aiTutorWordReportRecord) (aiTutorWordReportRecord, bool, error) {
+	if strings.TrimSpace(report.ID) == "" {
+		return aiTutorWordReportRecord{}, false, errors.New("ai tutor word report id is empty")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	report.TelegramID = report.TelegramID
+	report.SessionID = strings.TrimSpace(report.SessionID)
+	report.LessonID = strings.TrimSpace(report.LessonID)
+	report.Stage = strings.TrimSpace(report.Stage)
+	if report.Status == "" {
+		report.Status = aiTutorWordReportPending
+	}
+	for _, existing := range s.aiTutorWordReports {
+		if existing.TelegramID == report.TelegramID &&
+			existing.SessionID == report.SessionID &&
+			existing.Stage == report.Stage &&
+			existing.Status == aiTutorWordReportPending {
+			return existing, true, nil
+		}
+	}
+	now := formatDBTime(time.Now().UTC())
+	if report.CreatedAt == "" {
+		report.CreatedAt = now
+	}
+	report.UpdatedAt = now
+	s.aiTutorWordReports[report.ID] = report
+	return report, false, nil
+}
+
+func (s *jsonStore) getAITutorWordReport(reportID string) (aiTutorWordReportRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	report, ok := s.aiTutorWordReports[strings.TrimSpace(reportID)]
+	return report, ok, nil
+}
+
+func (s *jsonStore) countAITutorWordReports(telegramID int64, sessionID string, since time.Time) (int, int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	sessionID = strings.TrimSpace(sessionID)
+	userCount := 0
+	sessionCount := 0
+	for _, report := range s.aiTutorWordReports {
+		if !since.IsZero() && parseDBTime(report.CreatedAt).Before(since.UTC()) {
+			continue
+		}
+		if report.TelegramID == telegramID {
+			userCount++
+		}
+		if sessionID != "" && report.SessionID == sessionID {
+			sessionCount++
+		}
+	}
+	return userCount, sessionCount, nil
+}
+
+func (s *jsonStore) countAITutorWordReportsSince(since time.Time) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	count := 0
+	for _, report := range s.aiTutorWordReports {
+		if since.IsZero() || !parseDBTime(report.CreatedAt).Before(since.UTC()) {
+			count++
+		}
+	}
+	return count, nil
+}
+
+func (s *jsonStore) setAITutorWordReportAdminMessage(reportID string, chatID string, messageID int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	report, ok := s.aiTutorWordReports[strings.TrimSpace(reportID)]
+	if !ok {
+		return errors.New("ai tutor word report not found")
+	}
+	report.AdminChatID = strings.TrimSpace(chatID)
+	report.AdminMessageID = messageID
+	report.UpdatedAt = formatDBTime(time.Now().UTC())
+	s.aiTutorWordReports[report.ID] = report
+	return nil
+}
+
+func (s *jsonStore) setAITutorWordReportFixPrompt(reportID string, chatID string, messageID int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	report, ok := s.aiTutorWordReports[strings.TrimSpace(reportID)]
+	if !ok {
+		return errors.New("ai tutor word report not found")
+	}
+	report.FixPromptChatID = strings.TrimSpace(chatID)
+	report.FixPromptMessageID = messageID
+	report.UpdatedAt = formatDBTime(time.Now().UTC())
+	s.aiTutorWordReports[report.ID] = report
+	return nil
+}
+
+func (s *jsonStore) resolveAITutorWordReport(reportID string, status aiTutorWordReportStatus, finalWord string, finalTranslation string) (aiTutorWordReportRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	report, ok := s.aiTutorWordReports[strings.TrimSpace(reportID)]
+	if !ok {
+		return aiTutorWordReportRecord{}, false, errors.New("ai tutor word report not found")
+	}
+	if report.Status != aiTutorWordReportPending {
+		return report, false, nil
+	}
+	now := formatDBTime(time.Now().UTC())
+	report.Status = status
+	report.FinalWord = strings.TrimSpace(finalWord)
+	report.FinalTranslation = strings.TrimSpace(finalTranslation)
+	report.ResolvedAt = now
+	report.UpdatedAt = now
+	s.aiTutorWordReports[report.ID] = report
+	return report, true, nil
+}
+
+func (s *jsonStore) findPendingAITutorWordReportByFixPrompt(chatID string, messageID int64) (aiTutorWordReportRecord, bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	chatID = strings.TrimSpace(chatID)
+	if chatID == "" || messageID == 0 {
+		return aiTutorWordReportRecord{}, false, nil
+	}
+	for _, report := range s.aiTutorWordReports {
+		if report.Status == aiTutorWordReportPending && report.FixPromptChatID == chatID && report.FixPromptMessageID == messageID {
+			return report, true, nil
+		}
+	}
+	return aiTutorWordReportRecord{}, false, nil
+}
+
 func (s *jsonStore) updateAITutorLessonQuality(lessonID string, status string, postScore int) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -1136,6 +1294,9 @@ func (s *jsonStore) ensureAITutorMapsLocked() {
 	}
 	if s.aiTutorQualityChecks == nil {
 		s.aiTutorQualityChecks = map[string]aiTutorQualityCheckRecord{}
+	}
+	if s.aiTutorWordReports == nil {
+		s.aiTutorWordReports = map[string]aiTutorWordReportRecord{}
 	}
 }
 

@@ -59,6 +59,7 @@ type telegramMessage struct {
 	Chat              telegramChat       `json:"chat"`
 	Text              string             `json:"text"`
 	Caption           string             `json:"caption"`
+	ReplyToMessage    *telegramMessage   `json:"reply_to_message"`
 	Voice             *telegramVoice     `json:"voice"`
 	Photo             []telegramPhoto    `json:"photo"`
 	MediaGroupID      string             `json:"media_group_id"`
@@ -262,6 +263,27 @@ func (c *telegramClient) sendMessageToChat(ctx context.Context, chatID any, text
 		}
 	}
 	return nil
+}
+
+func (c *telegramClient) sendInlineMessageToChat(ctx context.Context, chatID any, text string, keyboard map[string]any) (int64, error) {
+	var firstMessageID int64
+	for _, chunk := range splitTelegramText(text, 3900) {
+		payload := map[string]any{
+			"chat_id": chatID,
+			"text":    chunk,
+		}
+		if keyboard != nil {
+			payload["reply_markup"] = keyboard
+		}
+		messageID, err := c.callMessageID(ctx, "sendMessage", payload)
+		if err != nil {
+			return firstMessageID, err
+		}
+		if firstMessageID == 0 {
+			firstMessageID = messageID
+		}
+	}
+	return firstMessageID, nil
 }
 
 func (c *telegramClient) sendPhotoFile(ctx context.Context, chatID int64, photoPath string, caption string) error {
@@ -1168,33 +1190,41 @@ func reminderSettingsInlineKeyboard(user userState) map[string]any {
 }
 
 func (c *telegramClient) call(ctx context.Context, method string, payload map[string]any) error {
+	_, err := c.callMessageID(ctx, method, payload)
+	return err
+}
+
+func (c *telegramClient) callMessageID(ctx context.Context, method string, payload map[string]any) (int64, error) {
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/"+method, bytes.NewReader(body))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
 	var decoded struct {
-		OK          bool   `json:"ok"`
+		OK     bool `json:"ok"`
+		Result struct {
+			MessageID int64 `json:"message_id"`
+		} `json:"result"`
 		Description string `json:"description"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
-		return err
+		return 0, err
 	}
 	if !decoded.OK {
-		return fmt.Errorf("telegram %s failed: %s", method, decoded.Description)
+		return 0, fmt.Errorf("telegram %s failed: %s", method, decoded.Description)
 	}
-	return nil
+	return decoded.Result.MessageID, nil
 }
 
 func (c *telegramClient) callMultipart(ctx context.Context, method string, contentType string, body io.Reader) error {

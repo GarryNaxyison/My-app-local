@@ -21,6 +21,11 @@ type sqliteStore struct {
 const aiTutorLessonSelectColumns = `id, learning_language, interface_language, exact_level, level_band, theme, status,
 	payload_json, fingerprint, preflight_score, post_score, completion_count, average_rating, created_at, updated_at`
 
+const aiTutorWordReportSelectColumns = `id, telegram_id, session_id, lesson_id, stage, word_index,
+	original_word, original_translation, proposed_word, proposed_translation, comment, status,
+	final_word, final_translation, admin_chat_id, admin_message_id, fix_prompt_chat_id, fix_prompt_message_id,
+	created_at, updated_at, resolved_at`
+
 func openSQLiteDatabase(name string, databasePath string) (*sql.DB, error) {
 	if err := requireNonEmpty(name, databasePath); err != nil {
 		return nil, err
@@ -258,6 +263,29 @@ func (s *sqliteStore) init() error {
 			result_json TEXT NOT NULL,
 			created_at TEXT NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_word_reports (
+			id TEXT PRIMARY KEY,
+			telegram_id INTEGER NOT NULL,
+			session_id TEXT NOT NULL,
+			lesson_id TEXT NOT NULL,
+			stage TEXT NOT NULL,
+			word_index INTEGER NOT NULL,
+			original_word TEXT NOT NULL,
+			original_translation TEXT NOT NULL,
+			proposed_word TEXT NOT NULL,
+			proposed_translation TEXT NOT NULL,
+			comment TEXT NOT NULL DEFAULT '',
+			status TEXT NOT NULL,
+			final_word TEXT NOT NULL DEFAULT '',
+			final_translation TEXT NOT NULL DEFAULT '',
+			admin_chat_id TEXT NOT NULL DEFAULT '',
+			admin_message_id INTEGER NOT NULL DEFAULT 0,
+			fix_prompt_chat_id TEXT NOT NULL DEFAULT '',
+			fix_prompt_message_id INTEGER NOT NULL DEFAULT 0,
+			created_at TEXT NOT NULL,
+			updated_at TEXT NOT NULL,
+			resolved_at TEXT NOT NULL DEFAULT ''
+		)`,
 		`CREATE TABLE IF NOT EXISTS referral_purchase_rewards (
 			payment_id TEXT PRIMARY KEY,
 			buyer_id INTEGER NOT NULL,
@@ -365,6 +393,18 @@ func (s *sqliteStore) init() error {
 		return err
 	}
 	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_reviews_due ON ai_tutor_reviews(status, due_at, telegram_id)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_word_reports_user_created ON ai_tutor_word_reports(telegram_id, created_at)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_word_reports_session_created ON ai_tutor_word_reports(session_id, created_at)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_word_reports_status_created ON ai_tutor_word_reports(status, created_at)`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_tutor_word_reports_pending_unique ON ai_tutor_word_reports(telegram_id, session_id, stage) WHERE status = 'pending'`); err != nil {
 		return err
 	}
 	if err := s.clearLegacyTutorLessonBase(); err != nil {
@@ -2051,6 +2091,257 @@ func (s *sqliteStore) saveAITutorAnswer(answer aiTutorAnswerRecord) error {
 	return err
 }
 
+func (s *sqliteStore) createAITutorWordReport(report aiTutorWordReportRecord) (aiTutorWordReportRecord, bool, error) {
+	report.ID = strings.TrimSpace(report.ID)
+	if report.ID == "" {
+		return aiTutorWordReportRecord{}, false, errors.New("ai tutor word report id is empty")
+	}
+	report.SessionID = strings.TrimSpace(report.SessionID)
+	report.LessonID = strings.TrimSpace(report.LessonID)
+	report.Stage = strings.TrimSpace(report.Stage)
+	report.OriginalWord = strings.TrimSpace(report.OriginalWord)
+	report.OriginalTranslation = strings.TrimSpace(report.OriginalTranslation)
+	report.ProposedWord = strings.TrimSpace(report.ProposedWord)
+	report.ProposedTranslation = strings.TrimSpace(report.ProposedTranslation)
+	report.Comment = strings.TrimSpace(report.Comment)
+	if report.Status == "" {
+		report.Status = aiTutorWordReportPending
+	}
+	if existing, ok, err := s.findPendingAITutorWordReportByScope(report.TelegramID, report.SessionID, report.Stage); err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	} else if ok {
+		return existing, true, nil
+	}
+	now := formatDBTime(time.Now().UTC())
+	if report.CreatedAt == "" {
+		report.CreatedAt = now
+	}
+	report.UpdatedAt = now
+	_, err := s.db.Exec(
+		`INSERT INTO ai_tutor_word_reports (
+			id, telegram_id, session_id, lesson_id, stage, word_index,
+			original_word, original_translation, proposed_word, proposed_translation, comment, status,
+			final_word, final_translation, admin_chat_id, admin_message_id, fix_prompt_chat_id, fix_prompt_message_id,
+			created_at, updated_at, resolved_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		report.ID,
+		report.TelegramID,
+		report.SessionID,
+		report.LessonID,
+		report.Stage,
+		report.WordIndex,
+		report.OriginalWord,
+		report.OriginalTranslation,
+		report.ProposedWord,
+		report.ProposedTranslation,
+		report.Comment,
+		string(report.Status),
+		strings.TrimSpace(report.FinalWord),
+		strings.TrimSpace(report.FinalTranslation),
+		strings.TrimSpace(report.AdminChatID),
+		report.AdminMessageID,
+		strings.TrimSpace(report.FixPromptChatID),
+		report.FixPromptMessageID,
+		report.CreatedAt,
+		report.UpdatedAt,
+		strings.TrimSpace(report.ResolvedAt),
+	)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "constraint") {
+			if existing, ok, lookupErr := s.findPendingAITutorWordReportByScope(report.TelegramID, report.SessionID, report.Stage); lookupErr != nil {
+				return aiTutorWordReportRecord{}, false, lookupErr
+			} else if ok {
+				return existing, true, nil
+			}
+		}
+		return aiTutorWordReportRecord{}, false, err
+	}
+	created, ok, err := s.getAITutorWordReport(report.ID)
+	if err != nil || !ok {
+		return created, false, err
+	}
+	return created, false, nil
+}
+
+func (s *sqliteStore) findPendingAITutorWordReportByScope(telegramID int64, sessionID string, stage string) (aiTutorWordReportRecord, bool, error) {
+	row := s.db.QueryRow(
+		`SELECT `+aiTutorWordReportSelectColumns+`
+		FROM ai_tutor_word_reports
+		WHERE telegram_id = ? AND session_id = ? AND stage = ? AND status = ?
+		LIMIT 1`,
+		telegramID,
+		strings.TrimSpace(sessionID),
+		strings.TrimSpace(stage),
+		string(aiTutorWordReportPending),
+	)
+	report, err := scanAITutorWordReportRecord(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorWordReportRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	}
+	return report, true, nil
+}
+
+func (s *sqliteStore) getAITutorWordReport(reportID string) (aiTutorWordReportRecord, bool, error) {
+	row := s.db.QueryRow(
+		`SELECT `+aiTutorWordReportSelectColumns+`
+		FROM ai_tutor_word_reports
+		WHERE id = ?`,
+		strings.TrimSpace(reportID),
+	)
+	report, err := scanAITutorWordReportRecord(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorWordReportRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	}
+	return report, true, nil
+}
+
+func (s *sqliteStore) countAITutorWordReports(telegramID int64, sessionID string, since time.Time) (int, int, error) {
+	sessionID = strings.TrimSpace(sessionID)
+	userQuery := `SELECT COUNT(*) FROM ai_tutor_word_reports WHERE telegram_id = ?`
+	userArgs := []any{telegramID}
+	sessionQuery := `SELECT COUNT(*) FROM ai_tutor_word_reports WHERE session_id = ?`
+	sessionArgs := []any{sessionID}
+	if !since.IsZero() {
+		sinceText := formatDBTime(since.UTC())
+		userQuery += ` AND created_at >= ?`
+		userArgs = append(userArgs, sinceText)
+		sessionQuery += ` AND created_at >= ?`
+		sessionArgs = append(sessionArgs, sinceText)
+	}
+	var userCount int
+	if err := s.db.QueryRow(userQuery, userArgs...).Scan(&userCount); err != nil {
+		return 0, 0, err
+	}
+	var sessionCount int
+	if err := s.db.QueryRow(sessionQuery, sessionArgs...).Scan(&sessionCount); err != nil {
+		return 0, 0, err
+	}
+	return userCount, sessionCount, nil
+}
+
+func (s *sqliteStore) countAITutorWordReportsSince(since time.Time) (int, error) {
+	query := `SELECT COUNT(*) FROM ai_tutor_word_reports`
+	args := []any{}
+	if !since.IsZero() {
+		query += ` WHERE created_at >= ?`
+		args = append(args, formatDBTime(since.UTC()))
+	}
+	var count int
+	if err := s.db.QueryRow(query, args...).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *sqliteStore) setAITutorWordReportAdminMessage(reportID string, chatID string, messageID int64) error {
+	return s.updateAITutorWordReportMessageFields(reportID, "admin_chat_id", "admin_message_id", chatID, messageID)
+}
+
+func (s *sqliteStore) setAITutorWordReportFixPrompt(reportID string, chatID string, messageID int64) error {
+	return s.updateAITutorWordReportMessageFields(reportID, "fix_prompt_chat_id", "fix_prompt_message_id", chatID, messageID)
+}
+
+func (s *sqliteStore) updateAITutorWordReportMessageFields(reportID string, chatColumn string, messageColumn string, chatID string, messageID int64) error {
+	switch chatColumn {
+	case "admin_chat_id", "fix_prompt_chat_id":
+	default:
+		return errors.New("invalid ai tutor word report chat column")
+	}
+	switch messageColumn {
+	case "admin_message_id", "fix_prompt_message_id":
+	default:
+		return errors.New("invalid ai tutor word report message column")
+	}
+	result, err := s.db.Exec(
+		`UPDATE ai_tutor_word_reports SET `+chatColumn+` = ?, `+messageColumn+` = ?, updated_at = ? WHERE id = ?`,
+		strings.TrimSpace(chatID),
+		messageID,
+		formatDBTime(time.Now().UTC()),
+		strings.TrimSpace(reportID),
+	)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return errors.New("ai tutor word report not found")
+	}
+	return nil
+}
+
+func (s *sqliteStore) resolveAITutorWordReport(reportID string, status aiTutorWordReportStatus, finalWord string, finalTranslation string) (aiTutorWordReportRecord, bool, error) {
+	reportID = strings.TrimSpace(reportID)
+	if reportID == "" {
+		return aiTutorWordReportRecord{}, false, errors.New("ai tutor word report id is empty")
+	}
+	switch status {
+	case aiTutorWordReportAccepted, aiTutorWordReportRejected, aiTutorWordReportFixed:
+	default:
+		return aiTutorWordReportRecord{}, false, errors.New("invalid ai tutor word report status")
+	}
+	now := formatDBTime(time.Now().UTC())
+	result, err := s.db.Exec(
+		`UPDATE ai_tutor_word_reports
+		SET status = ?, final_word = ?, final_translation = ?, resolved_at = ?, updated_at = ?
+		WHERE id = ? AND status = ?`,
+		string(status),
+		strings.TrimSpace(finalWord),
+		strings.TrimSpace(finalTranslation),
+		now,
+		now,
+		reportID,
+		string(aiTutorWordReportPending),
+	)
+	if err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	}
+	report, ok, err := s.getAITutorWordReport(reportID)
+	if err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	}
+	if !ok {
+		return aiTutorWordReportRecord{}, false, errors.New("ai tutor word report not found")
+	}
+	return report, rows > 0, nil
+}
+
+func (s *sqliteStore) findPendingAITutorWordReportByFixPrompt(chatID string, messageID int64) (aiTutorWordReportRecord, bool, error) {
+	chatID = strings.TrimSpace(chatID)
+	if chatID == "" || messageID == 0 {
+		return aiTutorWordReportRecord{}, false, nil
+	}
+	row := s.db.QueryRow(
+		`SELECT `+aiTutorWordReportSelectColumns+`
+		FROM ai_tutor_word_reports
+		WHERE fix_prompt_chat_id = ? AND fix_prompt_message_id = ? AND status = ?
+		LIMIT 1`,
+		chatID,
+		messageID,
+		string(aiTutorWordReportPending),
+	)
+	report, err := scanAITutorWordReportRecord(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorWordReportRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorWordReportRecord{}, false, err
+	}
+	return report, true, nil
+}
+
 func (s *sqliteStore) saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error {
 	if strings.TrimSpace(check.ID) == "" {
 		return errors.New("ai tutor quality check id is empty")
@@ -2185,6 +2476,39 @@ func scanAITutorLessonRecord(scanner aiTutorLessonScanner) (aiTutorLessonRecord,
 		return aiTutorLessonRecord{}, err
 	}
 	return lesson, nil
+}
+
+func scanAITutorWordReportRecord(scanner aiTutorLessonScanner) (aiTutorWordReportRecord, error) {
+	var report aiTutorWordReportRecord
+	var status string
+	err := scanner.Scan(
+		&report.ID,
+		&report.TelegramID,
+		&report.SessionID,
+		&report.LessonID,
+		&report.Stage,
+		&report.WordIndex,
+		&report.OriginalWord,
+		&report.OriginalTranslation,
+		&report.ProposedWord,
+		&report.ProposedTranslation,
+		&report.Comment,
+		&status,
+		&report.FinalWord,
+		&report.FinalTranslation,
+		&report.AdminChatID,
+		&report.AdminMessageID,
+		&report.FixPromptChatID,
+		&report.FixPromptMessageID,
+		&report.CreatedAt,
+		&report.UpdatedAt,
+		&report.ResolvedAt,
+	)
+	if err != nil {
+		return aiTutorWordReportRecord{}, err
+	}
+	report.Status = aiTutorWordReportStatus(status)
+	return report, nil
 }
 
 func (s *sqliteStore) referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error) {

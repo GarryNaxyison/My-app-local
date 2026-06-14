@@ -654,6 +654,60 @@ func TestWebLearnedWordPronunciationStaysFree(t *testing.T) {
 	}
 }
 
+func TestPronunciationCheckRequiresPremiumBeforeProviderCall(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	api.cfg.OpenRouterSTTModel = "openai/gpt-4o-transcribe"
+	api.cfg.OpenRouterTTSModel = "google/gemini-3.1-flash-tts-preview"
+	api.cfg.OpenRouterPronunciationAudioModel = "google/gemini-2.5-pro"
+	api.bot.cfg = api.cfg
+	providerCalled := false
+	api.bot.openrouter = newOpenRouterClient("test-key", "google/gemini-3.1-flash", "http://localhost", "test", &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		providerCalled = true
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"application/json"}},
+			Body:       io.NopCloser(bytes.NewBufferString(`{"choices":[{"message":{"content":"{}"}}]}`)),
+		}, nil
+	})})
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	if err := writer.WriteField("target", "Good morning"); err != nil {
+		t.Fatal(err)
+	}
+	part, err := writer.CreateFormFile("voice", "voice.webm")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := part.Write([]byte("fake webm audio")); err != nil {
+		t.Fatal(err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatal(err)
+	}
+	request := httptest.NewRequest(http.MethodPost, "/api/pronunciation/check", &body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	request.AddCookie(cookie)
+	recorder := httptest.NewRecorder()
+	mux := http.NewServeMux()
+	api.register(mux)
+	mux.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusPaymentRequired {
+		t.Fatalf("pronunciation check status = %d body=%s, want 402", recorder.Code, recorder.Body.String())
+	}
+	if providerCalled {
+		t.Fatal("pronunciation provider was called for a free user")
+	}
+	user, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if user.VoiceToday != 0 {
+		t.Fatalf("free pronunciation check consumed voice budget: %d", user.VoiceToday)
+	}
+}
+
 func TestWebPhrasebookPersistsInStoreAndSession(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	saved := requestJSON(t, api, cookie, http.MethodPost, "/api/phrasebook", map[string]any{
@@ -1598,6 +1652,155 @@ func TestWebAITutorRestartRejectsUnrelatedLesson(t *testing.T) {
 	status, body := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/ai-tutor/restart", map[string]any{"lesson_id": lesson.ID})
 	if status != http.StatusForbidden {
 		t.Fatalf("restart status = %d body=%#v, want 403", status, body)
+	}
+}
+
+func TestAITutorWordReportCreatesTelegramNotificationAndSkipsWord(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
+	var telegramPayloads []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode telegram payload: %v", err)
+		}
+		telegramPayloads = append(telegramPayloads, payload)
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":77}}`))
+	}))
+	defer server.Close()
+	api.cfg.TelegramOpsRecipients = []telegramOpsRecipient{{ChatID: "12345"}}
+	api.bot.cfg = api.cfg
+	api.bot.telegram = &telegramClient{baseURL: server.URL, http: server.Client()}
+
+	lesson := aiTutorLessonRecord{ID: "lesson-word-report-web", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	if err := store.createAITutorSession(aiTutorSessionRecord{ID: "session-word-report-web", TelegramID: -42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorWordLearnStage(1), Status: aiTutorSessionActive}); err != nil {
+		t.Fatalf("createAITutorSession() error = %v", err)
+	}
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/word-report", map[string]any{
+		"session_id":           "session-word-report-web",
+		"stage":                aiTutorWordLearnStage(1),
+		"proposed_word":        "get up",
+		"proposed_translation": "vstavat",
+		"comment":              "more natural phrase",
+	})
+	if body["current_stage"] != aiTutorWordLearnStage(2) {
+		t.Fatalf("current_stage = %#v response=%#v, want %s", body["current_stage"], body, aiTutorWordLearnStage(2))
+	}
+	next, _ := body["next_step"].(map[string]any)
+	if next["stage"] != aiTutorWordLearnStage(2) || next["kind"] != "word_learn" {
+		t.Fatalf("next_step = %#v, want next word learn step", next)
+	}
+	report, ok, err := store.findPendingAITutorWordReportByFixPrompt("", 0)
+	if err != nil {
+		t.Fatalf("findPendingAITutorWordReportByFixPrompt(empty) error = %v", err)
+	}
+	if ok {
+		t.Fatalf("empty fix prompt should not match report: %#v", report)
+	}
+	userCount, sessionCount, err := store.countAITutorWordReports(-42, "session-word-report-web", time.Now().UTC().Add(-10*time.Minute))
+	if err != nil {
+		t.Fatalf("countAITutorWordReports() error = %v", err)
+	}
+	if userCount != 1 || sessionCount != 1 {
+		t.Fatalf("report counts user=%d session=%d, want 1/1", userCount, sessionCount)
+	}
+	var stored aiTutorWordReportRecord
+	rows, err := store.db.Query(`SELECT ` + aiTutorWordReportSelectColumns + ` FROM ai_tutor_word_reports`)
+	if err != nil {
+		t.Fatalf("query reports: %v", err)
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		t.Fatal("expected stored report row")
+	}
+	stored, err = scanAITutorWordReportRecord(rows)
+	if err != nil {
+		t.Fatalf("scan stored report: %v", err)
+	}
+	if stored.OriginalWord != "wake up" || stored.ProposedWord != "get up" || stored.ProposedTranslation != "vstavat" || stored.WordIndex != 0 {
+		t.Fatalf("stored report mismatch: %#v", stored)
+	}
+	if len(telegramPayloads) == 0 {
+		t.Fatal("expected telegram ops notification")
+	}
+	text, _ := telegramPayloads[0]["text"].(string)
+	if !strings.Contains(text, stored.ID) || !strings.Contains(text, "wake up - prosypatsya") || !strings.Contains(text, "get up - vstavat") {
+		t.Fatalf("telegram text missing report details: %q", text)
+	}
+	keyboardJSON, _ := json.Marshal(telegramPayloads[0]["reply_markup"])
+	for _, want := range []string{"ait_word_report|" + stored.ID + "|accept", "ait_word_report|" + stored.ID + "|reject", "ait_word_report|" + stored.ID + "|fix"} {
+		if !strings.Contains(string(keyboardJSON), want) {
+			t.Fatalf("telegram keyboard missing %q: %s", want, string(keyboardJSON))
+		}
+	}
+}
+
+func TestAITutorWordReportRejectsStaleStage(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
+	calledTelegram := false
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calledTelegram = true
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+	api.bot.telegram = &telegramClient{baseURL: server.URL, http: server.Client()}
+	lesson := aiTutorLessonRecord{ID: "lesson-word-report-stale", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	if err := store.createAITutorSession(aiTutorSessionRecord{ID: "session-word-report-stale", TelegramID: -42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorWordLearnStage(2), Status: aiTutorSessionActive}); err != nil {
+		t.Fatalf("createAITutorSession() error = %v", err)
+	}
+
+	status, response := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/ai-tutor/word-report", map[string]any{
+		"session_id":           "session-word-report-stale",
+		"stage":                aiTutorWordLearnStage(1),
+		"proposed_word":        "get up",
+		"proposed_translation": "vstavat",
+	})
+	if status != http.StatusConflict {
+		t.Fatalf("stale report status=%d response=%#v, want 409", status, response)
+	}
+	if calledTelegram {
+		t.Fatal("stale report should not send telegram notification")
+	}
+}
+
+func TestAITutorWordReportRateLimitsUser(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	grantTestPremium(t, store, -42)
+	lesson := aiTutorLessonRecord{ID: "lesson-word-report-rate", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	for index := 1; index <= 3; index++ {
+		sessionID := "session-word-report-rate-" + strconv.Itoa(index)
+		if err := store.createAITutorSession(aiTutorSessionRecord{ID: sessionID, TelegramID: -42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorWordLearnStage(index), Status: aiTutorSessionActive}); err != nil {
+			t.Fatalf("createAITutorSession(%s) error = %v", sessionID, err)
+		}
+		requestJSON(t, api, cookie, http.MethodPost, "/api/ai-tutor/word-report", map[string]any{
+			"session_id":           sessionID,
+			"stage":                aiTutorWordLearnStage(index),
+			"proposed_word":        "word " + strconv.Itoa(index),
+			"proposed_translation": "translation " + strconv.Itoa(index),
+		})
+	}
+	if err := store.createAITutorSession(aiTutorSessionRecord{ID: "session-word-report-rate-4", TelegramID: -42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorWordLearnStage(4), Status: aiTutorSessionActive}); err != nil {
+		t.Fatalf("createAITutorSession(rate-4) error = %v", err)
+	}
+	status, response := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/ai-tutor/word-report", map[string]any{
+		"session_id":           "session-word-report-rate-4",
+		"stage":                aiTutorWordLearnStage(4),
+		"proposed_word":        "word 4",
+		"proposed_translation": "translation 4",
+	})
+	if status != http.StatusTooManyRequests {
+		t.Fatalf("rate-limited report status=%d response=%#v, want 429", status, response)
 	}
 }
 

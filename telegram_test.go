@@ -322,6 +322,189 @@ func TestTelegramAITutorCallbackRoutesToActiveSession(t *testing.T) {
 	}
 }
 
+func TestTelegramAITutorWordReportAcceptAppliesCorrection(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":91}}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-accept",
+		From:    telegramUser{ID: 999, FirstName: "Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 999}},
+		Data:    "ait_word_report|" + report.ID + "|accept",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(accept) error = %v", err)
+	}
+
+	resolved, ok, err := store.getAITutorWordReport(report.ID)
+	if err != nil || !ok {
+		t.Fatalf("getAITutorWordReport() ok=%v err=%v", ok, err)
+	}
+	if resolved.Status != aiTutorWordReportAccepted || resolved.FinalWord != report.ProposedWord || resolved.FinalTranslation != report.ProposedTranslation {
+		t.Fatalf("resolved report mismatch: %#v", resolved)
+	}
+	lesson, ok, err := store.getAITutorLesson(report.LessonID)
+	if err != nil || !ok {
+		t.Fatalf("getAITutorLesson() ok=%v err=%v", ok, err)
+	}
+	if got := lesson.Payload.Words[0].Target; got != report.ProposedWord {
+		t.Fatalf("lesson word target = %q, want %q", got, report.ProposedWord)
+	}
+	if got := lesson.Payload.Words[0].InterfaceTranslation; got != report.ProposedTranslation {
+		t.Fatalf("lesson word translation = %q, want %q", got, report.ProposedTranslation)
+	}
+}
+
+func TestTelegramAITutorWordReportRejectDoesNotMutateLesson(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-reject",
+		From:    telegramUser{ID: 999, FirstName: "Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 999}},
+		Data:    "ait_word_report|" + report.ID + "|reject",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(reject) error = %v", err)
+	}
+
+	resolved, _, _ := store.getAITutorWordReport(report.ID)
+	if resolved.Status != aiTutorWordReportRejected {
+		t.Fatalf("status = %q, want rejected", resolved.Status)
+	}
+	lesson, _, _ := store.getAITutorLesson(report.LessonID)
+	if got := lesson.Payload.Words[0].Target; got != report.OriginalWord {
+		t.Fatalf("reject mutated lesson word target = %q, want %q", got, report.OriginalWord)
+	}
+}
+
+func TestTelegramAITutorWordReportFixReplyAppliesCorrection(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	var promptMessageID int64
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&payload)
+		if text, _ := payload["text"].(string); strings.Contains(text, "word - translation") {
+			promptMessageID = 91
+		}
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":91}}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-fix",
+		From:    telegramUser{ID: 999, FirstName: "Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 999}},
+		Data:    "ait_word_report|" + report.ID + "|fix",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(fix) error = %v", err)
+	}
+	if promptMessageID == 0 {
+		t.Fatal("expected fix prompt message")
+	}
+
+	if err := b.handleUpdate(context.Background(), telegramUpdate{Message: &telegramMessage{
+		MessageID: 92,
+		From:      telegramUser{ID: 999, FirstName: "Admin"},
+		Chat:      telegramChat{ID: 999},
+		Text:      "rise - podnimatsya",
+		ReplyToMessage: &telegramMessage{
+			MessageID: promptMessageID,
+			Chat:      telegramChat{ID: 999},
+		},
+	}}); err != nil {
+		t.Fatalf("handleUpdate(fix reply) error = %v", err)
+	}
+
+	resolved, _, _ := store.getAITutorWordReport(report.ID)
+	if resolved.Status != aiTutorWordReportFixed || resolved.FinalWord != "rise" || resolved.FinalTranslation != "podnimatsya" {
+		t.Fatalf("fixed report mismatch: %#v", resolved)
+	}
+	lesson, _, _ := store.getAITutorLesson(report.LessonID)
+	if got := lesson.Payload.Words[0].Target; got != "rise" {
+		t.Fatalf("fixed lesson word target = %q, want rise", got)
+	}
+}
+
+func TestTelegramAITutorWordReportAdminOnly(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-intruder",
+		From:    telegramUser{ID: 123, FirstName: "Not Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 123}},
+		Data:    "ait_word_report|" + report.ID + "|accept",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(non-admin) error = %v", err)
+	}
+	stored, _, _ := store.getAITutorWordReport(report.ID)
+	if stored.Status != aiTutorWordReportPending {
+		t.Fatalf("non-admin changed report status to %q", stored.Status)
+	}
+}
+
+func newAITutorWordReportModerationFixture(t *testing.T) (*sqliteStore, aiTutorWordReportRecord) {
+	t.Helper()
+	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "telegram-report.sqlite"), "")
+	if err != nil {
+		t.Fatalf("newSQLiteStore() error = %v", err)
+	}
+	t.Cleanup(func() { _ = store.db.Close() })
+	lesson := aiTutorLessonRecord{ID: "lesson-report-telegram", LearningLanguage: "en", InterfaceLanguage: "ru", ExactLevel: "A1", LevelBand: "A1-A2", Status: aiTutorStatusApproved, Payload: validAITutorLessonPayloadForTest()}
+	if err := store.saveAITutorLesson(lesson); err != nil {
+		t.Fatalf("saveAITutorLesson() error = %v", err)
+	}
+	if err := store.createAITutorSession(aiTutorSessionRecord{ID: "session-report-telegram", TelegramID: 42, LessonID: lesson.ID, Surface: "web", CurrentStage: aiTutorWordLearnStage(1), Status: aiTutorSessionActive}); err != nil {
+		t.Fatalf("createAITutorSession() error = %v", err)
+	}
+	report, _, err := store.createAITutorWordReport(aiTutorWordReportRecord{
+		ID:                  "aitwr-telegram-1",
+		TelegramID:          42,
+		SessionID:           "session-report-telegram",
+		LessonID:            lesson.ID,
+		Stage:               aiTutorWordLearnStage(1),
+		WordIndex:           0,
+		OriginalWord:        "wake up",
+		OriginalTranslation: "prosypatsya",
+		ProposedWord:        "get up",
+		ProposedTranslation: "vstavat",
+		Status:              aiTutorWordReportPending,
+	})
+	if err != nil {
+		t.Fatalf("createAITutorWordReport() error = %v", err)
+	}
+	return store, report
+}
+
 func TestFormatTelegramTutorLessonIncludesTeachingPointAndFinalCheck(t *testing.T) {
 	user := userState{InterfaceLanguage: "en", LearningLanguage: "en", Level: "A1"}
 	lesson, err := buildTutorLessonForSequence(user, 4)

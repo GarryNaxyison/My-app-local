@@ -42,11 +42,11 @@ docs/superpowers/specs/2026-06-14-ai-tutor-word-report-admin-fix-design.md
 
 ## Task 1: Add Failing Store Tests for Word Reports
 
-- [ ] Add tests in `ai_tutor_store_test.go` before production code.
-- [ ] Cover creating a pending report for a lesson/session word.
-- [ ] Cover duplicate pending dedupe for the same user/session/stage.
-- [ ] Cover status transition from `pending` to `accepted`/`rejected`/`fixed`.
-- [ ] Cover the moderation prompt message id storage used for admin reply handling.
+- [x] Add tests in `ai_tutor_store_test.go` before production code.
+- [x] Cover creating a pending report for a lesson/session word.
+- [x] Cover duplicate pending dedupe for the same user/session/stage.
+- [x] Cover status transition from `pending` to `accepted`/`rejected`/`fixed`.
+- [x] Cover the moderation prompt message id storage used for admin reply handling.
 
 Target test names:
 
@@ -78,12 +78,12 @@ Implementation notes for tests:
 
 ## Task 2: Implement Store Model and SQLite Persistence
 
-- [ ] Add report status constants and record types in `ai_tutor_core.go`.
-- [ ] Add report methods to `storage` in `storage.go`.
-- [ ] Implement SQLite schema migration in `sqlite_store.go`.
-- [ ] Implement report create/read/status/message helpers in `sqlite_store.go`.
-- [ ] Implement minimal `jsonStore` methods so tests and bot helpers that use `storage` still compile.
-- [ ] Re-run the Task 1 tests and make them pass.
+- [x] Add report status constants and record types in `ai_tutor_core.go`.
+- [x] Add report methods to `storage` in `storage.go`.
+- [x] Implement SQLite schema migration in `sqlite_store.go`.
+- [x] Implement report create/read/status/message helpers in `sqlite_store.go`.
+- [x] Implement minimal `jsonStore` methods so tests and bot helpers that use `storage` still compile.
+- [x] Re-run the Task 1 tests and make them pass.
 
 Data model:
 
@@ -179,11 +179,11 @@ The boolean return from `createAITutorWordReport` is `true` when the returned ro
 
 ## Task 3: Add Failing Backend API Tests
 
-- [ ] Add web API tests in `web_api_feature_test.go` before implementation.
-- [ ] Cover successful report submission from current `word_learn_N`.
-- [ ] Cover validation failure when reported stage is not the current session stage.
-- [ ] Cover rate limits and duplicate report handling.
-- [ ] Cover that report submission advances the current stage so the next tutor fetch shows the next learning item.
+- [x] Add web API tests in `web_api_feature_test.go` before implementation.
+- [x] Cover successful report submission from current `word_learn_N`.
+- [x] Cover validation failure when reported stage is not the current session stage.
+- [x] Cover rate limits and duplicate report handling.
+- [x] Cover that report submission advances the current stage so the next tutor fetch shows the next learning item.
 
 Target test names:
 
@@ -229,26 +229,26 @@ Expected failure before implementation:
 
 ## Task 4: Implement Backend Report Endpoint
 
-- [ ] Register `POST /api/ai-tutor/word-report` in `web_api.go`.
-- [ ] Parse small JSON only; reject unknown large/multipart payloads.
-- [ ] Authenticate with existing web auth/session helpers.
-- [ ] Load the session and lesson, verify the requester owns the session.
-- [ ] Require the supplied stage to equal the current session stage.
-- [ ] Parse `word_learn_N` and load the corresponding `aiTutorWord`.
-- [ ] Trim and validate:
+- [x] Register `POST /api/ai-tutor/word-report` in `web_api.go`.
+- [x] Parse small JSON only; reject unknown large/multipart payloads.
+- [x] Authenticate with existing web auth/session helpers.
+- [x] Load the session and lesson, verify the requester owns the session.
+- [x] Require the supplied stage to equal the current session stage.
+- [x] Parse `word_learn_N` and load the corresponding `aiTutorWord`.
+- [x] Trim and validate:
   - proposed word: `1..80`
   - proposed translation: `1..160`
   - comment: `0..500`
-- [ ] Enforce anti-abuse before Telegram:
+- [x] Enforce anti-abuse before Telegram:
   - user burst: max `3` reports per `10m`
   - user daily: max `10` reports per `24h`
   - session total: max `2` reports
   - global Telegram send burst: max `30` notifications per `10m`
   - duplicate pending same user/session/stage returns existing report and still advances the session once
-- [ ] Store the report.
-- [ ] Send Telegram ops notification only if the global notification budget allows it.
-- [ ] Advance current stage with the existing `aiTutorNextStage` logic so the reported word is skipped.
-- [ ] Return the same response envelope as AI Tutor answer/start endpoints for the next step.
+- [x] Store the report.
+- [x] Send Telegram ops notification only if the global notification budget allows it.
+- [x] Advance current stage with the existing `aiTutorNextStage` logic so the reported word is skipped.
+- [x] Return the same response envelope as AI Tutor answer/start endpoints for the next step.
 
 Notification text should include:
 
@@ -274,12 +274,12 @@ ait_word_report|<report_id>|fix
 
 ## Task 5: Add Failing Telegram Moderation Tests
 
-- [ ] Add Telegram callback tests in `telegram_test.go` before implementation.
-- [ ] Cover admin accept applies the proposed word and translation.
-- [ ] Cover admin reject marks the report rejected and does not mutate content.
-- [ ] Cover admin fix sends a prompt and admin reply `word - translation` applies that override.
-- [ ] Cover non-admin callback/reply is ignored or rejected.
-- [ ] Cover duplicate callbacks are idempotent.
+- [x] Add Telegram callback tests in `telegram_test.go` before implementation.
+- [x] Cover admin accept applies the proposed word and translation.
+- [x] Cover admin reject marks the report rejected and does not mutate content.
+- [x] Cover admin fix sends a prompt and admin reply `word - translation` applies that override.
+- [x] Cover non-admin callback/reply is ignored or rejected.
+- [x] Cover duplicate callbacks are idempotent.
 
 Target test names:
 
@@ -306,29 +306,29 @@ unknown callback
 
 ## Task 6: Implement Telegram Admin Moderation
 
-- [ ] Extend `telegramMessage` in `telegram.go` with `ReplyToMessage`.
-- [ ] Add Telegram client helper that sends a text message and returns Telegram `message_id`.
-- [ ] Add Telegram client helper that sends an inline keyboard and returns `message_id`, or update existing inline helper safely.
-- [ ] In `bot.handleCallbackQuery`, route `ait_word_report|...` callback data.
-- [ ] Allow only Telegram ops recipients from existing `telegramOpsRecipients`.
-- [ ] For `accept`:
+- [x] Extend `telegramMessage` in `telegram.go` with `ReplyToMessage`.
+- [x] Add Telegram client helper that sends a text message and returns Telegram `message_id`.
+- [x] Add Telegram client helper that sends an inline keyboard and returns `message_id`, or update existing inline helper safely.
+- [x] In `bot.handleCallbackQuery`, route `ait_word_report|...` callback data.
+- [x] Allow only Telegram ops recipients from existing `telegramOpsRecipients`.
+- [x] For `accept`:
   - resolve report to `accepted`
   - apply `ProposedWord`/`ProposedTranslation`
   - answer callback and send short admin confirmation
-- [ ] For `reject`:
+- [x] For `reject`:
   - resolve report to `rejected`
   - do not mutate lesson/vocabulary
   - answer callback and send short admin confirmation
-- [ ] For `fix`:
+- [x] For `fix`:
   - send prompt: `Ответьте на это сообщение в формате: word - translation`
   - store the prompt chat id and message id on the report
-- [ ] In `bot.handleMessage`, before normal user text handling, detect admin replies to a stored fix prompt.
-- [ ] Parse the first supported separator:
+- [x] In `bot.handleMessage`, before normal user text handling, detect admin replies to a stored fix prompt.
+- [x] Parse the first supported separator:
   - `" - "`
   - `" — "`
   - `"-"` as a fallback after trim
-- [ ] Validate final word/translation with the same caps as user report fields.
-- [ ] Resolve report to `fixed` and apply the admin override.
+- [x] Validate final word/translation with the same caps as user report fields.
+- [x] Resolve report to `fixed` and apply the admin override.
 
 Idempotency:
 
@@ -339,10 +339,10 @@ Idempotency:
 
 ## Task 7: Add Failing Correction Application Tests
 
-- [ ] Add focused tests for applying accepted/fixed corrections.
-- [ ] Verify both the AI Tutor lesson payload and vocabulary runtime are updated.
-- [ ] Verify lesson fingerprint changes after the payload mutation.
-- [ ] Verify audio target text follows the corrected learning-language word.
+- [x] Add focused tests for applying accepted/fixed corrections.
+- [x] Verify both the AI Tutor lesson payload and vocabulary runtime are updated.
+- [x] Verify lesson fingerprint changes after the payload mutation.
+- [x] Verify audio target text follows the corrected learning-language word.
 
 Target test names:
 
@@ -374,18 +374,18 @@ Vocabulary assertions:
 
 ## Task 8: Implement Correction Application Across Both Layers
 
-- [ ] Add `applyAITutorWordReportCorrection(ctx, store, report, finalWord, finalTranslation, now)` helper.
-- [ ] Load the lesson record by `report.LessonID`.
-- [ ] Mutate `lesson.Payload.Words[report.WordIndex]`:
+- [x] Add `applyAITutorWordReportCorrection(ctx, store, report, finalWord, finalTranslation, now)` helper.
+- [x] Load the lesson record by `report.LessonID`.
+- [x] Mutate `lesson.Payload.Words[report.WordIndex]`:
   - preserve `ID`
   - set `Target`
   - set `InterfaceTranslation`
   - set `AudioTextTarget`
   - keep existing examples unless an exact occurrence replacement is safe
-- [ ] Recompute lesson fingerprint with the existing lesson fingerprint helper.
-- [ ] Save the updated lesson via `saveAITutorLesson`.
-- [ ] Update the SQLite vocabulary runtime through a helper in `vocabulary_sqlite.go`.
-- [ ] Keep vocabulary helper tolerant of missing rows by creating the AI mutable row where possible.
+- [x] Recompute lesson fingerprint with the existing lesson fingerprint helper.
+- [x] Save the updated lesson via `saveAITutorLesson`.
+- [x] Update the SQLite vocabulary runtime through a helper in `vocabulary_sqlite.go`.
+- [x] Keep vocabulary helper tolerant of missing rows by creating the AI mutable row where possible.
 
 Suggested helper shape:
 
@@ -413,9 +413,9 @@ If no vocabulary database is configured, do not fail the Telegram moderation pat
 
 ## Task 9: Add Frontend Source Tests
 
-- [ ] Add source-level frontend tests in `web_app_shell_test.go` before implementation.
-- [ ] Assert the Tutor word-learning UI includes the report button, dialog fields, endpoint call, and skip-after-submit flow.
-- [ ] Assert copy keys exist for Russian and English.
+- [x] Add source-level frontend tests in `web_app_shell_test.go` before implementation.
+- [x] Assert the Tutor word-learning UI includes the report button, dialog fields, endpoint call, and skip-after-submit flow.
+- [x] Assert copy keys exist for Russian and English.
 
 Target test name:
 
@@ -439,8 +439,8 @@ missing ai tutor word report UI wiring
 
 ## Task 10: Implement React Word Report UI
 
-- [ ] In `TutorView`, add dialog state for word report fields.
-- [ ] Render a bottom action button on `word_learn` steps:
+- [x] In `TutorView`, add dialog state for word report fields.
+- [x] Render a bottom action button on `word_learn` steps:
 
 ```tsx
 <Button type="button" variant="ghost" onClick={openWordReportDialog}>
@@ -449,15 +449,15 @@ missing ai tutor word report UI wiring
 </Button>
 ```
 
-- [ ] Add dialog fields:
+- [x] Add dialog fields:
   - correct learning-language word
   - correct translation
   - optional comment
-- [ ] Submit to `POST /api/ai-tutor/word-report` with current `session_id` and current `stage`.
-- [ ] On success, close the dialog, clear fields, and update the Tutor step from the API response so the next word is shown.
-- [ ] Disable submit while pending and surface validation/API errors inline.
-- [ ] Add copy keys in `web-react/src/lib/i18n.ts` for English and Russian.
-- [ ] Add restrained styles in `web-react/src/styles/app.css` without creating nested cards.
+- [x] Submit to `POST /api/ai-tutor/word-report` with current `session_id` and current `stage`.
+- [x] On success, close the dialog, clear fields, and update the Tutor step from the API response so the next word is shown.
+- [x] Disable submit while pending and surface validation/API errors inline.
+- [x] Add copy keys in `web-react/src/lib/i18n.ts` for English and Russian.
+- [x] Add restrained styles in `web-react/src/styles/app.css` without creating nested cards.
 
 UX constraints:
 
@@ -469,8 +469,8 @@ UX constraints:
 
 ## Task 11: Add Pronunciation Free-Tier Regression Test
 
-- [ ] Add or verify a test in `web_api_feature_test.go` proving free users cannot trigger pronunciation scoring.
-- [ ] The test must fail if `/api/pronunciation/check` calls transcription/scoring providers before checking premium.
+- [x] Add or verify a test in `web_api_feature_test.go` proving free users cannot trigger pronunciation scoring.
+- [x] The test must fail if `/api/pronunciation/check` calls transcription/scoring providers before checking premium.
 
 Target test name:
 
@@ -490,32 +490,33 @@ Note: if this test passes immediately, the requirement is already satisfied in p
 
 ## Task 12: Verification
 
-- [ ] Run targeted Go tests after each task group:
+- [x] Run targeted Go tests after each task group:
 
 ```powershell
 go test ./... -run 'TestSQLiteStoreAITutorWordReport|TestAITutorWordReport|TestTelegramAITutorWordReport|TestApplyAITutorWordReportCorrection|TestWebAppAITutorWordReportUIWiring|TestPronunciationCheckRequiresPremiumBeforeProviderCall'
 ```
 
-- [ ] Run broad backend tests:
+- [x] Run broad backend tests:
 
 ```powershell
 go test ./...
 ```
 
-- [ ] Run frontend checks available in the workspace:
+- [x] Run frontend checks available in the workspace:
 
 ```powershell
 npm --prefix web-react run build
 ```
 
 - [ ] If an Nx target is discoverable, run the relevant build/test target through the repo's normal script or Nx command.
-- [ ] Try Playwright/browser verification if the local browser policy allows it; otherwise record the policy blocker and rely on build/source tests.
+- [x] Try Playwright/browser verification if the local browser policy allows it; otherwise record the policy blocker and rely on build/source tests.
 
 Expected final status:
 
-- All targeted tests pass.
-- Broad Go tests pass.
+- Targeted Go tests pass.
+- Broad Go tests were attempted, but the full suite timed out in the existing `TestTutorLessonCourseHas300StableUniqueLessons` path.
 - React build passes.
+- Playwright/browser verification was blocked by the local Chrome admin policy.
 - Worktree contains only intended implementation/test/doc changes.
 - Changes are committed and pushed to `origin/codex/ai-tutor-rebuild-fix`.
 

@@ -736,6 +736,50 @@ select {
   margin: 0;
 }
 
+.tutor-word-report-action-v2 {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.tutor-word-report-dialog-v2__body {
+  display: grid;
+  gap: 14px;
+}
+
+.tutor-word-report-dialog-v2__icon {
+  color: var(--rose);
+}
+
+.tutor-word-report-field-v2 {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tutor-word-report-field-v2 span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tutor-word-report-field-v2 input,
+.tutor-word-report-field-v2 textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+.tutor-word-report-dialog-v2__footer {
+  gap: 10px;
+}
+
 .tutor-result-list-v2 {
   margin-top: 12px;
   display: grid;

@@ -2187,6 +2187,38 @@ export function App() {
     setAiTutorFeedback(response.feedback || null);
   };
 
+  const reportAiTutorWord = async (input: { stage: string; proposedWord: string; proposedTranslation: string; comment: string }) => {
+    if (!user.premium) {
+      const notice = copy("tutor_premium_required", "AI Tutor is available with Premium.");
+      setTutorLoadError(notice);
+      setStatus({ kind: "info", text: notice });
+      setView("premium");
+      return false;
+    }
+    if (!aiTutorSessionId || !input.stage) return false;
+    const payload = await runAction(
+      "tutor-word-report",
+      () => api<AiTutorResponse>("/api/ai-tutor/word-report", {
+        method: "POST",
+        body: {
+          session_id: aiTutorSessionId,
+          stage: input.stage,
+          proposed_word: input.proposedWord,
+          proposed_translation: input.proposedTranslation,
+          comment: input.comment,
+        },
+      }),
+      copy("ai_tutor_word_report_sent", "Report sent."),
+    );
+    if (!payload) return false;
+    const response = payload as AiTutorResponse;
+    const sessionID = String(response.session?.id || response.session?.ID || aiTutorSessionId);
+    if (sessionID) setAiTutorSessionId(sessionID);
+    setAiTutorStep(response.next_step || null);
+    setAiTutorFeedback(response.feedback || null);
+    return true;
+  };
+
   const submitLearningAnswer = async (mode: "lesson" | "practice") => {
     const text = draft.trim();
     if (!text && !voiceFile && !(mode === "practice" && imageFile)) {
@@ -2958,6 +2990,7 @@ export function App() {
     aiTutorStep,
     aiTutorFeedback,
     submitAiTutorStep,
+    reportAiTutorWord,
     tutorLoadError,
     startTutor,
     restartTutorLesson,
@@ -4950,6 +4983,7 @@ type ViewRendererProps = {
   aiTutorStep: AiTutorStep | null;
   aiTutorFeedback: AiTutorFeedbackState | null;
   submitAiTutorStep: (text: string, choice?: string) => Promise<void>;
+  reportAiTutorWord: (input: { stage: string; proposedWord: string; proposedTranslation: string; comment: string }) => Promise<boolean>;
   tutorLoadError: string;
   startTutor: () => Promise<void>;
   restartTutorLesson: (lessonId: string) => Promise<boolean>;
@@ -5060,11 +5094,17 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
+function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
   const [selectedChoice, setSelectedChoice] = useState("");
+  const [wordReportOpen, setWordReportOpen] = useState(false);
+  const [wordReportWord, setWordReportWord] = useState("");
+  const [wordReportTranslation, setWordReportTranslation] = useState("");
+  const [wordReportComment, setWordReportComment] = useState("");
+  const [wordReportError, setWordReportError] = useState("");
+  const [wordReportPending, setWordReportPending] = useState(false);
   const [completedLessonsOpen, setCompletedLessonsOpen] = useState(false);
   const [completedLessonPage, setCompletedLessonPage] = useState(0);
   const [completedLessonsVersion, setCompletedLessonsVersion] = useState(0);
@@ -5086,6 +5126,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     setTutorDraft("");
     setSelectedChoice("");
     setPreviewStage("");
+    setWordReportOpen(false);
+    setWordReportError("");
   }, [aiTutorStep?.stage]);
 
   const serverStages = useMemo(() => {
@@ -5251,6 +5293,43 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     }
   };
 
+  const openAiTutorWordReport = () => {
+    const word = aiTutorStep?.word || visibleTutorStep?.word;
+    setWordReportWord(display(word?.target));
+    setWordReportTranslation(display(word?.interface_translation));
+    setWordReportComment("");
+    setWordReportError("");
+    setWordReportOpen(true);
+  };
+
+  const submitAiTutorWordReport = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!aiTutorStep || aiTutorStep.kind !== "word_learn") return;
+    const proposedWord = wordReportWord.trim();
+    const proposedTranslation = wordReportTranslation.trim();
+    if (!proposedWord || !proposedTranslation) {
+      setWordReportError(copy("ai_tutor_word_report_required", "Add the corrected word and translation."));
+      return;
+    }
+    setWordReportPending(true);
+    setWordReportError("");
+    const ok = await reportAiTutorWord({
+      stage: aiTutorStep.stage,
+      proposedWord,
+      proposedTranslation,
+      comment: wordReportComment.trim(),
+    });
+    setWordReportPending(false);
+    if (!ok) {
+      setWordReportError(copy("request_failed", "Request failed"));
+      return;
+    }
+    setWordReportOpen(false);
+    setWordReportWord("");
+    setWordReportTranslation("");
+    setWordReportComment("");
+  };
+
   const restartCompletedLesson = async (item: TutorCompletedLessonRecord) => {
     const lessonId = display(item.lessonId);
     if (!lessonId || busy === "tutor" || restartingLessonId) {
@@ -5292,6 +5371,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
           isPhraseSaved={isPhraseSaved}
           copy={copy}
         />
+        {!isPreviewing && aiTutorStep?.kind === "word_learn" ? (
+          <Button className="tutor-word-report-action-v2" type="button" variant="outline" size="sm" onClick={openAiTutorWordReport}>
+            <Bug size={15} />
+            <span>{copy("ai_tutor_word_report_button", "Report mistake")}</span>
+          </Button>
+        ) : null}
       </div>
     );
   };
@@ -5517,6 +5602,63 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
           </section>
         </div>
       )}
+
+      {wordReportOpen ? (
+        <Dialog open onOpenChange={(open) => { if (!open) setWordReportOpen(false); }}>
+          <DialogContent className="v2-dialog-content tutor-word-report-dialog-v2">
+            <form onSubmit={submitAiTutorWordReport}>
+              <DialogBody className="tutor-word-report-dialog-v2__body">
+                <Bug className="tutor-word-report-dialog-v2__icon" size={34} />
+                <DialogTitle>{copy("ai_tutor_word_report_title", "Report a word mistake")}</DialogTitle>
+                <DialogDescription>{copy("ai_tutor_word_report_body", "Send the corrected word and translation. The lesson will continue with the next word.")}</DialogDescription>
+                <label className="tutor-word-report-field-v2">
+                  <span>{copy("ai_tutor_word_report_word_label", "Correct word")}</span>
+                  <input
+                    type="text"
+                    value={wordReportWord}
+                    maxLength={80}
+                    onChange={(event) => setWordReportWord(event.target.value)}
+                    placeholder={copy("ai_tutor_word_report_word_placeholder", "Word in the learning language")}
+                    autoFocus
+                  />
+                </label>
+                <label className="tutor-word-report-field-v2">
+                  <span>{copy("ai_tutor_word_report_translation_label", "Correct translation")}</span>
+                  <input
+                    type="text"
+                    value={wordReportTranslation}
+                    maxLength={160}
+                    onChange={(event) => setWordReportTranslation(event.target.value)}
+                    placeholder={copy("ai_tutor_word_report_translation_placeholder", "Translation")}
+                  />
+                </label>
+                <label className="tutor-word-report-field-v2">
+                  <span>{copy("ai_tutor_word_report_comment_label", "Comment")}</span>
+                  <textarea
+                    value={wordReportComment}
+                    maxLength={500}
+                    rows={3}
+                    onChange={(event) => setWordReportComment(event.target.value)}
+                    placeholder={copy("ai_tutor_word_report_comment_placeholder", "Optional short note")}
+                  />
+                </label>
+                {wordReportError ? <p className="tutor-feedback-v2 is-error">{wordReportError}</p> : null}
+              </DialogBody>
+              <DialogFooter className="tutor-word-report-dialog-v2__footer">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" disabled={wordReportPending}>
+                    {copy("cancel", "Cancel")}
+                  </Button>
+                </DialogClose>
+                <Button type="submit" disabled={wordReportPending || !wordReportWord.trim() || !wordReportTranslation.trim()}>
+                  {wordReportPending ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={15} />}
+                  <span>{copy("ai_tutor_word_report_submit", "Send report")}</span>
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       {completedLessonsOpen ? (
         <Dialog open onOpenChange={(open) => { if (!open) setCompletedLessonsOpen(false); }}>

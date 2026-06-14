@@ -183,6 +183,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/ai-tutor/completed", api.handleAITutorCompleted)
 	mux.HandleFunc("/api/ai-tutor/restart", api.handleAITutorRestart)
 	mux.HandleFunc("/api/ai-tutor/answer", api.handleAITutorAnswer)
+	mux.HandleFunc("/api/ai-tutor/word-report", api.handleAITutorWordReport)
 	mux.HandleFunc("/api/ai-tutor/review", api.handleAITutorReview)
 	mux.HandleFunc("/api/ai-tutor/finish", api.handleAITutorFinish)
 	mux.HandleFunc("/api/lesson/start", api.handleLessonStart)
@@ -1669,6 +1670,215 @@ func (api *webAPI) handleAITutorAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, api.aiTutorDTO(result, user))
+}
+
+func (api *webAPI) handleAITutorWordReport(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	if !api.requireAITutorPremium(w, user) {
+		return
+	}
+	if api.bot == nil || api.bot.store == nil {
+		writeAPIError(w, http.StatusInternalServerError, "AI Tutor is not configured")
+		return
+	}
+	var req struct {
+		SessionID           string `json:"session_id"`
+		Stage               string `json:"stage"`
+		ProposedWord        string `json:"proposed_word"`
+		ProposedTranslation string `json:"proposed_translation"`
+		Comment             string `json:"comment"`
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, 4096)
+	defer r.Body.Close()
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&req); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "bad JSON request")
+		return
+	}
+	sessionID := strings.TrimSpace(req.SessionID)
+	stage := strings.TrimSpace(req.Stage)
+	if sessionID == "" || stage == "" {
+		writeAPIError(w, http.StatusBadRequest, "session_id and stage are required")
+		return
+	}
+	session, ok, err := api.bot.store.getAITutorSession(sessionID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !ok || session.TelegramID != user.TelegramID {
+		writeAPIError(w, http.StatusNotFound, "AI Tutor session not found")
+		return
+	}
+	if strings.TrimSpace(session.CurrentStage) != stage {
+		writeAPIError(w, http.StatusConflict, "This word is no longer active.")
+		return
+	}
+	wordIndex, ok := aiTutorStageIndex(stage, "word_learn_")
+	if !ok {
+		writeAPIError(w, http.StatusBadRequest, "Current AI Tutor step is not a word-learning step.")
+		return
+	}
+	lesson, ok, err := api.bot.store.getAITutorLesson(session.LessonID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if !ok {
+		writeAPIError(w, http.StatusNotFound, "AI Tutor lesson not found")
+		return
+	}
+	if wordIndex < 0 || wordIndex >= len(lesson.Payload.Words) {
+		writeAPIError(w, http.StatusBadRequest, "Word stage is out of range.")
+		return
+	}
+	proposedWord, ok := validateAITutorWordReportField(w, req.ProposedWord, 80, "proposed_word")
+	if !ok {
+		return
+	}
+	proposedTranslation, ok := validateAITutorWordReportField(w, req.ProposedTranslation, 160, "proposed_translation")
+	if !ok {
+		return
+	}
+	comment := strings.TrimSpace(req.Comment)
+	if len([]rune(comment)) > 500 {
+		writeAPIError(w, http.StatusBadRequest, "comment is too long")
+		return
+	}
+	now := time.Now().UTC()
+	userBurst, _, err := api.bot.store.countAITutorWordReports(user.TelegramID, session.ID, now.Add(-10*time.Minute))
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	userDaily, sessionTotal, err := api.bot.store.countAITutorWordReports(user.TelegramID, session.ID, now.Add(-24*time.Hour))
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if userBurst >= 3 || userDaily >= 10 || sessionTotal >= 2 {
+		writeAPIError(w, http.StatusTooManyRequests, "Too many word reports. Try again later.")
+		return
+	}
+
+	word := lesson.Payload.Words[wordIndex]
+	report, _, err := api.bot.store.createAITutorWordReport(aiTutorWordReportRecord{
+		ID:                  aiTutorNewID("aitwr"),
+		TelegramID:          user.TelegramID,
+		SessionID:           session.ID,
+		LessonID:            lesson.ID,
+		Stage:               stage,
+		WordIndex:           wordIndex,
+		OriginalWord:        strings.TrimSpace(word.Target),
+		OriginalTranslation: strings.TrimSpace(word.InterfaceTranslation),
+		ProposedWord:        proposedWord,
+		ProposedTranslation: proposedTranslation,
+		Comment:             comment,
+		Status:              aiTutorWordReportPending,
+	})
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	globalCount, err := api.bot.store.countAITutorWordReportsSince(now.Add(-10 * time.Minute))
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if globalCount <= 30 {
+		api.sendAITutorWordReportNotification(r.Context(), report, user)
+	}
+
+	nextStage := aiTutorNextStage(session.CurrentStage)
+	status := aiTutorSessionActive
+	completedAt := ""
+	if nextStage == aiTutorStageComplete {
+		status = aiTutorSessionComplete
+		completedAt = formatDBTime(now)
+	}
+	if err := api.bot.store.updateAITutorSessionStage(session.ID, nextStage, status, completedAt); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	result, err := api.loadAITutorSessionResult(user, session.ID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	payload := api.aiTutorDTO(result, user)
+	payload["word_report"] = report
+	writeJSON(w, http.StatusOK, payload)
+}
+
+func validateAITutorWordReportField(w http.ResponseWriter, value string, maxRunes int, field string) (string, bool) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		writeAPIError(w, http.StatusBadRequest, field+" is required")
+		return "", false
+	}
+	if len([]rune(value)) > maxRunes {
+		writeAPIError(w, http.StatusBadRequest, field+" is too long")
+		return "", false
+	}
+	return value, true
+}
+
+func (api *webAPI) sendAITutorWordReportNotification(ctx context.Context, report aiTutorWordReportRecord, user userState) {
+	if api == nil || api.bot == nil || api.bot.telegram == nil {
+		return
+	}
+	text := aiTutorWordReportTelegramText(report, user)
+	keyboard := aiTutorWordReportTelegramKeyboard(report.ID)
+	for _, recipient := range api.telegramOpsRecipients() {
+		messageID, err := api.bot.telegram.sendInlineMessageToChat(ctx, recipient.telegramChatIDValue(), text, keyboard)
+		if err != nil {
+			log.Printf("send ai tutor word report to %s: %v", recipient.ChatID, err)
+			continue
+		}
+		if messageID != 0 {
+			if err := api.bot.store.setAITutorWordReportAdminMessage(report.ID, fmt.Sprint(recipient.telegramChatIDValue()), messageID); err != nil {
+				log.Printf("store ai tutor word report admin message %s: %v", report.ID, err)
+			}
+		}
+	}
+}
+
+func aiTutorWordReportTelegramText(report aiTutorWordReportRecord, user userState) string {
+	lines := []string{
+		"AI Tutor word report",
+		"Report: " + strings.TrimSpace(report.ID),
+		"User: " + strings.TrimSpace(user.FirstName) + " (" + strconv.FormatInt(user.TelegramID, 10) + ")",
+		"Session: " + strings.TrimSpace(report.SessionID),
+		"Stage: " + strings.TrimSpace(report.Stage),
+		"Original: " + strings.TrimSpace(report.OriginalWord) + " - " + strings.TrimSpace(report.OriginalTranslation),
+		"User suggests: " + strings.TrimSpace(report.ProposedWord) + " - " + strings.TrimSpace(report.ProposedTranslation),
+	}
+	if strings.TrimSpace(report.Comment) != "" {
+		lines = append(lines, "Comment: "+strings.TrimSpace(report.Comment))
+	}
+	lines = append(lines, "", "Reply with buttons: accept, reject, or fix.")
+	return strings.Join(lines, "\n")
+}
+
+func aiTutorWordReportTelegramKeyboard(reportID string) map[string]any {
+	reportID = strings.TrimSpace(reportID)
+	return map[string]any{
+		"inline_keyboard": [][]map[string]any{
+			{
+				{"text": "Принять", "callback_data": "ait_word_report|" + reportID + "|accept"},
+				{"text": "Отклонить", "callback_data": "ait_word_report|" + reportID + "|reject"},
+				{"text": "Исправить", "callback_data": "ait_word_report|" + reportID + "|fix"},
+			},
+		},
+	}
 }
 
 func (api *webAPI) handleAITutorReview(w http.ResponseWriter, r *http.Request) {

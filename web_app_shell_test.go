@@ -155,6 +155,38 @@ func TestReactFrontendContainsTutorOverflowGuards(t *testing.T) {
 	}
 }
 
+func TestWebAppAITutorWordReportUIWiring(t *testing.T) {
+	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	copySource, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cssSource, err := os.ReadFile(filepath.Join("web-react", "src", "styles", "app.css"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(appSource) + "\n" + string(copySource) + "\n" + string(cssSource)
+	for _, want := range []string{
+		`/api/ai-tutor/word-report`,
+		`ai_tutor_word_report_button`,
+		`ai_tutor_word_report_title`,
+		`ai_tutor_word_report_word_label`,
+		`ai_tutor_word_report_translation_label`,
+		`ai_tutor_word_report_comment_label`,
+		`tutor-word-report-dialog-v2`,
+		`tutor-word-report-action-v2`,
+		`submitAiTutorWordReport`,
+		`setWordReportOpen(false)`,
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("missing ai tutor word report UI wiring %q", want)
+		}
+	}
+}
+
 func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
 	if err != nil {

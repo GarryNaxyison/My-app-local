@@ -920,6 +920,206 @@ func sqliteVocabularyAITranslationSet(word vocabWord, targetLanguage string, mod
 	return nil
 }
 
+func sqliteVocabularyApplyAITutorWordCorrection(report aiTutorWordReportRecord, lesson aiTutorLessonRecord, finalWord string, finalTranslation string) error {
+	db := currentSQLiteVocabularyDB()
+	if db == nil {
+		return nil
+	}
+	if report.WordIndex < 0 || report.WordIndex >= len(lesson.Payload.Words) {
+		return errors.New("AI Tutor word report index is out of range")
+	}
+	wordID := strings.TrimSpace(lesson.Payload.Words[report.WordIndex].ID)
+	if wordID == "" {
+		wordID = strings.TrimSpace(report.OriginalWord)
+	}
+	if wordID == "" {
+		return nil
+	}
+	language := normalizeLearningLanguage(firstNonEmpty(lesson.LearningLanguage, lesson.Payload.TargetLanguage))
+	interfaceLanguage := normalizeInterfaceLanguage(firstNonEmpty(lesson.InterfaceLanguage, lesson.Payload.InterfaceLanguage, "ru"))
+	finalWord = cleanDictionaryDisplay(finalWord)
+	finalTranslation = cleanDictionaryDisplay(finalTranslation)
+	if language == "" || interfaceLanguage == "" || finalWord == "" || finalTranslation == "" {
+		return nil
+	}
+
+	type metadata struct {
+		Context       string
+		Level         string
+		Topic         string
+		PartOfSpeech  string
+		Source        string
+		FrequencyRank int
+		Position      int
+	}
+	meta := metadata{
+		Level:        normalizeCEFRLevel(lesson.ExactLevel),
+		Topic:        cleanDictionaryDisplay(lesson.Theme),
+		PartOfSpeech: cleanDictionaryDisplay(lesson.Payload.Words[report.WordIndex].PartOfSpeech),
+		Source:       "ai_tutor_report",
+	}
+	var existingID string
+	err := db.QueryRow(
+		`SELECT id, context, level, topic, part_of_speech, source, frequency_rank, position
+		FROM vocabulary_words WHERE id = ? LIMIT 1`,
+		wordID,
+	).Scan(&existingID, &meta.Context, &meta.Level, &meta.Topic, &meta.PartOfSpeech, &meta.Source, &meta.FrequencyRank, &meta.Position)
+	if errors.Is(err, sql.ErrNoRows) {
+		_ = db.QueryRow(
+			`SELECT id, context, level, topic, part_of_speech, source, frequency_rank, position
+			FROM vocabulary_words
+			WHERE language = ? AND lower(word) = lower(?) LIMIT 1`,
+			language,
+			strings.TrimSpace(report.OriginalWord),
+		).Scan(&existingID, &meta.Context, &meta.Level, &meta.Topic, &meta.PartOfSpeech, &meta.Source, &meta.FrequencyRank, &meta.Position)
+	} else if err != nil {
+		return err
+	}
+	if strings.TrimSpace(meta.Source) == "" {
+		meta.Source = "ai_tutor_report"
+	}
+	if strings.TrimSpace(meta.Level) == "" {
+		meta.Level = normalizeCEFRLevel(lesson.ExactLevel)
+	}
+	if strings.TrimSpace(meta.Topic) == "" {
+		meta.Topic = cleanDictionaryDisplay(lesson.Theme)
+	}
+	if strings.TrimSpace(meta.PartOfSpeech) == "" {
+		meta.PartOfSpeech = cleanDictionaryDisplay(lesson.Payload.Words[report.WordIndex].PartOfSpeech)
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	var targetExists int
+	err = tx.QueryRow(`SELECT 1 FROM vocabulary_words WHERE id = ? LIMIT 1`, wordID).Scan(&targetExists)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+	if targetExists == 0 {
+		if err := tx.QueryRow(`SELECT COALESCE(MAX(position), -1) + 1 FROM vocabulary_words WHERE language = ?`, language).Scan(&meta.Position); err != nil {
+			return err
+		}
+	}
+	if _, err := tx.Exec(
+		`INSERT INTO vocabulary_words
+			(id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, position)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			language = excluded.language,
+			word = excluded.word,
+			russian = excluded.russian,
+			context = excluded.context,
+			level = excluded.level,
+			topic = excluded.topic,
+			part_of_speech = excluded.part_of_speech,
+			source = excluded.source,
+			frequency_rank = excluded.frequency_rank`,
+		wordID,
+		language,
+		finalWord,
+		finalTranslation,
+		cleanDictionaryDisplay(meta.Context),
+		normalizeCEFRLevel(meta.Level),
+		cleanDictionaryDisplay(meta.Topic),
+		cleanDictionaryDisplay(meta.PartOfSpeech),
+		strings.TrimSpace(meta.Source),
+		meta.FrequencyRank,
+		meta.Position,
+	); err != nil {
+		return err
+	}
+	translationsJSON, err := json.Marshal(map[string]string{interfaceLanguage: finalTranslation})
+	if err != nil {
+		return err
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+	if _, err := tx.Exec(
+		`INSERT INTO vocabulary_ai_words
+			(id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, translations_json, model, prompt, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(id) DO UPDATE SET
+			language = excluded.language,
+			word = excluded.word,
+			russian = excluded.russian,
+			context = excluded.context,
+			level = excluded.level,
+			topic = excluded.topic,
+			part_of_speech = excluded.part_of_speech,
+			source = excluded.source,
+			frequency_rank = excluded.frequency_rank,
+			translations_json = excluded.translations_json,
+			model = excluded.model,
+			prompt = excluded.prompt,
+			updated_at = excluded.updated_at`,
+		wordID,
+		language,
+		finalWord,
+		finalTranslation,
+		cleanDictionaryDisplay(meta.Context),
+		normalizeCEFRLevel(meta.Level),
+		cleanDictionaryDisplay(meta.Topic),
+		cleanDictionaryDisplay(meta.PartOfSpeech),
+		"ai_tutor_report",
+		meta.FrequencyRank,
+		string(translationsJSON),
+		"admin",
+		"ai_tutor_word_report:"+strings.TrimSpace(report.ID),
+		now,
+		now,
+	); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(
+		`INSERT OR REPLACE INTO vocabulary_translations (word_id, language, text)
+		VALUES (?, ?, ?)`,
+		wordID,
+		interfaceLanguage,
+		finalTranslation,
+	); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(
+		`INSERT INTO vocabulary_ai_translations
+			(word_id, learning_language, target_language, source_word, translation, model, prompt, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(word_id, target_language) DO UPDATE SET
+			learning_language = excluded.learning_language,
+			source_word = excluded.source_word,
+			translation = excluded.translation,
+			model = excluded.model,
+			prompt = excluded.prompt,
+			updated_at = excluded.updated_at`,
+		wordID,
+		language,
+		interfaceLanguage,
+		finalWord,
+		finalTranslation,
+		"admin",
+		"ai_tutor_word_report:"+strings.TrimSpace(report.ID),
+		now,
+		now,
+	); err != nil {
+		return err
+	}
+	if existingID != "" && existingID != wordID {
+		_, _ = tx.Exec(
+			`UPDATE vocabulary_words SET word = ?, russian = ? WHERE id = ?`,
+			finalWord,
+			finalTranslation,
+			existingID,
+		)
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	invalidateSQLiteVocabularyIDCache()
+	return nil
+}
+
 func sqliteNextUnlearnedWord(user userState) (vocabWord, bool, bool, error) {
 	db := currentSQLiteVocabularyDB()
 	if db == nil {
