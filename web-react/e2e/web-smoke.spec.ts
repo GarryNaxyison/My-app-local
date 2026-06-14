@@ -687,6 +687,22 @@ async function mockAnonymousAuth(page: Page) {
   );
 }
 
+function usePremiumSession(overrides: Partial<typeof sessionPayload.user> = {}) {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      lesson_limit: 50,
+      practice_limit: 200,
+      voice_limit: 20,
+      ...overrides,
+    },
+  };
+}
+
 test.beforeEach(async ({ page }) => {
   testSessionPayloadOverride = null;
   testPhrasebookItemsOverride = null;
@@ -842,6 +858,15 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "payment_crypto_prepare_instruction",
     "payment_crypto_instruction",
     "payment_usdt_trc20_instruction",
+    "free_plan_title",
+    "free_plan_tier",
+    "free_plan_body",
+    "free_plan_price",
+    "current_plan",
+    "free_feature_daily",
+    "free_feature_phrasebook",
+    "free_feature_no_ai_tutor",
+    "free_feature_no_audio",
     "report_bug",
     "report_bug_body",
     "problem_description",
@@ -1473,6 +1498,7 @@ test("word trainer shuffles options away from API order", async ({ page }) => {
 });
 
 test("standalone listening hides the target text and leaves only audio playback", async ({ page }) => {
+  usePremiumSession();
   await page.goto("/app/?view=shadowing");
   const listeningPanel = page.locator(".chat-workspace--shadowing .task-box-v2");
   await expect(listeningPanel.locator(".audio-wave-button-v2")).toBeVisible();
@@ -2217,6 +2243,21 @@ test("regression: desktop tools selector buttons stay compact", async ({ page, i
   }
 });
 
+test("roleplay scenario cards show concrete roles instead of the generic roleplay label", async ({ page }) => {
+  await page.goto("/app/?view=roleplay");
+  await expect(page.locator(".context-display--roleplay")).toBeVisible();
+  await expect(page.locator(".roleplay-grid-v2 button").nth(0)).toContainText("Ресторан");
+  await expect(page.locator(".roleplay-grid-v2 button").nth(1)).toContainText("Рабочий");
+  await expect(page.locator(".roleplay-grid-v2 button").nth(2)).toContainText("Путешествие");
+  const genericCards = await page.locator(".roleplay-grid-v2 button").evaluateAll((cards) =>
+    cards.filter((card) => {
+      const parts = Array.from(card.querySelectorAll("strong, span")).map((node) => (node.textContent || "").trim());
+      return parts.filter(Boolean).every((part) => part === "Ролевая");
+    }).length,
+  );
+  expect(genericCards).toBe(0);
+});
+
 test("AI Tutor failed start stops loading loop and shows retry", async ({ page }) => {
   testSessionPayloadOverride = {
     ...sessionPayload,
@@ -2541,6 +2582,7 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=lesson");
   await expect(page.locator(".context-display--lesson")).toBeVisible();
+  await page.locator(".lesson-empty-v2 button").click();
   await expect(page.getByText("Say that you have a reservation.")).toBeVisible();
   await expect(page.locator(".phrase-quick-save-v2")).toBeVisible();
 
@@ -2585,16 +2627,18 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await expect(page.locator(".roleplay-dialog-head-v2 button")).toBeVisible();
   await expect(page.locator(".roleplay-dialog-scroll-v2")).toBeVisible();
   await expect(page.locator(".roleplay-dialog-scroll-v2")).not.toContainText("Short polite request.");
-  await expect(page.locator(".roleplay-composer-v2 textarea")).toBeVisible();
+  await expect(page.locator(".roleplay-view-v2--session .composer-panel-v2")).toBeVisible();
+  await expect(page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea")).toBeVisible();
+  await expect(page.locator(".roleplay-composer-v2")).toHaveCount(0);
 
   const dialog = await page.locator(".roleplay-dialog-scroll-v2").boundingBox();
-  const composer = await page.locator(".roleplay-composer-v2").boundingBox();
+  const composer = await page.locator(".roleplay-view-v2--session .composer-panel-v2").boundingBox();
   expect(dialog).not.toBeNull();
   expect(composer).not.toBeNull();
   expect(composer!.y).toBeGreaterThan(dialog!.y + dialog!.height - 4);
 
-  await page.locator(".roleplay-composer-v2 textarea").fill("Could you repeat that, please?");
-  await page.locator(".roleplay-composer-v2 textarea").press("Enter");
+  await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").fill("Could you repeat that, please?");
+  await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").press("Enter");
   await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Short polite request.").first()).toBeVisible();
 });
 
@@ -2622,7 +2666,7 @@ test("regression: roleplay accepts a voice answer and shows the transcript", asy
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
   await page.locator(".roleplay-grid-v2 button").first().click();
   await expect(page.locator(".roleplay-view-v2--desktop-session")).toBeVisible();
-  await page.locator(".roleplay-composer-v2 input[type='file']").setInputFiles({
+  await page.locator(".roleplay-view-v2--session .file-controls-v2 input[type='file']").setInputFiles({
     name: "roleplay-voice.webm",
     mimeType: "audio/webm",
     buffer: Buffer.from("voice-test"),
@@ -2632,19 +2676,64 @@ test("regression: roleplay accepts a voice answer and shows the transcript", asy
   expect(roleplayUploadSeen).toBe(true);
 });
 
-test("desktop roleplay session uses full-width dialogue without the scenario aside", async ({ page, isMobile }) => {
+test("regression: image tool accepts a pasted clipboard image", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop clipboard assertion");
+  let uploadedImageSeen = false;
+  await page.unroute("**/api/tools/image-translate");
+  await page.route("**/api/tools/image-translate", async (route) => {
+    const request = route.request();
+    const contentType = request.headers()["content-type"] || "";
+    const body = request.postData() || "";
+    uploadedImageSeen = contentType.includes("multipart/form-data") && body.includes("clipboard-image.png");
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        source_text: "Cafe menu",
+        translation: "Меню кафе",
+        result: "Меню кафе",
+        source_language: "auto",
+        target_language: "ru",
+      }),
+    });
+  });
+
+  await page.goto("/app/?view=tools");
+  await expect(page.locator(".context-display--tools")).toBeVisible();
+  await page.locator(".tool-switch-v2 button").nth(2).click();
+  await expect(page.locator(".image-upload-control-v2")).toBeVisible();
+  await page.locator(".image-upload-control-v2").evaluate((node, bytes) => {
+    const file = new File([new Uint8Array(bytes)], "clipboard-image.png", { type: "image/png" });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    node.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dataTransfer, bubbles: true, cancelable: true }));
+  }, Array.from(png));
+  await expect(page.locator(".file-chip-v2")).toContainText("clipboard-image.png");
+  await page.locator(".tools-submit-v2").click();
+  await expect(page.locator(".chat-interface").getByText("Меню кафе").first()).toBeVisible();
+  expect(uploadedImageSeen).toBe(true);
+});
+
+test("desktop roleplay session uses the same right input window as practice", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop layout assertion");
   await page.goto("/app/?view=roleplay");
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
   await page.locator(".roleplay-grid-v2 button").first().click();
   await expect(page.locator(".roleplay-view-v2--desktop-session")).toBeVisible();
   await expect(page.locator(".roleplay-view-v2--session .roleplay-brief-v2")).toHaveCount(0);
+  await expect(page.locator(".roleplay-view-v2--session .chat-workspace--roleplay")).toBeVisible();
+  await expect(page.locator(".roleplay-view-v2--session .composer-panel-v2")).toBeVisible();
+  await expect(page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2")).toBeVisible();
+  await expect(page.locator(".roleplay-composer-v2")).toHaveCount(0);
 
   const panel = await page.locator(".roleplay-view-v2--session").boundingBox();
   const dialog = await page.locator(".roleplay-dialog-card-v2").boundingBox();
+  const composer = await page.locator(".roleplay-view-v2--session .composer-panel-v2").boundingBox();
   expect(panel).not.toBeNull();
   expect(dialog).not.toBeNull();
-  expect(dialog!.width).toBeGreaterThan(panel!.width * 0.94);
+  expect(composer).not.toBeNull();
+  expect(dialog!.width).toBeLessThan(panel!.width * 0.76);
+  expect(composer!.x).toBeGreaterThan(dialog!.x + dialog!.width - 4);
 });
 
 test("regression: quick save bookmark becomes active after saving to notes", async ({ page, isMobile }) => {
@@ -2708,6 +2797,7 @@ test("mobile roleplay scenario cards expand and scroll above bottom menu", async
 });
 
 test("shadowing uses one compact work panel with the sample audio inside the task", async ({ page }) => {
+  usePremiumSession();
   const phrases = ["Could you repeat that, please?", "The train leaves at nine."];
   let phraseIndex = 0;
   const spokenTexts: string[] = [];
@@ -2767,6 +2857,7 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
 
 test("mobile listening panel stays above bottom menu", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
+  usePremiumSession();
   await page.goto("/app/?view=shadowing");
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await expect(page.locator(".task-box-v2 .audio-wave-button-v2")).toBeVisible();
@@ -3016,6 +3107,7 @@ test("regression: dashboard training balance uses the current week and does not 
 
 test("regression: chat messages show sender first and full-width text below it", async ({ page }) => {
   await page.goto("/app/?view=lesson");
+  await page.locator(".lesson-empty-v2 button").click();
   await expect(page.locator(".chat-interface__group").first()).toBeVisible();
   const metrics = await page.locator(".chat-interface__group").first().evaluate((group) => {
     const meta = group.querySelector(".chat-interface__meta") as HTMLElement | null;

@@ -789,6 +789,55 @@ const roleplayDescriptions: Record<string, Record<string, string>> = {
   },
 };
 
+const concreteRoleplayTitles: Record<string, Record<string, string>> = {
+  ru: {
+    restaurant: "Ресторан",
+    work: "Рабочий звонок",
+    travel: "Путешествие",
+    exam: "Устный экзамен",
+    "small-talk": "Легкая беседа",
+    hotel: "Заселение в отель",
+    shopping: "Покупки",
+    doctor: "Визит к врачу",
+    "job-interview": "Собеседование",
+    bank: "Банк и платеж",
+  },
+  en: { restaurant: "Restaurant", work: "Work call", travel: "Travel", exam: "Oral exam", "small-talk": "Small talk", hotel: "Hotel check-in", shopping: "Shopping", doctor: "Doctor visit", "job-interview": "Job interview", bank: "Bank and payment" },
+  es: { restaurant: "Restaurante", work: "Llamada de trabajo", travel: "Viaje", exam: "Examen oral", "small-talk": "Charla informal", hotel: "Registro en hotel", shopping: "Compras", doctor: "Visita al medico", "job-interview": "Entrevista laboral", bank: "Banco y pago" },
+  de: { restaurant: "Restaurant", work: "Arbeitsgesprach", travel: "Reise", exam: "Mundliche Prufung", "small-talk": "Small Talk", hotel: "Hotel-Check-in", shopping: "Einkaufen", doctor: "Arztbesuch", "job-interview": "Vorstellungsgesprach", bank: "Bank und Zahlung" },
+  fr: { restaurant: "Restaurant", work: "Appel professionnel", travel: "Voyage", exam: "Examen oral", "small-talk": "Petite conversation", hotel: "Arrivee a l'hotel", shopping: "Achats", doctor: "Rendez-vous medical", "job-interview": "Entretien d'embauche", bank: "Banque et paiement" },
+  it: { restaurant: "Ristorante", work: "Chiamata di lavoro", travel: "Viaggio", exam: "Esame orale", "small-talk": "Conversazione leggera", hotel: "Check-in in hotel", shopping: "Shopping", doctor: "Visita medica", "job-interview": "Colloquio di lavoro", bank: "Banca e pagamento" },
+  zh: { restaurant: "餐厅", work: "工作电话", travel: "旅行", exam: "口语考试", "small-talk": "闲聊", hotel: "酒店入住", shopping: "购物", doctor: "看医生", "job-interview": "求职面试", bank: "银行和付款" },
+  ja: { restaurant: "レストラン", work: "仕事の電話", travel: "旅行", exam: "口頭試験", "small-talk": "雑談", hotel: "ホテルのチェックイン", shopping: "買い物", doctor: "病院での相談", "job-interview": "就職面接", bank: "銀行と支払い" },
+  ko: { restaurant: "식당", work: "업무 통화", travel: "여행", exam: "구술 시험", "small-talk": "가벼운 대화", hotel: "호텔 체크인", shopping: "쇼핑", doctor: "병원 방문", "job-interview": "취업 면접", bank: "은행과 결제" },
+  tg: { restaurant: "Тарабхона", work: "Занги корӣ", travel: "Сафар", exam: "Имтиҳони шифоҳӣ", "small-talk": "Суҳбати кӯтоҳ", hotel: "Қайд дар меҳмонхона", shopping: "Харид", doctor: "Назди духтур", "job-interview": "Мусоҳибаи корӣ", bank: "Бонк ва пардохт" },
+  uz: { restaurant: "Restoran", work: "Ish qo'ng'irog'i", travel: "Sayohat", exam: "Og'zaki imtihon", "small-talk": "Qisqa suhbat", hotel: "Mehmonxonaga joylashish", shopping: "Xarid", doctor: "Shifokorga borish", "job-interview": "Ish suhbati", bank: "Bank va to'lov" },
+  tt: { restaurant: "Ресторан", work: "Эш шалтыратуы", travel: "Сәяхәт", exam: "Телдән имтихан", "small-talk": "Кыска сөйләшү", hotel: "Кунакханәгә урнашу", shopping: "Кибеттә сатып алу", doctor: "Табибка бару", "job-interview": "Эш әңгәмәсе", bank: "Банк һәм түләү" },
+  hy: { restaurant: "Ռեստորան", work: "Աշխատանքային զանգ", travel: "Ճանապարհորդություն", exam: "Բանավոր քննություն", "small-talk": "Կարճ զրույց", hotel: "Հյուրանոցի գրանցում", shopping: "Գնումներ", doctor: "Այց բժշկին", "job-interview": "Աշխատանքի հարցազրույց", bank: "Բանկ և վճարում" },
+  kk: { restaurant: "Мейрамхана", work: "Жұмыс қоңырауы", travel: "Саяхат", exam: "Ауызша емтихан", "small-talk": "Жеңіл әңгіме", hotel: "Қонақүйге тіркелу", shopping: "Сауда", doctor: "Дәрігерге бару", "job-interview": "Жұмыс сұхбаты", bank: "Банк және төлем" },
+  ky: { restaurant: "Ресторан", work: "Жумуш чалуу", travel: "Саякат", exam: "Оозеки экзамен", "small-talk": "Кыска сүйлөшүү", hotel: "Мейманканага катталуу", shopping: "Сатып алуу", doctor: "Дарыгерге баруу", "job-interview": "Жумуш маеги", bank: "Банк жана төлөм" },
+  ka: { restaurant: "რესტორანი", work: "სამუშაო ზარი", travel: "მოგზაურობა", exam: "ზეპირი გამოცდა", "small-talk": "მოკლე საუბარი", hotel: "სასტუმროში რეგისტრაცია", shopping: "შოპინგი", doctor: "ექიმთან ვიზიტი", "job-interview": "სამუშაო გასაუბრება", bank: "ბანკი და გადახდა" },
+  uk: { restaurant: "Ресторан", work: "Робочий дзвінок", travel: "Подорож", exam: "Усний іспит", "small-talk": "Невимушена бесіда", hotel: "Заселення в готель", shopping: "Покупки", doctor: "Візит до лікаря", "job-interview": "Співбесіда", bank: "Банк і платіж" },
+  pl: { restaurant: "Restauracja", work: "Rozmowa służbowa", travel: "Podróż", exam: "Egzamin ustny", "small-talk": "Luźna rozmowa", hotel: "Meldunek w hotelu", shopping: "Zakupy", doctor: "Wizyta u lekarza", "job-interview": "Rozmowa kwalifikacyjna", bank: "Bank i płatność" },
+  ro: { restaurant: "Restaurant", work: "Apel de lucru", travel: "Călătorie", exam: "Examen oral", "small-talk": "Conversație scurtă", hotel: "Check-in la hotel", shopping: "Cumpărături", doctor: "Vizită la medic", "job-interview": "Interviu de angajare", bank: "Bancă și plată" },
+  pt: { restaurant: "Restaurante", work: "Chamada de trabalho", travel: "Viagem", exam: "Exame oral", "small-talk": "Conversa casual", hotel: "Check-in no hotel", shopping: "Compras", doctor: "Consulta médica", "job-interview": "Entrevista de emprego", bank: "Banco e pagamento" },
+  ar: { restaurant: "مطعم", work: "مكالمة عمل", travel: "سفر", exam: "امتحان شفهي", "small-talk": "حديث قصير", hotel: "تسجيل دخول الفندق", shopping: "تسوق", doctor: "زيارة الطبيب", "job-interview": "مقابلة عمل", bank: "بنك ودفع" },
+  bn: { restaurant: "রেস্তোরাঁ", work: "কাজের কল", travel: "ভ্রমণ", exam: "মৌখিক পরীক্ষা", "small-talk": "হালকা আলাপ", hotel: "হোটেল চেক-ইন", shopping: "কেনাকাটা", doctor: "ডাক্তারের কাছে", "job-interview": "চাকরির সাক্ষাৎকার", bank: "ব্যাংক ও পেমেন্ট" },
+  cs: { restaurant: "Restaurace", work: "Pracovní hovor", travel: "Cestování", exam: "Ústní zkouška", "small-talk": "Krátký rozhovor", hotel: "Check-in v hotelu", shopping: "Nakupování", doctor: "Návštěva lékaře", "job-interview": "Pracovní pohovor", bank: "Banka a platba" },
+  el: { restaurant: "Εστιατόριο", work: "Επαγγελματική κλήση", travel: "Ταξίδι", exam: "Προφορική εξέταση", "small-talk": "Σύντομη συζήτηση", hotel: "Check-in σε ξενοδοχείο", shopping: "Αγορές", doctor: "Επίσκεψη σε γιατρό", "job-interview": "Συνέντευξη εργασίας", bank: "Τράπεζα και πληρωμή" },
+  hi: { restaurant: "रेस्तरां", work: "काम की कॉल", travel: "यात्रा", exam: "मौखिक परीक्षा", "small-talk": "हल्की बातचीत", hotel: "होटल चेक-इन", shopping: "खरीदारी", doctor: "डॉक्टर से मिलना", "job-interview": "नौकरी इंटरव्यू", bank: "बैंक और भुगतान" },
+  hu: { restaurant: "Étterem", work: "Munkahelyi hívás", travel: "Utazás", exam: "Szóbeli vizsga", "small-talk": "Könnyed beszélgetés", hotel: "Szállodai bejelentkezés", shopping: "Vásárlás", doctor: "Orvosi látogatás", "job-interview": "Állásinterjú", bank: "Bank és fizetés" },
+  id: { restaurant: "Restoran", work: "Panggilan kerja", travel: "Perjalanan", exam: "Ujian lisan", "small-talk": "Obrolan ringan", hotel: "Check-in hotel", shopping: "Belanja", doctor: "Kunjungan dokter", "job-interview": "Wawancara kerja", bank: "Bank dan pembayaran" },
+  nl: { restaurant: "Restaurant", work: "Werkgesprek", travel: "Reis", exam: "Mondeling examen", "small-talk": "Smalltalk", hotel: "Hotel inchecken", shopping: "Winkelen", doctor: "Doktersbezoek", "job-interview": "Sollicitatiegesprek", bank: "Bank en betaling" },
+  sv: { restaurant: "Restaurang", work: "Jobbsamtal", travel: "Resa", exam: "Muntligt prov", "small-talk": "Småprat", hotel: "Hotellincheckning", shopping: "Shopping", doctor: "Läkarbesök", "job-interview": "Jobbintervju", bank: "Bank och betalning" },
+  ta: { restaurant: "உணவகம்", work: "வேலை அழைப்பு", travel: "பயணம்", exam: "வாய்மொழி தேர்வு", "small-talk": "சிறு உரையாடல்", hotel: "ஹோட்டல் செக்-இன்", shopping: "கடைசெய்தல்", doctor: "மருத்துவர் சந்திப்பு", "job-interview": "வேலை நேர்காணல்", bank: "வங்கி மற்றும் கட்டணம்" },
+  te: { restaurant: "రెస్టారెంట్", work: "పని కాల్", travel: "ప్రయాణం", exam: "మౌఖిక పరీక్ష", "small-talk": "చిన్న సంభాషణ", hotel: "హోటల్ చెక్-ఇన్", shopping: "షాపింగ్", doctor: "డాక్టర్ సందర్శన", "job-interview": "ఉద్యోగ ఇంటర్వ్యూ", bank: "బ్యాంక్ మరియు చెల్లింపు" },
+  th: { restaurant: "ร้านอาหาร", work: "สายงาน", travel: "การเดินทาง", exam: "สอบพูด", "small-talk": "คุยสั้นๆ", hotel: "เช็กอินโรงแรม", shopping: "ช็อปปิ้ง", doctor: "ไปพบแพทย์", "job-interview": "สัมภาษณ์งาน", bank: "ธนาคารและการชำระเงิน" },
+  tl: { restaurant: "Restawran", work: "Tawag sa trabaho", travel: "Paglalakbay", exam: "Oral exam", "small-talk": "Maikling usapan", hotel: "Hotel check-in", shopping: "Pamimili", doctor: "Pagbisita sa doktor", "job-interview": "Job interview", bank: "Bangko at bayad" },
+  tr: { restaurant: "Restoran", work: "İş görüşmesi", travel: "Seyahat", exam: "Sözlü sınav", "small-talk": "Kısa sohbet", hotel: "Otele giriş", shopping: "Alışveriş", doctor: "Doktor ziyareti", "job-interview": "İş mülakatı", bank: "Banka ve ödeme" },
+  vi: { restaurant: "Nhà hàng", work: "Cuộc gọi công việc", travel: "Du lịch", exam: "Thi nói", "small-talk": "Trò chuyện xã giao", hotel: "Nhận phòng khách sạn", shopping: "Mua sắm", doctor: "Khám bác sĩ", "job-interview": "Phỏng vấn xin việc", bank: "Ngân hàng và thanh toán" },
+};
+
 const roleplayGenericDescriptions: Record<string, string> = {
   en: "Practice this real-life situation with a clear goal, one question at a time, and short corrections.",
   ru: "Отработайте реальную ситуацию: цель, один вопрос за раз и короткие исправления.",
@@ -3577,18 +3626,25 @@ function roleplayFallbackForKey(interfaceLanguage: string | undefined, key: stri
 function roleplayScenarioTitle(scenario: RoleplayScenario, user: UserProfile) {
   const lang = languageCode(user.interface_language);
   const fallbackLang = ["tg", "uz", "tt", "ky", "uk", "kk"].includes(lang) ? "ru" : "en";
+  const concrete = cleanAppText(concreteRoleplayTitles[lang]?.[scenario.id] || "");
+  if (concrete) return concrete;
   const localized = cleanAppText(roleplayTitles[scenario.id]?.[lang] || "");
-  if (localized && !hasMojibakeText(localized) && localized !== cleanAppText(roleplayTitles[scenario.id]?.en || scenario.title)) return localized;
-  if (lang !== "en") return appCopy(lang, `roleplay_scenario_${scenario.id}`, roleplayTitles[scenario.id]?.[fallbackLang] || scenario.title);
-  return cleanAppText(roleplayTitles[scenario.id]?.en || scenario.title);
+  const english = cleanAppText(roleplayTitles[scenario.id]?.en || scenario.title);
+  const genericRoleplay = cleanAppText(appCopy(lang, "roleplay", "Roleplay"));
+  if (localized && !hasMojibakeText(localized) && localized !== genericRoleplay) return localized;
+  const copyCandidate = cleanAppText(appCopy(lang, `roleplay_scenario_${scenario.id}`, ""));
+  if (copyCandidate && copyCandidate !== `roleplay_scenario_${scenario.id}` && copyCandidate !== genericRoleplay && !hasMojibakeText(copyCandidate)) return copyCandidate;
+  return cleanAppText(roleplayTitles[scenario.id]?.[fallbackLang] || english || scenario.title);
 }
 
 function roleplayScenarioDescription(scenario: RoleplayScenario, user: UserProfile) {
   const lang = languageCode(user.interface_language);
-  if (lang !== "en") return appCopy(lang, "roleplay_scenario_description", roleplayGenericDescriptions.en);
+  const genericRoleplay = cleanAppText(appCopy(lang, "roleplay", "Roleplay"));
   const localized = cleanAppText(roleplayDescriptions[lang]?.[scenario.id] || roleplayGenericDescriptions[lang] || "");
-  if (localized && localized !== cleanAppText(roleplayGenericDescriptions.en)) return localized;
-  return cleanAppText(scenario.description || roleplayGenericDescriptions.en);
+  if (localized && localized !== genericRoleplay && !hasMojibakeText(localized)) return localized;
+  const copyCandidate = cleanAppText(appCopy(lang, "roleplay_scenario_description", ""));
+  if (copyCandidate && copyCandidate !== "roleplay_scenario_description" && copyCandidate !== genericRoleplay && !hasMojibakeText(copyCandidate)) return copyCandidate;
+  return cleanAppText(scenario.description || roleplayDescriptions.en?.[scenario.id] || roleplayGenericDescriptions.en);
 }
 
 function leaderboardLanguages(entry: LeaderboardEntry, languages: LanguageOption[], copy: (key: string, fallback: string) => string) {
@@ -5787,7 +5843,8 @@ function RoleplayView({
   if (activeScenario) {
     return (
       <section className={cn("v2-panel roleplay-view-v2 roleplay-view-v2--session", isMobileUi ? "roleplay-view-v2--mobile-session" : "roleplay-view-v2--desktop-session")}>
-        <div className="roleplay-stage-v2">
+        <div className="chat-workspace chat-workspace--roleplay" data-work-mode="roleplay">
+          <div className="chat-workspace__output">
           <div className="roleplay-dialog-card-v2">
             <div className="panel-head roleplay-dialog-head-v2">
               <Button variant="outline" type="button" onClick={resetScenario}>
@@ -5806,7 +5863,15 @@ function RoleplayView({
                 </div>
               )}
             </div>
-            <div className="roleplay-composer-v2">
+            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
+          </div>
+          </div>
+          <section className="v2-panel composer-panel-v2">
+            <div className="panel-head">
+              <span className="eyebrow">{copy("input", "Input")}</span>
+              <h2>{copy("roleplay", "Roleplay")}</h2>
+            </div>
+            <div className="composer-textarea-shell-v2">
               <textarea
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
@@ -5818,14 +5883,13 @@ function RoleplayView({
                   }
                 }}
               />
-              <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
               <Button className="composer-submit-v2 roleplay-submit-v2" type="button" onClick={() => void submitRoleplayAnswer(activeScenario, draft, voiceFile)} disabled={busy === "roleplay"} aria-label={copy("send", "Send")}>
                 {busy === "roleplay" ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={17} />}
                 <span>{copy("send", "Send")}</span>
               </Button>
             </div>
-            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
-          </div>
+            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+          </section>
         </div>
       </section>
     );
@@ -7690,7 +7754,7 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
 }
 
 function ImageUploadControl({ imageFile, setImageFile, copy }: { imageFile: File | null; setImageFile: (file: File | null) => void; copy: (key: string, fallback: string) => string }) {
-  const [{ files, isDragging }, { removeFile, clearFiles, openFileDialog, getInputProps, handleDragEnter, handleDragLeave, handleDragOver, handleDrop }] = useFileUpload({
+  const [{ files, isDragging }, { addFiles, removeFile, clearFiles, openFileDialog, getInputProps, handleDragEnter, handleDragLeave, handleDragOver, handleDrop }] = useFileUpload({
     accept: "image/*",
     onFilesAdded: (added) => {
       const first = added[0]?.file;
@@ -7704,6 +7768,20 @@ function ImageUploadControl({ imageFile, setImageFile, copy }: { imageFile: File
   const fallbackPreviewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile]);
   const previewUrl = files[0]?.preview || fallbackPreviewUrl;
   const fileName = files[0]?.file.name || imageFile?.name || "";
+  const handlePasteImage = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
+    const clipboardFiles = Array.from(event.clipboardData.files || []).filter((file) => file.type.startsWith("image/"));
+    const itemFiles = Array.from(event.clipboardData.items || [])
+      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter((file): file is File => Boolean(file));
+    const pastedImage = [...clipboardFiles, ...itemFiles][0];
+    if (!pastedImage) return;
+    event.preventDefault();
+    const namedFile = pastedImage.name
+      ? pastedImage
+      : new File([pastedImage], "clipboard-image.png", { type: pastedImage.type || "image/png" });
+    addFiles([namedFile]);
+  }, [addFiles]);
 
   useEffect(() => {
     if (!imageFile && files.length) clearFiles();
@@ -7722,6 +7800,8 @@ function ImageUploadControl({ imageFile, setImageFile, copy }: { imageFile: File
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      onPaste={handlePasteImage}
+      tabIndex={0}
     >
       <button
         type="button"
