@@ -5857,6 +5857,9 @@ function aiTutorPhraseCandidates(feedback: ApiRecord, savePhrase: ViewRendererPr
   };
   add(feedback.corrected_answer_target, "AI Tutor correction");
   add(feedback.corrected_version_target, "AI Tutor correction");
+  recordList(feedback.recommendations_interface)
+    .concat(recordList(feedback.recommendations), recordList(feedback.suggestions), recordList(feedback.tips))
+    .forEach((item) => add(item, "AI Tutor recommendation"));
   return candidates.slice(0, 4);
 }
 

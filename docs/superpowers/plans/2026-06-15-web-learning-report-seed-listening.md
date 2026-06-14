@@ -93,14 +93,14 @@
 - Modify: `web-react/src/styles/app.css`
 - Test: `web-react/e2e/web-smoke.spec.ts`
 
-- [ ] Add a failing Playwright test for AI Tutor feedback that includes both recommendations and mistakes.
-- [ ] Assert the UI renders exactly one notes block in the tutor context after feedback.
-- [ ] Assert the UI does not show duplicate `Сохранить в заметки` blocks.
-- [ ] Assert the UI never renders `Ошибки: Сохранить в заметки`.
-- [ ] Merge recommendation and mistake phrase candidates before rendering the note strip.
-- [ ] Keep real mistakes visible only in the mistakes block, without turning the note-strip label into an error heading.
-- [ ] Verify the AI Tutor feedback smoke test.
-- [ ] Commit with `fix: unify ai tutor note strip`.
+- [x] Add a failing Playwright test for AI Tutor feedback that includes both recommendations and mistakes.
+- [x] Assert the UI renders exactly one notes block in the tutor context after feedback.
+- [x] Assert the UI does not show duplicate `Сохранить в заметки` blocks.
+- [x] Assert the UI never renders `Ошибки: Сохранить в заметки`.
+- [x] Merge recommendation and mistake phrase candidates before rendering the note strip.
+- [x] Keep real mistakes visible only in the mistakes block, without turning the note-strip label into an error heading.
+- [x] Verify the AI Tutor feedback smoke test.
+- [x] Commit with `fix: unify ai tutor note strip`.
 
 ### Task 7: Final Verification and Deploy
 

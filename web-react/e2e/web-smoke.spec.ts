@@ -1447,21 +1447,30 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(tutorSubmit).toContainText(appCopy("ru", "tutor_continue"));
   await expect(tutorSubmit).not.toContainText(appCopy("ru", "tutor_check_answer"));
   await expect(tutorSubmit).toBeEnabled();
-  await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2 button").filter({ hasText: "I wake up at seven" }).first()).toBeVisible();
-  await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2 button").filter({ hasText: "Repeat wake up tomorrow" })).toHaveCount(0);
-  await expect(page.locator(".tutor-notes-suggestions-v2")).toContainText(appCopy("ru", "tutor_mistake_notes"));
+  const tutorNotes = page.locator(".tutor-context-v2 .tutor-note-strip-v2");
+  await expect(tutorNotes).toHaveCount(1);
+  await expect(tutorNotes).toContainText(appCopy("ru", "save_to_phrasebook"));
+  await expect(tutorNotes.locator("button").filter({ hasText: "I wake up at seven" }).first()).toBeVisible();
+  await expect(tutorNotes.locator("button").filter({ hasText: "Repeat wake up tomorrow" })).toHaveCount(1);
+  await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2")).toHaveCount(0);
+  await expect(page.locator(".tutor-context-v2 .tutor-notes-suggestions-v2")).toHaveCount(0);
+  await expect(page.locator(".tutor-context-v2")).not.toContainText(/Ошибки:\s*Сохранить в заметки/);
+  const tutorErrors = page.locator(".tutor-context-v2 .tutor-actual-errors-v2");
+  await expect(tutorErrors).toHaveCount(1);
+  await expect(tutorErrors).toContainText("I wake up at seven.: Use at + time.");
+  await expect(tutorErrors).not.toContainText(appCopy("ru", "save_to_phrasebook"));
   const composerBeforeNotes = await page.locator(".tutor-context-v2").evaluate((node) => {
     const composer = node.querySelector(".tutor-composer-v2");
-    const saveBlock = node.querySelector(".phrase-quick-save-v2");
+    const saveBlock = node.querySelector(".tutor-note-strip-v2");
     return Boolean(composer && saveBlock && (composer.compareDocumentPosition(saveBlock) & Node.DOCUMENT_POSITION_FOLLOWING));
   });
   expect(composerBeforeNotes).toBe(true);
 
-  await page.locator(".tutor-srs button").filter({ hasText: "good" }).click();
+  await page.locator(".tutor-srs button").filter({ hasText: appCopy("ru", "ai_tutor_option_good") }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Повторение");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Review");
-  await page.locator(".tutor-srs button").filter({ hasText: "tomorrow" }).click();
+  await page.locator(".tutor-srs button").filter({ hasText: appCopy("ru", "ai_tutor_option_tomorrow") }).click();
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Урок завершён");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Complete");
