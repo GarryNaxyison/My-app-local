@@ -3043,6 +3043,13 @@ export function App() {
     openBugReport: () => setBugReportOpen(true),
     openGuide: () => setGuideOpen(true),
   };
+  const handleContextPaste = (event: ClipboardEvent<HTMLElement>) => {
+    if (activeView !== "tools" || toolMode !== "image" || event.defaultPrevented) return;
+    const pastedImage = firstClipboardImage(event);
+    if (!pastedImage) return;
+    event.preventDefault();
+    setToolImageFile(nameClipboardImage(pastedImage));
+  };
 
   return (
     <div className="v2-shell" data-v2-shell="ios-function-ribbon" style={{ "--v2-brightness": brightness / 100 } as CSSProperties}>
@@ -3143,6 +3150,7 @@ export function App() {
           data-view={notFoundPath ? "not-found" : activeView}
           data-mode={notFoundPath ? "not-found" : activeView}
           data-mobile-controls={activeView === "home" ? "true" : "false"}
+          onPaste={handleContextPaste}
         >
           {notFoundPath ? (
             <NotFoundPage
@@ -7578,8 +7586,27 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
     setToolMode(mode);
     setMobilePickerOpen(false);
   };
+  const handleToolsPaste = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
+    if (toolMode !== "image" || event.defaultPrevented) return;
+    const pastedImage = firstClipboardImage(event);
+    if (!pastedImage) return;
+    event.preventDefault();
+    setToolImageFile(nameClipboardImage(pastedImage));
+  }, [setToolImageFile, toolMode]);
+  useEffect(() => {
+    if (toolMode !== "image") return;
+    const handleDocumentPaste = (event: globalThis.ClipboardEvent) => {
+      if (event.defaultPrevented) return;
+      const pastedImage = firstClipboardImageData(event.clipboardData);
+      if (!pastedImage) return;
+      event.preventDefault();
+      setToolImageFile(nameClipboardImage(pastedImage));
+    };
+    document.addEventListener("paste", handleDocumentPaste);
+    return () => document.removeEventListener("paste", handleDocumentPaste);
+  }, [setToolImageFile, toolMode]);
   return (
-    <div className={cn("tools-layout-v2", mobilePickerOpen && "is-picker-open")}>
+    <div className={cn("tools-layout-v2", mobilePickerOpen && "is-picker-open")} onPaste={handleToolsPaste}>
       <div className="tool-switch-v2">
         <ToolButton active={toolMode === "translator"} icon={Languages} title={copy("text_translator", "Text translator")} onClick={() => chooseTool("translator")} />
         <ToolButton active={toolMode === "voice"} icon={FileAudio} title={copy("voice_to_text", "Voice to text")} onClick={() => chooseTool("voice")} />
@@ -7772,18 +7799,10 @@ function ImageUploadControl({ imageFile, setImageFile, copy }: { imageFile: File
   const previewUrl = files[0]?.preview || fallbackPreviewUrl;
   const fileName = files[0]?.file.name || imageFile?.name || "";
   const handlePasteImage = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
-    const clipboardFiles = Array.from(event.clipboardData.files || []).filter((file) => file.type.startsWith("image/"));
-    const itemFiles = Array.from(event.clipboardData.items || [])
-      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
-      .map((item) => item.getAsFile())
-      .filter((file): file is File => Boolean(file));
-    const pastedImage = [...clipboardFiles, ...itemFiles][0];
+    const pastedImage = firstClipboardImage(event);
     if (!pastedImage) return;
     event.preventDefault();
-    const namedFile = pastedImage.name
-      ? pastedImage
-      : new File([pastedImage], "clipboard-image.png", { type: pastedImage.type || "image/png" });
-    addFiles([namedFile]);
+    addFiles([nameClipboardImage(pastedImage)]);
   }, [addFiles]);
 
   useEffect(() => {
@@ -7826,6 +7845,28 @@ function ImageUploadControl({ imageFile, setImageFile, copy }: { imageFile: File
       ) : null}
     </div>
   );
+}
+
+function isClipboardImageFile(file: File) {
+  return file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|bmp|svg|heic|heif)$/i.test(file.name || "");
+}
+
+function firstClipboardImage(event: ClipboardEvent<HTMLElement>) {
+  return firstClipboardImageData(event.clipboardData);
+}
+
+function firstClipboardImageData(clipboardData: DataTransfer | null) {
+  const clipboardFiles = Array.from(clipboardData?.files || []).filter(isClipboardImageFile);
+  const itemFiles = Array.from(clipboardData?.items || [])
+    .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+    .map((item) => item.getAsFile())
+    .filter((file): file is File => file instanceof File && isClipboardImageFile(file));
+  return [...clipboardFiles, ...itemFiles][0] || null;
+}
+
+function nameClipboardImage(file: File) {
+  if (file.name) return file;
+  return new File([file], "clipboard-image.png", { type: file.type || "image/png" });
 }
 
 function Meter({ label, value, max }: { label: string; value: unknown; max: unknown }) {

@@ -2166,20 +2166,26 @@ test("regression: desktop function ribbon arrows stay inside the menu frame", as
       leftArrowRight: arrows[0]?.right || 0,
       rightArrowLeft: arrows[1]?.left || 0,
       rightArrowRight: arrows[1]?.right || 0,
+      leftArrowGap: (ribbonBox?.left || 0) - (arrows[0]?.right || 0),
+      rightArrowGap: (arrows[1]?.left || 0) - (ribbonBox?.right || 0),
       leftHitIsChip: Boolean(leftHit?.closest(".function-chip")),
       rightHitIsChip: Boolean(rightHit?.closest(".function-chip")),
+      leftHitIsArrow: Boolean(leftHit?.closest(".ribbon-morph-arrow")),
+      rightHitIsArrow: Boolean(rightHit?.closest(".ribbon-morph-arrow")),
     };
   });
 
   await expect(ribbon).toBeVisible();
   await expect(leftArrow).toBeVisible();
   await expect(rightArrow).toBeVisible();
-  expect(metrics.leftArrowLeft).toBeGreaterThanOrEqual(metrics.shellLeft - 1);
-  expect(metrics.rightArrowRight).toBeLessThanOrEqual(metrics.shellRight + 1);
-  expect(metrics.ribbonLeft).toBeGreaterThanOrEqual(metrics.leftArrowRight - 2);
-  expect(metrics.ribbonRight).toBeLessThanOrEqual(metrics.rightArrowLeft + 2);
+  expect(metrics.leftArrowLeft).toBeGreaterThanOrEqual(metrics.shellLeft + 8);
+  expect(metrics.rightArrowRight).toBeLessThanOrEqual(metrics.shellRight - 8);
+  expect(metrics.leftArrowGap).toBeGreaterThanOrEqual(10);
+  expect(metrics.rightArrowGap).toBeGreaterThanOrEqual(10);
   expect(metrics.leftHitIsChip).toBe(false);
   expect(metrics.rightHitIsChip).toBe(false);
+  expect(metrics.leftHitIsArrow).toBe(true);
+  expect(metrics.rightHitIsArrow).toBe(true);
 });
 
 test("regression: mobile pronunciation blocks keep vertical order after checking audio", async ({ page, isMobile }) => {
@@ -2609,6 +2615,13 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   expect(phraseSave).not.toBeNull();
   expect(phraseSave!.y + phraseSave!.height).toBeLessThanOrEqual(viewport!.height - 64);
 
+  const newLessonButton = await page.locator(".lesson-new-button-v2").boundingBox();
+  const mobileNav = await page.locator(".mobile-bottom-nav-v2").boundingBox();
+  expect(newLessonButton).not.toBeNull();
+  expect(mobileNav).not.toBeNull();
+  expect(newLessonButton!.y).toBeGreaterThanOrEqual(0);
+  expect(newLessonButton!.y + newLessonButton!.height).toBeLessThanOrEqual(mobileNav!.y - 8);
+
   await page.locator(".composer-panel-v2 textarea").fill("I have a reservation.");
   await page.locator(".composer-panel-v2 textarea").press("Enter");
   await expect(page.getByText("Use under the name for reservations.")).toBeVisible();
@@ -2684,7 +2697,7 @@ test("regression: image tool accepts a pasted clipboard image", async ({ page, i
     const request = route.request();
     const contentType = request.headers()["content-type"] || "";
     const body = request.postData() || "";
-    uploadedImageSeen = contentType.includes("multipart/form-data") && body.includes("clipboard-image.png");
+    uploadedImageSeen = contentType.includes("multipart/form-data") && body.includes("clipboard-image-from-page.png");
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -2709,6 +2722,15 @@ test("regression: image tool accepts a pasted clipboard image", async ({ page, i
     node.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dataTransfer, bubbles: true, cancelable: true }));
   }, Array.from(png));
   await expect(page.locator(".file-chip-v2")).toContainText("clipboard-image.png");
+  await page.locator(".file-chip-v2 button").click();
+  await expect(page.locator(".file-chip-v2")).toHaveCount(0);
+  await page.locator(".context-display--tools").evaluate((node, bytes) => {
+    const file = new File([new Uint8Array(bytes)], "clipboard-image-from-page.png", { type: "image/png" });
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    node.dispatchEvent(new ClipboardEvent("paste", { clipboardData: dataTransfer, bubbles: true, cancelable: true }));
+  }, Array.from(png));
+  await expect(page.locator(".file-chip-v2")).toContainText("clipboard-image-from-page.png");
   await page.locator(".tools-submit-v2").click();
   await expect(page.locator(".chat-interface").getByText("Меню кафе").first()).toBeVisible();
   expect(uploadedImageSeen).toBe(true);
