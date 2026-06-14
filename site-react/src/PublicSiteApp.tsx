@@ -36,99 +36,112 @@ declare global {
 const features = [
   {
     icon: BookOpen,
-    title: "Маршрут дня",
-    body: "Короткий урок, практика, слова и ежедневные задания собираются в один понятный сценарий.",
+    title: "AI Tutor маршрут",
+    body: "Короткая сессия ведет от фразы и примера к ответу, проверке, XP и следующему повторению.",
   },
   {
     icon: MessageCircle,
     title: "Ролевые диалоги",
-    body: "Поездка, работа, экзамен или собеседование с подсказками, разбором ответа и сменой сценария.",
+    body: "Поездка, работа, экзамен или разговорная речь: AI держит сценарий, исправляет ответ и дает модельную фразу.",
   },
   {
     icon: Mic,
-    title: "Произношение",
-    body: "Голосовая тренировка показывает слабые слова, звуки и историю прогресса без лишнего текста.",
+    title: "Произношение и shadowing",
+    body: "Голосовая тренировка показывает оценку, слабые слова, звуки, историю прогресса и следующий повтор.",
   },
   {
     icon: Camera,
     title: "Фото и перевод",
-    body: "Сфотографируйте меню, вывеску или задание и превратите это в учебную практику.",
+    body: "Меню, вывеска, задание или файл превращаются в перевод, заметку и короткую практику по контексту.",
   },
   {
     icon: WifiOff,
-    title: "Оффлайн и PWA",
-    body: "Мини-колоды для повторения можно сохранить на телефон и открыть даже без стабильной сети.",
+    title: "Ошибки, словарь и offline",
+    body: "Review, Spelling, Notes, Mistakes и offline decks возвращают к тому, что реально проседает.",
   },
   {
     icon: Trophy,
-    title: "Прогресс",
-    body: "Заметки, ошибки, XP, streak и награды хранятся в одном профиле сайта и Telegram.",
+    title: "Единый прогресс",
+    body: "XP, streak, уровни, награды, daily bonus и история занятий остаются в одном профиле web, PWA и Telegram.",
   },
 ];
 
 const workflow = [
-  ["01", "Выберите язык и уровень", "Интерфейс, язык обучения и формат маршрута настраиваются отдельно."],
-  ["02", "Сделайте короткую сессию", "AI ведет через урок, практику, слова, роль или произношение."],
-  ["03", "Повторяйте слабые места", "Ошибки, заметки и оффлайн-колоды закрепляются за профилем."],
+  ["01", "Выберите цель", "Travel, work, exam или разговорная речь меняют маршрут и первые задания."],
+  ["02", "Сделайте короткую сессию", "AI ведет через урок, диалог, голос, фото или словарь ошибок."],
+  ["03", "Закрепите слабое место", "Notes, Mistakes, weak words, XP и streak подсказывают следующий повтор."],
 ];
+
+const heroGoals = [
+  ["Путешествия", "отель, кафе, аэропорт"],
+  ["Работа", "созвоны, письма, small talk"],
+  ["Экзамен", "лексика, грамматика, speaking"],
+  ["Разговорная речь", "живые ответы без заучивания"],
+] as const;
+
+const courseRoutes = [
+  ["AI Tutor Core", "Полный маршрут A1-C2 с уроком, практикой, повторением и XP.", "A1-C2"],
+  ["Travel & Work", "Ролевые сценарии, фото-перевод, быстрые фразы и диалоги.", "роль + фото"],
+  ["Voice Coach", "Shadowing, слабые слова, pronunciation score и история голоса.", "voice"],
+] as const;
 
 const testimonials = [
   {
     name: "Анна",
     role: "готовится к поездке",
-    text: "Мне важны короткие задания. Открываю маршрут дня, прохожу роль в отеле и сразу сохраняю нужные фразы.",
+    text: "Перед поездкой я тренирую check-in, кафе и транспорт. Нужная фраза сразу попадает в заметки и повторение.",
   },
   {
     name: "Марат",
     role: "учит английский для работы",
-    text: "В Telegram удобно повторять слова, а в web app лучше видно ошибки и прогресс. Профиль один и это решает.",
+    text: "В web app вижу ошибки и XP, в Telegram быстро повторяю слова. Профиль один, поэтому ничего не теряется.",
   },
   {
     name: "София",
     role: "тренирует произношение",
-    text: "Нравится, что сервис показывает не абстрактную оценку, а конкретные слабые слова и что повторить дальше.",
+    text: "Голосовой режим показывает конкретные слабые слова. Это ощущается как личный coach, а не обычный список упражнений.",
   },
 ];
 
 const faqs = [
   ["Можно заниматься только в Telegram?", "Да. Telegram и web app используют один учебный профиль, Premium и прогресс."],
-  ["Чем Premium отличается от Free?", "Premium дает больше уроков, практики, голосовые функции, фото-перевод и расширенные лимиты."],
-  ["Сохраняются ли заметки и ошибки?", "Да. Заметки, словарь ошибок, слабые слова и прогресс закрепляются за аккаунтом."],
-  ["Можно ли установить на телефон?", "Да. Web app работает как PWA и может предложить установку в мобильном браузере."],
+  ["Чем Premium отличается от Free?", "Premium открывает больше уроков и практики, голос, фото-перевод и расширенные лимиты AI."],
+  ["Сохраняются ли заметки и ошибки?", "Да. Notes, Mistakes, weak words, voice history, XP и streak закрепляются за аккаунтом."],
+  ["Можно ли установить на телефон?", "Да. Web app работает как PWA и адаптирован отдельно под desktop и mobile web."],
 ];
 
 const demoScreens = [
   {
     tab: "Урок",
-    avatar: "УР",
-    intro: "Разберите короткую фразу, смысл, пример и следующий шаг без лишнего текста.",
+    avatar: "AI",
+    intro: "Сначала Poliglot AI дает фразу, смысл, пример и короткий next step.",
     label: "Урок",
     output: "I would like to book a table for tonight.",
-    hint: "Сразу видно, какую фразу выучить и где применить ее сегодня.",
+    hint: "Фраза сразу попадает в маршрут и повторение.",
   },
   {
-    tab: "Практика",
-    avatar: "AI",
-    intro: "Повторите фразу и ответьте так, как сказали бы в реальной ситуации.",
-    label: "Практика",
-    output: "Could you tell me where the nearest station is?",
-    hint: "Понятный совет и следующий шаг появляются сразу после ответа.",
+    tab: "Диалог",
+    avatar: "DL",
+    intro: "Роль держит контекст и просит ответить так, как в реальной ситуации.",
+    label: "Hotel check-in",
+    output: "Could you help me check in? I have a reservation.",
+    hint: "AI исправляет ответ и дает более естественную версию.",
   },
   {
     tab: "Голос",
-    avatar: "ГС",
-    intro: "Произнесите фразу, получите оценку произношения и слабые звуки.",
+    avatar: "VO",
+    intro: "Произнесите фразу, получите score, weak words и повтор для shadowing.",
     label: "Голос",
     output: "Please speak a little slower.",
-    hint: "Сервис показывает, какие слова и звуки стоит повторить.",
+    hint: "История голоса показывает, что стало лучше.",
   },
   {
     tab: "Фото",
-    avatar: "ФО",
-    intro: "Сфотографируйте меню, вывеску или задание и превратите это в практику.",
+    avatar: "PH",
+    intro: "Сфотографируйте меню, вывеску или задание и получите учебный сценарий.",
     label: "Фото",
     output: "No peanuts, please. How spicy is this dish?",
-    hint: "Фото превращается в перевод, заметку и короткий учебный сценарий.",
+    hint: "Фото превращается в перевод, заметку и practice prompt.",
   },
 ] as const;
 
@@ -138,7 +151,7 @@ const expandedInterfaceLanguageText =
   "доступны 35 языков интерфейса: العربية, বাংলা, Čeština, Deutsch, Ελληνικά, English, Español, Français, हिंदी, Magyar, Bahasa Indonesia, Italiano, 日本語, 한국어, Nederlands, Polski, Português, Română, Русский, svenska, தமிழ், తెలుగు, ภาษาไทย, Tagalog, Türkçe, Українською, Tiếng Việt, 中文, Тоҷикӣ, O‘zbekcha, Татарча, Հայերեն, Қазақша, Кыргызча и ქართული. Учебные словари расширяются отдельно.";
 
 const learningLanguageShowcase = [
-  ["English", "A1-C2", "26 млн учащихся"],
+  ["English", "A1-C2", "маршруты для речи"],
   ["Español", "A1-C2", "диалоги для поездок"],
   ["Deutsch", "A1-C2", "работа и экзамены"],
   ["Français", "A1-C2", "аудирование и речь"],
@@ -251,21 +264,31 @@ function LandingPage() {
 
         <div className="landing-hero__inner">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.66 }} className="landing-hero__copy">
-            <span className="eyebrow">AI-репетитор в web app, PWA и Telegram</span>
-            <h1>Учите языки онлайн с понятным маршрутом дня</h1>
+            <span className="eyebrow">Premium AI-репетитор для ежедневной практики</span>
+            <h1>
+              Говорите на новом языке с <span className="hero-nowrap">AI-репетитором</span>, который помнит ваши ошибки
+            </h1>
             <p>
-              Короткий урок, практика, роль, произношение, заметки и словарь ошибок собираются в один профиль. Poliglot AI помогает заниматься каждый день без перегруженного интерфейса.
+              Урок, диалог, произношение, фото-перевод, словарь ошибок и прогресс собираются в один профиль web, PWA и Telegram.
             </p>
             <div className="hero-actions">
               <a className="hero-action hero-action--primary" href="/app/">
-                Начать обучение <ArrowRight size={18} />
+                Начать бесплатно <ArrowRight size={18} />
               </a>
               <a className="hero-action hero-action--secondary" href="https://t.me/poliglot_ai_bot">
                 Открыть Telegram
               </a>
             </div>
+            <div className="hero-goals" aria-label="Цели обучения">
+              {heroGoals.map(([goal, note]) => (
+                <a key={goal} href="/app/">
+                  <strong>{goal}</strong>
+                  <span>{note}</span>
+                </a>
+              ))}
+            </div>
             <div className="hero-language-picker" aria-label="Популярные языки обучения">
-              <h3>Я хочу изучать:</h3>
+              <h3>Популярные языки обучения:</h3>
               <div>
                 {learningLanguageShowcase.map(([language, level, note]) => (
                   <a key={language} href="/app/">
@@ -278,13 +301,13 @@ function LandingPage() {
             </div>
             <div className="hero-path" aria-label="Учебный маршрут">
               <span>
-                <b>1</b> Урок
+                <b>1</b> Цель
               </span>
               <span>
-                <b>2</b> Практика
+                <b>2</b> Урок
               </span>
               <span>
-                <b>3</b> Роль
+                <b>3</b> Речь
               </span>
               <span>
                 <b>4</b> Повтор
@@ -298,7 +321,7 @@ function LandingPage() {
                 <strong>A1-C2</strong> уровни обучения
               </span>
               <span>
-                <strong>24/7</strong> web, PWA и Telegram
+                <strong>Free</strong> старт без оплаты
               </span>
             </div>
           </motion.div>
@@ -307,7 +330,7 @@ function LandingPage() {
             <div className="hero-demo__top">
               <div>
                 <span>Сегодня</span>
-                <strong>Маршрут дня</strong>
+                <strong>AI Tutor Cockpit</strong>
               </div>
               <span className="hero-demo__score">84/100</span>
             </div>
@@ -346,16 +369,12 @@ function LandingPage() {
 
       <section className="course-strip" aria-label="Курсы Poliglot AI">
         <div className="course-strip__intro">
-          <span className="eyebrow">Курсы на выбор</span>
-          <h2>Не просто список уроков, а готовые сценарии под цель</h2>
-          <p>Начните с общего маршрута A1-C2, добавьте фразы для поездки, работу, экзамен или произношение. Web app и Telegram держат один прогресс.</p>
+          <span className="eyebrow">Premium AI Tutor Cockpit</span>
+          <h2>Маршруты под цель, а не бесконечная лента упражнений</h2>
+          <p>Выберите режим для поездки, работы, экзамена или речи. Poliglot AI собирает урок, диалог, голос, фото и повторение в один управляемый цикл.</p>
         </div>
         <div className="course-cards">
-          {[
-            ["Полный маршрут", "Уроки всех уровней сложности от A1 до C2.", "A1-C2"],
-            ["Для путешествий", "Полезные фразы, фото-перевод и ролевые ситуации.", "роль + фото"],
-            ["Произношение", "Голосовая оценка, слабые слова и история прогресса.", "voice coach"],
-          ].map(([title, body, badge], index) => (
+          {courseRoutes.map(([title, body, badge], index) => (
             <motion.a key={title} href="/app/" className="course-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.42, delay: index * 0.05 }}>
               <span>{badge}</span>
               <h3>{title}</h3>
@@ -377,7 +396,7 @@ function LandingPage() {
           </span>
           <span>
             <strong>1</strong>
-            профиль web + Telegram
+            профиль web, PWA, Telegram
           </span>
         </div>
       </section>
@@ -385,8 +404,8 @@ function LandingPage() {
       <section id="features" className="landing-band feature-section">
         <div className="section-copy">
           <span className="eyebrow">Возможности</span>
-          <h2>Чем эффективен подход Poliglot AI</h2>
-          <p>Каждый блок ведет к действию: ответить, проговорить, повторить, сохранить фразу или разобрать ошибку.</p>
+          <h2>Не просто упражнения, а цикл AI-репетитора</h2>
+          <p>Каждый блок ведет к действию: сказать, получить разбор, сохранить фразу и вернуться к слабому месту.</p>
         </div>
         <div className="feature-grid">
           {features.map((feature, index) => {
@@ -405,7 +424,7 @@ function LandingPage() {
       <section className="landing-band workflow-section">
         <div className="section-copy">
           <span className="eyebrow">Как это работает</span>
-          <h2>Один профиль связывает сайт, PWA и Telegram</h2>
+          <h2>Один профиль связывает web app, PWA и Telegram</h2>
         </div>
         <div className="workflow-card">
           {workflow.map(([num, title, body]) => (
@@ -422,21 +441,22 @@ function LandingPage() {
 
       <section id="pricing" className="pricing-section">
         <div className="section-copy">
-          <span className="eyebrow">Тарифы</span>
-          <h2>Начните бесплатно и расширьте практику, когда понадобится больше лимитов</h2>
+          <span className="eyebrow">Premium</span>
+          <h2>Начните бесплатно, а для серьезной практики откройте голос, фото и расширенные лимиты</h2>
+          <p className="payment-methods">Оплата: Telegram Stars, YooKassa/SBP, TON и USDT.</p>
         </div>
         <div className="pricing-grid">
-          <PlanCard name="Free" label="Для старта" price="0 ₽" body="Ежедневная привычка без оплаты." items={["уроки и слова", "базовая практика", "заметки"]} />
-          <PlanCard name="Premium" label="Лучший старт" oldPrice="1000 ₽" price="300 ₽" body="Основной режим для регулярной учебы." items={["больше уроков", "голос и фото", "словарь ошибок"]} featured />
-          <PlanCard name="Platinum" label="Максимум" oldPrice="2000 ₽" price="590 ₽" body="Для интенсивной подготовки к поездке, работе или экзамену." items={["расширенные лимиты", "больше практики", "роли и произношение"]} />
+          <PlanCard name="Free" label="Попробовать маршрут" price="0 ₽" body="Для первого знакомства с AI Tutor и ежедневной привычкой." items={["стартовые уроки", "базовая практика", "заметки и прогресс"]} />
+          <PlanCard name="Premium" label="Регулярная учеба" oldPrice="1000 ₽" price="300 ₽" body="Основной режим для ежедневной практики с голосом, фото и большим числом сессий." items={["до 50 уроков в день", "до 200 сообщений практики", "голос, фото и словарь ошибок"]} featured />
+          <PlanCard name="Platinum" label="Интенсив" oldPrice="2000 ₽" price="590 ₽" body="Максимум для поездки, работы, экзамена или активной разговорной практики." items={["до 100 уроков в день", "до 500 сообщений практики", "больше ролей и голосовых повторов"]} />
         </div>
       </section>
 
       <section id="reviews" className="landing-band reviews-section">
         <div className="section-copy">
           <span className="eyebrow">Отзывы</span>
-          <h2>Сервис показывает продукт, а не обещания</h2>
-          <p>Главное место на лендинге занимает живой сценарий: урок, голос, роль, ошибки и тарифы видны до регистрации.</p>
+          <h2>Премиальный опыт без лишнего шума</h2>
+          <p>Лендинг показывает реальный учебный цикл: урок, диалог, голос, фото, ошибки, тарифы и единый прогресс до регистрации.</p>
         </div>
         <div className="reviews-grid">
           {testimonials.map((item, index) => (
@@ -462,8 +482,8 @@ function LandingPage() {
       <section className="progress-section">
         <div>
           <span className="eyebrow">Прогресс</span>
-          <h2>Ошибки, заметки и награды не теряются между устройствами</h2>
-          <p>Сервис показывает, что уже получилось, что стоит повторить и куда двигаться дальше.</p>
+          <h2>Слабые места не теряются между устройствами</h2>
+          <p>Ошибки, заметки, weak words, voice history, XP и streak подсказывают следующий шаг.</p>
         </div>
         <div className="progress-orbit" aria-hidden="true">
           <Trophy size={44} />
@@ -490,11 +510,11 @@ function LandingPage() {
 
       <section className="start-panel">
         <div>
-          <span className="eyebrow">Старт</span>
-          <h2>Откройте Poliglot AI и пройдите первый маршрут</h2>
+          <span className="eyebrow">Первый маршрут</span>
+          <h2>Откройте Poliglot AI и начните говорить с разбором ошибок уже сегодня</h2>
         </div>
         <a className="hero-action hero-action--primary" href="/app/">
-          Открыть онлайн-приложение <ArrowRight size={18} />
+          Начать бесплатно <ArrowRight size={18} />
         </a>
       </section>
     </main>
@@ -597,7 +617,7 @@ function SiteFooter() {
     <footer className="site-footer">
       <div>
         <strong>Poliglot AI</strong>
-        <p>AI-репетитор для короткой ежедневной языковой практики в web app, PWA и Telegram.</p>
+        <p>Premium AI-репетитор для уроков, диалогов, голоса, фото-перевода и словаря ошибок в web app, PWA и Telegram.</p>
         <span>© 2026 Poliglot AI. Все права защищены.</span>
       </div>
       <nav>

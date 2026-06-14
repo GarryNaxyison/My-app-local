@@ -2455,3 +2455,334 @@ html[data-site-theme="light"] .feature-section .eyebrow {
   box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
   text-shadow: none !important;
 }
+
+/* 2026-06-15 Premium AI Tutor Cockpit landing refresh. */
+.landing-hero__inner {
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.62fr);
+  gap: 44px;
+  padding-top: 92px;
+  padding-bottom: 58px;
+}
+
+.landing-hero h1 {
+  max-width: 820px;
+  font-size: 4.85rem;
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.landing-hero__copy > p {
+  max-width: 660px;
+  font-size: 1.12rem;
+  line-height: 1.72;
+}
+
+.hero-nowrap {
+  white-space: nowrap;
+}
+
+.hero-goals {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 820px;
+  margin-top: 22px;
+}
+
+.hero-goals a {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  min-height: 84px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.hero-goals a:hover {
+  border-color: rgba(123, 220, 255, 0.45);
+  background: rgba(123, 220, 255, 0.14);
+  transform: translateY(-2px);
+}
+
+.hero-goals strong {
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.18;
+  letter-spacing: 0;
+}
+
+.hero-goals span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+html[data-site-theme="light"] .hero-goals a {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html[data-site-theme="light"] .hero-goals strong {
+  color: #fff !important;
+}
+
+html[data-site-theme="light"] .hero-goals span {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+.hero-language-picker {
+  margin-top: 20px;
+}
+
+.hero-language-picker a {
+  min-height: 94px;
+}
+
+.hero-path {
+  margin-top: 18px;
+}
+
+.hero-proof {
+  max-width: 660px;
+  margin-top: 18px;
+}
+
+.hero-demo {
+  align-self: center;
+  max-width: 460px;
+  width: 100%;
+}
+
+.hero-demo__top strong,
+.hero-demo__tabs button,
+.demo-output p,
+.demo-hint {
+  letter-spacing: 0;
+}
+
+.course-strip__intro h2,
+.section-copy h2,
+.progress-section h2,
+.start-panel h2 {
+  letter-spacing: 0;
+}
+
+.payment-methods {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 16px !important;
+  padding: 10px 14px;
+  border: 1px solid rgba(18, 184, 215, 0.18);
+  border-radius: 8px;
+  background: rgba(18, 184, 215, 0.08);
+  color: #174157 !important;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+html[data-site-theme="dark"] .payment-methods {
+  border-color: rgba(123, 220, 255, 0.22);
+  background: rgba(123, 220, 255, 0.1);
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.pricing-grid article {
+  min-width: 0;
+}
+
+.pricing-grid li {
+  align-items: flex-start;
+  line-height: 1.45;
+}
+
+.review-card,
+.faq-grid article,
+.feature-card,
+.course-card,
+.pricing-grid article {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+  .landing-hero__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 30px;
+  }
+
+  .landing-hero h1 {
+    max-width: 880px;
+    font-size: 4.1rem;
+  }
+
+  .landing-hero__copy > p,
+  .hero-proof,
+  .hero-demo {
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 980px) {
+  .landing-hero__inner {
+    padding-top: 82px;
+    padding-bottom: 42px;
+  }
+
+  .hero-goals,
+  .hero-language-picker > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-language-picker a {
+    min-height: 88px;
+  }
+
+  .course-strip__intro h2,
+  .section-copy h2,
+  .progress-section h2,
+  .start-panel h2 {
+    font-size: 2.65rem;
+    line-height: 1.08;
+  }
+}
+
+@media (max-width: 680px) {
+  .public-nav {
+    gap: 10px;
+    min-height: auto;
+    padding: 12px 16px;
+  }
+
+  .public-nav nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    overflow-x: visible;
+  }
+
+  .public-nav nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 34px;
+    padding: 7px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 0.78rem;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .public-nav__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 10px;
+  }
+
+  .nav-theme-toggle {
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .public-nav .nav-pill {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .landing-hero__inner {
+    padding-top: 76px;
+    padding-bottom: 34px;
+  }
+
+  .landing-hero h1 {
+    font-size: 3.05rem;
+    line-height: 1.02;
+  }
+
+  .landing-hero__copy > p {
+    font-size: 1rem;
+    line-height: 1.62;
+  }
+
+  .hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-action {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .hero-goals,
+  .hero-proof,
+  .hero-demo__tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-goals a {
+    min-height: auto;
+  }
+
+  .hero-language-picker > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-language-picker a {
+    min-height: 84px;
+    padding: 12px;
+  }
+
+  .hero-language-picker strong {
+    font-size: 0.95rem;
+  }
+
+  .hero-language-picker small {
+    font-size: 0.72rem;
+  }
+
+  .course-strip__intro h2,
+  .section-copy h2,
+  .progress-section h2,
+  .start-panel h2 {
+    font-size: 2.05rem;
+    line-height: 1.12;
+  }
+
+  .payment-methods {
+    display: flex;
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .landing-hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-language-picker > div {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-demo__top,
+  .hero-demo__tabs,
+  .hero-demo__panel {
+    margin-inline: 10px;
+  }
+}
