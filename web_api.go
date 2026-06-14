@@ -1825,6 +1825,7 @@ func (api *webAPI) handleLessonAnswer(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusBadRequest, "empty answer")
 		return
 	}
+	awardLessonXP := strings.TrimSpace(user.Mode) == "lesson"
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
 	raw, err := api.bot.openrouter.complete(r.Context(), feedbackPrompt(language, interfaceLanguage, user.Level, user.LastLessonPrompt, text), 0.3, 900)
@@ -1844,9 +1845,11 @@ func (api *webAPI) handleLessonAnswer(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := api.bot.store.addXP(user.TelegramID, 20); err != nil {
-		writeAPIError(w, http.StatusInternalServerError, err.Error())
-		return
+	if awardLessonXP {
+		if err := api.bot.store.addXP(user.TelegramID, 20); err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 	promotedTo, err := api.bot.maybePromoteLearningLevelForWeb(r.Context(), user.TelegramID, user.FirstName)
 	if err != nil {

@@ -492,6 +492,70 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 	assertXPDelta("mistake", before, 8, mistake)
 }
 
+func TestWebLessonAnswerAwardsXPOnlyOnceForActiveLesson(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	responses := []string{
+		"First correction.\n" + mistakesSentinel + "\n[]",
+		"Second correction.\n" + mistakesSentinel + "\n[]",
+	}
+	call := 0
+	api.bot.openrouter = newOpenRouterClient("test-key", "xp-once-model", "http://localhost", "test", &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			if call >= len(responses) {
+				t.Fatalf("unexpected extra OpenRouter call %d", call+1)
+			}
+			body, err := json.Marshal(map[string]any{
+				"choices": []map[string]any{{"message": map[string]any{"content": responses[call]}}},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			call++
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     http.Header{"Content-Type": []string{"application/json"}},
+				Body:       io.NopCloser(bytes.NewReader(body)),
+			}, nil
+		}),
+	})
+
+	if err := store.saveLesson(-42, "Answer this lesson once."); err != nil {
+		t.Fatalf("save lesson: %v", err)
+	}
+	user, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := user.XP
+
+	first := requestJSON(t, api, cookie, http.MethodPost, "/api/lesson/answer", map[string]any{"text": "My first answer"})
+	if got := first["feedback"]; got != "First correction." {
+		t.Fatalf("first feedback = %#v", got)
+	}
+	user, err = store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := user.XP, before+20; got != want {
+		t.Fatalf("XP after first answer = %d, want %d", got, want)
+	}
+
+	second := requestJSON(t, api, cookie, http.MethodPost, "/api/lesson/answer", map[string]any{"text": "My second answer"})
+	if got := second["feedback"]; got != "Second correction." {
+		t.Fatalf("second feedback = %#v", got)
+	}
+	user, err = store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := user.XP, before+20; got != want {
+		t.Fatalf("XP after second answer = %d, want %d", got, want)
+	}
+	if call != len(responses) {
+		t.Fatalf("expected %d OpenRouter calls, got %d", len(responses), call)
+	}
+}
+
 func TestWebDailyClaimInsideTwentyFourHoursDoesNotAwardXP(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	beforeUser, err := store.getOrCreateUser(-42, "tester")

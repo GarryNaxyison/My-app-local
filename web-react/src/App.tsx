@@ -2213,9 +2213,8 @@ export function App() {
     if (transcript) nextMessages.push({ id: `${Date.now()}-user`, role: "user", title: copy("you", "You"), body: transcript, meta: mode });
     setMessages((current) => [
       ...nextMessages,
-      ...(mode === "lesson" ? current.filter((message) => message.meta !== "lesson") : current),
+      ...current,
     ].slice(0, 12));
-    if (mode === "lesson") setActiveLessonTaskId("");
     setDraft("");
     setVoiceFile(null);
     setImageFile(null);
@@ -2257,7 +2256,7 @@ export function App() {
     });
     if (!payload) return;
     const record = getRecord(payload);
-    const transcript = asText(record.transcript || learnerText || (voice ? copy("voice_message", "Voice message") : ""), "");
+    const transcript = asText(learnerText || (voice ? record.transcript || copy("voice_message", "Voice message") : ""), "");
     const result = panelMessage(formatLearningRecord(record, copy, copy("roleplay_ready", "Roleplay is ready.")), "success", title, record, "roleplay");
     setRoleplayResult(result);
     setMessages((current) => [
@@ -3686,6 +3685,7 @@ function buildRoleplayScenarioPrompt(
     learnerLine
       ? "The learner has already answered. First give one compact correction if needed, then continue the scene with one natural character line/question. Do not show a generic practice prompt."
       : "This is the first turn. Start with a short scene setup, one AI character line in the target language, the learner's task, and one optional example answer. Do not ask a separate 'next question' block before the learner answers.",
+    "Do not invent corrections. If you name a problem, quote the exact learner fragment and the exact replacement. If a word or preposition is already present, do not say to add it.",
     "Keep labels learner-friendly. Do not write raw prompt names, system words, or technical wording. Keep it concise.",
   ].join("\n");
 }
@@ -6627,6 +6627,9 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
   const answer = mode === "words" ? answerWord : answerWordGame;
   const result = mode === "words" ? wordResult : wordGameResult;
   const title = mode === "words" ? copy("learn_words", "Learn words") : copy("word_game", "Review game");
+  const description = mode === "words"
+    ? copy("words_section_hint", "Choose the correct translation, listen to examples, and save useful phrases from new words.")
+    : copy("word_game_section_hint", "Review learned words from memory and reinforce the ones that are easy to forget.");
   useEffect(() => {
     if (!challenge && !result && !busy) void start();
   }, [mode, Boolean(challenge), Boolean(result), Boolean(busy)]);
@@ -6634,7 +6637,7 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
     <section className="v2-panel trainer-display">
       <span className="eyebrow">{title}</span>
       <h2>{challenge?.empty ? copy("no_words_ready", "No words ready") : challenge?.prompt || (busy ? copy("loading", "Loading...") : copy("start_new_round", "Start a new round"))}</h2>
-      {challenge?.context ? <p>{challenge.context}</p> : null}
+      <p>{challenge?.context || description}</p>
       {result ? <TrainerResultBox result={result} copy={copy} onNext={() => void start()} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} /> : null}
       {options.length ? (
         <div className="choice-grid-v2">

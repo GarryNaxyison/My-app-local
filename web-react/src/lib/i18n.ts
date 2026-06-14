@@ -4547,6 +4547,22 @@ appLocaleCodes.forEach((code) => {
   localeOverrides[code] = { ...target, ...guideValues };
 });
 
+const trainerHintCopy: Partial<Record<AppLocaleCode, Record<string, string>>> = {
+  ru: {
+    words_section_hint: "Выберите правильный перевод, послушайте примеры и сохраняйте полезные фразы из новых слов.",
+    word_game_section_hint: "Повторяйте изученные слова по памяти и укрепляйте те, которые легко забываются.",
+  },
+  en: {
+    words_section_hint: "Choose the correct translation, listen to examples, and save useful phrases from new words.",
+    word_game_section_hint: "Review learned words from memory and reinforce the ones that are easy to forget.",
+  },
+};
+
+Object.entries(trainerHintCopy).forEach(([locale, values]) => {
+  const code = locale as AppLocaleCode;
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
+});
+
 let cp1251ReverseMap: Map<string, number> | null = null;
 
 function getCp1251ReverseMap() {
