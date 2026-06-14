@@ -6638,7 +6638,15 @@ function ChatWorkView({
               </Button>
             </section>
           ) : (
-            <ChatPanel messages={visibleMessages} copy={copy} targetLanguage={user.learning_language} />
+            <>
+              <ChatPanel messages={visibleMessages} copy={copy} targetLanguage={user.learning_language} />
+              {lessonHasCompletedAnswer ? (
+                <Button className="lesson-panel-next-v2" type="button" onClick={() => void startLesson()} disabled={busy === "lesson"}>
+                  {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
+                  {copy("ai_tutor_next_lesson", "Next lesson")}
+                </Button>
+              ) : null}
+            </>
           )}
         </div>
       ) : null}

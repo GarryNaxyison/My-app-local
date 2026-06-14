@@ -40,7 +40,7 @@
 - [x] Reuse the AI Tutor admin keyboard and adjust Telegram report text for vocabulary reports.
 - [x] Add the Words report button and dialog in React.
 - [x] Verify targeted Go tests and Playwright test.
-- [ ] Commit with `feat: add word trainer report flow`.
+- [x] Commit with `feat: add word trainer report flow`.
 
 ### Task 3: Visible Next Lesson CTA
 
@@ -49,10 +49,10 @@
 - Modify: `web-react/src/styles/app.css`
 - Test: `web-react/e2e/web-smoke.spec.ts`
 
-- [ ] Add a failing Playwright assertion that `Следующий урок` is visible inside `.context-display--lesson` after a lesson answer.
-- [ ] Render an in-panel CTA when `lessonHasCompletedAnswer` is true.
-- [ ] Keep the existing composer button as a fallback.
-- [ ] Verify desktop and mobile Playwright coverage for the lesson flow.
+- [x] Add a failing Playwright assertion that `Следующий урок` is visible inside `.context-display--lesson` after a lesson answer.
+- [x] Render an in-panel CTA when `lessonHasCompletedAnswer` is true.
+- [x] Keep the existing composer button as a fallback.
+- [x] Verify desktop and mobile Playwright coverage for the lesson flow.
 - [ ] Commit with `fix: show next lesson cta in lesson panel`.
 
 ### Task 4: AI Variation Seed

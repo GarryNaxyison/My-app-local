@@ -2201,6 +2201,9 @@ test("regression: lesson tab keeps one active task until the learner submits", a
   await page.locator(".context-display--lesson").getByRole("button", { name: /Отправить|Send/ }).click();
   await expect(page.locator(".context-display--lesson")).toContainText("Use under the name for reservations.");
   await expect(page.locator(".context-display--lesson textarea")).toHaveCount(0);
+  const panelNextButton = page.locator(".context-display--lesson .lesson-panel-next-v2");
+  await expect(panelNextButton).toBeVisible();
+  await expect(panelNextButton).toContainText("Следующий урок");
   await expect(page.locator(".lesson-new-button-v2")).toContainText("Следующий урок");
   await page.locator(".lesson-new-button-v2").click();
   await expect(page.locator(".context-display--lesson")).toContainText("Lesson task 2");
