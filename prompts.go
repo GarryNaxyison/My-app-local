@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"sort"
 	"strconv"
 	"strings"
@@ -108,6 +110,41 @@ func compactPromptSnippet(value string, limit int) string {
 	return value
 }
 
+func promptVariationSeed(scope string, level string, count int, focus string, recent []string) string {
+	scope = strings.ToLower(strings.TrimSpace(scope))
+	if scope == "" {
+		scope = "ai"
+	}
+	if count < 0 {
+		count = 0
+	}
+	turn := count + 1
+	level = normalizeCEFRLevel(level)
+	recentParts := make([]string, 0, len(recent))
+	for _, item := range recent {
+		if snippet := compactPromptSnippet(item, 220); snippet != "" {
+			recentParts = append(recentParts, snippet)
+		}
+	}
+	source := strings.Join([]string{
+		"scope=" + scope,
+		"level=" + level,
+		"turn=" + strconv.Itoa(turn),
+		"focus=" + compactPromptSnippet(focus, 160),
+		"recent=" + strings.Join(recentParts, " | "),
+	}, "\n")
+	sum := sha256.Sum256([]byte(source))
+	return scope + "-" + level + "-" + strconv.Itoa(turn) + "-" + hex.EncodeToString(sum[:])[:10]
+}
+
+func promptVariationInstruction(seed string) string {
+	seed = strings.TrimSpace(seed)
+	if seed == "" {
+		return ""
+	}
+	return "Variation seed: " + seed + ". Use it privately to vary the topic, scene, names, objects, grammar pattern, examples, and dialogue turns. Do not reveal the variation seed to the learner. "
+}
+
 func lessonHistoryForPrompt(user userState) []string {
 	if len(user.LessonHistory) > 0 {
 		return trimLessonHistory(user.LessonHistory)
@@ -171,9 +208,12 @@ func practiceTopicInstruction(level string, focus string, practiceCount int, rec
 
 func lessonPrompt(language learningLanguage, interfaceLanguage learningLanguage, level string, focus string, lessonCount int, recentLessons []string) []chatMessage {
 	labels := localizedStudyPromptLabels(interfaceLanguage)
+	variationSeed := promptVariationSeed("lesson", level, lessonCount, focus, recentLessons)
+	variationInstruction := promptVariationInstruction(variationSeed)
 	userPrompt := "Create one short " + language.NativeName + " practice task for level " + level + ". " +
 		learningFocusInstruction(focus) +
 		lessonTopicInstruction(level, focus, lessonCount, recentLessons) +
+		variationInstruction +
 		"The task must fit Telegram and use active recall, not passive explanation. Include: a tiny situation, one tiny teacher notice about the pattern, 3-5 useful words or chunks, " +
 		"one short model example sentence in " + language.NativeName + " only, " +
 		"and one clear instruction for the learner to produce a fresh answer in " + language.NativeName + ". " +
@@ -193,6 +233,8 @@ func lessonPrompt(language learningLanguage, interfaceLanguage learningLanguage,
 				"lesson_topic_instruction":   lessonTopicInstruction(level, focus, lessonCount, recentLessons),
 				"lesson_number":              strconv.Itoa(lessonCount + 1),
 				"recent_lesson_context":      recentLessonContext(recentLessons),
+				"variation_seed":             variationSeed,
+				"variation_instruction":      variationInstruction,
 			})),
 		},
 	}
@@ -237,9 +279,12 @@ func practicePrompt(language learningLanguage, interfaceLanguage learningLanguag
 	}
 	context := practiceContextText(recentMessages)
 	labels := localizedStudyPromptLabels(interfaceLanguage)
+	variationSeed := promptVariationSeed("practice", level, practiceCount, focus, recentMessages)
+	variationInstruction := promptVariationInstruction(variationSeed)
 	userPrompt := "The learner level is " + level + ". Continue a friendly " + language.NativeName + " practice chat. " +
 		learningFocusInstruction(focus) +
 		practiceTopicInstruction(level, focus, practiceCount, recentMessages) +
+		variationInstruction +
 		"Use the recent learner messages as short context, but answer the latest message. " +
 		"Reply mostly in " + interfaceLanguage.NativeName + " with one short " + language.NativeName + " phrase or question. " +
 		"If there are mistakes, briefly correct only the most useful one in " + interfaceLanguage.NativeName + "; if a previous mistake or weak phrase appears in the recent context, recycle it naturally once. " +
@@ -266,6 +311,8 @@ func practicePrompt(language learningLanguage, interfaceLanguage learningLanguag
 				"learning_focus_instruction": learningFocusInstruction(focus),
 				"practice_topic_instruction": practiceTopicInstruction(level, focus, practiceCount, recentMessages),
 				"practice_turn_number":       strconv.Itoa(practiceCount + 1),
+				"variation_seed":             variationSeed,
+				"variation_instruction":      variationInstruction,
 			})),
 		},
 	}
@@ -297,13 +344,20 @@ func roleplayPrompt(language learningLanguage, interfaceLanguage learningLanguag
 	if instruction := learningFocusInstruction(focus); instruction != "" {
 		payload += "\n" + instruction
 	}
+	variationSeed := promptVariationSeed("roleplay", "A2", 0, focus, []string{payload})
+	variationInstruction := promptVariationInstruction(variationSeed)
+	if variationInstruction != "" {
+		payload += "\n" + variationInstruction
+	}
 	fallback := payload + "\n\nAfter the learner-facing roleplay answer, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of any learner mistakes if the payload includes a learner line; otherwise write []."
 	return []chatMessage{
 		{Role: "system", Content: coachSystemPrompt(language, interfaceLanguage) + "\nYou are now inside the dedicated AI roleplay tool. Do not use the generic practice-chat structure unless the roleplay payload explicitly requests it."},
 		{
 			Role: "user",
 			Content: renderAppPrompt("roleplay.scenario.user", fallback, mergePromptVars(commonPromptVars(language, interfaceLanguage), map[string]string{
-				"roleplay_payload": payload,
+				"roleplay_payload":      payload,
+				"variation_seed":        variationSeed,
+				"variation_instruction": variationInstruction,
 			})),
 		},
 	}

@@ -26,7 +26,7 @@ Editing rule: every prompt must keep a clear header with the feature, source fun
 - Feature: new lesson / active-recall micro-task
 - Source: `prompts.go` -> `lessonPrompt`
 - Used by: Telegram lesson start, Web `/api/lesson/start`
-- Variables: `learning_language.native_name`, `interface_language.native_name`, `level`, localized study labels, `learning_focus_instruction`, `lesson_topic_instruction`, `lesson_number`, `recent_lesson_context`
+- Variables: `learning_language.native_name`, `interface_language.native_name`, `level`, localized study labels, `learning_focus_instruction`, `lesson_topic_instruction`, `lesson_number`, `recent_lesson_context`, `variation_seed`, `variation_instruction`
 - Note: generates one short real-life task with situation, pattern notice, chunks, and learner instruction. It also receives the optional Settings `learning_focus` instruction plus a CEFR topic rotation and anti-repeat context for the last 10 lessons.
 
 ### lesson.feedback
@@ -42,7 +42,7 @@ Editing rule: every prompt must keep a clear header with the feature, source fun
 - Feature: adaptive practice chat
 - Source: `prompts.go` -> `practicePrompt`
 - Used by: Telegram practice, Web `/api/practice`
-- Variables: `learning_language.native_name`, `interface_language.native_name`, `level`, recent learner messages, localized study labels, `learning_focus_instruction`, `practice_topic_instruction`, `practice_turn_number`
+- Variables: `learning_language.native_name`, `interface_language.native_name`, `level`, recent learner messages, localized study labels, `learning_focus_instruction`, `practice_topic_instruction`, `practice_turn_number`, `variation_seed`, `variation_instruction`
 - Note: must keep one model phrase and one final target-language question, then return mistakes JSON. It receives the optional Settings `learning_focus`, the last 5 practice messages, and a practice topic rotation so vague/generic exchanges do not fall back to the same scene.
 
 ### roleplay.scenario
@@ -50,7 +50,7 @@ Editing rule: every prompt must keep a clear header with the feature, source fun
 - Feature: AI roleplay scenario
 - Source: `prompts.go` -> `roleplayPrompt`; structured payload is prepared by `web-react/src/App.tsx` -> `buildRoleplayScenarioPrompt`
 - Used by: Web `/app/v2` Roleplay through `/api/practice` payloads beginning with `ROLEPLAY_TOOL_V2`
-- Variables: `learning_language.native_name`, `interface_language.native_name`, `roleplay_payload`
+- Variables: `learning_language.native_name`, `interface_language.native_name`, `roleplay_payload`, `variation_seed`, `variation_instruction`
 - Note: this is intentionally separate from `practice.chat`; it keeps roleplay scene/setup/result structure, respects the optional Settings `learning_focus`, and still appends the `---MISTAKES---` JSON block.
 
 ### practice.image_context

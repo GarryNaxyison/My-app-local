@@ -5,6 +5,20 @@ import (
 	"testing"
 )
 
+func variationSeedLine(t *testing.T, content string) string {
+	t.Helper()
+	marker := "Variation seed:"
+	index := strings.Index(content, marker)
+	if index < 0 {
+		t.Fatalf("expected prompt to include %q, got %q", marker, content)
+	}
+	line := content[index:]
+	if end := strings.Index(line, "."); end >= 0 {
+		line = line[:end]
+	}
+	return line
+}
+
 func TestTrimPracticeHistoryKeepsLastFiveMessages(t *testing.T) {
 	history := trimPracticeHistory([]string{"one", "two", "three", "four", "five", "six"}, practiceMemoryLimit)
 	if len(history) != 5 {
@@ -66,6 +80,21 @@ func TestLessonPromptUsesSelectedLanguage(t *testing.T) {
 	}
 }
 
+func TestLessonPromptIncludesDistinctVariationSeed(t *testing.T) {
+	first := lessonPrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "A2", "business calls", 0, []string{"Cafe order with polite requests"})[1].Content
+	second := lessonPrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "A2", "business calls", 1, []string{"Cafe order with polite requests"})[1].Content
+	firstSeed := variationSeedLine(t, first)
+	secondSeed := variationSeedLine(t, second)
+	if firstSeed == secondSeed {
+		t.Fatalf("expected different lesson variation seeds for different counters, got %q", firstSeed)
+	}
+	for _, content := range []string{first, second} {
+		if !strings.Contains(content, "Do not reveal the variation seed") {
+			t.Fatalf("expected lesson prompt to keep seed private, got %q", content)
+		}
+	}
+}
+
 func TestPracticePromptUsesLocalizedSectionLabels(t *testing.T) {
 	messages := practicePrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "A2", []string{"I goed home"}, "", 7)
 	content := messages[1].Content
@@ -79,6 +108,29 @@ func TestPracticePromptUsesLocalizedSectionLabels(t *testing.T) {
 	}
 	if !strings.Contains(content, "Practice novelty rule") || !strings.Contains(content, "Practice turn number: 8") {
 		t.Fatalf("expected practice prompt to include anti-repeat rotation, got %q", content)
+	}
+}
+
+func TestPracticePromptIncludesDistinctVariationSeed(t *testing.T) {
+	first := practicePrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "B1", []string{"I need explain delay"}, "work updates", 2)[1].Content
+	second := practicePrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "B1", []string{"I need explain delay"}, "work updates", 3)[1].Content
+	firstSeed := variationSeedLine(t, first)
+	secondSeed := variationSeedLine(t, second)
+	if firstSeed == secondSeed {
+		t.Fatalf("expected different practice variation seeds for different counters, got %q", firstSeed)
+	}
+	for _, content := range []string{first, second} {
+		if !strings.Contains(content, "Do not reveal the variation seed") {
+			t.Fatalf("expected practice prompt to keep seed private, got %q", content)
+		}
+	}
+}
+
+func TestRoleplayPromptIncludesPrivateVariationSeed(t *testing.T) {
+	content := roleplayPrompt(learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "Scenario: short cafe roleplay", "small talk")[1].Content
+	_ = variationSeedLine(t, content)
+	if !strings.Contains(content, "Do not reveal the variation seed") {
+		t.Fatalf("expected roleplay prompt to keep seed private, got %q", content)
 	}
 }
 

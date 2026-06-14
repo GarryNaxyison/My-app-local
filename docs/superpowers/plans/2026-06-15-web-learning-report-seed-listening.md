@@ -53,7 +53,7 @@
 - [x] Render an in-panel CTA when `lessonHasCompletedAnswer` is true.
 - [x] Keep the existing composer button as a fallback.
 - [x] Verify desktop and mobile Playwright coverage for the lesson flow.
-- [ ] Commit with `fix: show next lesson cta in lesson panel`.
+- [x] Commit with `fix: show next lesson cta in lesson panel`.
 
 ### Task 4: AI Variation Seed
 
@@ -64,12 +64,12 @@
 - Test: `prompts_test.go`
 - Test if changed: `course_tutor_test.go`
 
-- [ ] Add failing tests that two lesson prompt builds with different counters include different `Variation seed` values.
-- [ ] Add failing tests that two practice prompt builds with different counters include different `Variation seed` values.
-- [ ] Add a prompt helper that derives stable-visible variation text from scope, level, count, focus, and recent context.
-- [ ] Include the seed in lesson and practice prompts with an instruction not to reveal it to the learner.
-- [ ] Inspect roleplay/dialogue prompt builders and add the same seed rule where AI generates dialogue text.
-- [ ] Verify prompt tests and affected tutor tests.
+- [x] Add failing tests that two lesson prompt builds with different counters include different `Variation seed` values.
+- [x] Add failing tests that two practice prompt builds with different counters include different `Variation seed` values.
+- [x] Add a prompt helper that derives stable-visible variation text from scope, level, count, focus, and recent context.
+- [x] Include the seed in lesson and practice prompts with an instruction not to reveal it to the learner.
+- [x] Inspect roleplay/dialogue prompt builders and add the same seed rule where AI generates dialogue text.
+- [x] Verify prompt tests and affected tutor tests.
 - [ ] Commit with `fix: add variation seeds to ai prompts`.
 
 ### Task 5: Listening vs Pronunciation UX
