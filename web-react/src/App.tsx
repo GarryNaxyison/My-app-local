@@ -705,14 +705,27 @@ function currentNotFoundPath() {
 
 function useMobileUiLayout() {
   const queryText = "(max-width: 760px)";
-  const [isMobile, setIsMobile] = useState(() => window.matchMedia(queryText).matches);
+  const getMobileState = () => {
+    if (window.matchMedia(queryText).matches) return true;
+    if (window.innerWidth <= 760) return true;
+    if (window.matchMedia("(pointer: coarse)").matches) return true;
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  };
+  const [isMobile, setIsMobile] = useState(getMobileState);
 
   useEffect(() => {
     const query = window.matchMedia(queryText);
-    const update = () => setIsMobile(query.matches);
+    const pointerQuery = window.matchMedia("(pointer: coarse)");
+    const update = () => setIsMobile(getMobileState());
     update();
     query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
+    pointerQuery.addEventListener("change", update);
+    window.addEventListener("resize", update);
+    return () => {
+      query.removeEventListener("change", update);
+      pointerQuery.removeEventListener("change", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   return isMobile;
@@ -1499,7 +1512,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
   for (const message of messages) {
     if (message.role === "user") continue;
     const details = getRecord(message.details);
-    const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : "lesson";
+    const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : message.meta?.startsWith("tools:") ? "manual" : "lesson";
     const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example"];
     for (const field of fields) {
       pushCandidate(recordField(details, [field]), source, details);
@@ -1521,6 +1534,10 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
     seen.add(key);
     return true;
   }).slice(0, 6);
+}
+
+function phrasebookKey(value: string) {
+  return cleanAppText(value).replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 function isUsefulPhraseCandidate(value: string) {
@@ -1809,7 +1826,7 @@ export function App() {
         createdAt: new Date().toISOString(),
       };
       setPhrasebook((current) => {
-        const next = normalizePhrasebookItems([item, ...current.filter((entry) => entry.phrase.toLowerCase() !== cleaned.toLowerCase())]);
+        const next = normalizePhrasebookItems([item, ...current.filter((entry) => phrasebookKey(entry.phrase) !== phrasebookKey(cleaned))]);
         setStatus({ kind: "ok", text: copy("phrase_saved", "Фраза добавлена в phrasebook") });
         return next;
       });
@@ -1820,8 +1837,11 @@ export function App() {
         })
         .catch(() => undefined);
     },
-    [user.learning_language],
+    [copy, user.learning_language],
   );
+
+  const savedPhraseKeys = useMemo(() => new Set(phrasebook.map((item) => phrasebookKey(item.phrase)).filter(Boolean)), [phrasebook]);
+  const isPhraseSaved = useCallback((phrase: string) => savedPhraseKeys.has(phrasebookKey(phrase)), [savedPhraseKeys]);
 
   const removePhrase = useCallback(
     (id: string) => {
@@ -2171,25 +2191,33 @@ export function App() {
     setView("roleplay");
   };
 
-  const submitRoleplayAnswer = async (scenario: RoleplayScenario, text: string) => {
+  const submitRoleplayAnswer = async (scenario: RoleplayScenario, text: string, voice?: File | null) => {
     const learnerText = text.trim();
-    if (!learnerText) {
-      setStatus({ kind: "error", text: copy("type_answer", "Type the answer") });
+    if (!learnerText && !voice) {
+      setStatus({ kind: "error", text: copy("add_input_first", "Add text, voice, or a practice photo first.") });
       return;
     }
-    const prompt = buildRoleplayScenarioPrompt(scenario, user, session as SessionData, copy, learnerText);
+    const prompt = buildRoleplayScenarioPrompt(scenario, user, session as SessionData, copy, learnerText || copy("voice_message", "Voice message"));
     const title = roleplayScenarioTitle(scenario, user);
-    const payload = await runAction("roleplay", () => api<ApiRecord>("/api/practice", { method: "POST", body: { text: prompt } }));
+    const payload = await runAction("roleplay", async () => {
+      if (!voice) return api<ApiRecord>("/api/practice", { method: "POST", body: { text: prompt } });
+      const form = new FormData();
+      form.append("text", prompt);
+      form.append("voice", voice, voice.name || "roleplay.webm");
+      return apiForm<ApiRecord>("/api/practice", form);
+    });
     if (!payload) return;
     const record = getRecord(payload);
+    const transcript = asText(record.transcript || learnerText || (voice ? copy("voice_message", "Voice message") : ""), "");
     const result = panelMessage(formatLearningRecord(record, copy, copy("roleplay_ready", "Roleplay is ready.")), "success", title, record, "roleplay");
     setRoleplayResult(result);
     setMessages((current) => [
       result,
-      userMessage(learnerText, copy("you", "You"), "roleplay"),
+      transcript ? userMessage(transcript, copy("you", "You"), "roleplay") : null,
       ...current,
-    ].slice(0, 12));
+    ].filter((message): message is ChatMessage => Boolean(message)).slice(0, 12));
     setDraft("");
+    setVoiceFile(null);
     setView("roleplay");
   };
 
@@ -2958,6 +2986,7 @@ export function App() {
     selectedAwardLevel,
     setSelectedAwardLevel,
     phrasebook,
+    isPhraseSaved,
     savePhrase,
     removePhrase,
     habitLog,
@@ -4862,7 +4891,7 @@ type ViewRendererProps = {
   submitLesson: () => Promise<void>;
   submitPractice: () => Promise<void>;
   startRoleplayScenario: (scenario: RoleplayScenario) => Promise<void>;
-  submitRoleplayAnswer: (scenario: RoleplayScenario, text: string) => Promise<void>;
+  submitRoleplayAnswer: (scenario: RoleplayScenario, text: string, voice?: File | null) => Promise<void>;
   roleplayResult: ChatMessage | null;
   startShadowing: () => Promise<void>;
   submitShadowing: () => Promise<void>;
@@ -4931,6 +4960,7 @@ type ViewRendererProps = {
   selectedAwardLevel: number | null;
   setSelectedAwardLevel: (level: number | null) => void;
   phrasebook: PhrasebookItem[];
+  isPhraseSaved: (phrase: string) => boolean;
   savePhrase: (phrase: string, source: PhrasebookSource, details?: ApiRecord) => void;
   removePhrase: (id: string) => void;
   habitLog: Record<string, HabitDay>;
@@ -4964,7 +4994,7 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, setView }: ViewRendererProps) {
+function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
@@ -5193,6 +5223,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
         <PhraseQuickSave
           candidates={aiTutorWordPhraseCandidates(word, savePhrase)}
           savePhrase={savePhrase}
+          isPhraseSaved={isPhraseSaved}
           copy={copy}
         />
       </div>
@@ -5409,12 +5440,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
               </div>
             )}
 
-            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
+            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
             {mistakeCandidates.length ? (
               <div className="tutor-answer-variants-v2 tutor-notes-suggestions-v2" aria-label={copy("tutor_mistake_notes", "Mistake notes")}>
                 <strong>{copy("tutor_mistake_notes", "Mistake notes")}</strong>
                 <span>{copy("tutor_mistake_notes_hint", "Save corrections to the mistake notes section.")}</span>
-                <PhraseQuickSave candidates={mistakeCandidates} savePhrase={savePhrase} copy={copy} />
+                <PhraseQuickSave candidates={mistakeCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} />
               </div>
             ) : null}
           </section>
@@ -5725,10 +5756,16 @@ function RoleplayView({
   messages,
   draft,
   setDraft,
+  voiceFile,
+  imageFile,
+  setVoiceFile,
+  setImageFile,
   busy,
   copy,
   user,
   roleplayResult,
+  savePhrase,
+  isPhraseSaved,
 }: ViewRendererProps) {
   const [activeScenario, setActiveScenario] = useState<RoleplayScenario | null>(null);
   const isMobileUi = useMobileUiLayout();
@@ -5739,11 +5776,13 @@ function RoleplayView({
   const resetScenario = () => {
     setActiveScenario(null);
     setDraft("");
+    setVoiceFile(null);
   };
   const roleplayMessages = messages.filter((message) => message.meta === "roleplay");
   const sessionMessages = roleplayResult
     ? [roleplayResult, ...roleplayMessages.filter((message) => message.id !== roleplayResult.id)].slice(0, 8)
     : roleplayMessages.slice(0, 8);
+  const phraseCandidates = phraseCandidatesFromMessages(sessionMessages);
 
   if (activeScenario) {
     return (
@@ -5775,15 +5814,17 @@ function RoleplayView({
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {
                     event.preventDefault();
-                    void submitRoleplayAnswer(activeScenario, draft);
+                    void submitRoleplayAnswer(activeScenario, draft, voiceFile);
                   }
                 }}
               />
-              <Button className="composer-submit-v2 roleplay-submit-v2" type="button" onClick={() => void submitRoleplayAnswer(activeScenario, draft)} disabled={busy === "roleplay"} aria-label={copy("send", "Send")}>
+              <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+              <Button className="composer-submit-v2 roleplay-submit-v2" type="button" onClick={() => void submitRoleplayAnswer(activeScenario, draft, voiceFile)} disabled={busy === "roleplay"} aria-label={copy("send", "Send")}>
                 {busy === "roleplay" ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={17} />}
                 <span>{copy("send", "Send")}</span>
               </Button>
             </div>
+            {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
           </div>
         </div>
       </section>
@@ -5818,6 +5859,7 @@ function RoleplayView({
 
 function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, pronunciationTarget, startPronunciation, submitPronunciation, voiceFile, imageFile, setVoiceFile, setImageFile, busy, copy }: ViewRendererProps) {
   const p = pronunciationLocale(user);
+  const isMobileUi = useMobileUiLayout();
   const liveReports = useMemo(
     () => messages
       .map((message) => pronunciationFrom(getRecord(message.details)))
@@ -5869,8 +5911,8 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
     void startPronunciation();
   };
   return (
-    <div className="pronunciation-dashboard-v2">
-      <section className="v2-panel pronunciation-workbench-v2 pronunciation-practice-v2 pronunciation-work-window-v2">
+    <div className={cn("pronunciation-dashboard-v2", isMobileUi && "pronunciation-dashboard-v2--mobile")}>
+      <section className={cn("v2-panel pronunciation-workbench-v2 pronunciation-practice-v2 pronunciation-work-window-v2", isMobileUi && "pronunciation-workbench-v2--mobile")}>
         <div className="pronunciation-target-primary-v2">
           <span className="eyebrow"><Volume2 size={15} />{copy("pronunciation_target", "Text to pronounce")}</span>
           <div>
@@ -6232,6 +6274,7 @@ function ChatWorkView({
   copy,
   user,
   savePhrase,
+  isPhraseSaved,
 }: ViewRendererProps & { mode: "lesson" | "practice" | "shadowing" }) {
   const isLesson = mode === "lesson";
   const isPractice = mode === "practice";
@@ -6302,7 +6345,7 @@ function ChatWorkView({
           </Button>
         </div>
         <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
-        {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} copy={copy} /> : null}
+        {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
       </section>
     </div>
   );
@@ -6345,22 +6388,27 @@ function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]
 function PhraseQuickSave({
   candidates,
   savePhrase,
+  isPhraseSaved,
   copy,
 }: {
   candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }>;
   savePhrase: (phrase: string, source: PhrasebookSource, details?: ApiRecord) => void;
+  isPhraseSaved?: (phrase: string) => boolean;
   copy: (key: string, fallback: string) => string;
 }) {
   return (
     <section className="phrase-quick-save-v2">
       <span className="eyebrow"><Bookmark size={14} />{copy("save_to_phrasebook", "Сохранить в заметки")}</span>
       <div className="phrase-quick-save-v2__chips">
-        {candidates.slice(0, 4).map((item) => (
-          <button key={item.phrase} type="button" onClick={() => savePhrase(item.phrase, item.source, item.details)}>
-            <Bookmark size={14} />
-            <span>{item.phrase}</span>
-          </button>
-        ))}
+        {candidates.slice(0, 4).map((item) => {
+          const saved = Boolean(isPhraseSaved?.(item.phrase));
+          return (
+            <button key={item.phrase} className={cn(saved && "is-saved")} type="button" aria-pressed={saved} onClick={() => savePhrase(item.phrase, item.source, item.details)}>
+              <Bookmark size={14} fill={saved ? "currentColor" : "none"} />
+              <span>{item.phrase}</span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );
@@ -6505,7 +6553,7 @@ function PronunciationReport({ pronunciation, user, copy, compact = false }: { p
   );
 }
 
-function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, savePhrase, busy, copy }: ViewRendererProps & { mode: "words" | "word-game" }) {
+function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, savePhrase, isPhraseSaved, busy, copy }: ViewRendererProps & { mode: "words" | "word-game" }) {
   const challenge = wordChallenge;
   const options = useMemo(
     () => tutorStableShuffle(toChoiceOptions(challenge?.options), `${mode}:${challenge?.prompt || ""}:${challenge?.correct_answer_id || ""}`),
@@ -6523,7 +6571,7 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
       <span className="eyebrow">{title}</span>
       <h2>{challenge?.empty ? copy("no_words_ready", "No words ready") : challenge?.prompt || (busy ? copy("loading", "Loading...") : copy("start_new_round", "Start a new round"))}</h2>
       {challenge?.context ? <p>{challenge.context}</p> : null}
-      {result ? <TrainerResultBox result={result} copy={copy} onNext={() => void start()} savePhrase={savePhrase} /> : null}
+      {result ? <TrainerResultBox result={result} copy={copy} onNext={() => void start()} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} /> : null}
       {options.length ? (
         <div className="choice-grid-v2">
           {options.map((option) => (
@@ -6556,11 +6604,13 @@ function TrainerResultBox({
   copy,
   onNext,
   savePhrase,
+  isPhraseSaved,
 }: {
   result: TrainerResult;
   copy: (key: string, fallback: string) => string;
   onNext?: () => void;
   savePhrase?: (phrase: string, source: PhrasebookSource, details?: ApiRecord) => void;
+  isPhraseSaved?: (phrase: string) => boolean;
 }) {
   const canAdvance = Boolean(result.mode !== "level" && onNext && (result.tone === "success" || (result.record && recordField(result.record, ["gave_up", "word_id"]))));
   const compactWordResult = result.mode === "words" || result.mode === "word-game";
@@ -6570,6 +6620,7 @@ function TrainerResultBox({
   const learnedWord = compactWordResult && result.tone === "success" && result.record ? recordField(result.record, ["word", "correct_answer"]) : "";
   const learnedTranslation = compactWordResult && result.record ? recordField(result.record, ["translation", "prompt", "message"]) : "";
   const phrasebookLabel = [learnedWord, learnedTranslation].filter(Boolean).join(" — ");
+  const learnedWordSaved = Boolean(learnedWord && isPhraseSaved?.(learnedWord));
   return (
     <article className={cn("trainer-result-v2", `is-${result.tone}`)}>
       <div>
@@ -6608,10 +6659,12 @@ function TrainerResultBox({
           <div className="phrase-quick-save-v2__chips">
             <button
               type="button"
+              className={cn(learnedWordSaved && "is-saved")}
+              aria-pressed={learnedWordSaved}
               aria-label={copy("save_to_phrasebook", "Сохранить в заметки")}
               onClick={() => savePhrase(learnedWord, "manual", { ...result.record, note: learnedTranslation, context: learnedTranslation })}
             >
-              <Bookmark size={14} />
+              <Bookmark size={14} fill={learnedWordSaved ? "currentColor" : "none"} />
               <span>{phrasebookLabel || learnedWord}</span>
             </button>
           </div>
@@ -7428,10 +7481,22 @@ function AwardModal({ selected, copy, onClose }: { selected: AwardInfo; copy: (k
   );
 }
 
-function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode, toolSourceLanguage, setToolSourceLanguage, toolTargetLanguage, setToolTargetLanguage, toolVoiceFile, setToolVoiceFile, toolImageFile, setToolImageFile, submitTool, messages }: ViewRendererProps) {
+function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode, toolSourceLanguage, setToolSourceLanguage, toolTargetLanguage, setToolTargetLanguage, toolVoiceFile, setToolVoiceFile, toolImageFile, setToolImageFile, submitTool, messages, savePhrase, isPhraseSaved }: ViewRendererProps) {
   const languageOptions = session.learning_languages?.length ? session.learning_languages : session.interface_languages || [];
   const fallbackTargetLanguage = languageOptions.find((language) => language.code !== toolTargetLanguage)?.code || toolTargetLanguage || "en";
   const toolMessages = messages.filter((message) => message.meta === `tools:${toolMode}`);
+  const toolPhraseCandidates = useMemo(() => {
+    const candidates = [...phraseCandidatesFromMessages(toolMessages)];
+    const draftPhrase = cleanAppText(draft).replace(/\s+/g, " ").trim();
+    if (isUsefulPhraseCandidate(draftPhrase)) candidates.unshift({ phrase: draftPhrase, source: "manual" as PhrasebookSource, details: { note: copy("tools", "Tools") } });
+    const seen = new Set<string>();
+    return candidates.filter((item) => {
+      const key = phrasebookKey(item.phrase);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 4);
+  }, [copy, draft, toolMessages]);
   const [mobilePickerOpen, setMobilePickerOpen] = useState(true);
   const swapToolLanguages = () => {
     if (toolSourceLanguage === "auto") {
@@ -7500,6 +7565,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
         ) : (
           <FileControls voiceFile={toolVoiceFile} imageFile={toolImageFile} setVoiceFile={setToolVoiceFile} setImageFile={setToolImageFile} allowImage={toolMode === "image"} allowVoice={toolMode === "voice"} copy={copy} />
         )}
+        {toolPhraseCandidates.length ? <PhraseQuickSave candidates={toolPhraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
       </section>
       </div>
     </div>

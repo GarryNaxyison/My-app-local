@@ -1481,7 +1481,18 @@ test("standalone listening hides the target text and leaves only audio playback"
 });
 
 test("pronunciation shows the text-to-pronounce block before the pronunciation summary", async ({ page }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      voice_limit: 20,
+    },
+  };
   await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".context-display--pronunciation")).toBeVisible();
   const targetBox = await page.locator(".pronunciation-target-primary-v2").boundingBox();
   const summaryBox = await page.locator(".pronunciation-hero-v2").boundingBox();
   expect(targetBox, "text-to-pronounce block").not.toBeNull();
@@ -1920,6 +1931,16 @@ test("linked Telegram account hides Send code in settings", async ({ page }) => 
 });
 
 test("pronunciation map is compact and removes repeated advice", async ({ page }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      voice_limit: 20,
+    },
+  };
   await page.goto("/app/?view=shadowing");
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await page.locator("textarea").fill("Could you repeat that please");
@@ -2133,6 +2154,67 @@ test("regression: desktop function ribbon arrows stay inside the menu frame", as
   expect(metrics.ribbonRight).toBeLessThanOrEqual(metrics.rightArrowLeft + 2);
   expect(metrics.leftHitIsChip).toBe(false);
   expect(metrics.rightHitIsChip).toBe(false);
+});
+
+test("regression: mobile pronunciation blocks keep vertical order after checking audio", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2026-07-12T12:00:00Z",
+      voice_limit: 20,
+    },
+  };
+  await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".context-display--pronunciation")).toBeVisible();
+  await page.locator(".pronunciation-tools-v2 input[type='file']").setInputFiles({
+    name: "pronunciation.webm",
+    mimeType: "audio/webm",
+    buffer: Buffer.from("pronunciation-test"),
+  });
+  await page.getByRole("button", { name: /Check|Проверить/ }).click();
+  await expect(page.locator(".pronunciation-report-v2")).toContainText("67/100");
+  const boxes = await page.locator(".pronunciation-workbench-v2").evaluate((node) => {
+    const rect = (element: Element | null) => {
+      if (!element) return null;
+      const box = element.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom, left: box.left, right: box.right, width: box.width, height: box.height };
+    };
+    return {
+      target: rect(node.querySelector(".pronunciation-target-primary-v2")),
+      tools: rect(node.querySelector(".pronunciation-tools-v2")),
+      controls: rect(node.querySelector(".pronunciation-tool-card-v2")),
+      report: rect(node.querySelector(".pronunciation-report-window-v2")),
+      workbench: rect(node),
+    };
+  });
+  expect(boxes.target).not.toBeNull();
+  expect(boxes.tools).not.toBeNull();
+  expect(boxes.controls).not.toBeNull();
+  expect(boxes.report).not.toBeNull();
+  expect(boxes.tools!.top).toBeGreaterThanOrEqual(boxes.target!.bottom - 1);
+  expect(boxes.report!.top).toBeGreaterThanOrEqual(boxes.controls!.bottom - 1);
+  expect(boxes.workbench!.bottom).toBeGreaterThanOrEqual(boxes.report!.bottom - 1);
+});
+
+test("regression: desktop tools selector buttons stay compact", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.goto("/app/?view=tools");
+  await expect(page.locator(".context-display--tools")).toBeVisible();
+  const buttons = await page.locator(".tool-switch-v2 .tool-button-v2").evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const box = (node as HTMLElement).getBoundingClientRect();
+      return { width: box.width, height: box.height, scrollWidth: (node as HTMLElement).scrollWidth };
+    }),
+  );
+  expect(buttons).toHaveLength(3);
+  for (const button of buttons) {
+    expect(button.height).toBeLessThanOrEqual(40);
+    expect(button.scrollWidth).toBeLessThanOrEqual(button.width + 1);
+  }
 });
 
 test("AI Tutor failed start stops loading loop and shows retry", async ({ page }) => {
@@ -2516,6 +2598,40 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Short polite request.").first()).toBeVisible();
 });
 
+test("regression: roleplay accepts a voice answer and shows the transcript", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop interaction assertion");
+  let roleplayUploadSeen = false;
+  await page.unroute("**/api/practice");
+  await page.route("**/api/practice", async (route) => {
+    const request = route.request();
+    const contentType = request.headers()["content-type"] || "";
+    const body = request.postData() || "";
+    roleplayUploadSeen = contentType.includes("multipart/form-data") && body.includes("roleplay-voice.webm");
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        transcript: "Could you repeat that, please?",
+        correction: "Could you repeat that, please?",
+        explanation: "Short polite request.",
+        correction_audio_text: "Could you repeat that, please?",
+      }),
+    });
+  });
+  await page.goto("/app/?view=roleplay");
+  await expect(page.locator(".context-display--roleplay")).toBeVisible();
+  await page.locator(".roleplay-grid-v2 button").first().click();
+  await expect(page.locator(".roleplay-view-v2--desktop-session")).toBeVisible();
+  await page.locator(".roleplay-composer-v2 input[type='file']").setInputFiles({
+    name: "roleplay-voice.webm",
+    mimeType: "audio/webm",
+    buffer: Buffer.from("voice-test"),
+  });
+  await page.locator(".roleplay-submit-v2").click();
+  await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Could you repeat that, please?").first()).toBeVisible();
+  expect(roleplayUploadSeen).toBe(true);
+});
+
 test("desktop roleplay session uses full-width dialogue without the scenario aside", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop layout assertion");
   await page.goto("/app/?view=roleplay");
@@ -2529,6 +2645,23 @@ test("desktop roleplay session uses full-width dialogue without the scenario asi
   expect(panel).not.toBeNull();
   expect(dialog).not.toBeNull();
   expect(dialog!.width).toBeGreaterThan(panel!.width * 0.94);
+});
+
+test("regression: quick save bookmark becomes active after saving to notes", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop state assertion");
+  await page.goto("/app/?view=practice");
+  await expect(page.locator(".context-display--practice")).toBeVisible();
+  await page.locator(".composer-panel-v2 textarea").fill("Can you repeat?");
+  await page.locator(".composer-panel-v2 textarea").press("Enter");
+  const saveButton = page.locator(".phrase-quick-save-v2 button").filter({ hasText: "Could you repeat that, please?" }).first();
+  await expect(saveButton).toBeVisible();
+  await expect(saveButton).toHaveAttribute("aria-pressed", "false");
+  const colorBefore = await saveButton.locator("svg").evaluate((node) => getComputedStyle(node).color);
+  await saveButton.click();
+  await expect(saveButton).toHaveAttribute("aria-pressed", "true");
+  await expect(saveButton).toHaveClass(/is-saved/);
+  const colorAfter = await saveButton.locator("svg").evaluate((node) => getComputedStyle(node).color);
+  expect(colorAfter).not.toBe(colorBefore);
 });
 
 test("mobile roleplay scenario cards expand and scroll above bottom menu", async ({ page, isMobile }) => {
