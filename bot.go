@@ -443,6 +443,9 @@ func (b *bot) handleUpdate(ctx context.Context, update telegramUpdate) error {
 	if strings.HasPrefix(user.Mode, modeShadowingPrefix) {
 		return b.handleShadowingAnswer(ctx, message.Chat.ID, user, text, false, nil)
 	}
+	if strings.HasPrefix(user.Mode, modePronunciationPrefix) {
+		return b.telegram.sendMessageWithCopy(ctx, message.Chat.ID, pronunciationVoiceHint(user), ui(user))
+	}
 
 	switch user.Mode {
 	case "lesson":
@@ -496,6 +499,8 @@ func (b *bot) handleCommand(ctx context.Context, chatID int64, text string, user
 		return b.startPractice(ctx, chatID, user)
 	case "/shadowing", "/repeat":
 		return b.startShadowing(ctx, chatID, user)
+	case "/pronunciation":
+		return b.startPronunciation(ctx, chatID, user)
 	case "/words":
 		return b.startWordLesson(ctx, chatID, user)
 	case "/game":
@@ -861,6 +866,8 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.startPractice(ctx, chatID, user)
 	case "menu_shadowing":
 		return b.startShadowing(ctx, chatID, user)
+	case "menu_pronunciation":
+		return b.startPronunciation(ctx, chatID, user)
 	case "menu_tutor":
 		return b.startTutorLesson(ctx, chatID, user)
 	case "menu_word_lesson":
@@ -3021,6 +3028,20 @@ func (b *bot) handleVoiceMessage(ctx context.Context, message *telegramMessage) 
 			return err
 		}
 		return b.handleShadowingAnswer(ctx, message.Chat.ID, user, transcription.Text, true, &transcription)
+	}
+	if strings.HasPrefix(user.Mode, modePronunciationPrefix) {
+		target, _ := parsePronunciationMode(user.Mode)
+		transcription, err := b.transcribeLearningVoice(ctx, user, audioBytes, "ogg", target)
+		if err != nil {
+			return b.telegram.sendMessage(ctx, message.Chat.ID, fmt.Sprintf(copy.Tool.VoiceTranscribeFailed, err.Error()))
+		}
+		if message.Voice.Duration > 0 && transcription.DurationSeconds <= 0 {
+			transcription.DurationSeconds = float64(message.Voice.Duration)
+		}
+		if err := b.store.incrementVoice(user.TelegramID); err != nil {
+			return err
+		}
+		return b.handlePronunciationAnswer(ctx, message.Chat.ID, user, transcription)
 	}
 
 	transcription, err := b.transcribeLearningVoice(ctx, user, audioBytes, "ogg", "")

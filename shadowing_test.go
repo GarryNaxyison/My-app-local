@@ -17,6 +17,21 @@ func TestShadowingModeRoundTrip(t *testing.T) {
 	}
 }
 
+func TestPronunciationPracticeModeRoundTrip(t *testing.T) {
+	target := "Could you say that clearly?"
+	mode := pronunciationPracticeMode(target)
+	got, ok := parsePronunciationMode(mode)
+	if !ok {
+		t.Fatalf("expected mode to parse")
+	}
+	if got != target {
+		t.Fatalf("target = %q, want %q", got, target)
+	}
+	if _, ok := parseShadowingMode(mode); ok {
+		t.Fatalf("pronunciation mode must not parse as shadowing: %q", mode)
+	}
+}
+
 func TestShadowingScoreRewardsCloseRepeat(t *testing.T) {
 	closeScore := shadowingScore("Could you say that a little slower please", "could you say that a little slower please")
 	if closeScore < 95 {

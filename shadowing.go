@@ -14,6 +14,7 @@ import (
 
 const (
 	modeShadowingPrefix     = "shadowing:"
+	modePronunciationPrefix = "pronunciation:"
 	shadowingMaxPhraseRunes = 160
 	shadowingDeckSize       = 10000
 )
@@ -27,10 +28,26 @@ func shadowingMode(phrase string) string {
 }
 
 func parseShadowingMode(mode string) (string, bool) {
-	if !strings.HasPrefix(mode, modeShadowingPrefix) {
+	return parseEncodedPhraseMode(mode, modeShadowingPrefix)
+}
+
+func pronunciationPracticeMode(phrase string) string {
+	phrase = sanitizeShadowingPhrase(phrase)
+	if phrase == "" {
+		phrase = "Could you say that a little slower, please?"
+	}
+	return modePronunciationPrefix + base64.RawURLEncoding.EncodeToString([]byte(phrase))
+}
+
+func parsePronunciationMode(mode string) (string, bool) {
+	return parseEncodedPhraseMode(mode, modePronunciationPrefix)
+}
+
+func parseEncodedPhraseMode(mode string, prefix string) (string, bool) {
+	if !strings.HasPrefix(mode, prefix) {
 		return "", false
 	}
-	raw := strings.TrimPrefix(mode, modeShadowingPrefix)
+	raw := strings.TrimPrefix(mode, prefix)
 	if raw == "" {
 		return "", false
 	}
@@ -360,6 +377,25 @@ func shadowingTextAnswerHint(user userState) string {
 	return shadowingCopy(user).TextHint
 }
 
+func pronunciationStartMessage(user userState, phrase string) string {
+	copy := ui(user)
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
+		return "🗣 " + copy.Pronunciation + "\n\nФраза:\n" + strings.TrimSpace(phrase) + "\n\nПослушай образец, прочитай фразу и отправь голосовое сообщение. Я оценю именно произношение, ритм и совпадение с этой фразой."
+	}
+	return "🗣 " + copy.Pronunciation + "\n\nPhrase:\n" + strings.TrimSpace(phrase) + "\n\nListen to the model, read the phrase, and send a voice message. I will score pronunciation, rhythm, and match to this exact phrase."
+}
+
+func pronunciationVoiceHint(user userState) string {
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
+		return "Отправь голосовое сообщение с этой фразой. Текстом произношение не проверяется."
+	}
+	return "Send a voice message with this phrase. Text cannot check pronunciation."
+}
+
+func pronunciationVoicePrompt(user userState) string {
+	return pronunciationVoiceHint(user)
+}
+
 func shadowingFallbackFeedback(user userState, target string, transcript string, score int, missing string, fromVoice bool) string {
 	copy := shadowingCopy(user)
 	if missing == "" {
@@ -507,6 +543,35 @@ func (b *bot) startShadowing(ctx context.Context, chatID int64, user userState) 
 	return nil
 }
 
+func (b *bot) startPronunciation(ctx context.Context, chatID int64, user userState) error {
+	b.deletePreviousWordPronunciation(ctx, chatID)
+	copy := ui(user)
+	if !b.shadowingConfigured() {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, shadowingUnavailableText(user), copy)
+	}
+	if !user.isPremium(time.Now()) {
+		return b.telegram.sendInlineMessage(ctx, chatID, copy.Tool.VoicePremiumRequired, premiumMenuShortcutKeyboard(copy))
+	}
+	voiceLimit := voiceLimitFor(user)
+	if user.VoiceToday >= voiceLimit {
+		return b.telegram.sendMessage(ctx, chatID, fmt.Sprintf(copy.Tool.VoiceLimitReached, user.VoiceToday, voiceLimit))
+	}
+	if !canUsePractice(user) {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, b.limitReachedText(systemUI(user).PracticeKind, user), copy)
+	}
+	_ = b.telegram.sendChatAction(ctx, chatID, "typing")
+	previous, _ := parsePronunciationMode(user.Mode)
+	phrase := b.buildPronunciationPhrase(ctx, user, previous)
+	if err := b.store.setMode(user.TelegramID, pronunciationPracticeMode(phrase)); err != nil {
+		return err
+	}
+	if err := b.telegram.sendInlineMessage(ctx, chatID, pronunciationStartMessage(user, phrase), backToMenuKeyboard(copy)); err != nil {
+		return err
+	}
+	b.sendTextPronunciation(ctx, chatID, user, phrase, "pronunciation.mp3", phrase, "pronunciation target")
+	return nil
+}
+
 func premiumMenuShortcutKeyboard(copies ...uiCopy) map[string]any {
 	copy := keyboardCopy(copies)
 	return map[string]any{
@@ -546,6 +611,56 @@ func (b *bot) handleShadowingAnswer(ctx context.Context, chatID int64, user user
 	}
 	if score < 78 {
 		b.sendTextPronunciation(ctx, chatID, user, target, "shadowing-repeat.mp3", target, "shadowing repeat")
+	}
+	return b.maybePromoteLearningLevel(ctx, chatID, user.TelegramID, user.FirstName)
+}
+
+func pronunciationDoneKeyboard(user userState, copies ...uiCopy) map[string]any {
+	copy := keyboardCopy(copies)
+	return map[string]any{
+		"inline_keyboard": [][]map[string]any{
+			{{"text": copy.NextWord, "callback_data": "menu_pronunciation"}},
+			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
+		},
+	}
+}
+
+func (b *bot) handlePronunciationAnswer(ctx context.Context, chatID int64, user userState, transcription audioTranscription) error {
+	target, ok := parsePronunciationMode(user.Mode)
+	if !ok {
+		return b.startPronunciation(ctx, chatID, user)
+	}
+	transcript := strings.TrimSpace(transcription.Text)
+	if transcript == "" {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, pronunciationVoiceHint(user), ui(user))
+	}
+	if !canUsePractice(user) {
+		if err := b.store.setMode(user.TelegramID, "idle"); err != nil {
+			return err
+		}
+		return b.telegram.sendMessageWithCopy(ctx, chatID, b.limitReachedText(systemUI(user).PracticeKind, user), ui(user))
+	}
+	assessment := b.buildPronunciationAssessment(ctx, user, target, transcription, pronunciationModeExact)
+	historyEntry := fmt.Sprintf("pronunciation target: %s\nspoken: %s\nscore: %d/100", target, transcript, assessment.Score)
+	history := trimPracticeHistory(append(user.PracticeHistory, historyEntry), practiceMemoryLimit)
+	if err := b.store.incrementPractice(user.TelegramID); err != nil {
+		return err
+	}
+	if err := b.store.savePracticeHistory(user.TelegramID, history); err != nil {
+		return err
+	}
+	if err := b.store.setMode(user.TelegramID, "idle"); err != nil {
+		return err
+	}
+	text := pronunciationAssessmentText(user, &assessment)
+	if strings.TrimSpace(text) == "" {
+		text = pronunciationVoiceHint(user)
+	}
+	if err := b.telegram.sendInlineMessage(ctx, chatID, text, pronunciationDoneKeyboard(user, ui(user))); err != nil {
+		return err
+	}
+	if assessment.Score < 78 {
+		b.sendTextPronunciation(ctx, chatID, user, shadowingCorrectionAudioText(target, &assessment), "pronunciation-repeat.mp3", target, "pronunciation repeat")
 	}
 	return b.maybePromoteLearningLevel(ctx, chatID, user.TelegramID, user.FirstName)
 }

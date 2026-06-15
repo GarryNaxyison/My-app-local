@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSendInlineMessageEditsCallbackMessage(t *testing.T) {
@@ -43,6 +46,8 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 		"menu_lesson",
 		"menu_tutor",
 		"menu_practice",
+		"menu_shadowing",
+		"menu_pronunciation",
 		"menu_word_lesson",
 		"menu_word_game",
 		"menu_spelling",
@@ -61,6 +66,215 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 	} {
 		if !callbacks[want] {
 			t.Fatalf("main menu is missing callback %q; got %#v", want, callbacks)
+		}
+	}
+}
+
+func TestPronunciationMenuLabelIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
+	for _, language := range interfaceLanguages() {
+		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})
+		if strings.TrimSpace(copy.Pronunciation) == "" {
+			t.Fatalf("missing Pronunciation label for %s", language.Code)
+		}
+		keyboard := mainMenuInlineKeyboard(copy)
+		text := buttonTextByCallback(t, keyboard, "menu_pronunciation")
+		if !strings.Contains(text, copy.Pronunciation) {
+			t.Fatalf("menu_pronunciation label for %s = %q, want copy label %q", language.Code, text, copy.Pronunciation)
+		}
+		if language.Code != "en" && strings.Contains(text, "Pronunciation") {
+			t.Fatalf("menu_pronunciation label for %s leaked English fallback: %q", language.Code, text)
+		}
+
+		learningKeyboard := learningMenuKeyboard(copy)
+		if got := buttonTextByCallback(t, learningKeyboard, "menu_pronunciation"); !strings.Contains(got, copy.Pronunciation) {
+			t.Fatalf("learning menu pronunciation label for %s = %q, want %q", language.Code, got, copy.Pronunciation)
+		}
+	}
+}
+
+func TestTelegramPronunciationMenuStartsExactRepeatPractice(t *testing.T) {
+	var methods []string
+	var messageTexts []string
+	var audioTitles []string
+	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		methods = append(methods, r.URL.Path)
+		switch r.URL.Path {
+		case "/sendAudio":
+			if err := r.ParseMultipartForm(1024 * 1024); err != nil {
+				t.Fatalf("parse sendAudio form: %v", err)
+			}
+			audioTitles = append(audioTitles, r.FormValue("title"))
+			_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":707}}`))
+			return
+		default:
+			var payload map[string]any
+			if r.Body != nil {
+				_ = json.NewDecoder(r.Body).Decode(&payload)
+			}
+			if text, _ := payload["text"].(string); text != "" {
+				messageTexts = append(messageTexts, text)
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		}
+	}))
+	defer telegramServer.Close()
+
+	openrouter := newOpenRouterClient("test-key", "phrase-model", "http://localhost", "test", &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			switch req.URL.String() {
+			case "https://openrouter.ai/api/v1/chat/completions":
+				body := []byte(`{"choices":[{"message":{"content":"Could you say that clearly?"}}]}`)
+				return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(bytes.NewReader(body))}, nil
+			case "https://openrouter.ai/api/v1/audio/speech":
+				return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"audio/mpeg"}}, Body: io.NopCloser(bytes.NewReader([]byte("audio"))), ContentLength: 5}, nil
+			default:
+				t.Fatalf("unexpected OpenRouter URL: %s", req.URL.String())
+				return nil, nil
+			}
+		}),
+	})
+
+	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+		Level:             "A1",
+		Plan:              "premium",
+		PremiumUntil:      time.Now().UTC().Add(24 * time.Hour),
+	}
+	store.users[user.TelegramID] = user
+	b := &bot{
+		cfg: config{
+			OpenRouterSTTModel:           "openai/whisper-1",
+			OpenRouterTTSModel:           "openai/tts-1",
+			OpenRouterTTSVoice:           "alloy",
+			MaxVoiceSeconds:              60,
+			OpenRouterAppURL:             "http://localhost",
+			OpenRouterAppName:            "test",
+			OpenRouterAPIKey:             "test-key",
+			OpenRouterModel:              "phrase-model",
+			OpenRouterPronunciationModel: "coach-model",
+		},
+		store:      store,
+		telegram:   &telegramClient{baseURL: telegramServer.URL, http: telegramServer.Client()},
+		openrouter: openrouter,
+	}
+
+	err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:   "cb-pronunciation",
+		From: telegramUser{ID: user.TelegramID, FirstName: user.FirstName},
+		Data: "menu_pronunciation",
+	})
+	if err != nil {
+		t.Fatalf("handleCallbackQuery(menu_pronunciation) error = %v", err)
+	}
+	refreshed := store.users[user.TelegramID]
+	target, ok := parsePronunciationMode(refreshed.Mode)
+	if !ok {
+		t.Fatalf("mode = %q, want pronunciation mode", refreshed.Mode)
+	}
+	if target != "Could you say that clearly?" {
+		t.Fatalf("pronunciation target = %q", target)
+	}
+	if len(audioTitles) != 1 || audioTitles[0] != target {
+		t.Fatalf("audio titles = %#v, want target %q", audioTitles, target)
+	}
+	combined := strings.Join(messageTexts, "\n")
+	for _, want := range []string{"Произношение", target, "голос"} {
+		if !strings.Contains(combined, want) {
+			t.Fatalf("pronunciation start text misses %q:\n%s\nmethods=%v", want, combined, methods)
+		}
+	}
+}
+
+func TestTelegramPronunciationVoiceAnswerScoresExactRepeat(t *testing.T) {
+	var sentTexts []string
+	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/getFile":
+			_, _ = w.Write([]byte(`{"ok":true,"result":{"file_id":"voice-1","file_path":"voice/test.ogg"}}`))
+		case "/voice/test.ogg":
+			_, _ = w.Write([]byte("voice-bytes"))
+		default:
+			var payload map[string]any
+			if r.Body != nil {
+				_ = json.NewDecoder(r.Body).Decode(&payload)
+			}
+			if text, _ := payload["text"].(string); text != "" {
+				sentTexts = append(sentTexts, text)
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+		}
+	}))
+	defer telegramServer.Close()
+
+	openrouter := newOpenRouterClient("test-key", "coach-model", "http://localhost", "test", &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			switch req.URL.String() {
+			case "https://openrouter.ai/api/v1/audio/transcriptions":
+				body := []byte(`{"text":"Could you say that clearly?","logprobs":[{"token":"Could","logprob":-0.02},{"token":"you","logprob":-0.02},{"token":"say","logprob":-0.02},{"token":"that","logprob":-0.02},{"token":"clearly","logprob":-0.02}],"usage":{"seconds":2.1}}`)
+				return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(bytes.NewReader(body))}, nil
+			case "https://openrouter.ai/api/v1/chat/completions":
+				body := []byte(`{"choices":[{"message":{"content":"{\"model_correction\":92,\"accent_strength\":18,\"fluency\":91,\"problem_words\":[],\"tips\":[\"Keep the same rhythm.\"],\"overall_feedback\":\"Good clear repeat.\"}"}}]}`)
+				return &http.Response{StatusCode: http.StatusOK, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(bytes.NewReader(body))}, nil
+			default:
+				t.Fatalf("unexpected OpenRouter URL: %s", req.URL.String())
+				return nil, nil
+			}
+		}),
+	})
+
+	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+		Level:             "A1",
+		Mode:              pronunciationPracticeMode("Could you say that clearly?"),
+		Plan:              "premium",
+		PremiumUntil:      time.Now().UTC().Add(24 * time.Hour),
+	}
+	store.users[user.TelegramID] = user
+	b := &bot{
+		cfg: config{
+			OpenRouterSTTModel:           "openai/whisper-1",
+			OpenRouterPronunciationModel: "coach-model",
+			MaxVoiceSeconds:              60,
+		},
+		store:      store,
+		telegram:   &telegramClient{baseURL: telegramServer.URL, fileBaseURL: telegramServer.URL, http: telegramServer.Client()},
+		openrouter: openrouter,
+	}
+
+	err := b.handleVoiceMessage(context.Background(), &telegramMessage{
+		From:  telegramUser{ID: user.TelegramID, FirstName: user.FirstName},
+		Chat:  telegramChat{ID: user.TelegramID},
+		Voice: &telegramVoice{FileID: "voice-1", Duration: 2},
+	})
+	if err != nil {
+		t.Fatalf("handleVoiceMessage(pronunciation) error = %v", err)
+	}
+	refreshed := store.users[user.TelegramID]
+	if refreshed.Mode != "idle" {
+		t.Fatalf("mode after pronunciation answer = %q, want idle", refreshed.Mode)
+	}
+	if refreshed.VoiceToday != 1 || refreshed.PracticeToday != 1 {
+		t.Fatalf("voice/practice counters = %d/%d, want 1/1", refreshed.VoiceToday, refreshed.PracticeToday)
+	}
+	if len(refreshed.PracticeHistory) == 0 || !strings.Contains(refreshed.PracticeHistory[len(refreshed.PracticeHistory)-1], "pronunciation target: Could you say that clearly?") {
+		t.Fatalf("practice history missing pronunciation entry: %#v", refreshed.PracticeHistory)
+	}
+	combined := strings.Join(sentTexts, "\n")
+	for _, want := range []string{"Оценка произношения", "/100", "Good clear repeat."} {
+		if !strings.Contains(combined, want) {
+			t.Fatalf("pronunciation result misses %q:\n%s", want, combined)
 		}
 	}
 }

@@ -17,12 +17,12 @@
 - Modify: `telegram.go`
 - Modify: `i18n.go`
 
-- [ ] Add a failing test that the main menu exposes both `menu_shadowing` and `menu_pronunciation`.
-- [ ] Add a failing localization test that every interface language has a non-empty Pronunciation label and the menu button uses that label.
-- [ ] Add `Pronunciation` to `uiCopy` and runtime fallbacks.
-- [ ] Add Pronunciation buttons to the main and learning Telegram menus.
-- [ ] Run the targeted menu tests until they pass.
-- [ ] Commit with `feat: expose pronunciation in telegram menus`.
+- [x] Add a failing test that the main menu exposes both `menu_shadowing` and `menu_pronunciation`.
+- [x] Add a failing localization test that every interface language has a non-empty Pronunciation label and the menu button uses that label.
+- [x] Add `Pronunciation` to `uiCopy` and runtime fallbacks.
+- [x] Add Pronunciation buttons to the main and learning Telegram menus.
+- [x] Run the targeted menu tests until they pass.
+- [x] Commit with `feat: expose pronunciation in telegram menus`.
 
 ### Task 2: Telegram Pronunciation Flow
 
@@ -31,23 +31,23 @@
 - Modify: `shadowing.go`
 - Modify: `bot.go`
 
-- [ ] Add a failing test that `menu_pronunciation` starts a standalone exact-repeat pronunciation mode, sends the target phrase, and requests a voice reply.
-- [ ] Add `pronunciationMode(phrase)` / `parsePronunciationMode(mode)` helpers using the same safe base64 format as shadowing.
-- [ ] Add `startPronunciation` that checks premium voice access, builds a phrase with `buildPronunciationPhrase`, stores the pronunciation mode, sends localized instructions, and sends model audio.
-- [ ] Route `menu_pronunciation` callbacks to `startPronunciation`.
-- [ ] Route voice messages in pronunciation mode through `buildPronunciationAssessment(..., pronunciationModeExact)` and show the localized pronunciation result with a next-pronunciation button.
-- [ ] Run targeted Telegram, shadowing, and pronunciation tests until they pass.
-- [ ] Commit with `feat: add telegram pronunciation practice`.
+- [x] Add a failing test that `menu_pronunciation` starts a standalone exact-repeat pronunciation mode, sends the target phrase, and requests a voice reply.
+- [x] Add `pronunciationMode(phrase)` / `parsePronunciationMode(mode)` helpers using the same safe base64 format as shadowing.
+- [x] Add `startPronunciation` that checks premium voice access, builds a phrase with `buildPronunciationPhrase`, stores the pronunciation mode, sends localized instructions, and sends model audio.
+- [x] Route `menu_pronunciation` callbacks to `startPronunciation`.
+- [x] Route voice messages in pronunciation mode through `buildPronunciationAssessment(..., pronunciationModeExact)` and show the localized pronunciation result with a next-pronunciation button.
+- [x] Run targeted Telegram, shadowing, and pronunciation tests until they pass.
+- [x] Commit with `feat: add telegram pronunciation practice`.
 
 ### Task 3: Verification and Deploy
 
 **Files:**
 - No source edits unless verification finds a defect.
 
-- [ ] Run targeted Go tests for Telegram menus, pronunciation, shadowing, and existing AI Tutor/web regressions.
-- [ ] Run `npm --prefix web-react run build`.
-- [ ] Run targeted Playwright web smoke tests for lesson, listening, pronunciation, words, and AI Tutor.
-- [ ] Run the encoding artifact check.
+- [x] Run targeted Go tests for Telegram menus, pronunciation, shadowing, and existing AI Tutor/web regressions.
+- [x] Run `npm --prefix web-react run build`.
+- [x] Run targeted Playwright web smoke tests for lesson, listening, pronunciation, words, and AI Tutor.
+- [x] Run the encoding artifact check.
 - [ ] Push all commits to `origin/codex/ai-tutor-rebuild-fix`.
 - [ ] Deploy backend and web assets to production.
 - [ ] Verify `/healthz`, `/app/`, Telegram service status, and production asset/runtime markers.

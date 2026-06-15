@@ -4659,6 +4659,7 @@ func webCopyDTO(copy uiCopy) map[string]string {
 		"new_lesson":        copy.NewLesson,
 		"practice":          copy.Practice,
 		"shadowing":         copy.Shadowing,
+		"pronunciation":     copy.Pronunciation,
 		"level_test":        copy.LevelTest,
 		"learn_words":       copy.LearnWords,
 		"word_game":         copy.WordGame,

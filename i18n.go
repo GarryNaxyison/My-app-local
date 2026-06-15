@@ -21,6 +21,7 @@ type uiCopy struct {
 	Practice         string
 	AITutor          string
 	Shadowing        string
+	Pronunciation    string
 	LevelTest        string
 	LearnWords       string
 	WordGame         string
@@ -125,7 +126,7 @@ func englishUICopy() uiCopy {
 		MenuButton: "📋 Menu", StopButton: "⏹ Stop", Back: "◀ Back", BackMenu: "◀ Menu",
 		MainMenuTitle: "Main Menu", MainMenuBody: "Choose an action:",
 		Learning: "Learn", Words: "Words", Stats: "Progress", Settings: "Settings", Tools: "Tools",
-		NewLesson: "New lesson", Practice: "Practice", AITutor: "AI Tutor", Shadowing: "Listening", LevelTest: "Find level", LearnWords: "Learn words", WordGame: "Review", Spelling: "Spelling", Vocabulary: "Vocabulary", Phrasebook: "Phrasebook", Mistakes: "Mistakes", Progress: "My progress", Leaders: "Leaders", Limits: "Limits", BotLanguage: "Bot language", LearningLanguage: "Learning language", Notifications: "Notifications", Premium: "Premium", Referral: "Referrals",
+		NewLesson: "New lesson", Practice: "Practice", AITutor: "AI Tutor", Shadowing: "Listening", Pronunciation: "Pronunciation", LevelTest: "Find level", LearnWords: "Learn words", WordGame: "Review", Spelling: "Spelling", Vocabulary: "Vocabulary", Phrasebook: "Phrasebook", Mistakes: "Mistakes", Progress: "My progress", Leaders: "Leaders", Limits: "Limits", BotLanguage: "Bot language", LearningLanguage: "Learning language", Notifications: "Notifications", Premium: "Premium", Referral: "Referrals",
 		ChooseBotLang: "Choose bot language", ChooseLearnLang: "Which language do you want to learn?", ChooseTimezone: "Choose time zone", TimezoneHint: "I will send daily reminders around 19:00 in your local time.",
 		BotLangSet: "Done. Bot language: %s.", LearnLangSet: "Done. Now learning: %s.", UnknownButton: "I did not understand that button. Press 📋 Menu.", Stopped: "Stopped. Press 📋 Menu to choose the next action.",
 		WordQuestion: "How do you say %s?", ChooseAnswer: "Choose the correct answer:", Correct: "Correct!", TryAgain: "Not quite. Try again:", NextWord: "Next word", NextPage: "Next ▶", AlreadyLearned: "This word is already in your vocabulary.", AddedToVocab: "Word added to your learned vocabulary.", TotalLearned: "Learned words: %d", WriteWord: "Write %s:", Hint: "Hint", GoodSpelling: "Great spelling!",
@@ -274,6 +275,7 @@ func generatedUICopy(code string) (uiCopy, bool) {
 		Practice:         t.Practice,
 		AITutor:          aiTutorButtonLabel(code),
 		Shadowing:        t.Listening,
+		Pronunciation:    pronunciationButtonLabel(code),
 		LevelTest:        t.Level,
 		LearnWords:       t.LearnWords,
 		WordGame:         t.Review,
@@ -597,6 +599,9 @@ func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
 	if copy.Shadowing == "" {
 		copy.Shadowing = shadowingButtonLabel(code)
 	}
+	if copy.Pronunciation == "" {
+		copy.Pronunciation = pronunciationButtonLabel(code)
+	}
 	if copy.Phrasebook == "" {
 		copy.Phrasebook = phrasebookButtonLabel(code)
 	}
@@ -610,6 +615,81 @@ func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
 	}
 	copy.Tool = toolUICopyFor(code)
 	return copy
+}
+
+func pronunciationButtonLabel(code string) string {
+	switch normalizeInterfaceLanguage(code) {
+	case "ru":
+		return "Произношение"
+	case "es":
+		return "Pronunciación"
+	case "de":
+		return "Aussprache"
+	case "fr":
+		return "Prononciation"
+	case "it":
+		return "Pronuncia"
+	case "pt":
+		return "Pronúncia"
+	case "pl":
+		return "Wymowa"
+	case "ro":
+		return "Pronunție"
+	case "uk":
+		return "Вимова"
+	case "zh":
+		return "发音"
+	case "ja":
+		return "発音"
+	case "ko":
+		return "발음"
+	case "tg":
+		return "Талаффуз"
+	case "uz":
+		return "Talaffuz"
+	case "tt":
+		return "Әйтелеш"
+	case "hy":
+		return "Արտասանություն"
+	case "kk":
+		return "Айтылым"
+	case "ky":
+		return "Айтылыш"
+	case "ka":
+		return "წარმოთქმა"
+	case "ar":
+		return "النطق"
+	case "bn":
+		return "উচ্চারণ"
+	case "cs":
+		return "Výslovnost"
+	case "el":
+		return "Προφορά"
+	case "hi":
+		return "उच्चारण"
+	case "hu":
+		return "Kiejtés"
+	case "id":
+		return "Pelafalan"
+	case "nl":
+		return "Uitspraak"
+	case "sv":
+		return "Uttal"
+	case "ta":
+		return "உச்சரிப்பு"
+	case "te":
+		return "ఉచ్చారణ"
+	case "th":
+		return "การออกเสียง"
+	case "tl":
+		return "Pagbigkas"
+	case "tr":
+		return "Telaffuz"
+	case "vi":
+		return "Phát âm"
+	default:
+		return "Pronunciation"
+	}
 }
 
 func phrasebookButtonLabel(code string) string {
