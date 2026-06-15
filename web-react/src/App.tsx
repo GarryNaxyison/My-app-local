@@ -11,6 +11,7 @@ import {
   BarChart3,
   Bookmark,
   BookOpen,
+  Bot,
   Brain,
   Bug,
   CalendarDays,
@@ -115,6 +116,24 @@ type StatusKind = "ok" | "error" | "info";
 type LucideIcon = ComponentType<LucideProps>;
 type ToolMode = "translator" | "voice" | "image";
 type TrainerTone = "success" | "warning" | "info";
+
+const aiRouterTelegramURL = "https://t.me/AiRouterRu_bot";
+
+const dailyQuestTarget = {
+  lesson: 2,
+  practice: 3,
+  roleplay: 1,
+  pronunciation: 1,
+  vocabulary: 1,
+  mistakes: 1,
+  listening: 2,
+} as const;
+
+function dailyQuestProgress(value: unknown, target: number) {
+  const count = Math.floor(Number(value || 0));
+  if (!Number.isFinite(count) || count <= 0) return 0;
+  return Math.min(count, target);
+}
 
 type PronunciationProblem = {
   word?: string;
@@ -1352,10 +1371,10 @@ function premiumPlanTier(plan: PremiumPlan, copy: (key: string, fallback: string
 
 function premiumPlanBody(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
   const source = premiumPlanSource(plan);
-  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks are Premium-only.");
-  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with the highest daily limits, Listening and pronunciation practice, roleplay depth, and intensive review.");
+  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.");
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice.");
   if (source.includes("year") || source.includes("365")) return copy("premium_year_body", "Same daily AI audio limits, paid yearly.");
-  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits.");
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits.");
   return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, listening, pronunciation, voice tools, image practice, and focused daily training.");
 }
 
@@ -2835,7 +2854,6 @@ export function App() {
 
   const saveSettings = async (payload: ApiRecord) => {
     await runAction("settings", () => api<SessionData>("/api/settings", { method: "POST", body: payload }), copy("settings_saved", "Settings saved."));
-    await refreshSession().catch(() => undefined);
   };
 
   const saveNavigationLayout = (patch: NonNullable<UserProfile["navigation_layout"]>) => {
@@ -3337,7 +3355,12 @@ function localizedAuthError(error: unknown, copy: (key: string, fallback: string
 
 function localizedAPIError(error: unknown, copy: (key: string, fallback: string) => string): string {
   const code = apiErrorCode(error);
-  if (code) return copy(`auth_error_${code}`, copy("request_failed", "Request failed"));
+  if (code) {
+    const apiKey = `api_error_${code}`;
+    const apiMessage = cleanAppText(copy(apiKey, ""));
+    if (apiMessage && apiMessage !== apiKey) return apiMessage;
+    return copy(`auth_error_${code}`, copy("request_failed", "Request failed"));
+  }
   const message = cleanAppText(error instanceof Error ? error.message : "");
   if (!message || isGenericSectionCopy(message)) return copy("request_failed", "Request failed");
   return message;
@@ -5959,13 +5982,13 @@ function HomeView(props: ViewRendererProps) {
       : copy("complete_daily_first", "Complete daily first");
   const streak = habitStreak(habitLog);
   const quests = [
-    { label: copy("new_lesson", "Новый урок"), value: user.lessons_today || 0, max: Math.max(2, Number(user.lesson_limit || 1)), icon: BookOpen, action: startLesson, detail: copy("quest_lesson_detail", "2 коротких урока") },
-    { label: copy("practice", "Практика"), value: user.practice_today || 0, max: Math.max(3, Number(user.practice_limit || 1)), icon: MessageCircle, action: () => setView("practice"), detail: copy("quest_practice_detail", "3 живые фразы") },
-    { label: copy("roleplay", "Ролевая"), value: 0, max: 1, icon: Sparkles, action: () => setView("roleplay"), detail: copy("quest_roleplay_detail", "1 сцена на 5 минут") },
-    { label: copy("pronunciation", "Произношение"), value: user.voice_today || 0, max: Math.max(2, Number(user.voice_limit || 1)), icon: Activity, action: () => setView("pronunciation"), detail: copy("quest_pronunciation_detail", "2 повтора + heatmap") },
-    { label: copy("vocabulary", "Словарик"), value: 0, max: 1, icon: ListChecks, action: () => void loadVocabulary(), detail: copy("quest_vocabulary_detail", "5 слов + 1 пример") },
-    { label: copy("mistakes", "Словарик ошибок"), value: Number(user.mistakes || 0) > 0 ? 0 : 1, max: 1, icon: Search, action: loadMistakes, detail: copy("quest_mistakes_detail", "1-2 ошибки в ремонт") },
-    { label: copy("shadowing", "Аудирование"), value: user.voice_today || 0, max: Math.max(2, Number(user.voice_limit || 1)), icon: Volume2, action: startShadowing, detail: copy("quest_listening_detail", "2 аудио-повтора") },
+    { label: copy("new_lesson", "Новый урок"), value: dailyQuestProgress(user.lessons_today, dailyQuestTarget.lesson), max: dailyQuestTarget.lesson, icon: BookOpen, action: startLesson, detail: copy("quest_lesson_detail", "2 коротких урока") },
+    { label: copy("practice", "Практика"), value: dailyQuestProgress(user.practice_today, dailyQuestTarget.practice), max: dailyQuestTarget.practice, icon: MessageCircle, action: () => setView("practice"), detail: copy("quest_practice_detail", "3 живые фразы") },
+    { label: copy("roleplay", "Ролевая"), value: dailyQuestProgress(0, dailyQuestTarget.roleplay), max: dailyQuestTarget.roleplay, icon: Sparkles, action: () => setView("roleplay"), detail: copy("quest_roleplay_detail", "1 сцена на 5 минут") },
+    { label: copy("pronunciation", "Произношение"), value: dailyQuestProgress(user.voice_today, dailyQuestTarget.pronunciation), max: dailyQuestTarget.pronunciation, icon: Activity, action: () => setView("pronunciation"), detail: copy("quest_pronunciation_detail", "1 проверка произношения") },
+    { label: copy("vocabulary", "Словарик"), value: dailyQuestProgress(0, dailyQuestTarget.vocabulary), max: dailyQuestTarget.vocabulary, icon: ListChecks, action: () => void loadVocabulary(), detail: copy("quest_vocabulary_detail", "5 слов + 1 пример") },
+    { label: copy("mistakes", "Словарик ошибок"), value: dailyQuestProgress(Number(user.mistakes || 0) > 0 ? 0 : 1, dailyQuestTarget.mistakes), max: dailyQuestTarget.mistakes, icon: Search, action: loadMistakes, detail: copy("quest_mistakes_detail", "1-2 ошибки в ремонт") },
+    { label: copy("shadowing", "Аудирование"), value: dailyQuestProgress(user.voice_today, dailyQuestTarget.listening), max: dailyQuestTarget.listening, icon: Volume2, action: startShadowing, detail: copy("quest_listening_detail", "2 аудио-повтора") },
   ];
   const routeSteps = [
     { title: copy("today_plan_words_title", "Words"), body: copy("today_plan_words_body", "Warm up with 5 words from the current level and keep only the hard ones for review."), icon: Brain, action: () => void startWord() },
@@ -6020,7 +6043,7 @@ function HomeView(props: ViewRendererProps) {
       </section>
       <section className="v2-panel daily-quests-v2">
         <span className="eyebrow"><Flame size={15} />{copy("daily_quests", "Daily quests")}</span>
-        <h2>{copy("daily_quests_title", "Квесты на сегодня")}</h2>
+        <h2>{copy("daily_quests_title", "Задания на сегодня")}</h2>
         <div className="daily-quests-v2__list">
           {quests.slice(0, 4).map((quest) => {
             const Icon = quest.icon;
@@ -8031,6 +8054,10 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
         <ToolButton active={toolMode === "translator"} icon={Languages} title={copy("text_translator", "Text translator")} onClick={() => chooseTool("translator")} />
         <ToolButton active={toolMode === "voice"} icon={FileAudio} title={copy("voice_to_text", "Voice to text")} onClick={() => chooseTool("voice")} />
         <ToolButton active={toolMode === "image"} icon={ImageIcon} title={copy("photo_translation", "Photo translation")} onClick={() => chooseTool("image")} />
+        <a className="tool-button-v2 tools-ai-router-v2" href={aiRouterTelegramURL} target="_blank" rel="noreferrer" aria-label={copy("ai_router", "AI Router")}>
+          <Bot size={18} />
+          {copy("ai_router", "AI Router")}
+        </a>
       </div>
       <div className="tools-work-v2">
       <Button className="tools-change-v2" variant="outline" size="sm" type="button" onClick={() => setMobilePickerOpen(true)}>
@@ -8325,9 +8352,9 @@ function formatLimit(value: unknown, max: unknown) {
 
 function fallbackPlans(copy: (key: string, fallback: string) => string): PremiumPlan[] {
   return [
-    { product: "free", title: copy("free_plan_title", "Free"), tier: copy("free_plan_tier", "Basic"), days_label: copy("free_plan_body", "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only."), rub_price: "0" },
-    { product: "premium_month", title: copy("premium_month_title", "Premium"), tier: copy("premium_month_tier", "Premium"), days_label: copy("premium_month_body", "AI Tutor, guided AI lessons, voice checks, photo tools, and expanded daily limits."), rub_price: "300" },
-    { product: "platinum_month", title: copy("platinum_month_title", "Platinum"), tier: copy("platinum_month_tier", "Platinum"), days_label: copy("platinum_month_body", "AI Tutor with the highest daily limits, voice practice, roleplay depth, and intensive review."), rub_price: "590" },
+    { product: "free", title: copy("free_plan_title", "Free"), tier: copy("free_plan_tier", "Basic"), days_label: copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium."), rub_price: "0" },
+    { product: "premium_month", title: copy("premium_month_title", "Premium"), tier: copy("premium_month_tier", "Premium"), days_label: copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits."), rub_price: "300" },
+    { product: "platinum_month", title: copy("platinum_month_title", "Platinum"), tier: copy("platinum_month_tier", "Platinum"), days_label: copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice."), rub_price: "590" },
   ];
 }
 

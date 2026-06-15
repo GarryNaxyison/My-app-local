@@ -82,6 +82,7 @@ const en: Record<string, string> = {
   ready_title: "Ready",
   ready_body: "Choose a mode, start a lesson, or send a practice message.",
   request_failed: "Request failed",
+  api_error_storage_busy: "Storage is busy. Try again in a few seconds.",
   session_failed: "Session failed",
   lesson_ready: "Lesson is ready.",
   lesson_generated: "Lesson generated.",
@@ -347,13 +348,13 @@ const en: Record<string, string> = {
   account: "Account",
   free_plan_title: "Free",
   free_plan_tier: "Basic",
-  free_plan_body: "Core text learning. AI Tutor, Listening, and pronunciation are Premium-only.",
+  free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.",
   premium_month_title: "Premium",
   premium_month_tier: "Premium",
-  premium_month_body: "AI Tutor, listening, pronunciation, voice, photo, mistakes and vocabulary",
+  premium_month_body: "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits.",
   platinum_month_title: "Platinum",
   platinum_month_tier: "Platinum",
-  platinum_month_body: "Maximum daily limits with intensive Listening and pronunciation practice",
+  platinum_month_body: "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice.",
   free_plan_price: "Included",
   current_plan: "Current plan",
   tutor_premium_title: "AI Tutor is included with Premium",
@@ -363,15 +364,15 @@ const en: Record<string, string> = {
   premium_audio_required: "Listening is available with Premium.",
   premium_pronunciation_required: "Pronunciation practice is available with Premium.",
   free_feature_daily: "Daily habit, starter lessons, and basic word training",
-  free_feature_phrasebook: "Phrasebook and progress overview",
+  free_feature_phrasebook: "Notes, Phrasebook, and progress overview",
   free_feature_no_ai_tutor: "AI Tutor is locked until Premium",
   free_feature_no_audio: "Listening and pronunciation are locked until Premium",
-  premium_feature_ai_tutor: "AI Tutor guided lessons included",
-  premium_feature_voice: "Listening and pronunciation, photo, and translator tools",
-  premium_feature_limits: "Expanded daily limits for steady learning",
-  platinum_feature_ai_tutor: "AI Tutor with intensive daily limits",
-  platinum_feature_voice: "Maximum Listening and pronunciation practice",
-  platinum_feature_priority: "Best tier for heavy daily learning",
+  premium_feature_ai_tutor: "AI Tutor and guided AI lessons included",
+  premium_feature_voice: "Voice-to-text, listening translation, photo tools, and voice/photo-context practice",
+  premium_feature_limits: "Mistake dictionary, notes, XP, streak, and expanded daily limits",
+  platinum_feature_ai_tutor: "AI Tutor with maximum daily limits",
+  platinum_feature_voice: "More voice/photo-context practice and intensive weak-spot review",
+  platinum_feature_priority: "Best mode for a trip, work, exam, or dense learning pace",
   auth_password_mismatch: "Passwords do not match.",
   auth_failed: "Authentication failed",
   auth_error_invalid_login_length: "Login must be 3 to 32 characters.",
@@ -495,8 +496,9 @@ const en: Record<string, string> = {
 const ru: Record<string, string> = {
   ready_title: "Готово",
   ready_body: "Выберите режим, запустите урок или отправьте сообщение для практики. Go backend остается источником истины.",
-  request_failed: "Ошибка запроса",
-  session_failed: "Сессия не загрузилась",
+    request_failed: "Ошибка запроса",
+    api_error_storage_busy: "Хранилище занято. Повторите действие через несколько секунд.",
+    session_failed: "Сессия не загрузилась",
   lesson_ready: "Урок готов.",
   lesson_generated: "Урок создан.",
   new_lesson_title: "Новый урок",
@@ -3760,9 +3762,9 @@ Object.entries(planAndNoteFieldOverrides).forEach(([locale, values]) => {
 
 const aiTutorPremiumCopyOverrides: Partial<Record<AppLocaleCode, Record<string, string>>> = {
   ru: {
-    free_plan_body: "Базовое текстовое обучение, тренировка слов, заметки и обзор прогресса. AI Репетитор доступен только с Premium.",
-    premium_month_body: "AI Репетитор, учебные AI-уроки, проверка голоса, фото-инструменты и расширенные дневные лимиты.",
-    platinum_month_body: "AI Репетитор с максимальными дневными лимитами, голосовой практикой, глубокими ролевыми сценариями и интенсивным повторением.",
+    free_plan_body: "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.",
+    premium_month_body: "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты.",
+    platinum_month_body: "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой.",
     free_plan_price: "Включено",
     current_plan: "Текущий план",
     tutor_premium_title: "AI Репетитор входит в Premium",
@@ -3770,19 +3772,19 @@ const aiTutorPremiumCopyOverrides: Partial<Record<AppLocaleCode, Record<string, 
     tutor_premium_cta: "Перейти на Premium",
     tutor_premium_required: "AI Репетитор доступен с Premium.",
     free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов",
-    free_feature_phrasebook: "Заметки и обзор прогресса",
+    free_feature_phrasebook: "Заметки, Phrasebook и обзор прогресса",
     free_feature_no_ai_tutor: "AI Репетитор закрыт до Premium",
-    premium_feature_ai_tutor: "AI Репетитор и учебные AI-уроки включены",
-    premium_feature_voice: "Голос, произношение, фото и переводчик",
-    premium_feature_limits: "Расширенные дневные лимиты для стабильного обучения",
-    platinum_feature_ai_tutor: "AI Репетитор с интенсивными дневными лимитами",
-    platinum_feature_voice: "Максимум голосовой, произносительной и ролевой практики",
-    platinum_feature_priority: "Лучший тариф для плотного ежедневного обучения",
+    premium_feature_ai_tutor: "AI Tutor и guided AI lessons включены",
+    premium_feature_voice: "Голос в текст, перевод услышанного, фото-инструменты и практика по контексту",
+    premium_feature_limits: "Словарь ошибок, notes, XP, streak и расширенные дневные лимиты",
+    platinum_feature_ai_tutor: "AI Tutor с максимальными дневными лимитами",
+    platinum_feature_voice: "Больше voice/photo-context практики и интенсивный review слабых мест",
+    platinum_feature_priority: "Лучший режим для поездки, работы, экзамена или плотного темпа",
   },
   en: {
-    free_plan_body: "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only.",
-    premium_month_body: "AI Tutor, guided AI lessons, voice checks, photo tools, and expanded daily limits.",
-    platinum_month_body: "AI Tutor with the highest daily limits, voice practice, roleplay depth, and intensive review.",
+    free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.",
+    premium_month_body: "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits.",
+    platinum_month_body: "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice.",
   },
 };
 
@@ -3792,8 +3794,8 @@ Object.entries(aiTutorPremiumCopyOverrides).forEach(([locale, values]) => {
 });
 
 const freePlanCompleteCopy: Record<AppLocaleCode, Record<string, string>> = {
-  ru: { free_plan_title: "Бесплатный", free_plan_tier: "Базовый", free_plan_body: "Базовое текстовое обучение, тренировка слов, заметки и обзор прогресса. AI Репетитор доступен только с Premium.", free_plan_price: "Включено", current_plan: "Текущий план", free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов", free_feature_phrasebook: "Заметки и обзор прогресса", free_feature_no_ai_tutor: "AI Репетитор закрыт до Premium", free_feature_no_audio: "Аудирование и произношение закрыты до Premium" },
-  en: { free_plan_title: "Free", free_plan_tier: "Basic", free_plan_body: "Basic text learning, word training, phrasebook, and progress overview. AI Tutor is Premium-only.", free_plan_price: "Included", current_plan: "Current plan", free_feature_daily: "Daily habit, starter lessons, and basic word training", free_feature_phrasebook: "Phrasebook and progress overview", free_feature_no_ai_tutor: "AI Tutor is locked until Premium", free_feature_no_audio: "Listening and pronunciation are locked until Premium" },
+  ru: { free_plan_title: "Бесплатный", free_plan_tier: "Базовый", free_plan_body: "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.", free_plan_price: "Включено", current_plan: "Текущий план", free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов", free_feature_phrasebook: "Заметки, Phrasebook и обзор прогресса", free_feature_no_ai_tutor: "AI Tutor закрыт до Premium", free_feature_no_audio: "Listening и pronunciation закрыты до Premium" },
+  en: { free_plan_title: "Free", free_plan_tier: "Basic", free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.", free_plan_price: "Included", current_plan: "Current plan", free_feature_daily: "Daily habit, starter lessons, and basic word training", free_feature_phrasebook: "Notes, Phrasebook, and progress overview", free_feature_no_ai_tutor: "AI Tutor is locked until Premium", free_feature_no_audio: "Listening and pronunciation are locked until Premium" },
   es: { free_plan_title: "Gratis", free_plan_tier: "Básico", free_plan_body: "Aprendizaje básico con texto, práctica de palabras, notas y resumen de progreso. AI Tutor solo está disponible con Premium.", free_plan_price: "Incluido", current_plan: "Plan actual", free_feature_daily: "Hábito diario, lecciones iniciales y práctica básica de palabras", free_feature_phrasebook: "Notas y resumen de progreso", free_feature_no_ai_tutor: "AI Tutor bloqueado hasta Premium", free_feature_no_audio: "Escucha y pronunciación bloqueadas hasta Premium" },
   de: { free_plan_title: "Kostenlos", free_plan_tier: "Basis", free_plan_body: "Grundlegendes Textlernen, Worttraining, Notizen und Fortschrittsübersicht. AI Tutor gibt es nur mit Premium.", free_plan_price: "Inklusive", current_plan: "Aktueller Plan", free_feature_daily: "Tägliche Routine, Startlektionen und einfaches Worttraining", free_feature_phrasebook: "Notizen und Fortschrittsübersicht", free_feature_no_ai_tutor: "AI Tutor ist bis Premium gesperrt", free_feature_no_audio: "Hören und Aussprache sind bis Premium gesperrt" },
   fr: { free_plan_title: "Gratuit", free_plan_tier: "Basique", free_plan_body: "Apprentissage texte de base, entraînement des mots, notes et aperçu des progrès. AI Tutor est réservé à Premium.", free_plan_price: "Inclus", current_plan: "Offre actuelle", free_feature_daily: "Habitude quotidienne, premières leçons et entraînement de mots de base", free_feature_phrasebook: "Notes et aperçu des progrès", free_feature_no_ai_tutor: "AI Tutor est bloqué jusqu'à Premium", free_feature_no_audio: "Écoute et prononciation sont bloquées jusqu'à Premium" },
@@ -5356,6 +5358,53 @@ const trainerHintCopy: Partial<Record<AppLocaleCode, Record<string, string>>> = 
 Object.entries(trainerHintCopy).forEach(([locale, values]) => {
   const code = locale as AppLocaleCode;
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
+});
+
+const dailyQuestCopy: Record<AppLocaleCode, Record<string, string>> = {
+  ru: { daily_quests: "Ежедневные задания", daily_quests_title: "Задания на сегодня", quest_lesson_detail: "2 коротких урока", quest_practice_detail: "3 живые фразы", quest_roleplay_detail: "1 сцена на 5 минут", quest_pronunciation_detail: "1 проверка произношения", quest_vocabulary_detail: "5 слов + 1 пример", quest_mistakes_detail: "1-2 ошибки в ремонт", quest_listening_detail: "2 аудио-повтора" },
+  en: { daily_quests: "Daily tasks", daily_quests_title: "Tasks for today", quest_lesson_detail: "2 short lessons", quest_practice_detail: "3 live phrases", quest_roleplay_detail: "1 five-minute scene", quest_pronunciation_detail: "1 pronunciation check", quest_vocabulary_detail: "5 words + 1 example", quest_mistakes_detail: "Repair 1-2 mistakes", quest_listening_detail: "2 listening repeats" },
+  es: { daily_quests: "Tareas diarias", daily_quests_title: "Tareas de hoy", quest_lesson_detail: "2 lecciones cortas", quest_practice_detail: "3 frases vivas", quest_roleplay_detail: "1 escena de 5 minutos", quest_pronunciation_detail: "1 revisión de pronunciación", quest_vocabulary_detail: "5 palabras + 1 ejemplo", quest_mistakes_detail: "Reparar 1-2 errores", quest_listening_detail: "2 repeticiones de escucha" },
+  de: { daily_quests: "Tägliche Aufgaben", daily_quests_title: "Aufgaben für heute", quest_lesson_detail: "2 kurze Lektionen", quest_practice_detail: "3 lebendige Sätze", quest_roleplay_detail: "1 Szene für 5 Minuten", quest_pronunciation_detail: "1 Aussprachecheck", quest_vocabulary_detail: "5 Wörter + 1 Beispiel", quest_mistakes_detail: "1-2 Fehler reparieren", quest_listening_detail: "2 Hörwiederholungen" },
+  fr: { daily_quests: "Tâches quotidiennes", daily_quests_title: "Tâches du jour", quest_lesson_detail: "2 leçons courtes", quest_practice_detail: "3 phrases vivantes", quest_roleplay_detail: "1 scène de 5 minutes", quest_pronunciation_detail: "1 vérification de prononciation", quest_vocabulary_detail: "5 mots + 1 exemple", quest_mistakes_detail: "Corriger 1-2 erreurs", quest_listening_detail: "2 répétitions d'écoute" },
+  it: { daily_quests: "Compiti giornalieri", daily_quests_title: "Compiti di oggi", quest_lesson_detail: "2 lezioni brevi", quest_practice_detail: "3 frasi vive", quest_roleplay_detail: "1 scena da 5 minuti", quest_pronunciation_detail: "1 controllo di pronuncia", quest_vocabulary_detail: "5 parole + 1 esempio", quest_mistakes_detail: "Ripara 1-2 errori", quest_listening_detail: "2 ripetizioni di ascolto" },
+  zh: { daily_quests: "每日任务", daily_quests_title: "今天的任务", quest_lesson_detail: "2 个短课", quest_practice_detail: "3 个实用短语", quest_roleplay_detail: "1 个 5 分钟场景", quest_pronunciation_detail: "1 次发音检查", quest_vocabulary_detail: "5 个词 + 1 个例句", quest_mistakes_detail: "修正 1-2 个错误", quest_listening_detail: "2 次听力跟读" },
+  ja: { daily_quests: "毎日の課題", daily_quests_title: "今日の課題", quest_lesson_detail: "短いレッスン 2 回", quest_practice_detail: "実用フレーズ 3 つ", quest_roleplay_detail: "5分の場面 1 つ", quest_pronunciation_detail: "発音チェック 1 回", quest_vocabulary_detail: "5語 + 例文1つ", quest_mistakes_detail: "ミスを1-2個修正", quest_listening_detail: "リスニング反復 2 回" },
+  ko: { daily_quests: "일일 과제", daily_quests_title: "오늘의 과제", quest_lesson_detail: "짧은 레슨 2개", quest_practice_detail: "실전 문구 3개", quest_roleplay_detail: "5분 장면 1개", quest_pronunciation_detail: "발음 체크 1회", quest_vocabulary_detail: "단어 5개 + 예문 1개", quest_mistakes_detail: "실수 1-2개 수정", quest_listening_detail: "듣기 반복 2회" },
+  tg: { daily_quests: "Вазифаҳои ҳаррӯза", daily_quests_title: "Вазифаҳои имрӯз", quest_lesson_detail: "2 дарси кӯтоҳ", quest_practice_detail: "3 ибораи зинда", quest_roleplay_detail: "1 саҳна барои 5 дақиқа", quest_pronunciation_detail: "1 санҷиши талаффуз", quest_vocabulary_detail: "5 калима + 1 мисол", quest_mistakes_detail: "1-2 хатогиро ислоҳ кунед", quest_listening_detail: "2 такрори шунавоӣ" },
+  uz: { daily_quests: "Kunlik vazifalar", daily_quests_title: "Bugungi vazifalar", quest_lesson_detail: "2 qisqa dars", quest_practice_detail: "3 jonli ibora", quest_roleplay_detail: "5 daqiqalik 1 sahna", quest_pronunciation_detail: "1 talaffuz tekshiruvi", quest_vocabulary_detail: "5 so'z + 1 misol", quest_mistakes_detail: "1-2 xatoni tuzating", quest_listening_detail: "2 tinglash takrori" },
+  tt: { daily_quests: "Көндәлек биремнәр", daily_quests_title: "Бүгенге биремнәр", quest_lesson_detail: "2 кыска дәрес", quest_practice_detail: "3 тере фраза", quest_roleplay_detail: "5 минутлык 1 сәхнә", quest_pronunciation_detail: "1 әйтелеш тикшерүе", quest_vocabulary_detail: "5 сүз + 1 мисал", quest_mistakes_detail: "1-2 хатаны төзәтү", quest_listening_detail: "2 тыңлау кабатлавы" },
+  hy: { daily_quests: "Ամենօրյա առաջադրանքներ", daily_quests_title: "Այսօրվա առաջադրանքներ", quest_lesson_detail: "2 կարճ դաս", quest_practice_detail: "3 կենդանի արտահայտություն", quest_roleplay_detail: "1 տեսարան 5 րոպեով", quest_pronunciation_detail: "1 արտասանության ստուգում", quest_vocabulary_detail: "5 բառ + 1 օրինակ", quest_mistakes_detail: "Ուղղել 1-2 սխալ", quest_listening_detail: "2 լսողական կրկնություն" },
+  kk: { daily_quests: "Күнделікті тапсырмалар", daily_quests_title: "Бүгінгі тапсырмалар", quest_lesson_detail: "2 қысқа сабақ", quest_practice_detail: "3 тірі фраза", quest_roleplay_detail: "5 минуттық 1 сахна", quest_pronunciation_detail: "1 айтылым тексеруі", quest_vocabulary_detail: "5 сөз + 1 мысал", quest_mistakes_detail: "1-2 қатені түзету", quest_listening_detail: "2 тыңдау қайталауы" },
+  ky: { daily_quests: "Күнүмдүк тапшырмалар", daily_quests_title: "Бүгүнкү тапшырмалар", quest_lesson_detail: "2 кыска сабак", quest_practice_detail: "3 жандуу фраза", quest_roleplay_detail: "5 мүнөттүк 1 сахна", quest_pronunciation_detail: "1 айтылыш текшерүүсү", quest_vocabulary_detail: "5 сөз + 1 мисал", quest_mistakes_detail: "1-2 катаны оңдоо", quest_listening_detail: "2 угуу кайталоосу" },
+  ka: { daily_quests: "დღის დავალებები", daily_quests_title: "დღევანდელი დავალებები", quest_lesson_detail: "2 მოკლე გაკვეთილი", quest_practice_detail: "3 ცოცხალი ფრაზა", quest_roleplay_detail: "1 სცენა 5 წუთით", quest_pronunciation_detail: "1 გამოთქმის შემოწმება", quest_vocabulary_detail: "5 სიტყვა + 1 მაგალითი", quest_mistakes_detail: "1-2 შეცდომის გასწორება", quest_listening_detail: "2 მოსმენის გამეორება" },
+  uk: { daily_quests: "Щоденні завдання", daily_quests_title: "Завдання на сьогодні", quest_lesson_detail: "2 короткі уроки", quest_practice_detail: "3 живі фрази", quest_roleplay_detail: "1 сцена на 5 хвилин", quest_pronunciation_detail: "1 перевірка вимови", quest_vocabulary_detail: "5 слів + 1 приклад", quest_mistakes_detail: "Виправити 1-2 помилки", quest_listening_detail: "2 аудіоповтори" },
+  pl: { daily_quests: "Codzienne zadania", daily_quests_title: "Zadania na dziś", quest_lesson_detail: "2 krótkie lekcje", quest_practice_detail: "3 żywe frazy", quest_roleplay_detail: "1 scena na 5 minut", quest_pronunciation_detail: "1 sprawdzenie wymowy", quest_vocabulary_detail: "5 słów + 1 przykład", quest_mistakes_detail: "Napraw 1-2 błędy", quest_listening_detail: "2 powtórki słuchania" },
+  ro: { daily_quests: "Sarcini zilnice", daily_quests_title: "Sarcini pentru azi", quest_lesson_detail: "2 lecții scurte", quest_practice_detail: "3 fraze vii", quest_roleplay_detail: "1 scenă de 5 minute", quest_pronunciation_detail: "1 verificare a pronunției", quest_vocabulary_detail: "5 cuvinte + 1 exemplu", quest_mistakes_detail: "Repară 1-2 greșeli", quest_listening_detail: "2 repetări de ascultare" },
+  pt: { daily_quests: "Tarefas diárias", daily_quests_title: "Tarefas de hoje", quest_lesson_detail: "2 lições curtas", quest_practice_detail: "3 frases vivas", quest_roleplay_detail: "1 cena de 5 minutos", quest_pronunciation_detail: "1 verificação de pronúncia", quest_vocabulary_detail: "5 palavras + 1 exemplo", quest_mistakes_detail: "Corrigir 1-2 erros", quest_listening_detail: "2 repetições de escuta" },
+  ar: { daily_quests: "مهام يومية", daily_quests_title: "مهام اليوم", quest_lesson_detail: "درسان قصيران", quest_practice_detail: "3 عبارات حية", quest_roleplay_detail: "مشهد واحد لمدة 5 دقائق", quest_pronunciation_detail: "فحص نطق واحد", quest_vocabulary_detail: "5 كلمات + مثال واحد", quest_mistakes_detail: "إصلاح خطأ أو خطأين", quest_listening_detail: "تكراران للاستماع" },
+  bn: { daily_quests: "দৈনিক কাজ", daily_quests_title: "আজকের কাজ", quest_lesson_detail: "২টি ছোট পাঠ", quest_practice_detail: "৩টি বাস্তব বাক্যাংশ", quest_roleplay_detail: "৫ মিনিটের ১টি দৃশ্য", quest_pronunciation_detail: "১টি উচ্চারণ পরীক্ষা", quest_vocabulary_detail: "৫টি শব্দ + ১টি উদাহরণ", quest_mistakes_detail: "১-২টি ভুল ঠিক করুন", quest_listening_detail: "২টি শোনার পুনরাবৃত্তি" },
+  cs: { daily_quests: "Denní úkoly", daily_quests_title: "Úkoly na dnes", quest_lesson_detail: "2 krátké lekce", quest_practice_detail: "3 živé fráze", quest_roleplay_detail: "1 scéna na 5 minut", quest_pronunciation_detail: "1 kontrola výslovnosti", quest_vocabulary_detail: "5 slov + 1 příklad", quest_mistakes_detail: "Opravit 1-2 chyby", quest_listening_detail: "2 poslechová opakování" },
+  el: { daily_quests: "Καθημερινές εργασίες", daily_quests_title: "Εργασίες για σήμερα", quest_lesson_detail: "2 σύντομα μαθήματα", quest_practice_detail: "3 ζωντανές φράσεις", quest_roleplay_detail: "1 σκηνή 5 λεπτών", quest_pronunciation_detail: "1 έλεγχος προφοράς", quest_vocabulary_detail: "5 λέξεις + 1 παράδειγμα", quest_mistakes_detail: "Διόρθωσε 1-2 λάθη", quest_listening_detail: "2 επαναλήψεις ακρόασης" },
+  hi: { daily_quests: "दैनिक कार्य", daily_quests_title: "आज के कार्य", quest_lesson_detail: "2 छोटे पाठ", quest_practice_detail: "3 जीवंत वाक्यांश", quest_roleplay_detail: "5 मिनट का 1 दृश्य", quest_pronunciation_detail: "1 उच्चारण जांच", quest_vocabulary_detail: "5 शब्द + 1 उदाहरण", quest_mistakes_detail: "1-2 गलतियां सुधारें", quest_listening_detail: "2 सुनने की पुनरावृत्तियां" },
+  hu: { daily_quests: "Napi feladatok", daily_quests_title: "Mai feladatok", quest_lesson_detail: "2 rövid lecke", quest_practice_detail: "3 élő kifejezés", quest_roleplay_detail: "1 jelenet 5 percre", quest_pronunciation_detail: "1 kiejtés-ellenőrzés", quest_vocabulary_detail: "5 szó + 1 példa", quest_mistakes_detail: "1-2 hiba javítása", quest_listening_detail: "2 hallgatási ismétlés" },
+  id: { daily_quests: "Tugas harian", daily_quests_title: "Tugas hari ini", quest_lesson_detail: "2 pelajaran singkat", quest_practice_detail: "3 frasa hidup", quest_roleplay_detail: "1 adegan 5 menit", quest_pronunciation_detail: "1 cek pelafalan", quest_vocabulary_detail: "5 kata + 1 contoh", quest_mistakes_detail: "Perbaiki 1-2 kesalahan", quest_listening_detail: "2 pengulangan mendengar" },
+  nl: { daily_quests: "Dagelijkse taken", daily_quests_title: "Taken voor vandaag", quest_lesson_detail: "2 korte lessen", quest_practice_detail: "3 levende zinnen", quest_roleplay_detail: "1 scène van 5 minuten", quest_pronunciation_detail: "1 uitspraakcontrole", quest_vocabulary_detail: "5 woorden + 1 voorbeeld", quest_mistakes_detail: "Herstel 1-2 fouten", quest_listening_detail: "2 luisterherhalingen" },
+  sv: { daily_quests: "Dagliga uppgifter", daily_quests_title: "Dagens uppgifter", quest_lesson_detail: "2 korta lektioner", quest_practice_detail: "3 levande fraser", quest_roleplay_detail: "1 scen i 5 minuter", quest_pronunciation_detail: "1 uttalskontroll", quest_vocabulary_detail: "5 ord + 1 exempel", quest_mistakes_detail: "Reparera 1-2 misstag", quest_listening_detail: "2 lyssningsrepetitioner" },
+  ta: { daily_quests: "தினசரி பணிகள்", daily_quests_title: "இன்றைய பணிகள்", quest_lesson_detail: "2 குறுகிய பாடங்கள்", quest_practice_detail: "3 நடைமுறை சொற்றொடர்கள்", quest_roleplay_detail: "5 நிமிடத்திற்கான 1 காட்சி", quest_pronunciation_detail: "1 உச்சரிப்பு சரிபார்ப்பு", quest_vocabulary_detail: "5 சொற்கள் + 1 உதாரணம்", quest_mistakes_detail: "1-2 பிழைகளைச் சரிசெய்", quest_listening_detail: "2 கேட்பு மறுபடிகள்" },
+  te: { daily_quests: "రోజువారీ పనులు", daily_quests_title: "ఈరోజు పనులు", quest_lesson_detail: "2 చిన్న పాఠాలు", quest_practice_detail: "3 జీవమైన పదబంధాలు", quest_roleplay_detail: "5 నిమిషాల 1 సన్నివేశం", quest_pronunciation_detail: "1 ఉచ్చారణ తనిఖీ", quest_vocabulary_detail: "5 పదాలు + 1 ఉదాహరణ", quest_mistakes_detail: "1-2 తప్పులు సరిచేయండి", quest_listening_detail: "2 వినికిడి పునరావృతాలు" },
+  th: { daily_quests: "งานประจำวัน", daily_quests_title: "งานวันนี้", quest_lesson_detail: "บทเรียนสั้น 2 บท", quest_practice_detail: "วลีใช้งานจริง 3 วลี", quest_roleplay_detail: "1 สถานการณ์ 5 นาที", quest_pronunciation_detail: "ตรวจการออกเสียง 1 ครั้ง", quest_vocabulary_detail: "5 คำ + 1 ตัวอย่าง", quest_mistakes_detail: "แก้ข้อผิดพลาด 1-2 จุด", quest_listening_detail: "ฟังซ้ำ 2 ครั้ง" },
+  tl: { daily_quests: "Araw-araw na gawain", daily_quests_title: "Mga gawain ngayon", quest_lesson_detail: "2 maiikling lesson", quest_practice_detail: "3 buhay na phrase", quest_roleplay_detail: "1 eksena sa loob ng 5 minuto", quest_pronunciation_detail: "1 pronunciation check", quest_vocabulary_detail: "5 salita + 1 halimbawa", quest_mistakes_detail: "Ayusin ang 1-2 mali", quest_listening_detail: "2 ulit sa pakikinig" },
+  tr: { daily_quests: "Günlük görevler", daily_quests_title: "Bugünün görevleri", quest_lesson_detail: "2 kısa ders", quest_practice_detail: "3 canlı ifade", quest_roleplay_detail: "5 dakikalık 1 sahne", quest_pronunciation_detail: "1 telaffuz kontrolü", quest_vocabulary_detail: "5 kelime + 1 örnek", quest_mistakes_detail: "1-2 hatayı düzelt", quest_listening_detail: "2 dinleme tekrarı" },
+  vi: { daily_quests: "Nhiệm vụ hằng ngày", daily_quests_title: "Nhiệm vụ hôm nay", quest_lesson_detail: "2 bài học ngắn", quest_practice_detail: "3 câu thực tế", quest_roleplay_detail: "1 cảnh trong 5 phút", quest_pronunciation_detail: "1 lượt kiểm tra phát âm", quest_vocabulary_detail: "5 từ + 1 ví dụ", quest_mistakes_detail: "Sửa 1-2 lỗi", quest_listening_detail: "2 lượt nghe lại" },
+};
+
+Object.entries(dailyQuestCopy).forEach(([locale, values]) => {
+  const code = locale as AppLocaleCode;
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
+});
+
+appLocaleCodes.forEach((code) => {
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ai_router: "AI Router" };
 });
 
 let cp1251ReverseMap: Map<string, number> | null = null;

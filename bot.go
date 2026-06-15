@@ -27,6 +27,8 @@ const (
 	modeToolVoiceText        = "tool_voice_text"
 	modeToolImageTranslate   = "tool_image_translate"
 	modeToolTranslatorPrefix = "tool_translator:"
+	aiRouterTelegramHandle   = "@AiRouterRu_bot"
+	aiRouterTelegramURL      = "https://t.me/AiRouterRu_bot"
 	webAuthStartPrefix       = "web_"
 	modeSpellingPrefix       = "spelling:"
 	modeMistakePrefix        = "mistake:"
@@ -549,6 +551,7 @@ func (b *bot) sendToolsMenu(ctx context.Context, chatID int64, users ...userStat
 		"🎙 " + copy.Tool.VoicePrompt + "\n\n" +
 		"🖼 " + copy.Tool.ImagePrompt
 	text += "\n\n🌐 " + copy.Tool.TranslatorPrompt
+	text += "\n\n🤖 AI Router: " + aiRouterTelegramHandle
 	return b.telegram.sendInlineMessage(ctx, chatID, text, toolsInlineKeyboard(b.cfg.WebAppURL, copy))
 }
 
@@ -3856,10 +3859,12 @@ func (b *bot) premiumText(user userState) string {
 	platinumYearly, _ := b.premiumPlan(platinumYearlyProduct)
 	copy := premiumUI(user)
 	return "*Free*\n" +
+		escapeMarkdownV2(premiumPlanLandingDescription(user, "free")) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.LessonsPerDay, freeLessonLimit)) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PracticeMessagesPerDay, freePracticeLimit)) + "\n" +
 		"• " + escapeMarkdownV2(copy.FreeVoiceUnavailable) + "\n\n" +
 		"*Premium* ⭐ " + escapeMarkdownV2(copy.BestValueLabel) + "\n" +
+		escapeMarkdownV2(premiumPlanLandingDescription(user, "premium")) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.LessonsPerDay, premiumLessonLimit)) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PracticeMessagesPerDay, premiumPracticeLimit)) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PremiumVoicesPerDay, premiumVoiceLimit, b.cfg.MaxVoiceSeconds)) + "\n" +
@@ -3869,6 +3874,7 @@ func (b *bot) premiumText(user userState) string {
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.MonthPrice, premiumMonthly.RubPrice, premiumMonthly.StarsPrice)) + "*\n" +
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.YearPrice, premiumYearly.RubPrice, premiumYearly.StarsPrice, annualDiscountPercent)) + "*\n\n" +
 		"*Platinum* 💠 " + escapeMarkdownV2(copy.MaxAccessLabel) + "\n" +
+		escapeMarkdownV2(premiumPlanLandingDescription(user, "platinum")) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.LessonsPerDay, platinumLessonLimit)) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PracticeMessagesPerDay, platinumPracticeLimit)) + "\n" +
 		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PremiumVoicesPerDay, platinumVoiceLimit, b.cfg.MaxVoiceSeconds)) + "\n" +
@@ -3876,6 +3882,29 @@ func (b *bot) premiumText(user userState) string {
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.PlatinumMonthPrice, platinumMonthly.RubPrice, platinumMonthly.StarsPrice)) + "*\n" +
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.PlatinumYearPrice, platinumYearly.RubPrice, platinumYearly.StarsPrice, annualDiscountPercent)) + "*\n\n" +
 		"_" + escapeMarkdownV2(copy.InviteFree) + "_"
+}
+
+func premiumPlanLandingDescription(user userState, tier string) string {
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
+		switch tier {
+		case "free":
+			return "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium."
+		case "premium":
+			return "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты."
+		case "platinum":
+			return "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой."
+		}
+	}
+	switch tier {
+	case "free":
+		return "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium."
+	case "premium":
+		return "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits."
+	case "platinum":
+		return "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice."
+	default:
+		return ""
+	}
 }
 
 func (b *bot) limitsText(user userState) string {

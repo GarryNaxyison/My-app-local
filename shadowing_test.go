@@ -73,6 +73,25 @@ func TestBuildShadowingPhraseFallbackAvoidsPreviousPhrase(t *testing.T) {
 	}
 }
 
+func TestTelegramListeningStartMessageHidesTargetPhrase(t *testing.T) {
+	user := userState{InterfaceLanguage: "ru"}
+	target := "So, just to clarify, did I understand that correctly?"
+
+	got := shadowingStartMessage(user, target)
+
+	if strings.Contains(got, target) {
+		t.Fatalf("listening start message revealed target phrase:\n%s", got)
+	}
+	for _, unexpected := range []string{"\u0424\u0440\u0430\u0437\u0430:", "\u043e\u0442\u043f\u0440\u0430\u0432\u044c \u0433\u043e\u043b\u043e\u0441"} {
+		if strings.Contains(got, unexpected) {
+			t.Fatalf("listening start message contains %q:\n%s", unexpected, got)
+		}
+	}
+	if !strings.Contains(got, "\u043d\u0430\u043f\u0438\u0448\u0438") && !strings.Contains(got, "\u041d\u0430\u043f\u0438\u0448\u0438") {
+		t.Fatalf("listening start message should ask for typed text:\n%s", got)
+	}
+}
+
 func TestShadowingDeckAndTextFallback(t *testing.T) {
 	if shadowingDeckSize != len(shadowingContexts)*len(shadowingMoves)*len(shadowingDetails) {
 		t.Fatalf("shadowing deck size = %d, want generated combination count", shadowingDeckSize)

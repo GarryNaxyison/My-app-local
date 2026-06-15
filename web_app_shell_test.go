@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -353,6 +355,121 @@ func TestReactFrontendKeepsExpandedInterfaceLocales(t *testing.T) {
 		if !strings.Contains(page, want) {
 			t.Fatalf("React v2 i18n is missing key %q", want)
 		}
+	}
+}
+
+func TestReactDailyQuestProgressUsesTaskTargets(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(source)
+	for _, forbidden := range []string{
+		`max: Math.max(2, Number(user.lesson_limit`,
+		`max: Math.max(3, Number(user.practice_limit`,
+		`max: Math.max(2, Number(user.voice_limit`,
+	} {
+		if strings.Contains(page, forbidden) {
+			t.Fatalf("daily quest progress still uses account limit marker %q", forbidden)
+		}
+	}
+	for _, want := range []string{
+		`const dailyQuestTarget =`,
+		`dailyQuestProgress(user.lessons_today, dailyQuestTarget.lesson)`,
+		`dailyQuestProgress(user.practice_today, dailyQuestTarget.practice)`,
+		`dailyQuestProgress(user.voice_today, dailyQuestTarget.pronunciation)`,
+		`max: dailyQuestTarget.lesson`,
+		`max: dailyQuestTarget.practice`,
+		`max: dailyQuestTarget.pronunciation`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Fatalf("daily quest progress is missing task target marker %q", want)
+		}
+	}
+}
+
+func TestReactDailyQuestCopyCoversAllLocales(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(source)
+	start := strings.Index(page, "const dailyQuestCopy: Record<AppLocaleCode")
+	if start < 0 {
+		t.Fatal("daily quest copy override block is missing")
+	}
+	end := strings.Index(page[start:], "Object.entries(dailyQuestCopy)")
+	if end < 0 {
+		t.Fatal("daily quest copy override block is not applied")
+	}
+	block := page[start : start+end]
+	for _, code := range []string{"ru", "en", "es", "de", "fr", "it", "zh", "ja", "ko", "tg", "uz", "tt", "hy", "kk", "ky", "ka", "uk", "pl", "ro", "pt", "ar", "bn", "cs", "el", "hi", "hu", "id", "nl", "sv", "ta", "te", "th", "tl", "tr", "vi"} {
+		if !strings.Contains(block, "\n  "+code+": {") {
+			t.Fatalf("daily quest copy block is missing locale %q", code)
+		}
+	}
+	for _, want := range []string{
+		`daily_quests_title: "Задания на сегодня"`,
+		`quest_lesson_detail: "2 коротких урока"`,
+		`quest_practice_detail: "3 живые фразы"`,
+		`quest_roleplay_detail: "1 сцена на 5 минут"`,
+		`quest_pronunciation_detail: "1 проверка произношения"`,
+	} {
+		if !strings.Contains(block, want) {
+			t.Fatalf("daily quest copy block is missing %q", want)
+		}
+	}
+}
+
+func TestReactToolsExposeAIRouterLink(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(source)
+	for _, want := range []string{
+		`https://t.me/AiRouterRu_bot`,
+		`copy("ai_router", "AI Router")`,
+		`tools-ai-router-v2`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Fatalf("React tools UI is missing AI Router marker %q", want)
+		}
+	}
+}
+
+func TestReactSettingsSaveDoesNotDoubleRefreshSession(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(source)
+	start := strings.Index(page, "const saveSettings = async")
+	if start < 0 {
+		t.Fatal("saveSettings function is missing")
+	}
+	end := strings.Index(page[start:], "const saveNavigationLayout")
+	if end < 0 {
+		t.Fatal("saveSettings function end marker is missing")
+	}
+	block := page[start : start+end]
+	if strings.Contains(block, "refreshSession()") {
+		t.Fatalf("saveSettings should use the /api/settings session payload without a second refresh: %s", block)
+	}
+}
+
+func TestWriteAPIErrorSanitizesSQLiteBusy(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	writeAPIError(recorder, http.StatusInternalServerError, "database is locked (5) (SQLITE_BUSY)")
+	if recorder.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusServiceUnavailable)
+	}
+	body := recorder.Body.String()
+	if strings.Contains(body, "database is locked") || strings.Contains(body, "SQLITE_BUSY") {
+		t.Fatalf("response leaked sqlite internals: %s", body)
+	}
+	if !strings.Contains(body, `"code":"storage_busy"`) {
+		t.Fatalf("response is missing storage_busy code: %s", body)
 	}
 }
 

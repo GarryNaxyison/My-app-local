@@ -4790,7 +4790,19 @@ func decodeJSONRequest(w http.ResponseWriter, r *http.Request, target any) bool 
 }
 
 func writeAPIError(w http.ResponseWriter, status int, message string) {
+	if isSQLiteBusyMessage(message) {
+		log.Printf("storage busy api error: %s", message)
+		writeAPIErrorCode(w, http.StatusServiceUnavailable, "storage_busy", "Storage is busy. Try again in a few seconds.")
+		return
+	}
 	writeAPIErrorCode(w, status, "", message)
+}
+
+func isSQLiteBusyMessage(message string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(message))
+	return strings.Contains(normalized, "database is locked") ||
+		strings.Contains(normalized, "sqlite_busy") ||
+		strings.Contains(normalized, "database table is locked")
 }
 
 func webLoginValidationCode(login string) string {

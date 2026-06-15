@@ -30,13 +30,29 @@ func openSQLiteDatabase(name string, databasePath string) (*sql.DB, error) {
 	if err := requireNonEmpty(name, databasePath); err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("sqlite", databasePath)
+	db, err := sql.Open("sqlite", sqliteDatabaseDSN(databasePath))
 	if err != nil {
 		return nil, err
 	}
-	db.SetMaxOpenConns(4)
-	db.SetMaxIdleConns(4)
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
 	return db, nil
+}
+
+func sqliteDatabaseDSN(databasePath string) string {
+	if strings.TrimSpace(databasePath) == ":memory:" {
+		return databasePath
+	}
+	separator := "?"
+	if strings.Contains(databasePath, "?") {
+		separator = "&"
+	}
+	return databasePath + separator + strings.Join([]string{
+		"_pragma=busy_timeout(15000)",
+		"_pragma=journal_mode(WAL)",
+		"_pragma=synchronous(NORMAL)",
+		"_pragma=foreign_keys(ON)",
+	}, "&")
 }
 
 func newSQLiteStore(databasePath string, importJSONPath string, aiTutorDatabasePath ...string) (*sqliteStore, error) {
@@ -83,7 +99,7 @@ func (s *sqliteStore) init() error {
 	statements := []string{
 		`PRAGMA journal_mode=WAL`,
 		`PRAGMA synchronous=NORMAL`,
-		`PRAGMA busy_timeout=5000`,
+		`PRAGMA busy_timeout=15000`,
 		`PRAGMA temp_store=MEMORY`,
 		`PRAGMA foreign_keys=ON`,
 		`CREATE TABLE IF NOT EXISTS users (
@@ -1129,6 +1145,7 @@ func (s *sqliteStore) getOrCreateUser(telegramID int64, firstName string) (userS
 	if !ok {
 		user = newUserState(telegramID, now)
 	}
+	original := user
 	normalizeUser(&user, now)
 	displayName := strings.TrimSpace(firstName)
 	if telegramID > 0 && ok && displayName != "" {
@@ -1139,11 +1156,27 @@ func (s *sqliteStore) getOrCreateUser(telegramID int64, firstName string) (userS
 		}
 	}
 	user.FirstName = displayName
-	user.UpdatedAt = now
-	if err := s.saveUser(user); err != nil {
-		return userState{}, err
+	if !ok {
+		user.UpdatedAt = now
+		if err := s.saveUser(user); err != nil {
+			return userState{}, err
+		}
+		return s.mustGetUser(telegramID)
 	}
-	return s.mustGetUser(telegramID)
+	if strings.TrimSpace(user.ReferralCode) == "" {
+		user.UpdatedAt = now
+		if err := s.saveUser(user); err != nil {
+			return userState{}, err
+		}
+		return s.mustGetUser(telegramID)
+	}
+	if strings.TrimSpace(user.FirstName) != strings.TrimSpace(original.FirstName) {
+		if err := s.updateUserColumns(telegramID, "first_name = ?", user.FirstName); err != nil {
+			return userState{}, err
+		}
+		user.UpdatedAt = now
+	}
+	return user, nil
 }
 
 func (s *sqliteStore) applyReferral(newUserID int64, inviterID int64) (referralApplication, error) {
@@ -1403,37 +1436,27 @@ func premiumBase(user userState, now time.Time) time.Time {
 }
 
 func (s *sqliteStore) setMode(telegramID int64, mode string) error {
-	return s.updateUser(telegramID, func(user *userState) { user.Mode = mode })
+	return s.updateUserColumns(telegramID, "mode = ?", strings.TrimSpace(mode))
 }
 
 func (s *sqliteStore) setInterfaceLanguage(telegramID int64, language string) error {
-	return s.updateUser(telegramID, func(user *userState) {
-		user.InterfaceLanguage = normalizeInterfaceLanguage(language)
-		user.InterfaceSelected = true
-		user.Mode = "idle"
-	})
+	return s.updateUserColumns(telegramID, "interface_language = ?, interface_selected = 1, mode = 'idle'", normalizeInterfaceLanguage(language))
 }
 
 func (s *sqliteStore) setLearningLanguage(telegramID int64, language string) error {
-	return s.updateUser(telegramID, func(user *userState) {
-		user.LearningLanguage = normalizeLearningLanguage(language)
-		user.LanguageSelected = true
-		user.Mode = "idle"
-	})
+	return s.updateUserColumns(telegramID, "learning_language = ?, language_selected = 1, mode = 'idle'", normalizeLearningLanguage(language))
 }
 
 func (s *sqliteStore) setUserLevel(telegramID int64, level string) error {
-	return s.updateUser(telegramID, func(user *userState) { user.Level = normalizeCEFRLevel(level) })
+	return s.updateUserColumns(telegramID, "level = ?", normalizeCEFRLevel(level))
 }
 
 func (s *sqliteStore) setLearningFocus(telegramID int64, focus string) error {
-	return s.updateUser(telegramID, func(user *userState) { user.LearningFocus = strings.TrimSpace(focus) })
+	return s.updateUserColumns(telegramID, "learning_focus = ?", strings.TrimSpace(focus))
 }
 
 func (s *sqliteStore) setNavigationLayout(telegramID int64, layout navigationLayout) error {
-	return s.updateUser(telegramID, func(user *userState) {
-		user.NavigationLayout = normalizeNavigationLayout(layout)
-	})
+	return s.saveNavigationLayout(telegramID, layout)
 }
 
 func (s *sqliteStore) addXP(telegramID int64, amount int) error {
@@ -2733,22 +2756,15 @@ func (s *sqliteStore) dueReminderUsers(now time.Time, limit int) ([]reminderTarg
 }
 
 func (s *sqliteStore) markReminderSent(telegramID int64, localDate string) error {
-	return s.updateUser(telegramID, func(user *userState) {
-		user.LastReminderDate = localDate
-	})
+	return s.updateUserColumns(telegramID, "last_reminder_date = ?", strings.TrimSpace(localDate))
 }
 
 func (s *sqliteStore) setReminderEnabled(telegramID int64, enabled bool) error {
-	return s.updateUser(telegramID, func(user *userState) {
-		user.ReminderEnabled = enabled
-	})
+	return s.updateUserColumns(telegramID, "reminder_enabled = ?", boolToInt(enabled))
 }
 
 func (s *sqliteStore) setTimezone(telegramID int64, offsetMinutes int) error {
-	return s.updateUser(telegramID, func(user *userState) {
-		user.ReminderUTCOffset = offsetMinutes
-		user.TimezoneSelected = true
-	})
+	return s.updateUserColumns(telegramID, "reminder_utc_offset = ?, timezone_selected = 1", offsetMinutes)
 }
 
 func (s *sqliteStore) addMistakes(telegramID int64, language string, entries []mistakeEntry) error {
@@ -2959,6 +2975,37 @@ func (s *sqliteStore) updateUser(telegramID int64, change func(*userState)) erro
 		return err
 	}
 	_, err = s.rewardReferralLevel(telegramID)
+	return err
+}
+
+func (s *sqliteStore) updateUserColumns(telegramID int64, setClause string, args ...any) error {
+	if telegramID == 0 {
+		return errors.New("telegram id is required")
+	}
+	setClause = strings.TrimSpace(setClause)
+	if setClause == "" {
+		return errors.New("sqlite update set clause is required")
+	}
+	now := time.Now().UTC()
+	if err := s.ensureUserRow(telegramID, now); err != nil {
+		return err
+	}
+	query := `UPDATE users SET ` + setClause + `, updated_at = ? WHERE telegram_id = ?`
+	args = append(args, formatDBTime(now), telegramID)
+	_, err := s.db.Exec(query, args...)
+	return err
+}
+
+func (s *sqliteStore) ensureUserRow(telegramID int64, now time.Time) error {
+	if telegramID == 0 {
+		return errors.New("telegram id is required")
+	}
+	_, err := s.db.Exec(
+		`INSERT OR IGNORE INTO users (telegram_id, created_at, updated_at) VALUES (?, ?, ?)`,
+		telegramID,
+		formatDBTime(now),
+		formatDBTime(now),
+	)
 	return err
 }
 
@@ -3256,6 +3303,34 @@ func (s *sqliteStore) getNavigationLayout(telegramID int64) (navigationLayout, e
 		MobileMore:     parseStringListJSON(mobileMoreJSON),
 		MobileRail:     parseStringListJSON(mobileRailJSON),
 	}), nil
+}
+
+func (s *sqliteStore) saveNavigationLayout(telegramID int64, layout navigationLayout) error {
+	if telegramID == 0 {
+		return errors.New("telegram id is required")
+	}
+	return saveNavigationLayoutDB(s.db, telegramID, layout)
+}
+
+func saveNavigationLayoutDB(db *sql.DB, telegramID int64, layout navigationLayout) error {
+	layout = normalizeNavigationLayout(layout)
+	_, err := db.Exec(
+		`INSERT INTO navigation_layouts (telegram_id, function_ribbon, mobile_pinned, mobile_more, mobile_rail, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+		ON CONFLICT(telegram_id) DO UPDATE SET
+			function_ribbon=excluded.function_ribbon,
+			mobile_pinned=excluded.mobile_pinned,
+			mobile_more=excluded.mobile_more,
+			mobile_rail=excluded.mobile_rail,
+			updated_at=excluded.updated_at`,
+		telegramID,
+		stringListJSON(layout.FunctionRibbon),
+		stringListJSON(layout.MobilePinned),
+		stringListJSON(layout.MobileMore),
+		stringListJSON(layout.MobileRail),
+		formatDBTime(time.Now().UTC()),
+	)
+	return err
 }
 
 func saveNavigationLayoutTx(tx *sql.Tx, telegramID int64, layout navigationLayout) error {

@@ -779,6 +779,7 @@ func toolsInlineKeyboard(_ string, copies ...uiCopy) map[string]any {
 			{{"text": "🎙 " + copy.Tool.VoiceToText, "callback_data": "tool_voice_text"}},
 			{{"text": "🖼 " + copy.Tool.ImageTranslate, "callback_data": "tool_image_translate"}},
 			{{"text": "🌐 " + copy.Tool.Translator, "callback_data": "tool_translator"}},
+			{{"text": "🤖 AI Router", "url": aiRouterTelegramURL}},
 			{{"text": "🤖 " + copy.Tool.GPTAgent, "url": "https://t.me/Ton_Rivals_AI_bot"}},
 			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 		},

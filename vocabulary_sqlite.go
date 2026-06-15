@@ -71,7 +71,7 @@ func initSQLiteVocabularyTables(db *sql.DB) error {
 	statements := []string{
 		`PRAGMA journal_mode=WAL`,
 		`PRAGMA synchronous=NORMAL`,
-		`PRAGMA busy_timeout=5000`,
+		`PRAGMA busy_timeout=15000`,
 		`PRAGMA temp_store=FILE`,
 		`PRAGMA foreign_keys=ON`,
 		`CREATE TABLE IF NOT EXISTS vocabulary_words (

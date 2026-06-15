@@ -2816,6 +2816,7 @@ select {
   color: var(--text);
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
 }
 
 .choice-grid-v2 button {
@@ -2829,6 +2830,10 @@ select {
 .tool-button-v2.is-active {
   border-color: color-mix(in srgb, var(--primary) 48%, var(--line));
   background: color-mix(in srgb, var(--primary) 12%, var(--surface-strong));
+}
+
+.tools-ai-router-v2 {
+  border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
 }
 
 .choice-grid-v2 button.is-selected {

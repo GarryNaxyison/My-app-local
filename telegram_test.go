@@ -279,6 +279,63 @@ func TestTelegramPronunciationVoiceAnswerScoresExactRepeat(t *testing.T) {
 	}
 }
 
+func TestTelegramListeningTextAnswerIsAccepted(t *testing.T) {
+	var sentTexts []string
+	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if r.Body != nil {
+			_ = json.NewDecoder(r.Body).Decode(&payload)
+		}
+		if text, _ := payload["text"].(string); text != "" {
+			sentTexts = append(sentTexts, text)
+		}
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer telegramServer.Close()
+
+	target := "So, just to clarify, did I understand that correctly?"
+	store := &jsonStore{path: filepath.Join(t.TempDir(), "users.json"), users: map[int64]userState{}}
+	user := userState{
+		TelegramID:        123,
+		FirstName:         "Test",
+		InterfaceLanguage: "ru",
+		InterfaceSelected: true,
+		LanguageSelected:  true,
+		LearningLanguage:  "en",
+		Level:             "A1",
+		Mode:              shadowingMode(target),
+	}
+	store.users[user.TelegramID] = user
+	b := &bot{
+		store:    store,
+		telegram: &telegramClient{baseURL: telegramServer.URL, http: telegramServer.Client()},
+	}
+
+	err := b.handleShadowingAnswer(context.Background(), user.TelegramID, user, "So just to clarify did I understand that correctly", false, nil)
+	if err != nil {
+		t.Fatalf("handleShadowingAnswer(text) error = %v", err)
+	}
+	refreshed := store.users[user.TelegramID]
+	if refreshed.Mode != "idle" {
+		t.Fatalf("mode after text listening answer = %q, want idle", refreshed.Mode)
+	}
+	if refreshed.PracticeToday != 1 {
+		t.Fatalf("practice counter = %d, want 1", refreshed.PracticeToday)
+	}
+	if len(refreshed.PracticeHistory) == 0 || !strings.Contains(refreshed.PracticeHistory[len(refreshed.PracticeHistory)-1], "shadowing target: "+target) {
+		t.Fatalf("practice history missing listening entry: %#v", refreshed.PracticeHistory)
+	}
+	combined := strings.Join(sentTexts, "\n")
+	for _, want := range []string{"\u0410\u0443\u0434\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435", target, "So just to clarify"} {
+		if !strings.Contains(combined, want) {
+			t.Fatalf("listening result misses %q:\n%s", want, combined)
+		}
+	}
+	if strings.Contains(combined, "\u043d\u0443\u0436\u0435\u043d \u0433\u043e\u043b\u043e\u0441") {
+		t.Fatalf("text answer was rejected as voice-only:\n%s", combined)
+	}
+}
+
 func TestAITutorTelegramRecallKeyboardUsesStructuredOptions(t *testing.T) {
 	lesson := validAITutorLessonPayloadForTest()
 	step := aiTutorBuildStep(lesson, aiTutorWordRecallStage(1))
@@ -1108,6 +1165,43 @@ func TestToolModeBackReturnsToToolsMenu(t *testing.T) {
 	}
 	if callbacks["back_menu"] {
 		t.Fatalf("tool mode back keyboard should not jump to the main menu; got %#v", callbacks)
+	}
+}
+
+func TestToolsKeyboardContainsAIRouterLink(t *testing.T) {
+	keyboard := toolsInlineKeyboard("", ui(userState{InterfaceLanguage: "ru"}))
+	rows := keyboard["inline_keyboard"].([][]map[string]any)
+	for _, row := range rows {
+		for _, button := range row {
+			text, _ := button["text"].(string)
+			if strings.Contains(text, "AI Router") {
+				if button["url"] != "https://t.me/AiRouterRu_bot" {
+					t.Fatalf("AI Router button points to %#v", button["url"])
+				}
+				return
+			}
+		}
+	}
+	t.Fatalf("tools keyboard is missing AI Router URL button: %#v", rows)
+}
+
+func TestToolsMenuMentionsAIRouter(t *testing.T) {
+	var payload map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode payload: %v", err)
+		}
+		_, _ = w.Write([]byte(`{"ok":true}`))
+	}))
+	defer server.Close()
+
+	b := &bot{telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+	if err := b.sendToolsMenu(context.Background(), 42, userState{InterfaceLanguage: "ru"}); err != nil {
+		t.Fatalf("sendToolsMenu() error = %v", err)
+	}
+	text, _ := payload["text"].(string)
+	if !strings.Contains(text, "AI Router") || !strings.Contains(text, "@AiRouterRu_bot") {
+		t.Fatalf("tools menu text should mention AI Router link, got %q", text)
 	}
 }
 

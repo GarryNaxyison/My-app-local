@@ -117,6 +117,21 @@ func TestPremiumTextUsesInterfaceLanguage(t *testing.T) {
 	}
 }
 
+func TestPremiumTextUsesLandingPlanDescriptionsForRussian(t *testing.T) {
+	b := &bot{cfg: config{MaxVoiceSeconds: 30, PremiumRubPrice: 300, PremiumStarsPrice: 150, PremiumYearRubPrice: 3000, PremiumYearStarsPrice: 1500, PlatinumRubPrice: 590, PlatinumStarsPrice: 300, PlatinumYearRubPrice: 5900, PlatinumYearStarsPrice: 3000}}
+	text := plainTextFromMarkdownV2(b.premiumText(userState{InterfaceLanguage: "ru"}))
+
+	for _, want := range []string{
+		"Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.",
+		"Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты.",
+		"AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой.",
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("premium text missing landing description %q:\n%s", want, text)
+		}
+	}
+}
+
 func TestPremiumPaymentOptionsKeyboardShowsMethodsForSelectedPlan(t *testing.T) {
 	user := userState{InterfaceLanguage: "en"}
 	plan := premiumPlan{

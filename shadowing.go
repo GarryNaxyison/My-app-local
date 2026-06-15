@@ -342,9 +342,9 @@ func shadowingCopy(user userState) shadowingUICopy {
 	if copy, ok := shadowingUICopies[normalizeInterfaceLanguage(user.InterfaceLanguage)]; ok {
 		if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
 			copy.Title = "\u0410\u0443\u0434\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435"
-			copy.Start = "\u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u043f\u0440\u043e\u0441\u043b\u0443\u0448\u0430\u0439 \u0444\u0440\u0430\u0437\u0443. \u041f\u043e\u0442\u043e\u043c \u043e\u0442\u043f\u0440\u0430\u0432\u044c \u0433\u043e\u043b\u043e\u0441 \u0438 \u043f\u043e\u0432\u0442\u043e\u0440\u0438 \u0440\u0438\u0442\u043c, \u0441\u043b\u043e\u0432\u0430 \u0438 \u0437\u0432\u0443\u0447\u0430\u043d\u0438\u0435."
+			copy.Start = "\u0421\u043d\u0430\u0447\u0430\u043b\u0430 \u043f\u0440\u043e\u0441\u043b\u0443\u0448\u0430\u0439 \u0444\u0440\u0430\u0437\u0443. \u041f\u043e\u0442\u043e\u043c \u043d\u0430\u043f\u0438\u0448\u0438 \u0443\u0441\u043b\u044b\u0448\u0430\u043d\u043d\u044b\u0439 \u0442\u0435\u043a\u0441\u0442."
 			copy.Phrase = "\u0424\u0440\u0430\u0437\u0430"
-			copy.TextHint = "\u0414\u043b\u044f \u0440\u0435\u0430\u043b\u044c\u043d\u043e\u0439 \u043e\u0446\u0435\u043d\u043a\u0438 \u043f\u0440\u043e\u0438\u0437\u043d\u043e\u0448\u0435\u043d\u0438\u044f \u043d\u0443\u0436\u0435\u043d \u0433\u043e\u043b\u043e\u0441."
+			copy.TextHint = "\u041d\u0430\u043f\u0438\u0448\u0438 \u0442\u0435\u043a\u0441\u0442, \u043a\u043e\u0442\u043e\u0440\u044b\u0439 \u0443\u0441\u043b\u044b\u0448\u0430\u043b(\u0430) \u0432 \u0430\u0443\u0434\u0438\u043e."
 			copy.Next = "\u0421\u043b\u0435\u0434\u0443\u044e\u0449\u0435\u0435 \u0430\u0443\u0434\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435"
 			return copy
 		}
@@ -370,7 +370,7 @@ func shadowingTitle(user userState) string {
 
 func shadowingStartMessage(user userState, phrase string) string {
 	copy := shadowingCopy(user)
-	return copy.Title + "\n\n" + copy.Start + "\n\n" + copy.Phrase + ":\n" + phrase
+	return copy.Title + "\n\n" + copy.Start
 }
 
 func shadowingTextAnswerHint(user userState) string {
@@ -591,9 +591,6 @@ func (b *bot) handleShadowingAnswer(ctx context.Context, chatID int64, user user
 	if !ok {
 		return b.startShadowing(ctx, chatID, user)
 	}
-	if !fromVoice {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, shadowingTextAnswerHint(user), ui(user))
-	}
 	if !canUsePractice(user) {
 		if err := b.store.setMode(user.TelegramID, "idle"); err != nil {
 			return err
@@ -686,6 +683,9 @@ func (b *bot) buildShadowingFeedback(ctx context.Context, user userState, target
 	}
 	score := shadowingScoreForSource(target, transcript, fromVoice)
 	missing := shadowingMissingHint(target, transcript)
+	if b == nil || b.openrouter == nil {
+		return shadowingFallbackFeedback(user, target, transcript, score, missing, fromVoice), score, nil
+	}
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
 	raw, err := b.openrouter.complete(ctx, shadowingFeedbackPrompt(language, interfaceLanguage, user.Level, target, transcript, score, missing, fromVoice), 0.25, 500)

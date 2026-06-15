@@ -59,7 +59,7 @@ func (s *activationKeyStore) init() error {
 	statements := []string{
 		`PRAGMA journal_mode=WAL`,
 		`PRAGMA synchronous=NORMAL`,
-		`PRAGMA busy_timeout=5000`,
+		`PRAGMA busy_timeout=15000`,
 		`CREATE TABLE IF NOT EXISTS activation_keys (
 			key TEXT PRIMARY KEY,
 			duration_days INTEGER NOT NULL,
