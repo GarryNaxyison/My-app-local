@@ -6,58 +6,59 @@ import (
 )
 
 type uiCopy struct {
-	MenuButton       string
-	StopButton       string
-	Back             string
-	BackMenu         string
-	MainMenuTitle    string
-	MainMenuBody     string
-	Learning         string
-	Words            string
-	Stats            string
-	Settings         string
-	Tools            string
-	NewLesson        string
-	Practice         string
-	AITutor          string
-	Shadowing        string
-	Pronunciation    string
-	LevelTest        string
-	LearnWords       string
-	WordGame         string
-	Spelling         string
-	Vocabulary       string
-	Phrasebook       string
-	Mistakes         string
-	Progress         string
-	Leaders          string
-	Limits           string
-	BotLanguage      string
-	LearningLanguage string
-	Notifications    string
-	Premium          string
-	Referral         string
-	ChooseBotLang    string
-	ChooseLearnLang  string
-	ChooseTimezone   string
-	TimezoneHint     string
-	BotLangSet       string
-	LearnLangSet     string
-	UnknownButton    string
-	Stopped          string
-	WordQuestion     string
-	ChooseAnswer     string
-	Correct          string
-	TryAgain         string
-	NextWord         string
-	NextPage         string
-	AlreadyLearned   string
-	AddedToVocab     string
-	TotalLearned     string
-	WriteWord        string
-	Hint             string
-	GoodSpelling     string
-	Tool             toolUICopy
+	MenuButton          string
+	StopButton          string
+	Back                string
+	BackMenu            string
+	MainMenuTitle       string
+	MainMenuBody        string
+	Learning            string
+	Words               string
+	Stats               string
+	Settings            string
+	Tools               string
+	NewLesson           string
+	Practice            string
+	AITutor             string
+	Shadowing           string
+	Pronunciation       string
+	LevelTest           string
+	LearnWords          string
+	WordGame            string
+	Spelling            string
+	Vocabulary          string
+	Phrasebook          string
+	Mistakes            string
+	Progress            string
+	Leaders             string
+	Limits              string
+	BotLanguage         string
+	LearningLanguage    string
+	Notifications       string
+	Premium             string
+	Referral            string
+	ChooseBotLang       string
+	ChooseLearnLang     string
+	ChooseTimezone      string
+	TimezoneHint        string
+	BotLangSet          string
+	LearnLangSet        string
+	UnknownButton       string
+	Stopped             string
+	WordQuestion        string
+	ChooseAnswer        string
+	Correct             string
+	TryAgain            string
+	NextWord            string
+	NextPage            string
+	AlreadyLearned      string
+	AddedToVocab        string
+	TotalLearned        string
+	WriteWord           string
+	Hint                string
+	GoodSpelling        string
+	WordReportFixFormat string
+	Tool                toolUICopy
 }
 
 type toolUICopy struct {
@@ -130,7 +131,8 @@ func englishUICopy() uiCopy {
 		ChooseBotLang: "Choose bot language", ChooseLearnLang: "Which language do you want to learn?", ChooseTimezone: "Choose time zone", TimezoneHint: "I will send daily reminders around 19:00 in your local time.",
 		BotLangSet: "Done. Bot language: %s.", LearnLangSet: "Done. Now learning: %s.", UnknownButton: "I did not understand that button. Press 📋 Menu.", Stopped: "Stopped. Press 📋 Menu to choose the next action.",
 		WordQuestion: "How do you say %s?", ChooseAnswer: "Choose the correct answer:", Correct: "Correct!", TryAgain: "Not quite. Try again:", NextWord: "Next word", NextPage: "Next ▶", AlreadyLearned: "This word is already in your vocabulary.", AddedToVocab: "Word added to your learned vocabulary.", TotalLearned: "Learned words: %d", WriteWord: "Write %s:", Hint: "Hint", GoodSpelling: "Great spelling!",
-		Tool: englishToolUICopy(),
+		WordReportFixFormat: localizedWordReportFixFormat("en"),
+		Tool:                englishToolUICopy(),
 	}
 }
 
@@ -260,57 +262,58 @@ func generatedUICopy(code string) (uiCopy, bool) {
 	stopButton := "⏹ " + t.Stop
 	backButton := "◀ " + t.Back
 	copy := uiCopy{
-		MenuButton:       menuButton,
-		StopButton:       stopButton,
-		Back:             backButton,
-		BackMenu:         backButton + " " + t.Menu,
-		MainMenuTitle:    t.MainMenu,
-		MainMenuBody:     t.ChooseAction,
-		Learning:         t.Learning,
-		Words:            t.Words,
-		Stats:            t.Progress,
-		Settings:         t.Settings,
-		Tools:            t.Tools,
-		NewLesson:        t.NewLesson,
-		Practice:         t.Practice,
-		AITutor:          aiTutorButtonLabel(code),
-		Shadowing:        t.Listening,
-		Pronunciation:    pronunciationButtonLabel(code),
-		LevelTest:        t.Level,
-		LearnWords:       t.LearnWords,
-		WordGame:         t.Review,
-		Spelling:         t.Spelling,
-		Vocabulary:       t.Vocabulary,
-		Phrasebook:       phrasebookButtonLabel(code),
-		Mistakes:         t.Mistakes,
-		Progress:         t.Progress,
-		Leaders:          t.Leaders,
-		Limits:           t.Limits,
-		BotLanguage:      t.BotLanguage,
-		LearningLanguage: t.LearningLanguage,
-		Notifications:    t.Notifications,
-		Premium:          t.Premium,
-		Referral:         t.Referrals,
-		ChooseBotLang:    t.ChooseBotLang,
-		ChooseLearnLang:  t.ChooseLearnLang,
-		ChooseTimezone:   t.ChooseTimezone,
-		TimezoneHint:     t.TimezoneHint,
-		BotLangSet:       t.Ready + " " + t.BotLanguage + ": %s.",
-		LearnLangSet:     t.Ready + " " + t.LearningLanguage + ": %s.",
-		UnknownButton:    t.UnknownButton,
-		Stopped:          t.Stopped,
-		WordQuestion:     t.WordQuestion,
-		ChooseAnswer:     t.ChooseAnswer,
-		Correct:          t.Correct,
-		TryAgain:         t.TryAgain,
-		NextWord:         t.NextWord,
-		NextPage:         t.NextPage,
-		AlreadyLearned:   t.AlreadyLearned,
-		AddedToVocab:     t.AddedToVocab,
-		TotalLearned:     t.TotalLearned,
-		WriteWord:        t.WriteWord,
-		Hint:             t.Hint,
-		GoodSpelling:     t.GoodSpelling,
+		MenuButton:          menuButton,
+		StopButton:          stopButton,
+		Back:                backButton,
+		BackMenu:            backButton + " " + t.Menu,
+		MainMenuTitle:       t.MainMenu,
+		MainMenuBody:        t.ChooseAction,
+		Learning:            t.Learning,
+		Words:               t.Words,
+		Stats:               t.Progress,
+		Settings:            t.Settings,
+		Tools:               t.Tools,
+		NewLesson:           t.NewLesson,
+		Practice:            t.Practice,
+		AITutor:             aiTutorButtonLabel(code),
+		Shadowing:           t.Listening,
+		Pronunciation:       pronunciationButtonLabel(code),
+		LevelTest:           t.Level,
+		LearnWords:          t.LearnWords,
+		WordGame:            t.Review,
+		Spelling:            t.Spelling,
+		Vocabulary:          t.Vocabulary,
+		Phrasebook:          phrasebookButtonLabel(code),
+		Mistakes:            t.Mistakes,
+		Progress:            t.Progress,
+		Leaders:             t.Leaders,
+		Limits:              t.Limits,
+		BotLanguage:         t.BotLanguage,
+		LearningLanguage:    t.LearningLanguage,
+		Notifications:       t.Notifications,
+		Premium:             t.Premium,
+		Referral:            t.Referrals,
+		ChooseBotLang:       t.ChooseBotLang,
+		ChooseLearnLang:     t.ChooseLearnLang,
+		ChooseTimezone:      t.ChooseTimezone,
+		TimezoneHint:        t.TimezoneHint,
+		BotLangSet:          t.Ready + " " + t.BotLanguage + ": %s.",
+		LearnLangSet:        t.Ready + " " + t.LearningLanguage + ": %s.",
+		UnknownButton:       t.UnknownButton,
+		Stopped:             t.Stopped,
+		WordQuestion:        t.WordQuestion,
+		ChooseAnswer:        t.ChooseAnswer,
+		Correct:             t.Correct,
+		TryAgain:            t.TryAgain,
+		NextWord:            t.NextWord,
+		NextPage:            t.NextPage,
+		AlreadyLearned:      t.AlreadyLearned,
+		AddedToVocab:        t.AddedToVocab,
+		TotalLearned:        t.TotalLearned,
+		WriteWord:           t.WriteWord,
+		Hint:                t.Hint,
+		GoodSpelling:        t.GoodSpelling,
+		WordReportFixFormat: localizedWordReportFixFormat(code),
 	}
 	if toolCopy, ok := generatedToolUICopy(code); ok {
 		copy.Tool = toolCopy
@@ -613,8 +616,55 @@ func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
 			copy.Referral = englishUICopy().Referral
 		}
 	}
+	if strings.TrimSpace(copy.WordReportFixFormat) == "" {
+		copy.WordReportFixFormat = localizedWordReportFixFormat(code)
+	}
 	copy.Tool = toolUICopyFor(code)
 	return copy
+}
+
+func localizedWordReportFixFormat(code string) string {
+	formats := map[string]string{
+		"ru": "Формат: сначала слово/фраза на языке изучения, затем перевод на языке интерфейса: football match - футбольный матч",
+		"en": "Format: first send the word/phrase in the learning language, then the translation in the interface language: football match - футбольный матч",
+		"es": "Formato: primero la palabra/frase en el idioma de aprendizaje, luego la traducción en el idioma de la interfaz: football match - футбольный матч",
+		"de": "Format: zuerst das Wort/die Phrase in der Lernsprache, dann die Übersetzung in der Oberflächensprache: football match - футбольный матч",
+		"fr": "Format : d'abord le mot/la phrase dans la langue étudiée, puis la traduction dans la langue de l'interface : football match - футбольный матч",
+		"it": "Formato: prima la parola/frase nella lingua di studio, poi la traduzione nella lingua dell'interfaccia: football match - футбольный матч",
+		"zh": "格式：先发送学习语言中的单词/短语，然后发送界面语言中的翻译：football match - футбольный матч",
+		"ja": "形式: 先に学習言語の単語/フレーズ、その後にインターフェース言語の翻訳を送信してください: football match - футбольный матч",
+		"ko": "형식: 먼저 학습 언어의 단어/구를 보내고, 그다음 인터페이스 언어의 번역을 보내세요: football match - футбольный матч",
+		"tg": "Формат: аввал калима/ибора бо забони омӯзиш, баъд тарҷума бо забони интерфейс: football match - футбольный матч",
+		"uz": "Format: avval o'rganilayotgan tildagi so'z/ibora, keyin interfeys tilidagi tarjima: football match - футбольный матч",
+		"tt": "Формат: башта өйрәнү телендәге сүз/гыйбарә, аннары интерфейс телендәге тәрҗемә: football match - футбольный матч",
+		"hy": "Ձևաչափ՝ նախ բառը/արտահայտությունը ուսուցման լեզվով, ապա թարգմանությունը ինտերֆեյսի լեզվով: football match - футбольный матч",
+		"kk": "Формат: алдымен оқу тіліндегі сөз/сөз тіркесі, содан кейін интерфейс тіліндегі аударма: football match - футбольный матч",
+		"ky": "Формат: адегенде үйрөнүп жаткан тилдеги сөз/сөз айкашы, андан кийин интерфейс тилиндеги котормо: football match - футбольный матч",
+		"ka": "ფორმატი: ჯერ სიტყვა/ფრაზა სასწავლო ენაზე, შემდეგ თარგმანი ინტერფეისის ენაზე: football match - футбольный матч",
+		"uk": "Формат: спочатку слово/фраза мовою навчання, потім переклад мовою інтерфейсу: football match - футбольный матч",
+		"pl": "Format: najpierw słowo/fraza w języku nauki, potem tłumaczenie w języku interfejsu: football match - футбольный матч",
+		"ro": "Format: mai întâi cuvântul/fraza în limba de studiu, apoi traducerea în limba interfeței: football match - футбольный матч",
+		"pt": "Formato: primeiro a palavra/frase no idioma de aprendizagem, depois a tradução no idioma da interface: football match - футбольный матч",
+		"ar": "الصيغة: أرسل أولاً الكلمة/العبارة بلغة التعلم، ثم الترجمة بلغة الواجهة: football match - футбольный матч",
+		"bn": "ফরম্যাট: আগে শেখার ভাষার শব্দ/বাক্যাংশ, তারপর ইন্টারফেস ভাষার অনুবাদ: football match - футбольный матч",
+		"cs": "Formát: nejdřív slovo/fráze v jazyce studia, potom překlad v jazyce rozhraní: football match - футбольный матч",
+		"el": "Μορφή: πρώτα η λέξη/φράση στη γλώσσα εκμάθησης, μετά η μετάφραση στη γλώσσα διεπαφής: football match - футбольный матч",
+		"hi": "फ़ॉर्मैट: पहले सीखने वाली भाषा में शब्द/वाक्यांश, फिर इंटरफेस भाषा में अनुवाद: football match - футбольный матч",
+		"hu": "Formátum: először a szó/kifejezés a tanult nyelven, utána a fordítás a felület nyelvén: football match - футбольный матч",
+		"id": "Format: pertama kata/frasa dalam bahasa yang dipelajari, lalu terjemahan dalam bahasa antarmuka: football match - футбольный матч",
+		"nl": "Formaat: eerst het woord/de zin in de leertaal, daarna de vertaling in de interfacetaal: football match - футбольный матч",
+		"sv": "Format: först ordet/frasen på inlärningsspråket, sedan översättningen på gränssnittsspråket: football match - футбольный матч",
+		"ta": "வடிவம்: முதலில் கற்கும் மொழியில் சொல்/சொற்றொடர், பின்னர் இடைமுக மொழியில் மொழிபெயர்ப்பு: football match - футбольный матч",
+		"te": "ఫార్మాట్: ముందుగా నేర్చుకునే భాషలో పదం/పదబంధం, తరువాత ఇంటర్ఫేస్ భాషలో అనువాదం: football match - футбольный матч",
+		"th": "รูปแบบ: ส่งคำ/วลีในภาษาที่เรียนก่อน แล้วตามด้วยคำแปลในภาษาอินเทอร์เฟซ: football match - футбольный матч",
+		"tl": "Format: unahin ang salita/parirala sa wikang pinag-aaralan, pagkatapos ang salin sa wika ng interface: football match - футбольный матч",
+		"tr": "Format: önce öğrenilen dilde kelime/ifade, sonra arayüz dilindeki çeviri: football match - футбольный матч",
+		"vi": "Định dạng: trước tiên là từ/cụm từ bằng ngôn ngữ đang học, sau đó là bản dịch bằng ngôn ngữ giao diện: football match - футбольный матч",
+	}
+	if text, ok := formats[normalizeInterfaceLanguage(code)]; ok {
+		return text
+	}
+	return formats["en"]
 }
 
 func pronunciationButtonLabel(code string) string {

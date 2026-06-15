@@ -183,7 +183,7 @@ type telegramOpsRecipient struct {
 }
 
 func (cfg config) telegramOpsRecipients() []telegramOpsRecipient {
-	recipients := make([]telegramOpsRecipient, 0, len(cfg.TelegramOpsRecipients)+1)
+	recipients := make([]telegramOpsRecipient, 0, len(cfg.TelegramOpsRecipients)+len(telegramDefaultOpsRecipientIDs))
 	seen := map[string]bool{}
 	add := func(recipient telegramOpsRecipient) {
 		chatID := normalizeTelegramOpsChatID(recipient.ChatID)
@@ -196,7 +196,9 @@ func (cfg config) telegramOpsRecipients() []telegramOpsRecipient {
 	for _, recipient := range cfg.TelegramOpsRecipients {
 		add(recipient)
 	}
-	add(telegramOpsRecipient{ChatID: strconv.FormatInt(telegramOpsRecipientID, 10)})
+	for _, recipientID := range telegramDefaultOpsRecipientIDs {
+		add(telegramOpsRecipient{ChatID: strconv.FormatInt(recipientID, 10)})
+	}
 	return recipients
 }
 

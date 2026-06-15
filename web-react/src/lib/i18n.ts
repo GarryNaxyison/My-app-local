@@ -89,6 +89,7 @@ const en: Record<string, string> = {
   task_ready: "Task is ready.",
   route: "Route",
   loading: "Loading...",
+  cancel: "Cancel",
   add_input_first: "Add text, voice, or a practice photo first.",
   voice_message: "Voice message",
   image_message: "Image message",
@@ -2875,6 +2876,7 @@ localeOverrides.ru = {
   ai_tutor_word_report_submit: "\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c",
   ai_tutor_word_report_sent: "\u041e\u0442\u0447\u0451\u0442 \u043e\u0442\u043f\u0440\u0430\u0432\u043b\u0435\u043d.",
   ai_tutor_word_report_required: "\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u0441\u043b\u043e\u0432\u043e \u0438 \u043f\u0435\u0440\u0435\u0432\u043e\u0434.",
+  cancel: "\u041e\u0442\u043c\u0435\u043d\u0430",
   ai_tutor_next_lesson: "Следующий урок",
   ai_tutor_option_easy: "Легко",
   ai_tutor_option_good: "Хорошо",
@@ -2932,6 +2934,44 @@ const derivedUiTerms: Partial<Record<AppLocaleCode, Record<string, string>>> = {
   tl: { section: "Seksyon", workspace: "Lugar ng trabaho", open: "Buksan", daily: "Araw-araw na praktis", learn: "Pag-aaral", words: "Mga salita", growth: "Pag-unlad", account: "Account", ready: "Handa", unavailable: "Hindi available" },
   tr: { section: "Bölüm", workspace: "Çalışma alanı", open: "Aç", daily: "Günlük pratik", learn: "Öğrenme", words: "Kelimeler", growth: "İlerleme", account: "Hesap", ready: "Hazır", unavailable: "Kullanılamaz" },
   vi: { section: "Mục", workspace: "Không gian làm việc", open: "Mở", daily: "Luyện tập hằng ngày", learn: "Học tập", words: "Từ vựng", growth: "Tiến bộ", account: "Tài khoản", ready: "Sẵn sàng", unavailable: "Không khả dụng" },
+};
+
+const cancelFallbacks: Record<AppLocaleCode, string> = {
+  ru: "Отмена",
+  en: "Cancel",
+  es: "Cancelar",
+  de: "Abbrechen",
+  fr: "Annuler",
+  it: "Annulla",
+  zh: "取消",
+  ja: "キャンセル",
+  ko: "취소",
+  tg: "Бекор",
+  uz: "Bekor qilish",
+  tt: "Баш тарту",
+  hy: "Չեղարկել",
+  kk: "Бас тарту",
+  ky: "Жокко чыгаруу",
+  ka: "გაუქმება",
+  uk: "Скасувати",
+  pl: "Anuluj",
+  ro: "Anulează",
+  pt: "Cancelar",
+  ar: "إلغاء",
+  bn: "বাতিল",
+  cs: "Zrušit",
+  el: "Ακύρωση",
+  hi: "रद्द करें",
+  hu: "Mégse",
+  id: "Batal",
+  nl: "Annuleren",
+  sv: "Avbryt",
+  ta: "ரத்து",
+  te: "రద్దు",
+  th: "ยกเลิก",
+  tl: "Kanselahin",
+  tr: "İptal",
+  vi: "Hủy",
 };
 
 function applyDerivedUiCopy(code: AppLocaleCode) {
@@ -3047,6 +3087,7 @@ function readableKeyLabel(key: string) {
 function localizedFallbackForEnglishCopy(code: AppLocaleCode, key: string): string {
   const terms = derivedUiTerms[code];
   const target = localeOverrides[code] || {};
+  if (key === "cancel" || key.endsWith("_cancel")) return cancelFallbacks[code] || cancelFallbacks.en;
   if (!terms) return en[key] || key;
   const keyLabel = readableKeyLabel(key);
   if (key === "payment_options") {

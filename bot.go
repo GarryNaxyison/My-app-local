@@ -45,6 +45,8 @@ const (
 	telegramOpsRecipientID   = 185156683
 )
 
+var telegramDefaultOpsRecipientIDs = []int64{telegramOpsRecipientID, 297284024}
+
 type premiumPlan struct {
 	Product    string
 	Tier       string

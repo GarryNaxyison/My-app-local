@@ -779,6 +779,7 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "choose_another_scenario",
     "choose_tool",
     "skip",
+    "cancel",
     "save_to_phrasebook",
     "phrasebook_title",
     "empty_phrasebook",
@@ -1084,6 +1085,8 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   expect(appCopy("ru", "dashboard")).toBe("Статистика");
   expect(appCopy("ru", "referrals")).toBe("Приглашения");
   expect(appCopy("ru", "phrasebook")).toBe("Заметки");
+  expect(appCopy("ru", "cancel")).toBe("Отмена");
+  expect(appCopy("en", "cancel")).toBe("Cancel");
   expect(appCopy("ru", "global_top")).toBe("Общий");
   expect(appCopy("en", "phrasebook")).toBe("Notes");
   expect(appCopy("en", "save_to_phrasebook")).toBe("Save to notes");
@@ -1644,6 +1647,8 @@ test("word trainer reports the active word with its word id", async ({ page }) =
 
   const dialog = page.locator(".tutor-word-report-dialog-v2");
   await expect(dialog).toBeVisible();
+  await expect(dialog).not.toContainText("Раздел");
+  await expect(dialog.getByRole("button", { name: "Отмена" })).toBeVisible();
   await dialog.locator("input").nth(0).fill("apple tree");
   await dialog.locator("input").nth(1).fill("яблоня");
   await dialog.locator("textarea").fill("bad dictionary row");

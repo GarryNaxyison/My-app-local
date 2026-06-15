@@ -230,6 +230,12 @@ type aiTutorWordReportRecord struct {
 	ResolvedAt          string
 }
 
+type aiTutorWordReportAdminMessage struct {
+	ReportID  string
+	ChatID    string
+	MessageID int64
+}
+
 func aiTutorLevelBand(level string) string {
 	switch strings.ToUpper(strings.TrimSpace(level)) {
 	case "A1-A2", "B1-B2", "C1-C2":

@@ -962,14 +962,16 @@ func TestWebBugReportNotifiesTelegramRecipient(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.Chdir(oldWD) })
 
-	var telegramPayload map[string]any
+	var telegramPayloads []map[string]any
 	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/sendMessage" {
 			t.Fatalf("unexpected telegram method %s", r.URL.Path)
 		}
+		var telegramPayload map[string]any
 		if err := json.NewDecoder(r.Body).Decode(&telegramPayload); err != nil {
 			t.Fatalf("decode telegram payload: %v", err)
 		}
+		telegramPayloads = append(telegramPayloads, telegramPayload)
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"ok":     true,
 			"result": map[string]any{"message_id": 1},
@@ -1000,10 +1002,15 @@ func TestWebBugReportNotifiesTelegramRecipient(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("bug report returned %d: %s", recorder.Code, recorder.Body.String())
 	}
-	if telegramPayload["chat_id"] != float64(185156683) {
-		t.Fatalf("telegram chat_id = %#v, want %d", telegramPayload["chat_id"], 185156683)
+	if len(telegramPayloads) != 2 {
+		t.Fatalf("sent bug report to %d chats, want 2 default operators: %#v", len(telegramPayloads), telegramPayloads)
 	}
-	text, _ := telegramPayload["text"].(string)
+	for index, want := range []any{float64(185156683), float64(297284024)} {
+		if got := telegramPayloads[index]["chat_id"]; got != want {
+			t.Fatalf("telegram chat %d = %#v, want %#v; payloads=%#v", index, got, want, telegramPayloads)
+		}
+	}
+	text, _ := telegramPayloads[0]["text"].(string)
 	for _, want := range []string{"Bug report Poliglot AI", "From: tester (-42)", "View: home", "Меню лагает"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("telegram text %q does not contain %q", text, want)
@@ -1062,25 +1069,25 @@ func TestWebBugReportUsesConfiguredTelegramOpsRecipients(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("bug report returned %d: %s", recorder.Code, recorder.Body.String())
 	}
-	if len(chatIDs) != 3 {
-		t.Fatalf("sent bug report to %d chats, want 3: %#v", len(chatIDs), chatIDs)
+	if len(chatIDs) != 4 {
+		t.Fatalf("sent bug report to %d chats, want 4: %#v", len(chatIDs), chatIDs)
 	}
-	if chatIDs[0] != float64(12345) || chatIDs[1] != "@poliglot_owner" || chatIDs[2] != float64(185156683) {
-		t.Fatalf("chat IDs = %#v, want configured recipients plus AsaselD", chatIDs)
+	if chatIDs[0] != float64(12345) || chatIDs[1] != "@poliglot_owner" || chatIDs[2] != float64(185156683) || chatIDs[3] != float64(297284024) {
+		t.Fatalf("chat IDs = %#v, want configured recipients plus default operators", chatIDs)
 	}
 }
 
-func TestConfigTelegramOpsRecipientsAlwaysIncludesAsaselD(t *testing.T) {
+func TestConfigTelegramOpsRecipientsAlwaysIncludesDefaultOperators(t *testing.T) {
 	recipients := (config{TelegramOpsRecipients: []telegramOpsRecipient{
 		{ChatID: "12345"},
 		{ChatID: "185156683"},
 		{ChatID: "@poliglot_owner"},
 	}}).telegramOpsRecipients()
 
-	if len(recipients) != 3 {
-		t.Fatalf("telegramOpsRecipients() returned %d recipients, want 3: %#v", len(recipients), recipients)
+	if len(recipients) != 4 {
+		t.Fatalf("telegramOpsRecipients() returned %d recipients, want 4: %#v", len(recipients), recipients)
 	}
-	for index, want := range []string{"12345", "185156683", "@poliglot_owner"} {
+	for index, want := range []string{"12345", "185156683", "@poliglot_owner", "297284024"} {
 		if recipients[index].ChatID != want {
 			t.Fatalf("recipient %d = %q, want %q; all recipients: %#v", index, recipients[index].ChatID, want, recipients)
 		}
@@ -1266,8 +1273,13 @@ func TestWebBugReportSendsScreenshotAsTelegramPhoto(t *testing.T) {
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("bug report returned %d: %s", recorder.Code, recorder.Body.String())
 	}
-	if len(methods) != 2 || methods[0] != "/sendPhoto" || methods[1] != "/sendPhoto" {
-		t.Fatalf("expected two Telegram sendPhoto calls, got %#v", methods)
+	if len(methods) != 4 {
+		t.Fatalf("expected four Telegram sendPhoto calls for two screenshots and two default operators, got %#v", methods)
+	}
+	for _, method := range methods {
+		if method != "/sendPhoto" {
+			t.Fatalf("expected only Telegram sendPhoto calls, got %#v", methods)
+		}
 	}
 	multipartBody := strings.Join(multipartBodies, "\n---NEXT---\n")
 	for _, want := range []string{`name="photo"; filename="`, `name="caption"`, "Bug report Poliglot AI", "Скрин показывает баг"} {
@@ -1728,6 +1740,14 @@ func TestAITutorWordReportCreatesTelegramNotificationAndSkipsWord(t *testing.T) 
 	}
 	if len(telegramPayloads) == 0 {
 		t.Fatal("expected telegram ops notification")
+	}
+	if len(telegramPayloads) != 3 {
+		t.Fatalf("sent word report to %d chats, want configured recipient plus two default operators: %#v", len(telegramPayloads), telegramPayloads)
+	}
+	for index, want := range []any{float64(12345), float64(185156683), float64(297284024)} {
+		if got := telegramPayloads[index]["chat_id"]; got != want {
+			t.Fatalf("word report chat %d = %#v, want %#v; payloads=%#v", index, got, want, telegramPayloads)
+		}
 	}
 	text, _ := telegramPayloads[0]["text"].(string)
 	if !strings.Contains(text, stored.ID) ||

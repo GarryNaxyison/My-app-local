@@ -420,6 +420,10 @@ func (c *telegramClient) sendInlineMarkdownMessage(ctx context.Context, chatID i
 }
 
 func (c *telegramClient) editInlineMessage(ctx context.Context, chatID int64, messageID int64, text string, parseMode string, keyboard map[string]any) error {
+	return c.editInlineMessageToChat(ctx, chatID, messageID, text, parseMode, keyboard)
+}
+
+func (c *telegramClient) editInlineMessageToChat(ctx context.Context, chatID any, messageID int64, text string, parseMode string, keyboard map[string]any) error {
 	payload := map[string]any{
 		"chat_id":    chatID,
 		"message_id": messageID,

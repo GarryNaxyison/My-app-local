@@ -121,17 +121,18 @@ type userState struct {
 }
 
 type jsonStore struct {
-	path                 string
-	mu                   sync.Mutex
-	users                map[int64]userState
-	tutorLessons         map[string]tutorLesson
-	tutorUserLessons     map[int64]map[string]time.Time
-	aiTutorLessons       map[string]aiTutorLessonRecord
-	aiTutorSessions      map[string]aiTutorSessionRecord
-	aiTutorAnswers       map[string]aiTutorAnswerRecord
-	aiTutorReviews       map[string]aiTutorReviewRecord
-	aiTutorQualityChecks map[string]aiTutorQualityCheckRecord
-	aiTutorWordReports   map[string]aiTutorWordReportRecord
+	path                           string
+	mu                             sync.Mutex
+	users                          map[int64]userState
+	tutorLessons                   map[string]tutorLesson
+	tutorUserLessons               map[int64]map[string]time.Time
+	aiTutorLessons                 map[string]aiTutorLessonRecord
+	aiTutorSessions                map[string]aiTutorSessionRecord
+	aiTutorAnswers                 map[string]aiTutorAnswerRecord
+	aiTutorReviews                 map[string]aiTutorReviewRecord
+	aiTutorQualityChecks           map[string]aiTutorQualityCheckRecord
+	aiTutorWordReports             map[string]aiTutorWordReportRecord
+	aiTutorWordReportAdminMessages map[string][]aiTutorWordReportAdminMessage
 }
 
 type leaderboardEntry struct {
@@ -216,6 +217,7 @@ type store interface {
 	countAITutorWordReports(telegramID int64, sessionID string, since time.Time) (int, int, error)
 	countAITutorWordReportsSince(since time.Time) (int, error)
 	setAITutorWordReportAdminMessage(reportID string, chatID string, messageID int64) error
+	listAITutorWordReportAdminMessages(reportID string) ([]aiTutorWordReportAdminMessage, error)
 	setAITutorWordReportFixPrompt(reportID string, chatID string, messageID int64) error
 	resolveAITutorWordReport(reportID string, status aiTutorWordReportStatus, finalWord string, finalTranslation string) (aiTutorWordReportRecord, bool, error)
 	findPendingAITutorWordReportByFixPrompt(chatID string, messageID int64) (aiTutorWordReportRecord, bool, error)
@@ -248,16 +250,17 @@ func newJSONStore(path string) (*jsonStore, error) {
 	}
 
 	store := &jsonStore{
-		path:                 path,
-		users:                map[int64]userState{},
-		tutorLessons:         map[string]tutorLesson{},
-		tutorUserLessons:     map[int64]map[string]time.Time{},
-		aiTutorLessons:       map[string]aiTutorLessonRecord{},
-		aiTutorSessions:      map[string]aiTutorSessionRecord{},
-		aiTutorAnswers:       map[string]aiTutorAnswerRecord{},
-		aiTutorReviews:       map[string]aiTutorReviewRecord{},
-		aiTutorQualityChecks: map[string]aiTutorQualityCheckRecord{},
-		aiTutorWordReports:   map[string]aiTutorWordReportRecord{},
+		path:                           path,
+		users:                          map[int64]userState{},
+		tutorLessons:                   map[string]tutorLesson{},
+		tutorUserLessons:               map[int64]map[string]time.Time{},
+		aiTutorLessons:                 map[string]aiTutorLessonRecord{},
+		aiTutorSessions:                map[string]aiTutorSessionRecord{},
+		aiTutorAnswers:                 map[string]aiTutorAnswerRecord{},
+		aiTutorReviews:                 map[string]aiTutorReviewRecord{},
+		aiTutorQualityChecks:           map[string]aiTutorQualityCheckRecord{},
+		aiTutorWordReports:             map[string]aiTutorWordReportRecord{},
+		aiTutorWordReportAdminMessages: map[string][]aiTutorWordReportAdminMessage{},
 	}
 
 	bytes, err := os.ReadFile(path)
@@ -1173,15 +1176,51 @@ func (s *jsonStore) setAITutorWordReportAdminMessage(reportID string, chatID str
 	defer s.mu.Unlock()
 
 	s.ensureAITutorMapsLocked()
-	report, ok := s.aiTutorWordReports[strings.TrimSpace(reportID)]
+	reportID = strings.TrimSpace(reportID)
+	chatID = strings.TrimSpace(chatID)
+	report, ok := s.aiTutorWordReports[reportID]
 	if !ok {
 		return errors.New("ai tutor word report not found")
 	}
-	report.AdminChatID = strings.TrimSpace(chatID)
+	report.AdminChatID = chatID
 	report.AdminMessageID = messageID
 	report.UpdatedAt = formatDBTime(time.Now().UTC())
 	s.aiTutorWordReports[report.ID] = report
+	if chatID != "" && messageID != 0 {
+		message := aiTutorWordReportAdminMessage{ReportID: reportID, ChatID: chatID, MessageID: messageID}
+		existing := s.aiTutorWordReportAdminMessages[reportID]
+		for _, item := range existing {
+			if item.ChatID == message.ChatID && item.MessageID == message.MessageID {
+				return nil
+			}
+		}
+		s.aiTutorWordReportAdminMessages[reportID] = append(existing, message)
+	}
 	return nil
+}
+
+func (s *jsonStore) listAITutorWordReportAdminMessages(reportID string) ([]aiTutorWordReportAdminMessage, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	reportID = strings.TrimSpace(reportID)
+	messages := append([]aiTutorWordReportAdminMessage(nil), s.aiTutorWordReportAdminMessages[reportID]...)
+	if len(messages) != 0 {
+		return messages, nil
+	}
+	report, ok := s.aiTutorWordReports[reportID]
+	if !ok {
+		return nil, errors.New("ai tutor word report not found")
+	}
+	if strings.TrimSpace(report.AdminChatID) == "" || report.AdminMessageID == 0 {
+		return nil, nil
+	}
+	return []aiTutorWordReportAdminMessage{{
+		ReportID:  report.ID,
+		ChatID:    strings.TrimSpace(report.AdminChatID),
+		MessageID: report.AdminMessageID,
+	}}, nil
 }
 
 func (s *jsonStore) setAITutorWordReportFixPrompt(reportID string, chatID string, messageID int64) error {
@@ -1315,6 +1354,9 @@ func (s *jsonStore) ensureAITutorMapsLocked() {
 	}
 	if s.aiTutorWordReports == nil {
 		s.aiTutorWordReports = map[string]aiTutorWordReportRecord{}
+	}
+	if s.aiTutorWordReportAdminMessages == nil {
+		s.aiTutorWordReportAdminMessages = map[string][]aiTutorWordReportAdminMessage{}
 	}
 }
 

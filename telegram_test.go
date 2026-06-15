@@ -617,6 +617,25 @@ func TestParseAITutorWordReportFixTextUsesLearningWordThenInterfaceTranslation(t
 	}
 }
 
+func TestTelegramAITutorWordReportFixFormatIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
+	english := ui(userState{InterfaceLanguage: "en"}).WordReportFixFormat
+	if !strings.Contains(english, "learning language") || !strings.Contains(english, "interface language") {
+		t.Fatalf("english fix format should explain learning/interface language order: %q", english)
+	}
+	for _, language := range interfaceLanguages() {
+		copy := ui(userState{InterfaceLanguage: language.Code})
+		if strings.TrimSpace(copy.WordReportFixFormat) == "" {
+			t.Fatalf("%s WordReportFixFormat is empty", language.Code)
+		}
+		if !strings.Contains(copy.WordReportFixFormat, "football match - \u0444\u0443\u0442\u0431\u043e\u043b\u044c\u043d\u044b\u0439 \u043c\u0430\u0442\u0447") {
+			t.Fatalf("%s WordReportFixFormat missing example: %q", language.Code, copy.WordReportFixFormat)
+		}
+		if language.Code != "en" && copy.WordReportFixFormat == english {
+			t.Fatalf("%s WordReportFixFormat fell back to English: %q", language.Code, copy.WordReportFixFormat)
+		}
+	}
+}
+
 func TestTelegramAITutorWordReportFixReplyAppliesCorrection(t *testing.T) {
 	store, report := newAITutorWordReportModerationFixture(t)
 	var promptMessageID int64
@@ -678,6 +697,120 @@ func TestTelegramAITutorWordReportFixReplyAppliesCorrection(t *testing.T) {
 	lesson, _, _ := store.getAITutorLesson(report.LessonID)
 	if got := lesson.Payload.Words[0].Target; got != "rise" {
 		t.Fatalf("fixed lesson word target = %q, want rise", got)
+	}
+}
+
+func TestTelegramAITutorWordReportStopButtonCancelsFixMode(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	var sentTexts []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode telegram payload: %v", err)
+		}
+		if text, _ := payload["text"].(string); text != "" {
+			sentTexts = append(sentTexts, text)
+		}
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":91}}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-fix-stop",
+		From:    telegramUser{ID: 999, FirstName: "Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 999}},
+		Data:    "ait_word_report|" + report.ID + "|fix",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(fix) error = %v", err)
+	}
+	if err := b.handleUpdate(context.Background(), telegramUpdate{Message: &telegramMessage{
+		MessageID: 92,
+		From:      telegramUser{ID: 999, FirstName: "Admin"},
+		Chat:      telegramChat{ID: 999},
+		Text:      ui(userState{InterfaceLanguage: "ru"}).StopButton,
+		ReplyToMessage: &telegramMessage{
+			MessageID: 91,
+			Chat:      telegramChat{ID: 999},
+		},
+	}}); err != nil {
+		t.Fatalf("handleUpdate(stop reply) error = %v", err)
+	}
+
+	if len(sentTexts) < 2 {
+		t.Fatalf("expected prompt and stop notice, got %#v", sentTexts)
+	}
+	lastText := sentTexts[len(sentTexts)-1]
+	if strings.Contains(lastText, "football match - \u0444\u0443\u0442\u0431\u043e\u043b\u044c\u043d\u044b\u0439 \u043c\u0430\u0442\u0447") {
+		t.Fatalf("stop button should not resend fix format, got %q", lastText)
+	}
+	if !strings.Contains(lastText, ui(userState{InterfaceLanguage: "ru"}).Stopped) {
+		t.Fatalf("stop button should send stopped copy, got %q", lastText)
+	}
+	resolved, _, _ := store.getAITutorWordReport(report.ID)
+	if resolved.Status != aiTutorWordReportPending {
+		t.Fatalf("stop should not resolve report, got status %q", resolved.Status)
+	}
+}
+
+func TestTelegramAITutorWordReportResolutionStalesAllOperatorCards(t *testing.T) {
+	store, report := newAITutorWordReportModerationFixture(t)
+	if err := store.setAITutorWordReportAdminMessage(report.ID, "999", 77); err != nil {
+		t.Fatalf("set first admin message: %v", err)
+	}
+	if err := store.setAITutorWordReportAdminMessage(report.ID, "297284024", 78); err != nil {
+		t.Fatalf("set second admin message: %v", err)
+	}
+	var edits []map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode telegram payload: %v", err)
+		}
+		if r.URL.Path == "/editMessageText" {
+			edits = append(edits, payload)
+		}
+		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":91}}`))
+	}))
+	defer server.Close()
+	b := &bot{
+		cfg:      config{TelegramOpsRecipients: []telegramOpsRecipient{{ChatID: "999"}}},
+		store:    store,
+		telegram: &telegramClient{baseURL: server.URL, http: server.Client()},
+	}
+
+	if err := b.handleCallbackQuery(context.Background(), callbackQuery{
+		ID:      "cb-report-accept-stale",
+		From:    telegramUser{ID: 999, FirstName: "Admin"},
+		Message: &telegramMessage{MessageID: 77, Chat: telegramChat{ID: 999}},
+		Data:    "ait_word_report|" + report.ID + "|accept",
+	}); err != nil {
+		t.Fatalf("handleCallbackQuery(accept) error = %v", err)
+	}
+
+	if len(edits) != 2 {
+		t.Fatalf("expected both operator cards to be edited, got %d edits: %#v", len(edits), edits)
+	}
+	got := map[int64]int64{}
+	for _, edit := range edits {
+		chatID, _ := edit["chat_id"].(float64)
+		messageID, _ := edit["message_id"].(float64)
+		got[int64(chatID)] = int64(messageID)
+		text, _ := edit["text"].(string)
+		if !strings.Contains(text, string(aiTutorWordReportAccepted)) || !strings.Contains(text, report.ProposedWord+" - "+report.ProposedTranslation) {
+			t.Fatalf("stale card text missing resolved state: %#v", edit)
+		}
+		keyboardJSON, _ := json.Marshal(edit["reply_markup"])
+		if strings.Contains(string(keyboardJSON), "ait_word_report|") {
+			t.Fatalf("stale card still has actionable callbacks: %s", keyboardJSON)
+		}
+	}
+	if got[999] != 77 || got[297284024] != 78 {
+		t.Fatalf("edited cards = %#v, want both operator messages", got)
 	}
 }
 

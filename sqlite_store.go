@@ -286,6 +286,13 @@ func (s *sqliteStore) init() error {
 			updated_at TEXT NOT NULL,
 			resolved_at TEXT NOT NULL DEFAULT ''
 		)`,
+		`CREATE TABLE IF NOT EXISTS ai_tutor_word_report_admin_messages (
+			report_id TEXT NOT NULL,
+			chat_id TEXT NOT NULL,
+			message_id INTEGER NOT NULL,
+			created_at TEXT NOT NULL,
+			PRIMARY KEY(report_id, chat_id, message_id)
+		)`,
 		`CREATE TABLE IF NOT EXISTS referral_purchase_rewards (
 			payment_id TEXT PRIMARY KEY,
 			buyer_id INTEGER NOT NULL,
@@ -405,6 +412,9 @@ func (s *sqliteStore) init() error {
 		return err
 	}
 	if _, err := s.db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_tutor_word_reports_pending_unique ON ai_tutor_word_reports(telegram_id, session_id, stage) WHERE status = 'pending'`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_word_report_admin_messages_report ON ai_tutor_word_report_admin_messages(report_id)`); err != nil {
 		return err
 	}
 	if err := s.clearLegacyTutorLessonBase(); err != nil {
@@ -2247,7 +2257,67 @@ func (s *sqliteStore) countAITutorWordReportsSince(since time.Time) (int, error)
 }
 
 func (s *sqliteStore) setAITutorWordReportAdminMessage(reportID string, chatID string, messageID int64) error {
-	return s.updateAITutorWordReportMessageFields(reportID, "admin_chat_id", "admin_message_id", chatID, messageID)
+	reportID = strings.TrimSpace(reportID)
+	chatID = strings.TrimSpace(chatID)
+	if err := s.updateAITutorWordReportMessageFields(reportID, "admin_chat_id", "admin_message_id", chatID, messageID); err != nil {
+		return err
+	}
+	if chatID == "" || messageID == 0 {
+		return nil
+	}
+	_, err := s.db.Exec(
+		`INSERT OR IGNORE INTO ai_tutor_word_report_admin_messages (report_id, chat_id, message_id, created_at)
+		VALUES (?, ?, ?, ?)`,
+		reportID,
+		chatID,
+		messageID,
+		formatDBTime(time.Now().UTC()),
+	)
+	return err
+}
+
+func (s *sqliteStore) listAITutorWordReportAdminMessages(reportID string) ([]aiTutorWordReportAdminMessage, error) {
+	reportID = strings.TrimSpace(reportID)
+	if reportID == "" {
+		return nil, errors.New("ai tutor word report id is empty")
+	}
+	rows, err := s.db.Query(
+		`SELECT report_id, chat_id, message_id
+		FROM ai_tutor_word_report_admin_messages
+		WHERE report_id = ?
+		ORDER BY created_at, message_id`,
+		reportID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var messages []aiTutorWordReportAdminMessage
+	for rows.Next() {
+		var message aiTutorWordReportAdminMessage
+		if err := rows.Scan(&message.ReportID, &message.ChatID, &message.MessageID); err != nil {
+			return nil, err
+		}
+		messages = append(messages, message)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(messages) != 0 {
+		return messages, nil
+	}
+	report, ok, err := s.getAITutorWordReport(reportID)
+	if err != nil || !ok {
+		return nil, err
+	}
+	if strings.TrimSpace(report.AdminChatID) == "" || report.AdminMessageID == 0 {
+		return nil, nil
+	}
+	return []aiTutorWordReportAdminMessage{{
+		ReportID:  report.ID,
+		ChatID:    strings.TrimSpace(report.AdminChatID),
+		MessageID: report.AdminMessageID,
+	}}, nil
 }
 
 func (s *sqliteStore) setAITutorWordReportFixPrompt(reportID string, chatID string, messageID int64) error {

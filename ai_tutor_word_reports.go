@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-const aiTutorWordReportFixFormat = "Формат: сначала слово/фраза на языке изучения, затем перевод на языке интерфейса: football match - футбольный матч"
-
 func (b *bot) handleAITutorWordReportCallback(ctx context.Context, query callbackQuery, chatID int64) error {
 	if b == nil || b.store == nil {
 		return errors.New("store is not configured")
@@ -36,6 +34,10 @@ func (b *bot) handleAITutorWordReportCallback(ctx context.Context, query callbac
 		}
 		return nil
 	}
+	if report.Status != aiTutorWordReportPending {
+		b.closeAITutorWordReportAdminCards(ctx, report)
+		return b.sendAITutorWordReportResolvedNotice(ctx, chatID, report)
+	}
 
 	switch action {
 	case "accept":
@@ -54,6 +56,7 @@ func (b *bot) handleAITutorWordReportCallback(ctx context.Context, query callbac
 
 func (b *bot) acceptAITutorWordReport(ctx context.Context, chatID int64, report aiTutorWordReportRecord) error {
 	if report.Status != aiTutorWordReportPending {
+		b.closeAITutorWordReportAdminCards(ctx, report)
 		return b.sendAITutorWordReportResolvedNotice(ctx, chatID, report)
 	}
 	finalWord := strings.TrimSpace(report.ProposedWord)
@@ -65,30 +68,35 @@ func (b *bot) acceptAITutorWordReport(ctx context.Context, chatID int64, report 
 	if err != nil {
 		return err
 	}
+	b.closeAITutorWordReportAdminCards(ctx, resolved)
 	return b.sendAITutorWordReportResolvedNotice(ctx, chatID, resolved)
 }
 
 func (b *bot) rejectAITutorWordReport(ctx context.Context, chatID int64, report aiTutorWordReportRecord) error {
 	if report.Status != aiTutorWordReportPending {
+		b.closeAITutorWordReportAdminCards(ctx, report)
 		return b.sendAITutorWordReportResolvedNotice(ctx, chatID, report)
 	}
 	resolved, _, err := b.store.resolveAITutorWordReport(report.ID, aiTutorWordReportRejected, "", "")
 	if err != nil {
 		return err
 	}
+	b.closeAITutorWordReportAdminCards(ctx, resolved)
 	return b.sendAITutorWordReportResolvedNotice(ctx, chatID, resolved)
 }
 
 func (b *bot) promptAITutorWordReportFix(ctx context.Context, chatID int64, report aiTutorWordReportRecord) error {
 	if report.Status != aiTutorWordReportPending {
+		b.closeAITutorWordReportAdminCards(ctx, report)
 		return b.sendAITutorWordReportResolvedNotice(ctx, chatID, report)
 	}
 	if b == nil || b.telegram == nil {
 		return nil
 	}
-	text := "Ответьте на это сообщение.\n" + aiTutorWordReportFixFormat + "\n\nПосле исправления слово будет заменено в SQLite: AI Tutor lesson payload + vocabulary runtime tables."
+	formatHint := b.aiTutorWordReportFixFormat(report)
+	text := "Ответьте на это сообщение.\n" + formatHint + "\n\nПосле исправления слово будет заменено в SQLite: AI Tutor lesson payload + vocabulary runtime tables."
 	if aiTutorWordReportIsVocabulary(report) {
-		text = "Ответьте на это сообщение.\n" + aiTutorWordReportFixFormat + "\n\nПосле исправления слово будет заменено в SQLite vocabulary tables: vocabulary_words, vocabulary_translations, vocabulary_ai_words, vocabulary_ai_translations."
+		text = "Ответьте на это сообщение.\n" + formatHint + "\n\nПосле исправления слово будет заменено в SQLite vocabulary tables: vocabulary_words, vocabulary_translations, vocabulary_ai_words, vocabulary_ai_translations."
 	}
 	messageID, err := b.telegram.sendInlineMessageToChat(ctx, chatID, text, nil)
 	if err != nil {
@@ -113,6 +121,9 @@ func (b *bot) maybeHandleAITutorWordReportFixReply(ctx context.Context, message 
 	if text == "" {
 		return false, nil
 	}
+	if isStopCommandText(text) || isStopIntent(text) {
+		return false, nil
+	}
 	replyMessageID := int64(0)
 	if message.ReplyToMessage != nil {
 		replyMessageID = message.ReplyToMessage.MessageID
@@ -124,7 +135,7 @@ func (b *bot) maybeHandleAITutorWordReportFixReply(ctx context.Context, message 
 	finalWord, finalTranslation, ok := parseAITutorWordReportFixText(text)
 	if !ok {
 		if b.telegram != nil {
-			return true, b.telegram.sendMessageToChat(ctx, message.Chat.ID, aiTutorWordReportFixFormat)
+			return true, b.telegram.sendMessageToChat(ctx, message.Chat.ID, b.aiTutorWordReportFixFormat(report))
 		}
 		return true, nil
 	}
@@ -135,6 +146,7 @@ func (b *bot) maybeHandleAITutorWordReportFixReply(ctx context.Context, message 
 	if err != nil {
 		return true, err
 	}
+	b.closeAITutorWordReportAdminCards(ctx, resolved)
 	return true, b.sendAITutorWordReportResolvedNotice(ctx, message.Chat.ID, resolved)
 }
 
@@ -142,6 +154,28 @@ func (b *bot) sendAITutorWordReportResolvedNotice(ctx context.Context, chatID in
 	if b == nil || b.telegram == nil {
 		return nil
 	}
+	return b.telegram.sendMessageToChat(ctx, chatID, aiTutorWordReportResolvedText(report))
+}
+
+func (b *bot) closeAITutorWordReportAdminCards(ctx context.Context, report aiTutorWordReportRecord) {
+	if b == nil || b.store == nil || b.telegram == nil || strings.TrimSpace(report.ID) == "" {
+		return
+	}
+	messages, err := b.store.listAITutorWordReportAdminMessages(report.ID)
+	if err != nil || len(messages) == 0 {
+		return
+	}
+	keyboard := map[string]any{"inline_keyboard": []any{}}
+	text := aiTutorWordReportResolvedText(report)
+	for _, message := range messages {
+		chatID := telegramOpsRecipient{ChatID: message.ChatID}.telegramChatIDValue()
+		if err := b.telegram.editInlineMessageToChat(ctx, chatID, message.MessageID, text, "", keyboard); err != nil && !isTelegramMessageNotModified(err) {
+			continue
+		}
+	}
+}
+
+func aiTutorWordReportResolvedText(report aiTutorWordReportRecord) string {
 	label := "AI Tutor word report"
 	if aiTutorWordReportIsVocabulary(report) {
 		label = "Vocabulary word report"
@@ -150,7 +184,24 @@ func (b *bot) sendAITutorWordReportResolvedNotice(ctx context.Context, chatID in
 	if report.FinalWord != "" || report.FinalTranslation != "" {
 		text += "\n" + strings.TrimSpace(report.FinalWord) + " - " + strings.TrimSpace(report.FinalTranslation)
 	}
-	return b.telegram.sendMessageToChat(ctx, chatID, text)
+	return text
+}
+
+func (b *bot) aiTutorWordReportFixFormat(report aiTutorWordReportRecord) string {
+	return ui(userState{InterfaceLanguage: b.aiTutorWordReportInterfaceLanguage(report)}).WordReportFixFormat
+}
+
+func (b *bot) aiTutorWordReportInterfaceLanguage(report aiTutorWordReportRecord) string {
+	if interfaceLanguage, _, ok := parseVocabularyWordReportSessionID(report.SessionID); ok {
+		return interfaceLanguage
+	}
+	if b != nil && b.store != nil && strings.TrimSpace(report.LessonID) != "" {
+		lesson, ok, err := b.store.getAITutorLesson(report.LessonID)
+		if err == nil && ok {
+			return normalizeInterfaceLanguage(firstNonEmpty(lesson.InterfaceLanguage, lesson.Payload.InterfaceLanguage, "ru"))
+		}
+	}
+	return "ru"
 }
 
 func telegramOpsUserAllowed(cfg config, telegramID int64) bool {
