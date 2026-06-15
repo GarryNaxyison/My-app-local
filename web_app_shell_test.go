@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -211,6 +212,54 @@ func TestWebAppAITutorLessonUICleanupWiring(t *testing.T) {
 	} {
 		if !strings.Contains(source, want) {
 			t.Fatalf("missing ai tutor lesson cleanup wiring %q", want)
+		}
+	}
+}
+
+func TestReactFrontendBuildsAITutorHistoryFromStoryOnly(t *testing.T) {
+	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(appSource)
+	for _, want := range []string{
+		`function aiTutorHistoryBody`,
+		`aiTutorHistoryBody(lessonPayload, step)`,
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("missing AI Tutor history body cleanup marker %q", want)
+		}
+	}
+	if strings.Contains(source, `[lessonPayload?.lesson_goal || step.instruction, lessonPayload?.story?.text_target]`) {
+		t.Fatalf("AI Tutor history still prepends lesson_goal before story text")
+	}
+
+	html, err := os.ReadFile(filepath.Join("web", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(html)
+	match := regexp.MustCompile(`/app/assets/(index-[^"]+\.js)`).FindStringSubmatch(page)
+	if len(match) != 2 {
+		t.Fatalf("web shell is not wired to the built React bundle: %s", page)
+	}
+	bundle, err := os.ReadFile(filepath.Join("web", "assets", match[1]))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source = string(bundle)
+	for _, want := range []string{
+		`story?.text_target).trim();return`,
+		`lesson_goal||`,
+	} {
+		if want == `lesson_goal||` {
+			if strings.Contains(source, want) {
+				t.Fatalf("AI Tutor history bundle still prepends lesson goal before story text")
+			}
+			continue
+		}
+		if !strings.Contains(source, want) {
+			t.Fatalf("missing AI Tutor history cleanup marker %q", want)
 		}
 	}
 }

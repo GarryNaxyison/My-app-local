@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const aiTutorWordReportFixFormat = "Формат: сначала слово/фраза на языке изучения, затем перевод на языке интерфейса: football match - футбольный матч"
+
 func (b *bot) handleAITutorWordReportCallback(ctx context.Context, query callbackQuery, chatID int64) error {
 	if b == nil || b.store == nil {
 		return errors.New("store is not configured")
@@ -84,9 +86,9 @@ func (b *bot) promptAITutorWordReportFix(ctx context.Context, chatID int64, repo
 	if b == nil || b.telegram == nil {
 		return nil
 	}
-	text := "Ответьте на это сообщение в формате: word - translation\n\nПосле исправления слово будет заменено в SQLite: AI Tutor lesson payload + vocabulary runtime tables."
+	text := "Ответьте на это сообщение.\n" + aiTutorWordReportFixFormat + "\n\nПосле исправления слово будет заменено в SQLite: AI Tutor lesson payload + vocabulary runtime tables."
 	if aiTutorWordReportIsVocabulary(report) {
-		text = "Ответьте на это сообщение в формате: word - translation\n\nПосле исправления слово будет заменено в SQLite vocabulary tables: vocabulary_words, vocabulary_translations, vocabulary_ai_words, vocabulary_ai_translations."
+		text = "Ответьте на это сообщение.\n" + aiTutorWordReportFixFormat + "\n\nПосле исправления слово будет заменено в SQLite vocabulary tables: vocabulary_words, vocabulary_translations, vocabulary_ai_words, vocabulary_ai_translations."
 	}
 	messageID, err := b.telegram.sendInlineMessageToChat(ctx, chatID, text, nil)
 	if err != nil {
@@ -122,7 +124,7 @@ func (b *bot) maybeHandleAITutorWordReportFixReply(ctx context.Context, message 
 	finalWord, finalTranslation, ok := parseAITutorWordReportFixText(text)
 	if !ok {
 		if b.telegram != nil {
-			return true, b.telegram.sendMessageToChat(ctx, message.Chat.ID, "Формат: word - translation")
+			return true, b.telegram.sendMessageToChat(ctx, message.Chat.ID, aiTutorWordReportFixFormat)
 		}
 		return true, nil
 	}

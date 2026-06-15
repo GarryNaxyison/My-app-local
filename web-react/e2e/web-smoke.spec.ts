@@ -1336,7 +1336,17 @@ test("today plan and settings password helper copy stay localized", async ({ pag
 
 test("bug report paste keeps one clipboard image and no generic section text", async ({ page, isMobile }) => {
   await page.goto("/app/?view=home");
-  await page.locator(isMobile ? ".mobile-report-button-v2" : ".v2-report-button").click();
+  const reportButton = page.locator(isMobile ? ".mobile-report-button-v2" : ".v2-report-button");
+  await expect(reportButton).toBeVisible();
+  if (!isMobile) {
+    await expect(reportButton).toHaveAccessibleName(ru("report_bug", "Сообщить об ошибке"));
+    const box = await reportButton.boundingBox();
+    const viewport = page.viewportSize();
+    expect(box).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width - 8);
+  }
+  await reportButton.click();
   const dialog = page.locator(".bug-report-dialog-v2");
   await expect(dialog).toBeVisible();
   await expect(dialog).not.toContainText("Раздел");

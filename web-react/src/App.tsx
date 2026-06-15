@@ -706,6 +706,12 @@ function cleanTutorPrompt(value: unknown) {
     .join("\n");
 }
 
+function aiTutorHistoryBody(lesson: AiTutorStep["lesson"] | undefined, step: AiTutorStep | null) {
+  const story = cleanAppText(lesson?.story?.text_target).trim();
+  if (story) return story;
+  return cleanTutorPrompt(step?.instruction);
+}
+
 function sameTutorText(left: string, right: string) {
   const normalize = (value: string) => cleanTutorPrompt(value).replace(/\s+/g, " ").trim().toLowerCase();
   return Boolean(normalize(left) && normalize(left) === normalize(right));
@@ -2144,7 +2150,7 @@ export function App() {
     setAiTutorFeedback(response.feedback || null);
     setMessages((current) => [
       panelMessage(
-        [lessonPayload?.lesson_goal || step.instruction, lessonPayload?.story?.text_target].map((item) => cleanAppText(item)).filter(Boolean).join("\n\n"),
+        aiTutorHistoryBody(lessonPayload, step),
         "default",
         cleanAppText(lessonPayload?.title || step.title || copy("ai_tutor", "AI Tutor")),
         getRecord(payload),
@@ -2196,7 +2202,7 @@ export function App() {
     setAiTutorFeedback(response.feedback || null);
     setMessages((current) => [
       panelMessage(
-        [lessonPayload?.lesson_goal || step.instruction, lessonPayload?.story?.text_target].map((item) => cleanAppText(item)).filter(Boolean).join("\n\n"),
+        aiTutorHistoryBody(lessonPayload, step),
         "default",
         cleanAppText(lessonPayload?.title || step.title || copy("ai_tutor", "AI Tutor")),
         getRecord(payload),

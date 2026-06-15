@@ -607,14 +607,26 @@ func TestTelegramAITutorWordReportRejectDoesNotMutateLesson(t *testing.T) {
 	}
 }
 
+func TestParseAITutorWordReportFixTextUsesLearningWordThenInterfaceTranslation(t *testing.T) {
+	word, translation, ok := parseAITutorWordReportFixText("football match - футбольный матч")
+	if !ok {
+		t.Fatal("expected correction text to parse")
+	}
+	if word != "football match" || translation != "футбольный матч" {
+		t.Fatalf("parsed word=%q translation=%q", word, translation)
+	}
+}
+
 func TestTelegramAITutorWordReportFixReplyAppliesCorrection(t *testing.T) {
 	store, report := newAITutorWordReportModerationFixture(t)
 	var promptMessageID int64
+	var promptText string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var payload map[string]any
 		_ = json.NewDecoder(r.Body).Decode(&payload)
-		if text, _ := payload["text"].(string); strings.Contains(text, "word - translation") {
+		if text, _ := payload["text"].(string); strings.Contains(text, "сначала слово/фраза на языке изучения") {
 			promptMessageID = 91
+			promptText = text
 		}
 		_, _ = w.Write([]byte(`{"ok":true,"result":{"message_id":91}}`))
 	}))
@@ -635,6 +647,15 @@ func TestTelegramAITutorWordReportFixReplyAppliesCorrection(t *testing.T) {
 	}
 	if promptMessageID == 0 {
 		t.Fatal("expected fix prompt message")
+	}
+	for _, want := range []string{
+		"сначала слово/фраза на языке изучения",
+		"затем перевод на языке интерфейса",
+		"football match - футбольный матч",
+	} {
+		if !strings.Contains(promptText, want) {
+			t.Fatalf("fix prompt %q missing %q", promptText, want)
+		}
 	}
 
 	if err := b.handleUpdate(context.Background(), telegramUpdate{Message: &telegramMessage{

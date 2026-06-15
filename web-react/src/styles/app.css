@@ -1599,6 +1599,8 @@ select {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .v2-level-progress {
@@ -4385,6 +4387,16 @@ select {
 
 .app-guide-button-v2 {
   color: var(--primary);
+}
+
+.v2-report-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1180px) {
+  .v2-report-button span {
+    display: none;
+  }
 }
 
 .bug-report-dialog-v2 {
