@@ -96,6 +96,10 @@ test("landing presents the premium AI tutor cockpit without losing public contra
   await expect(page.locator(".hero-goals")).toContainText("Разговорная речь");
   await expect(page.locator(".hero-language-picker a")).toHaveCount(8);
   await expect(page.locator(".course-card")).toHaveCount(3);
+  await expect(page.locator(".cockpit-section")).toBeVisible();
+  await expect(page.locator(".cockpit-lane")).toHaveCount(5);
+  await expect(page.locator(".scenario-card")).toHaveCount(4);
+  await expect(page.locator(".device-flow__node")).toHaveCount(3);
   await expect(page.locator(".feature-card")).toHaveCount(6);
   await expect(page.locator(".review-card")).toHaveCount(3);
   await expect(page.locator(".faq-grid article")).toHaveCount(4);
@@ -116,6 +120,23 @@ test("landing presents the premium AI tutor cockpit without losing public contra
   const oldPriceColor = await oldPrices.first().evaluate((node) => getComputedStyle(node).color);
   expect(oldPriceColor).not.toBe("rgb(255, 255, 255)");
   expect(oldPriceColor).not.toBe("rgba(255, 255, 255, 0.5)");
+  await expect(page.locator(".plan-limit-table")).toHaveCount(3);
+  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("5 уроков");
+  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("15 сообщений");
+  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("голосовые недоступны");
+  const premiumCard = page.locator(".plan-card.is-featured");
+  const platinumCard = page.locator(".plan-card").filter({ hasText: "Интенсив" });
+  await expect(premiumCard).toContainText("50 уроков");
+  await expect(premiumCard).toContainText("200 сообщений");
+  await expect(premiumCard).toContainText("20 голосовых");
+  await expect(premiumCard).toContainText("30 секунд");
+  await expect(premiumCard).toContainText("голос в текст");
+  await expect(premiumCard).toContainText("перевод текста с картинки");
+  await expect(premiumCard).toContainText("практика по контексту голоса или фото");
+  await expect(platinumCard).toContainText("100 уроков");
+  await expect(platinumCard).toContainText("500 сообщений");
+  await expect(platinumCard).toContainText("60 голосовых");
+  await expect(platinumCard).toContainText("максимальные дневные лимиты");
   await expect(page.locator(".payment-methods")).toContainText("Stars");
   await expect(page.locator(".payment-methods")).toContainText("YooKassa");
   await expect(page.locator(".payment-methods")).toContainText("TON");
@@ -179,6 +200,43 @@ test("premium cockpit landing stays readable on mobile", async ({ page }) => {
       .filter((item) => item.width > 0 && item.scrollWidth > item.clientWidth + 2);
   });
   expect(overflow).toEqual([]);
+});
+
+test("premium cockpit landing localizes generated marketing copy for Chinese", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/poliglot-ai.html?lang=zh");
+  await page.waitForTimeout(1400);
+
+  const sectionsWithCyrillic = await page.evaluate(() => {
+    const selectors = [
+      ".landing-hero",
+      ".course-strip",
+      ".cockpit-section",
+      ".scenario-section",
+      ".feature-section",
+      ".workflow-section",
+      ".device-flow",
+      ".pricing-section",
+      ".reviews-section",
+      ".progress-section",
+      ".faq-section",
+      ".start-panel",
+      ".site-footer",
+    ];
+    return selectors
+      .map((selector) => {
+        const node = document.querySelector(selector);
+        const text = (node?.textContent || "").replace(/\s+/g, " ").trim();
+        const cyrillic = text.match(/[А-Яа-яЁё][А-Яа-яЁёA-Za-z0-9 ,.:;!?()\-–—]{0,80}/g) || [];
+        return { selector, cyrillic: cyrillic.filter((fragment) => !/^[AMS]$/.test(fragment)).slice(0, 5) };
+      })
+      .filter((item) => item.cyrillic.length > 0);
+  });
+
+  expect(sectionsWithCyrillic).toEqual([]);
+  await expect(page.locator(".pricing-section")).toContainText("50");
+  await expect(page.locator(".pricing-section")).toContainText("200");
+  await expect(page.locator(".pricing-section")).toContainText("20");
 });
 
 test("public site language selector exposes all interface locales", async ({ page }) => {

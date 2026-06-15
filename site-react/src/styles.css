@@ -2786,3 +2786,593 @@ html[data-site-theme="dark"] .payment-methods {
     margin-inline: 10px;
   }
 }
+
+/* 2026-06-15 deep Premium AI Tutor Cockpit layer. */
+.cockpit-section {
+  max-width: none;
+  padding: 88px 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, #eef8ff), var(--bg));
+}
+
+.cockpit-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.94fr) minmax(330px, 0.68fr);
+  grid-template-areas:
+    "copy console"
+    "lanes console";
+  gap: 22px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.cockpit-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.cockpit-copy h2,
+.device-flow__copy h2 {
+  margin: 14px 0 0;
+  color: var(--ink);
+  font-size: clamp(2.25rem, 4.7vw, 4.5rem);
+  line-height: 1.02;
+  font-weight: 950;
+}
+
+.cockpit-copy p,
+.device-flow__copy p {
+  max-width: 720px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.cockpit-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.cockpit-kpis span {
+  display: grid;
+  gap: 4px;
+  min-height: 84px;
+  padding: 14px;
+  border: 1px solid rgba(18, 184, 215, 0.18);
+  border-radius: 8px;
+  background: rgba(18, 184, 215, 0.08);
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.cockpit-kpis strong {
+  color: var(--ink);
+  font-size: 1.75rem;
+}
+
+.cockpit-lanes {
+  grid-area: lanes;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cockpit-lane {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 18px 46px rgba(12, 24, 44, 0.07);
+}
+
+.cockpit-lane svg {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #07111f;
+  background: linear-gradient(135deg, #f5d27a, #8ff1d0);
+}
+
+.cockpit-lane strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.cockpit-lane p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.cockpit-lane > span {
+  width: max-content;
+  max-width: 152px;
+  padding: 8px 10px;
+  border: 1px solid rgba(45, 91, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(45, 91, 255, 0.08);
+  color: #1e4ad7;
+  font-size: 0.76rem;
+  font-weight: 950;
+  text-align: center;
+}
+
+.cockpit-console {
+  grid-area: console;
+  align-self: center;
+  min-width: 0;
+  border: 1px solid rgba(123, 220, 255, 0.2);
+  border-radius: 8px;
+  padding: 14px;
+  background: linear-gradient(180deg, #07111f, #0e1a31);
+  color: #fff;
+  box-shadow: 0 34px 90px rgba(5, 10, 24, 0.32);
+}
+
+.cockpit-console__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px 14px;
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 850;
+}
+
+.cockpit-console__top strong {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #8ff1d0;
+  color: #07111f;
+}
+
+.cockpit-console__screen {
+  display: grid;
+  gap: 14px;
+  min-height: 440px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035)),
+    #0a1426;
+}
+
+.cockpit-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid rgba(143, 241, 208, 0.22);
+  border-radius: 999px;
+  background: rgba(143, 241, 208, 0.1);
+  color: #8ff1d0;
+  font-weight: 900;
+}
+
+.cockpit-dialogue {
+  display: grid;
+  gap: 10px;
+  align-content: center;
+}
+
+.cockpit-dialogue p {
+  margin: 0;
+  padding: 16px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.55;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.cockpit-dialogue p:first-child {
+  max-width: 90%;
+  background: rgba(123, 220, 255, 0.16);
+}
+
+.cockpit-dialogue p:last-child {
+  justify-self: end;
+  max-width: 88%;
+  color: #07111f;
+  background: #fff;
+}
+
+.cockpit-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: auto;
+}
+
+.cockpit-metric-grid span {
+  display: grid;
+  gap: 8px;
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.cockpit-metric-grid svg {
+  color: #f5d27a;
+}
+
+.scenario-section {
+  padding-top: 84px;
+  padding-bottom: 84px;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 34px;
+}
+
+.scenario-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  min-height: 372px;
+  padding: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 8px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 96%, #eaf7ff), var(--card));
+  box-shadow: 0 22px 56px rgba(12, 24, 44, 0.08);
+  overflow-wrap: anywhere;
+}
+
+.scenario-card__visual {
+  display: grid;
+  gap: 14px;
+  min-height: 126px;
+  padding: 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #07111f, #15335b);
+  color: #fff;
+}
+
+.scenario-card__visual span {
+  width: fit-content;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(245, 210, 122, 0.16);
+  color: #f5d27a;
+  font-size: 0.76rem;
+  font-weight: 950;
+}
+
+.scenario-card__visual div {
+  display: grid;
+  gap: 7px;
+  margin-top: auto;
+}
+
+.scenario-card__visual i {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.scenario-card__visual i:nth-child(2) {
+  width: 76%;
+  background: rgba(123, 220, 255, 0.72);
+}
+
+.scenario-card__visual i:nth-child(3) {
+  width: 56%;
+  background: rgba(143, 241, 208, 0.76);
+}
+
+.scenario-card h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.34rem;
+  line-height: 1.18;
+}
+
+.scenario-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.58;
+}
+
+.scenario-modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.scenario-modules span {
+  padding: 7px 9px;
+  border: 1px solid rgba(18, 184, 215, 0.18);
+  border-radius: 999px;
+  background: rgba(18, 184, 215, 0.08);
+  color: #174157;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.scenario-card blockquote {
+  margin: auto 0 0;
+  padding: 12px;
+  border-left: 3px solid #f5d27a;
+  border-radius: 0 8px 8px 0;
+  background: rgba(245, 210, 122, 0.12);
+  color: var(--ink);
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.workflow-section .section-copy p {
+  max-width: 740px;
+}
+
+.device-flow {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 72px 24px 92px;
+}
+
+.device-flow__copy {
+  max-width: 780px;
+}
+
+.device-flow__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.device-flow__node {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  min-height: 236px;
+  padding: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 20px 52px rgba(12, 24, 44, 0.07);
+}
+
+.device-flow__node svg {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  padding: 10px;
+  border-radius: 8px;
+  color: #07111f;
+  background: linear-gradient(135deg, #7bdcff, #f5d27a);
+}
+
+.device-flow__node h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.42rem;
+}
+
+.device-flow__node p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.device-flow__connector {
+  position: absolute;
+  top: 50%;
+  right: -28px;
+  width: 38px;
+  height: 2px;
+  background: linear-gradient(90deg, #7bdcff, #f5d27a);
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-radius: 8px !important;
+}
+
+.plan-label {
+  width: fit-content;
+}
+
+.plan-card > p {
+  min-height: auto;
+  margin: 0;
+}
+
+.plan-limit-table {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 12px;
+  border: 1px solid rgba(45, 91, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(45, 91, 255, 0.055);
+}
+
+.plan-limit-table div {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.plan-limit-table span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.plan-limit-table strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+  text-align: right;
+}
+
+.plan-included,
+.plan-locked {
+  margin: 0 !important;
+}
+
+.plan-locked li {
+  color: var(--muted);
+}
+
+.plan-locked li svg {
+  color: #94a3b8;
+}
+
+.plan-note {
+  display: block;
+  margin-top: auto;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+html[data-site-theme="dark"] .cockpit-section {
+  background: linear-gradient(180deg, #07111f, var(--bg));
+}
+
+html[data-site-theme="dark"] .cockpit-lane,
+html[data-site-theme="dark"] .scenario-card,
+html[data-site-theme="dark"] .device-flow__node {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: 0 26px 64px rgba(0, 0, 0, 0.22);
+}
+
+html[data-site-theme="dark"] .cockpit-kpis span,
+html[data-site-theme="dark"] .plan-limit-table,
+html[data-site-theme="dark"] .scenario-modules span {
+  border-color: rgba(123, 220, 255, 0.18);
+  background: rgba(123, 220, 255, 0.09);
+}
+
+html[data-site-theme="dark"] .cockpit-lane > span,
+html[data-site-theme="dark"] .scenario-modules span {
+  color: #7bdcff;
+}
+
+html[data-site-theme="dark"] .scenario-card__visual {
+  background: linear-gradient(135deg, #050914, #102541);
+}
+
+html[data-site-theme="dark"] .scenario-card blockquote {
+  background: rgba(245, 210, 122, 0.1);
+}
+
+html[data-site-theme="light"] .cockpit-copy h2,
+html[data-site-theme="light"] .cockpit-kpis strong,
+html[data-site-theme="light"] .cockpit-lane strong,
+html[data-site-theme="light"] .scenario-card h3,
+html[data-site-theme="light"] .scenario-card blockquote,
+html[data-site-theme="light"] .device-flow__copy h2,
+html[data-site-theme="light"] .device-flow__node h3,
+html[data-site-theme="light"] .plan-limit-table strong {
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .cockpit-copy p,
+html[data-site-theme="light"] .cockpit-kpis span,
+html[data-site-theme="light"] .cockpit-lane p,
+html[data-site-theme="light"] .scenario-card p,
+html[data-site-theme="light"] .device-flow__node p,
+html[data-site-theme="light"] .plan-limit-table span,
+html[data-site-theme="light"] .plan-note,
+html[data-site-theme="light"] .plan-locked li {
+  color: #3f4c62 !important;
+}
+
+@media (max-width: 1120px) {
+  .cockpit-shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "console"
+      "lanes";
+  }
+
+  .cockpit-console {
+    max-width: 720px;
+  }
+
+  .scenario-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .device-flow__connector {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .cockpit-section,
+  .scenario-section,
+  .device-flow {
+    padding-inline: 18px;
+  }
+
+  .cockpit-kpis,
+  .cockpit-metric-grid,
+  .scenario-grid,
+  .device-flow__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-lane {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .cockpit-lane > span {
+    grid-column: 1 / -1;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .cockpit-console__screen {
+    min-height: 360px;
+    padding: 14px;
+  }
+
+  .cockpit-dialogue p,
+  .cockpit-dialogue p:first-child,
+  .cockpit-dialogue p:last-child {
+    max-width: 100%;
+  }
+
+  .scenario-card {
+    min-height: auto;
+  }
+
+  .plan-limit-table div {
+    display: grid;
+    gap: 4px;
+  }
+
+  .plan-limit-table strong {
+    text-align: left;
+  }
+}

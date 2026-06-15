@@ -55,6 +55,8 @@ const LANGS = [
 ];
 
 const SITE_LANG_CODES = LANGS.map(([code]) => code);
+const TRANSLATION_CONCURRENCY = Math.max(1, Number(process.env.TRANSLATION_CONCURRENCY || 4));
+const TRANSLATION_PAUSE_MS = Math.max(0, Number(process.env.TRANSLATION_PAUSE_MS || 0));
 const NATIVE_LANGUAGE_NAMES = new Set([
   "English",
   "Español",
@@ -105,6 +107,20 @@ function stripGeneratedBlock(source) {
   const end = source.indexOf(GENERATED_END);
   if (start === -1 || end === -1 || end < start) return source;
   return `${source.slice(0, start).trimEnd()}\n`;
+}
+
+function extractGeneratedTranslations(source) {
+  const marker = "const publicSiteGeneratedTranslations = ";
+  const start = source.indexOf(marker);
+  if (start === -1) return {};
+  const jsonStart = start + marker.length;
+  const jsonEnd = source.indexOf(";\nObject.entries(publicSiteGeneratedTranslations)", jsonStart);
+  if (jsonEnd === -1) return {};
+  try {
+    return JSON.parse(source.slice(jsonStart, jsonEnd));
+  } catch {
+    return {};
+  }
 }
 
 function normalize(value) {
@@ -365,7 +381,9 @@ async function translateBatch(items, targetGoogleCode) {
         batch[index].result = batch[index].protectedItem.restore(raw.replace(/^\[\[\d+\]\]\s*/, ""));
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 80));
+      if (TRANSLATION_PAUSE_MS > 0) {
+        await new Promise((resolve) => setTimeout(resolve, TRANSLATION_PAUSE_MS));
+      }
     }
   }
 }
@@ -438,11 +456,12 @@ function shouldKeepEnglishTerm(source, value) {
 async function main() {
   const phraseFile = fs.readFileSync(PHRASES_PATH, "utf8");
   const basePhraseFile = stripGeneratedBlock(phraseFile);
+  const existingGenerated = extractGeneratedTranslations(phraseFile);
   const i18nSource = fs.readFileSync(I18N_PATH, "utf8");
   const candidates = collectCandidates();
-  const currentSites = buildCurrentSites(basePhraseFile, i18nSource);
+  const currentSites = buildCurrentSites(phraseFile, i18nSource);
   const englishSite = currentSites.en;
-  const generated = {};
+  const generated = JSON.parse(JSON.stringify(existingGenerated));
   const workByLang = new Map();
 
   for (const source of candidates) {
@@ -457,17 +476,24 @@ async function main() {
   }
 
   let total = 0;
-  for (const [lang, items] of workByLang.entries()) {
-    total += items.length;
-    console.log(`Translating ${items.length} strings for ${lang}...`);
-    const googleCode = LANGS.find(([code]) => code === lang)?.[1] || lang;
-    await translateBatch(items, googleCode);
-    for (const item of items) {
-      if (shouldKeepEnglishTerm(item.source, item.result)) continue;
-      generated[item.source] ||= {};
-      generated[item.source][lang] = item.result;
+  const languageJobs = [...workByLang.entries()];
+  let jobIndex = 0;
+  const workers = Array.from({ length: Math.min(TRANSLATION_CONCURRENCY, languageJobs.length) }, async () => {
+    while (jobIndex < languageJobs.length) {
+      const currentIndex = jobIndex++;
+      const [lang, items] = languageJobs[currentIndex];
+      total += items.length;
+      console.log(`Translating ${items.length} strings for ${lang}...`);
+      const googleCode = LANGS.find(([code]) => code === lang)?.[1] || lang;
+      await translateBatch(items, googleCode);
+      for (const item of items) {
+        if (shouldKeepEnglishTerm(item.source, item.result)) continue;
+        generated[item.source] ||= {};
+        generated[item.source][lang] = item.result;
+      }
     }
-  }
+  });
+  await Promise.all(workers);
 
   const ordered = {};
   for (const source of Object.keys(generated).sort((a, b) => a.localeCompare(b, "ru"))) {

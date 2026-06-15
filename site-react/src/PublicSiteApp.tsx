@@ -1,20 +1,32 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  Activity,
   ArrowRight,
   BookOpen,
+  BrainCircuit,
   Camera,
   CheckCircle,
   ChevronRight,
   FileText,
+  Headphones,
+  Languages,
+  Laptop,
+  LineChart,
+  LockKeyhole,
   MessageCircle,
+  MessagesSquare,
   Mic,
   Moon,
+  Repeat2,
+  ScanText,
   ShieldCheck,
   Sparkles,
   Star,
+  Smartphone,
   Sun,
   Trophy,
+  Zap,
   WifiOff,
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
@@ -32,6 +44,19 @@ declare global {
     };
   }
 }
+
+type PlanCardProps = {
+  name: string;
+  label: string;
+  oldPrice?: string;
+  price: string;
+  body: string;
+  limits: readonly (readonly [string, string])[];
+  included: readonly string[];
+  locked?: readonly string[];
+  note: string;
+  featured?: boolean;
+};
 
 const features = [
   {
@@ -85,19 +110,155 @@ const courseRoutes = [
   ["Voice Coach", "Shadowing, слабые слова, pronunciation score и история голоса.", "voice"],
 ] as const;
 
+const cockpitLanes = [
+  {
+    icon: BrainCircuit,
+    title: "AI Tutor",
+    metric: "урок -> проверка",
+    body: "Объясняет фразу, дает пример, просит ответ и сразу показывает, что улучшить.",
+  },
+  {
+    icon: MessagesSquare,
+    title: "Roleplay",
+    metric: "контекст роли",
+    body: "Держит сценарий поездки, работы, экзамена или casual speaking без пустых реплик.",
+  },
+  {
+    icon: Headphones,
+    title: "Voice Coach",
+    metric: "score + weak words",
+    body: "Голосовые проверки, shadowing и TTS помогают слышать и исправлять произношение.",
+  },
+  {
+    icon: ScanText,
+    title: "Photo Tools",
+    metric: "текст с картинки",
+    body: "Меню, вывеска или задание становятся переводом, заметкой и практикой по контексту.",
+  },
+  {
+    icon: Repeat2,
+    title: "Mistake Loop",
+    metric: "ошибка -> повтор",
+    body: "Mistakes, Notes, weak words, XP и streak возвращают именно к слабым местам.",
+  },
+] as const;
+
+const scenarioCards = [
+  {
+    title: "Путешествия без паники",
+    tag: "Travel",
+    body: "Check-in, кафе, транспорт, врач и small talk тренируются как короткие живые сцены.",
+    modules: ["Roleplay", "Photo", "Phrasebook"],
+    prompt: "Could you help me check in?",
+  },
+  {
+    title: "Работа и созвоны",
+    tag: "Work",
+    body: "Письма, созвоны, self-intro и уточняющие вопросы превращаются в безопасные репетиции.",
+    modules: ["AI Tutor", "Review", "Notes"],
+    prompt: "Let me clarify the deadline.",
+  },
+  {
+    title: "Экзамен и уровень",
+    tag: "Exam",
+    body: "A1-C2, грамматика, listening и speaking собираются в маршрут с понятным прогрессом.",
+    modules: ["Lesson", "Listening", "Mistakes"],
+    prompt: "I agree with the statement because...",
+  },
+  {
+    title: "Разговорная речь",
+    tag: "Speaking",
+    body: "AI не просто оценивает фразу, а предлагает естественную версию и следующий повтор.",
+    modules: ["Voice", "Shadowing", "XP"],
+    prompt: "I have been trying to say...",
+  },
+] as const;
+
+const deviceNodes = [
+  {
+    icon: Laptop,
+    title: "Web app",
+    body: "Большой экран для AI Tutor, прогресса, тарифов, словаря ошибок и длинных сессий.",
+  },
+  {
+    icon: Smartphone,
+    title: "PWA и mobile web",
+    body: "Отдельная mobile-верстка для быстрых уроков, повторений и практики в дороге.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Telegram",
+    body: "Тот же профиль, быстрый старт, уведомления, голос и практика без потери данных.",
+  },
+] as const;
+
+const planCards = [
+  {
+    name: "Free",
+    label: "Попробовать маршрут",
+    price: "0 ₽",
+    body: "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.",
+    limits: [
+      ["Уроки", "5 уроков в день"],
+      ["Практика", "15 сообщений практики"],
+      ["Голос", "голосовые недоступны"],
+    ],
+    included: ["ежедневная привычка и стартовые уроки", "базовая тренировка слов", "заметки, phrasebook и обзор прогресса"],
+    locked: ["AI Tutor guided lessons", "Listening и pronunciation", "voice checks и photo tools"],
+    note: "Подходит для знакомства с продуктом без оплаты.",
+  },
+  {
+    name: "Premium",
+    label: "Регулярная учеба",
+    oldPrice: "1000 ₽",
+    price: "300 ₽",
+    body: "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты.",
+    limits: [
+      ["Уроки", "50 уроков в день"],
+      ["Практика", "200 сообщений практики"],
+      ["Голос", "20 голосовых до 30 секунд"],
+    ],
+    included: [
+      "голос в текст и перевод услышанного",
+      "перевод текста с картинки",
+      "практика по контексту голоса или фото",
+      "словарь ошибок, notes, XP и streak",
+    ],
+    note: "Лучший выбор для стабильного ежедневного обучения.",
+    featured: true,
+  },
+  {
+    name: "Platinum",
+    label: "Интенсив",
+    oldPrice: "2000 ₽",
+    price: "590 ₽",
+    body: "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой.",
+    limits: [
+      ["Уроки", "100 уроков в день"],
+      ["Практика", "500 сообщений практики"],
+      ["Голос", "60 голосовых до 30 секунд"],
+    ],
+    included: ["максимальные дневные лимиты", "больше voice/photo-context практики", "интенсивный review слабых мест", "лучший режим для heavy daily learning"],
+    note: "Для поездки, работы, экзамена или очень плотного темпа.",
+  },
+] satisfies readonly PlanCardProps[];
+
 const testimonials = [
   {
     name: "Анна",
+    initial: "A",
     role: "готовится к поездке",
     text: "Перед поездкой я тренирую check-in, кафе и транспорт. Нужная фраза сразу попадает в заметки и повторение.",
   },
   {
     name: "Марат",
+    initial: "M",
     role: "учит английский для работы",
     text: "В web app вижу ошибки и XP, в Telegram быстро повторяю слова. Профиль один, поэтому ничего не теряется.",
   },
   {
     name: "София",
+    initial: "S",
     role: "тренирует произношение",
     text: "Голосовой режим показывает конкретные слабые слова. Это ощущается как личный coach, а не обычный список упражнений.",
   },
@@ -401,6 +562,109 @@ function LandingPage() {
         </div>
       </section>
 
+      <section className="landing-band cockpit-section" aria-label="Premium AI Tutor Cockpit">
+        <div className="cockpit-shell">
+          <div className="cockpit-copy">
+            <span className="eyebrow">AI Tutor Cockpit</span>
+            <h2>Премиальная панель, где каждый модуль ведет к следующему действию</h2>
+            <p>
+              Сайт должен сразу показывать ценность продукта: не отдельные упражнения, а систему, где урок, речь, фото, ошибки и прогресс работают как один персональный преподаватель.
+            </p>
+            <div className="cockpit-kpis" aria-label="Ключевые показатели Poliglot AI">
+              <span>
+                <strong>35</strong>
+                языков интерфейса
+              </span>
+              <span>
+                <strong>A1-C2</strong>
+                маршруты уровня
+              </span>
+              <span>
+                <strong>1</strong>
+                профиль везде
+              </span>
+            </div>
+          </div>
+
+          <div className="cockpit-lanes">
+            {cockpitLanes.map((lane, index) => {
+              const Icon = lane.icon;
+              return (
+                <motion.article key={lane.title} className="cockpit-lane" initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.35 }} transition={{ duration: 0.34, delay: index * 0.04 }}>
+                  <Icon size={20} />
+                  <div>
+                    <strong>{lane.title}</strong>
+                    <p>{lane.body}</p>
+                  </div>
+                  <span>{lane.metric}</span>
+                </motion.article>
+              );
+            })}
+          </div>
+
+          <div className="cockpit-console" aria-label="Пример панели AI Tutor">
+            <div className="cockpit-console__top">
+              <span>Live learning loop</span>
+              <strong>84/100</strong>
+            </div>
+            <div className="cockpit-console__screen">
+              <div className="cockpit-status">
+                <Activity size={18} />
+                <span>AI Tutor слушает ответ</span>
+              </div>
+              <div className="cockpit-dialogue">
+                <p>Say it naturally: “Could you help me check in?”</p>
+                <p>Лучше: “I have a reservation under my name.”</p>
+              </div>
+              <div className="cockpit-metric-grid">
+                <span>
+                  <Zap size={17} />
+                  XP +12
+                </span>
+                <span>
+                  <LineChart size={17} />
+                  weak word fixed
+                </span>
+                <span>
+                  <Languages size={17} />
+                  перевод сохранен
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-band scenario-section">
+        <div className="section-copy">
+          <span className="eyebrow">Сценарии</span>
+          <h2>Лендинг продает не абстрактный AI, а понятные ситуации, где продукт нужен сегодня</h2>
+          <p>Каждая цель раскрывает реальные функции: roleplay, фото, голос, ошибки, progress и повторение. Это помогает пользователю увидеть, за что он платит.</p>
+        </div>
+        <div className="scenario-grid">
+          {scenarioCards.map((scenario, index) => (
+            <motion.article key={scenario.title} className="scenario-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.36, delay: index * 0.05 }}>
+              <div className="scenario-card__visual" aria-hidden="true">
+                <span>{scenario.tag}</span>
+                <div>
+                  <i />
+                  <i />
+                  <i />
+                </div>
+              </div>
+              <h3>{scenario.title}</h3>
+              <p>{scenario.body}</p>
+              <div className="scenario-modules">
+                {scenario.modules.map((module) => (
+                  <span key={module}>{module}</span>
+                ))}
+              </div>
+              <blockquote>{scenario.prompt}</blockquote>
+            </motion.article>
+          ))}
+        </div>
+      </section>
+
       <section id="features" className="landing-band feature-section">
         <div className="section-copy">
           <span className="eyebrow">Возможности</span>
@@ -425,6 +689,7 @@ function LandingPage() {
         <div className="section-copy">
           <span className="eyebrow">Как это работает</span>
           <h2>Один профиль связывает web app, PWA и Telegram</h2>
+          <p>Пользователь может начать на большом экране, продолжить как mobile web/PWA и вернуться в Telegram без потери Premium, прогресса и словаря ошибок.</p>
         </div>
         <div className="workflow-card">
           {workflow.map(([num, title, body]) => (
@@ -439,6 +704,26 @@ function LandingPage() {
         </div>
       </section>
 
+      <section className="device-flow" aria-label="Связка устройств Poliglot AI">
+        <div className="device-flow__copy">
+          <span className="eyebrow">Web + mobile + Telegram</span>
+          <h2>Отдельно красиво на desktop и mobile, но с одним учебным профилем</h2>
+        </div>
+        <div className="device-flow__grid">
+          {deviceNodes.map((node, index) => {
+            const Icon = node.icon;
+            return (
+              <motion.article key={node.title} className="device-flow__node" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.34, delay: index * 0.05 }}>
+                <Icon size={24} />
+                <h3>{node.title}</h3>
+                <p>{node.body}</p>
+                {index < deviceNodes.length - 1 ? <span className="device-flow__connector" aria-hidden="true" /> : null}
+              </motion.article>
+            );
+          })}
+        </div>
+      </section>
+
       <section id="pricing" className="pricing-section">
         <div className="section-copy">
           <span className="eyebrow">Premium</span>
@@ -446,9 +731,9 @@ function LandingPage() {
           <p className="payment-methods">Оплата: Telegram Stars, YooKassa/SBP, TON и USDT.</p>
         </div>
         <div className="pricing-grid">
-          <PlanCard name="Free" label="Попробовать маршрут" price="0 ₽" body="Для первого знакомства с AI Tutor и ежедневной привычкой." items={["стартовые уроки", "базовая практика", "заметки и прогресс"]} />
-          <PlanCard name="Premium" label="Регулярная учеба" oldPrice="1000 ₽" price="300 ₽" body="Основной режим для ежедневной практики с голосом, фото и большим числом сессий." items={["до 50 уроков в день", "до 200 сообщений практики", "голос, фото и словарь ошибок"]} featured />
-          <PlanCard name="Platinum" label="Интенсив" oldPrice="2000 ₽" price="590 ₽" body="Максимум для поездки, работы, экзамена или активной разговорной практики." items={["до 100 уроков в день", "до 500 сообщений практики", "больше ролей и голосовых повторов"]} />
+          {planCards.map((plan) => (
+            <PlanCard key={plan.name} {...plan} />
+          ))}
         </div>
       </section>
 
@@ -462,7 +747,7 @@ function LandingPage() {
           {testimonials.map((item, index) => (
             <motion.article key={item.name} className="review-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.38, delay: index * 0.06 }}>
               <div>
-                <span>{item.name.slice(0, 1)}</span>
+                <span>{item.initial}</span>
                 <div>
                   <strong>{item.name}</strong>
                   <small>{item.role}</small>
@@ -521,10 +806,10 @@ function LandingPage() {
   );
 }
 
-function PlanCard({ name, label, oldPrice, price, body, items, featured }: { name: string; label: string; oldPrice?: string; price: string; body: string; items: string[]; featured?: boolean }) {
+function PlanCard({ name, label, oldPrice, price, body, limits, included, locked, note, featured }: PlanCardProps) {
   return (
-    <article className={featured ? "is-featured" : undefined}>
-      <span>{label}</span>
+    <article className={featured ? "plan-card is-featured" : "plan-card"}>
+      <span className="plan-label">{label}</span>
       <h3>{name}</h3>
       <div className="price-line">
         {oldPrice ? <span className="plan-old-price">{oldPrice}</span> : null}
@@ -538,14 +823,37 @@ function PlanCard({ name, label, oldPrice, price, body, items, featured }: { nam
         </div>
       ) : null}
       <p>{body}</p>
-      <ul>
-        {items.map((item) => (
+
+      <div className="plan-limit-table" aria-label={`${name} лимиты`}>
+        {limits.map(([metric, value]) => (
+          <div key={metric}>
+            <span>{metric}</span>
+            <strong>{value}</strong>
+          </div>
+        ))}
+      </div>
+
+      <ul className="plan-included">
+        {included.map((item) => (
           <li key={item}>
             <CheckCircle size={16} />
             {item}
           </li>
         ))}
       </ul>
+
+      {locked?.length ? (
+        <ul className="plan-locked">
+          {locked.map((item) => (
+            <li key={item}>
+              <LockKeyhole size={15} />
+              {item}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <small className="plan-note">{note}</small>
       <a href="/app/">
         Выбрать <ChevronRight size={16} />
       </a>
