@@ -758,6 +758,36 @@ html[data-site-theme="dark"] .public-nav select option {
 }
 
 @media (max-width: 680px) {
+  .public-nav {
+    gap: 10px;
+    min-height: 0;
+    padding: 10px 16px 12px;
+  }
+
+  .public-brand span {
+    width: 38px;
+    height: 38px;
+  }
+
+  .public-nav nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+    font-size: 0.82rem;
+  }
+
+  .public-nav nav a {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    padding: 0 8px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
   .public-nav__actions,
   .hero-actions,
   .legal-pills {
@@ -765,10 +795,21 @@ html[data-site-theme="dark"] .public-nav select option {
     flex-direction: column;
   }
 
+  .public-nav__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    gap: 8px;
+  }
+
   .public-nav select,
   .nav-pill,
   .hero-action {
     width: 100%;
+  }
+
+  .nav-pill {
+    grid-column: 1 / -1;
+    min-height: 40px;
   }
 
   .spark-hero {
@@ -1801,21 +1842,25 @@ html[data-site-theme="dark"] .review-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 }
 
+html[data-site-theme="light"] .review-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(246, 249, 255, 0.94));
+}
+
 .review-card > div:first-child {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.review-card > div:first-child > span {
-  display: grid;
-  width: 46px;
-  height: 46px;
-  place-items: center;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #1d5cff, #18c6aa);
-  color: #fff;
-  font-weight: 950;
+.review-card > div:first-child > img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 48px;
+  border: 2px solid rgba(123, 220, 255, 0.34);
+  box-shadow: 0 12px 20px rgba(14, 22, 36, 0.12);
+  background: #dfeaf8;
 }
 
 .review-card strong {
@@ -2456,7 +2501,7 @@ html[data-site-theme="light"] .feature-section .eyebrow {
   text-shadow: none !important;
 }
 
-/* 2026-06-15 Premium AI Tutor Cockpit landing refresh. */
+/* 2026-06-15 landing refresh. */
 .landing-hero__inner {
   grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.62fr);
   gap: 44px;
@@ -2787,7 +2832,7 @@ html[data-site-theme="dark"] .payment-methods {
   }
 }
 
-/* 2026-06-15 deep Premium AI Tutor Cockpit layer. */
+/* 2026-06-15 deep landing layer. */
 .cockpit-section {
   max-width: none;
   padding: 88px 24px;
@@ -2810,12 +2855,19 @@ html[data-site-theme="dark"] .payment-methods {
   min-width: 0;
 }
 
-.cockpit-copy h2,
-.device-flow__copy h2 {
+.cockpit-copy h2 {
   margin: 14px 0 0;
   color: var(--ink);
   font-size: clamp(2.25rem, 4.7vw, 4.5rem);
   line-height: 1.02;
+  font-weight: 950;
+}
+
+.device-flow__copy h2 {
+  margin: 14px 0 0;
+  color: var(--ink);
+  font-size: clamp(2.15rem, 3.4vw, 3.25rem);
+  line-height: 1.06;
   font-weight: 950;
 }
 
@@ -3028,7 +3080,7 @@ html[data-site-theme="dark"] .payment-methods {
   display: grid;
   gap: 14px;
   min-width: 0;
-  min-height: 372px;
+  min-height: 512px;
   padding: 18px;
   border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 8px;
@@ -3038,46 +3090,49 @@ html[data-site-theme="dark"] .payment-methods {
 }
 
 .scenario-card__visual {
-  display: grid;
-  gap: 14px;
-  min-height: 126px;
-  padding: 14px;
+  position: relative;
+  display: block;
+  min-height: 172px;
+  margin: 0;
   border-radius: 8px;
-  background: linear-gradient(135deg, #07111f, #15335b);
+  background: #07111f;
   color: #fff;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.scenario-card__visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(7, 17, 31, 0.12), rgba(7, 17, 31, 0.3)),
+    linear-gradient(120deg, rgba(123, 220, 255, 0.18), transparent 48%, rgba(245, 210, 122, 0.16));
+  pointer-events: none;
+}
+
+.scenario-card__visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 172px;
+  object-fit: cover;
+  transform: scale(1.02);
 }
 
 .scenario-card__visual span {
+  position: absolute;
+  z-index: 1;
+  left: 12px;
+  top: 12px;
   width: fit-content;
   padding: 7px 10px;
   border-radius: 999px;
-  background: rgba(245, 210, 122, 0.16);
-  color: #f5d27a;
+  background: rgba(7, 17, 31, 0.74);
+  color: #fff;
   font-size: 0.76rem;
   font-weight: 950;
-}
-
-.scenario-card__visual div {
-  display: grid;
-  gap: 7px;
-  margin-top: auto;
-}
-
-.scenario-card__visual i {
-  display: block;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.scenario-card__visual i:nth-child(2) {
-  width: 76%;
-  background: rgba(123, 220, 255, 0.72);
-}
-
-.scenario-card__visual i:nth-child(3) {
-  width: 56%;
-  background: rgba(143, 241, 208, 0.76);
+  backdrop-filter: blur(14px);
 }
 
 .scenario-card h3 {
@@ -3277,7 +3332,7 @@ html[data-site-theme="dark"] .scenario-modules span {
 }
 
 html[data-site-theme="dark"] .scenario-card__visual {
-  background: linear-gradient(135deg, #050914, #102541);
+  background: #050914;
 }
 
 html[data-site-theme="dark"] .scenario-card blockquote {
@@ -3287,9 +3342,11 @@ html[data-site-theme="dark"] .scenario-card blockquote {
 html[data-site-theme="light"] .cockpit-copy h2,
 html[data-site-theme="light"] .cockpit-kpis strong,
 html[data-site-theme="light"] .cockpit-lane strong,
+html[data-site-theme="light"] .scenario-copy h2,
 html[data-site-theme="light"] .scenario-card h3,
 html[data-site-theme="light"] .scenario-card blockquote,
 html[data-site-theme="light"] .device-flow__copy h2,
+html[data-site-theme="light"] .reviews-section h2,
 html[data-site-theme="light"] .device-flow__node h3,
 html[data-site-theme="light"] .plan-limit-table strong {
   color: #07111f !important;
@@ -3298,7 +3355,9 @@ html[data-site-theme="light"] .plan-limit-table strong {
 html[data-site-theme="light"] .cockpit-copy p,
 html[data-site-theme="light"] .cockpit-kpis span,
 html[data-site-theme="light"] .cockpit-lane p,
+html[data-site-theme="light"] .scenario-copy p,
 html[data-site-theme="light"] .scenario-card p,
+html[data-site-theme="light"] .reviews-section .section-copy p,
 html[data-site-theme="light"] .device-flow__node p,
 html[data-site-theme="light"] .plan-limit-table span,
 html[data-site-theme="light"] .plan-note,

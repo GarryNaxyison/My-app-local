@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { PublicSiteApp } from "./PublicSiteApp";
 import "./styles.css";
+import "./boldLanding.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

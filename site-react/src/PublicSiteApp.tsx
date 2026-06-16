@@ -32,6 +32,7 @@ import {
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { privacyDocumentHtml, termsDocumentHtml } from "./legacyLegalContent";
+import { BoldProductLanding } from "./BoldProductLanding";
 
 type PageId = "landing" | "privacy" | "terms";
 type SiteTheme = "light" | "dark";
@@ -115,19 +116,19 @@ const cockpitLanes = [
     icon: BrainCircuit,
     title: "AI Tutor",
     metric: "урок -> проверка",
-    body: "Объясняет фразу, дает пример, просит ответ и сразу показывает, что улучшить.",
+    body: "Объясняет фразу, дает пример, просит ответ и сразу показывает, что улучшить дальше.",
   },
   {
     icon: MessagesSquare,
     title: "Roleplay",
     metric: "контекст роли",
-    body: "Держит сценарий поездки, работы, экзамена или casual speaking без пустых реплик.",
+    body: "Держит живой сценарий поездки, работы, экзамена или casual speaking без пустых реплик.",
   },
   {
     icon: Headphones,
     title: "Voice Coach",
     metric: "score + weak words",
-    body: "Голосовые проверки, shadowing и TTS помогают слышать и исправлять произношение.",
+    body: "Голосовые проверки, shadowing и TTS помогают слышать и исправлять произношение на ходу.",
   },
   {
     icon: ScanText,
@@ -147,30 +148,34 @@ const scenarioCards = [
   {
     title: "Путешествия без паники",
     tag: "Travel",
-    body: "Check-in, кафе, транспорт, врач и small talk тренируются как короткие живые сцены.",
+    body: "В аэропорту, в отеле, в кафе или у врача отрабатываются короткие фразы, которые нужны прямо сейчас.",
     modules: ["Roleplay", "Photo", "Phrasebook"],
     prompt: "Could you help me check in?",
+    image: "/assets/scenarios/travel-ai-tutor.jpg",
   },
   {
     title: "Работа и созвоны",
     tag: "Work",
-    body: "Письма, созвоны, self-intro и уточняющие вопросы превращаются в безопасные репетиции.",
+    body: "Письма, созвоны, self-intro и уточняющие вопросы превращаются в репетиции, после которых легче говорить по делу.",
     modules: ["AI Tutor", "Review", "Notes"],
     prompt: "Let me clarify the deadline.",
+    image: "/assets/scenarios/work-ai-tutor.jpg",
   },
   {
     title: "Экзамен и уровень",
     tag: "Exam",
-    body: "A1-C2, грамматика, listening и speaking собираются в маршрут с понятным прогрессом.",
+    body: "A1-C2, грамматика, listening и speaking собираются в маршрут с понятным прогрессом и видимыми шагами.",
     modules: ["Lesson", "Listening", "Mistakes"],
     prompt: "I agree with the statement because...",
+    image: "/assets/scenarios/exam-ai-tutor.jpg",
   },
   {
     title: "Разговорная речь",
     tag: "Speaking",
-    body: "AI не просто оценивает фразу, а предлагает естественную версию и следующий повтор.",
+    body: "AI не просто оценивает фразу, а предлагает естественную версию и следующий повтор, пока речь не станет увереннее.",
     modules: ["Voice", "Shadowing", "XP"],
     prompt: "I have been trying to say...",
+    image: "/assets/scenarios/speaking-ai-tutor.jpg",
   },
 ] as const;
 
@@ -178,12 +183,12 @@ const deviceNodes = [
   {
     icon: Laptop,
     title: "Web app",
-    body: "Большой экран для AI Tutor, прогресса, тарифов, словаря ошибок и длинных сессий.",
+    body: "Большой экран для уроков, прогресса, тарифов, словаря ошибок и длинных сессий.",
   },
   {
     icon: Smartphone,
     title: "PWA и mobile web",
-    body: "Отдельная mobile-верстка для быстрых уроков, повторений и практики в дороге.",
+    body: "На телефоне удобно пройти короткий урок, повторить слова или потренировать фразу в дороге.",
   },
   {
     icon: MessageCircle,
@@ -246,21 +251,21 @@ const planCards = [
 const testimonials = [
   {
     name: "Анна",
-    initial: "A",
+    avatar: "/assets/testimonials/anna.jpg",
     role: "готовится к поездке",
-    text: "Перед поездкой я тренирую check-in, кафе и транспорт. Нужная фраза сразу попадает в заметки и повторение.",
+    text: "Перед вылетом я прогнала check-in, кафе и транспорт. В заметках остались именно те фразы, которые потом пригодились в отеле.",
   },
   {
     name: "Марат",
-    initial: "M",
+    avatar: "/assets/testimonials/marat.jpg",
     role: "учит английский для работы",
-    text: "В web app вижу ошибки и XP, в Telegram быстро повторяю слова. Профиль один, поэтому ничего не теряется.",
+    text: "Перед созвоном я репетирую self-intro и вопросы по срокам. После урока вижу ошибки, а слабые слова повторяю в Telegram.",
   },
   {
     name: "София",
-    initial: "S",
+    avatar: "/assets/testimonials/sofia.jpg",
     role: "тренирует произношение",
-    text: "Голосовой режим показывает конкретные слабые слова. Это ощущается как личный coach, а не обычный список упражнений.",
+    text: "Я слышу, где съедаю окончания, и сразу повторяю более естественную фразу. Это спокойнее, чем просто учить список слов.",
   },
 ];
 
@@ -367,7 +372,7 @@ export function PublicSiteApp() {
   return (
     <div className="public-shell">
       <SiteNav page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      {page === "landing" ? <LandingPage /> : <LegalPage page={page} />}
+      {page === "landing" ? <BoldProductLanding /> : <LegalPage page={page} />}
       <SiteFooter />
     </div>
   );
@@ -530,7 +535,7 @@ function LandingPage() {
 
       <section className="course-strip" aria-label="Курсы Poliglot AI">
         <div className="course-strip__intro">
-          <span className="eyebrow">Premium AI Tutor Cockpit</span>
+          <span className="eyebrow">AI Tutor</span>
           <h2>Маршруты под цель, а не бесконечная лента упражнений</h2>
           <p>Выберите режим для поездки, работы, экзамена или речи. Poliglot AI собирает урок, диалог, голос, фото и повторение в один управляемый цикл.</p>
         </div>
@@ -562,13 +567,13 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-band cockpit-section" aria-label="Premium AI Tutor Cockpit">
+      <section className="landing-band cockpit-section" aria-label="Как Poliglot AI ведет занятие">
         <div className="cockpit-shell">
           <div className="cockpit-copy">
-            <span className="eyebrow">AI Tutor Cockpit</span>
-            <h2>Премиальная панель, где каждый модуль ведет к следующему действию</h2>
+            <span className="eyebrow">AI Tutor</span>
+            <h2>Каждое занятие заканчивается понятным следующим шагом</h2>
             <p>
-              Сайт должен сразу показывать ценность продукта: не отдельные упражнения, а систему, где урок, речь, фото, ошибки и прогресс работают как один персональный преподаватель.
+              Poliglot AI не оставляет вас один на один с упражнением. Он объясняет фразу, дает попробовать ее в диалоге, разбирает голос или фото и возвращает к ошибкам, пока слабое место не станет привычным.
             </p>
             <div className="cockpit-kpis" aria-label="Ключевые показатели Poliglot AI">
               <span>
@@ -602,7 +607,7 @@ function LandingPage() {
             })}
           </div>
 
-          <div className="cockpit-console" aria-label="Пример панели AI Tutor">
+          <div className="cockpit-console" aria-label="Пример занятия AI Tutor">
             <div className="cockpit-console__top">
               <span>Live learning loop</span>
               <strong>84/100</strong>
@@ -638,20 +643,16 @@ function LandingPage() {
       <section className="landing-band scenario-section">
         <div className="section-copy">
           <span className="eyebrow">Сценарии</span>
-          <h2>Лендинг продает не абстрактный AI, а понятные ситуации, где продукт нужен сегодня</h2>
-          <p>Каждая цель раскрывает реальные функции: roleplay, фото, голос, ошибки, progress и повторение. Это помогает пользователю увидеть, за что он платит.</p>
+          <h2>Ситуации, ради которых язык нужен уже сегодня</h2>
+          <p>В аэропорту, на созвоне, перед экзаменом или в обычном разговоре Poliglot AI дает не теорию ради теории, а короткую практику с фразами, голосом, фото и разбором ошибок.</p>
         </div>
         <div className="scenario-grid">
           {scenarioCards.map((scenario, index) => (
             <motion.article key={scenario.title} className="scenario-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.36, delay: index * 0.05 }}>
-              <div className="scenario-card__visual" aria-hidden="true">
+              <figure className="scenario-card__visual">
+                <img src={scenario.image} alt="" loading="lazy" />
                 <span>{scenario.tag}</span>
-                <div>
-                  <i />
-                  <i />
-                  <i />
-                </div>
-              </div>
+              </figure>
               <h3>{scenario.title}</h3>
               <p>{scenario.body}</p>
               <div className="scenario-modules">
@@ -707,7 +708,8 @@ function LandingPage() {
       <section className="device-flow" aria-label="Связка устройств Poliglot AI">
         <div className="device-flow__copy">
           <span className="eyebrow">Web + mobile + Telegram</span>
-          <h2>Отдельно красиво на desktop и mobile, но с одним учебным профилем</h2>
+          <h2>Один профиль для web, mobile и Telegram</h2>
+          <p>Начните большой урок на компьютере, повторите слабые слова с телефона и вернитесь в Telegram без потери прогресса, Premium-статуса и заметок.</p>
         </div>
         <div className="device-flow__grid">
           {deviceNodes.map((node, index) => {
@@ -740,14 +742,14 @@ function LandingPage() {
       <section id="reviews" className="landing-band reviews-section">
         <div className="section-copy">
           <span className="eyebrow">Отзывы</span>
-          <h2>Премиальный опыт без лишнего шума</h2>
-          <p>Лендинг показывает реальный учебный цикл: урок, диалог, голос, фото, ошибки, тарифы и единый прогресс до регистрации.</p>
+          <h2>Истории пользователей, которым важно говорить увереннее</h2>
+          <p>Короткие занятия помогают людям закрывать конкретные задачи: поездка, созвон, экзамен, произношение и повторение слабых слов.</p>
         </div>
         <div className="reviews-grid">
           {testimonials.map((item, index) => (
             <motion.article key={item.name} className="review-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.38, delay: index * 0.06 }}>
               <div>
-                <span>{item.initial}</span>
+                <img src={item.avatar} alt="" loading="lazy" />
                 <div>
                   <strong>{item.name}</strong>
                   <small>{item.role}</small>

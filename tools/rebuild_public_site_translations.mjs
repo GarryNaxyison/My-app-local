@@ -12,6 +12,7 @@ const MIRROR_PHRASES_PATHS = [
 const PAGES = ["poliglot-ai.html", "terms.html", "privacy.html"];
 const REACT_SOURCES = [
   path.join(ROOT, "site-react", "src", "PublicSiteApp.tsx"),
+  path.join(ROOT, "site-react", "src", "BoldProductLanding.tsx"),
   path.join(ROOT, "site-react", "src", "legacyLegalContent.ts"),
 ];
 const GENERATED_START = "// <public-site-translations-generated>";
@@ -459,6 +460,7 @@ async function main() {
   const existingGenerated = extractGeneratedTranslations(phraseFile);
   const i18nSource = fs.readFileSync(I18N_PATH, "utf8");
   const candidates = collectCandidates();
+  const candidateSet = new Set(candidates);
   const currentSites = buildCurrentSites(phraseFile, i18nSource);
   const englishSite = currentSites.en;
   const generated = JSON.parse(JSON.stringify(existingGenerated));
@@ -496,7 +498,7 @@ async function main() {
   await Promise.all(workers);
 
   const ordered = {};
-  for (const source of Object.keys(generated).sort((a, b) => a.localeCompare(b, "ru"))) {
+  for (const source of Object.keys(generated).filter((source) => candidateSet.has(source)).sort((a, b) => a.localeCompare(b, "ru"))) {
     ordered[source] = {};
     for (const [code] of LANGS) {
       if (code !== "ru" && generated[source][code]) ordered[source][code] = generated[source][code];
