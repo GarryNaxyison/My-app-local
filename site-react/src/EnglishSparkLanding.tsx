@@ -1,15 +1,20 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
+  Activity,
   ArrowRight,
   BrainCircuit,
   Camera,
   CheckCircle,
   ChevronRight,
+  Headphones,
+  Languages,
   Laptop,
+  LineChart,
   MessageCircle,
   Mic,
   Repeat2,
+  ScanText,
   Smartphone,
   Zap,
 } from "lucide-react";
@@ -99,6 +104,102 @@ const modules = [
     icon: Camera,
     title: "Photo Practice",
     body: "A menu or sign becomes translation, context, notes, and a short practice loop.",
+  },
+] as const;
+
+const courseRoutes = [
+  ["AI Tutor Core", "A complete A1-C2 route with lessons, practice, review, and XP in one controlled loop.", "A1-C2"],
+  ["Travel & Work", "Roleplay scenes, photo translation, quick phrases, and dialogues for moments outside the classroom.", "role + photo"],
+  ["Voice Coach", "Shadowing, weak words, pronunciation score, and voice history for steady speaking practice.", "voice"],
+] as const;
+
+const cockpitLanes = [
+  {
+    icon: BrainCircuit,
+    title: "AI Tutor",
+    metric: "lesson -> check",
+    body: "Explains a phrase, gives an example, asks for your answer, and shows the next correction.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Roleplay",
+    metric: "context role",
+    body: "Keeps travel, work, exam, or casual speaking scenarios focused without empty replies.",
+  },
+  {
+    icon: Headphones,
+    title: "Voice Coach",
+    metric: "score + weak words",
+    body: "Voice checks, shadowing, and repeat prompts help you hear and fix pronunciation quickly.",
+  },
+  {
+    icon: ScanText,
+    title: "Photo Tools",
+    metric: "text from image",
+    body: "Menus, signs, or tasks become translation, notes, and a practice prompt in context.",
+  },
+  {
+    icon: Repeat2,
+    title: "Mistake Loop",
+    metric: "mistake -> repeat",
+    body: "Mistakes, notes, weak words, XP, and streaks keep weak spots visible until they become easy.",
+  },
+] as const;
+
+const scenarioCards = [
+  {
+    title: "Travel without panic",
+    tag: "Travel",
+    body: "Short hotel, cafe, airport, and doctor phrases are practiced before the moment gets stressful.",
+    modules: ["Roleplay", "Photo", "Phrasebook"],
+    prompt: "Could you help me check in?",
+    image: "/assets/scenarios/travel-ai-tutor.jpg",
+    alt: "Travel practice scene",
+  },
+  {
+    title: "Work calls and messages",
+    tag: "Work",
+    body: "Emails, calls, self-intros, and deadline questions become rehearsals that make speaking easier.",
+    modules: ["AI Tutor", "Review", "Notes"],
+    prompt: "Let me clarify the deadline.",
+    image: "/assets/scenarios/work-ai-tutor.jpg",
+    alt: "Work practice scene",
+  },
+  {
+    title: "Exam and level progress",
+    tag: "Exam",
+    body: "A1-C2 vocabulary, grammar, listening, and speaking stay in a route with visible progress steps.",
+    modules: ["Lesson", "Listening", "Mistakes"],
+    prompt: "I agree with the statement because...",
+    image: "/assets/scenarios/exam-ai-tutor.jpg",
+    alt: "Exam practice scene",
+  },
+  {
+    title: "Everyday conversation",
+    tag: "Speaking",
+    body: "The tutor gives a natural version and a next repetition until your answer sounds more confident.",
+    modules: ["Voice", "Shadowing", "XP"],
+    prompt: "I have been trying to say...",
+    image: "/assets/scenarios/speaking-ai-tutor.jpg",
+    alt: "Speaking practice scene",
+  },
+] as const;
+
+const deviceNodes = [
+  {
+    icon: Laptop,
+    title: "Web app",
+    body: "Use the large screen for longer sessions, pricing, progress, mistake review, and AI Tutor work.",
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile web",
+    body: "Run short lessons, repeat weak words, or practice a phrase when you are away from the desk.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Telegram",
+    body: "Start quickly, receive reminders, send voice, and keep practicing from the same profile.",
   },
 ] as const;
 
@@ -288,6 +389,158 @@ export function EnglishSparkLanding() {
               </div>
             </div>
           </motion.div>
+        </div>
+      </section>
+
+      <section className="course-strip" aria-label="Poliglot AI routes">
+        <div className="course-strip__intro">
+          <span className="eyebrow">AI Tutor routes</span>
+          <h2>Routes for the goal, not an endless exercise feed</h2>
+          <p>Choose travel, work, exam, or conversation practice. Poliglot AI connects lesson, dialogue, voice, photo, and review into one controlled cycle.</p>
+        </div>
+        <div className="course-cards">
+          {courseRoutes.map(([title, body, badge], index) => (
+            <motion.a key={title} href={WEB_APP_HREF} className="course-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.42, delay: index * 0.05 }}>
+              <span>{badge}</span>
+              <h3>{title}</h3>
+              <p>{body}</p>
+              <b>
+                Start route <ChevronRight size={16} />
+              </b>
+            </motion.a>
+          ))}
+        </div>
+        <div className="course-stats">
+          <span>
+            <strong>A1-C2</strong>
+            learning levels
+          </span>
+          <span>
+            <strong>35</strong>
+            interface languages
+          </span>
+          <span>
+            <strong>1</strong>
+            profile for web, PWA, Telegram
+          </span>
+        </div>
+      </section>
+
+      <section className="landing-band cockpit-section" aria-label="How Poliglot AI runs a lesson">
+        <div className="cockpit-shell">
+          <div className="cockpit-copy">
+            <span className="eyebrow">AI Tutor cockpit</span>
+            <h2>Every session ends with a visible next step</h2>
+            <p>Poliglot AI does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.</p>
+            <div className="cockpit-kpis" aria-label="Poliglot AI product metrics">
+              <span>
+                <strong>35</strong>
+                interface languages
+              </span>
+              <span>
+                <strong>A1-C2</strong>
+                level routes
+              </span>
+              <span>
+                <strong>1</strong>
+                profile everywhere
+              </span>
+            </div>
+          </div>
+
+          <div className="cockpit-lanes">
+            {cockpitLanes.map((lane, index) => {
+              const Icon = lane.icon;
+              return (
+                <motion.article key={lane.title} className="cockpit-lane" initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.35 }} transition={{ duration: 0.34, delay: index * 0.04 }}>
+                  <Icon size={20} />
+                  <div>
+                    <strong>{lane.title}</strong>
+                    <p>{lane.body}</p>
+                  </div>
+                  <span>{lane.metric}</span>
+                </motion.article>
+              );
+            })}
+          </div>
+
+          <div className="cockpit-console" aria-label="AI Tutor lesson example">
+            <div className="cockpit-console__top">
+              <span>Live learning loop</span>
+              <strong>84/100</strong>
+            </div>
+            <div className="cockpit-console__screen">
+              <div className="cockpit-status">
+                <Activity size={18} />
+                <span>AI Tutor is checking the answer</span>
+              </div>
+              <div className="cockpit-dialogue">
+                <p>Say it naturally: "Could you help me check in?"</p>
+                <p>Better: "I have a reservation under my name."</p>
+              </div>
+              <div className="cockpit-metric-grid">
+                <span>
+                  <Zap size={17} />
+                  XP +12
+                </span>
+                <span>
+                  <LineChart size={17} />
+                  weak word fixed
+                </span>
+                <span>
+                  <Languages size={17} />
+                  translation saved
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-band scenario-section">
+        <div className="section-copy">
+          <span className="eyebrow">Scenarios</span>
+          <h2>Real situations where the language has to work today</h2>
+          <p>At the airport, on a work call, before an exam, or in everyday conversation, Poliglot AI turns practice into a concrete speaking moment.</p>
+        </div>
+        <div className="scenario-grid">
+          {scenarioCards.map((scenario, index) => (
+            <motion.article key={scenario.title} className="scenario-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.36, delay: index * 0.05 }}>
+              <figure className="scenario-card__visual">
+                <img src={scenario.image} alt={scenario.alt} loading="lazy" />
+                <span>{scenario.tag}</span>
+              </figure>
+              <h3>{scenario.title}</h3>
+              <p>{scenario.body}</p>
+              <div className="scenario-modules">
+                {scenario.modules.map((module) => (
+                  <span key={module}>{module}</span>
+                ))}
+              </div>
+              <blockquote>{scenario.prompt}</blockquote>
+            </motion.article>
+          ))}
+        </div>
+      </section>
+
+      <section className="device-flow" aria-label="Poliglot AI device flow">
+        <div className="device-flow__copy">
+          <span className="eyebrow">Web + mobile + Telegram</span>
+          <h2>One profile for web, mobile, and Telegram</h2>
+          <p>Start a longer lesson on desktop, repeat weak words from mobile, and return to Telegram without losing Premium status, progress, notes, or mistake history.</p>
+        </div>
+        <div className="device-flow__grid">
+          {deviceNodes.map((node, index) => {
+            const Icon = node.icon;
+            return (
+              <motion.article key={node.title} className="device-flow__node" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.34, delay: index * 0.05 }}>
+                <Icon size={24} />
+                <h3>{node.title}</h3>
+                <p>{node.body}</p>
+                {index < deviceNodes.length - 1 ? <span className="device-flow__connector" aria-hidden="true" /> : null}
+              </motion.article>
+            );
+          })}
         </div>
       </section>
 

@@ -192,13 +192,24 @@
 .spark-section,
 .pricing-section,
 .memory-loop-section,
-.final-cta-section {
+.final-cta-section,
+.course-strip,
+.device-flow {
   max-width: 1180px;
   margin: 0 auto;
+}
+
+.spark-section,
+.pricing-section,
+.memory-loop-section,
+.final-cta-section {
   padding: 104px 24px;
 }
 
 .english-spark-landing .section-copy h2,
+.english-spark-landing .course-strip__intro h2,
+.english-spark-landing .cockpit-copy h2,
+.english-spark-landing .device-flow__copy h2,
 .memory-loop-section h2,
 .final-cta-section h2 {
   color: #ffffff;
@@ -208,6 +219,9 @@
 }
 
 .english-spark-landing .section-copy p,
+.english-spark-landing .course-strip__intro p,
+.english-spark-landing .cockpit-copy p,
+.english-spark-landing .device-flow__copy p,
 .memory-loop-section p,
 .final-cta-section p {
   color: rgba(236, 246, 255, 0.78);
@@ -215,6 +229,13 @@
 
 .section-copy,
 .memory-loop-section__copy,
+.course-card,
+.course-stats span,
+.cockpit-copy,
+.cockpit-lane,
+.cockpit-console,
+.scenario-card,
+.device-flow__node,
 .daily-step,
 .module-card,
 .entry-panel,
@@ -289,7 +310,15 @@
 .module-card h3,
 .entry-panel h3,
 .plan-card h3,
-.review-card strong {
+.review-card strong,
+.course-card h3,
+.course-stats strong,
+.cockpit-copy h2,
+.cockpit-kpis strong,
+.cockpit-lane strong,
+.scenario-card h3,
+.scenario-card blockquote,
+.device-flow__node h3 {
   color: #ffffff;
 }
 
@@ -298,9 +327,44 @@
 .entry-panel p,
 .plan-card p,
 .review-card p,
+.course-card p,
+.course-stats span,
+.cockpit-copy p,
+.cockpit-kpis span,
+.cockpit-lane p,
+.scenario-card p,
+.device-flow__node p,
 .plan-card li,
 .review-card small {
   color: rgba(236, 246, 255, 0.74);
+}
+
+.english-spark-landing .course-strip {
+  padding: 96px 24px 72px;
+}
+
+.english-spark-landing .cockpit-section {
+  max-width: none;
+}
+
+.english-spark-landing .scenario-section {
+  max-width: none;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.english-spark-landing .scenario-section > .section-copy,
+.english-spark-landing .scenario-grid {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.english-spark-landing .course-card,
+.english-spark-landing .cockpit-lane,
+.english-spark-landing .scenario-card,
+.english-spark-landing .device-flow__node {
+  min-width: 0;
 }
 
 .memory-loop-section {
@@ -477,19 +541,35 @@ html[data-site-theme="light"] .english-spark-landing .landing-hero {
 html[data-site-theme="light"] .spark-section,
 html[data-site-theme="light"] .pricing-section,
 html[data-site-theme="light"] .memory-loop-section,
-html[data-site-theme="light"] .final-cta-section {
+html[data-site-theme="light"] .final-cta-section,
+html[data-site-theme="light"] .course-strip,
+html[data-site-theme="light"] .cockpit-section,
+html[data-site-theme="light"] .scenario-section,
+html[data-site-theme="light"] .device-flow {
   color: #07111f;
 }
 
 html[data-site-theme="light"] .english-spark-landing .section-copy h2,
+html[data-site-theme="light"] .english-spark-landing .course-strip__intro h2,
+html[data-site-theme="light"] .english-spark-landing .cockpit-copy h2,
+html[data-site-theme="light"] .english-spark-landing .device-flow__copy h2,
 html[data-site-theme="light"] .memory-loop-section h2,
 html[data-site-theme="light"] .final-cta-section h2 {
   color: #07111f;
 }
 
 html[data-site-theme="light"] .english-spark-landing .section-copy p,
+html[data-site-theme="light"] .english-spark-landing .course-strip__intro p,
+html[data-site-theme="light"] .english-spark-landing .cockpit-copy p,
+html[data-site-theme="light"] .english-spark-landing .device-flow__copy p,
 html[data-site-theme="light"] .memory-loop-section p,
 html[data-site-theme="light"] .final-cta-section p,
+html[data-site-theme="light"] .course-card p,
+html[data-site-theme="light"] .course-stats span,
+html[data-site-theme="light"] .cockpit-kpis span,
+html[data-site-theme="light"] .cockpit-lane p,
+html[data-site-theme="light"] .scenario-card p,
+html[data-site-theme="light"] .device-flow__node p,
 html[data-site-theme="light"] .daily-step p,
 html[data-site-theme="light"] .module-card p,
 html[data-site-theme="light"] .entry-panel p,
@@ -505,7 +585,12 @@ html[data-site-theme="light"] .module-card,
 html[data-site-theme="light"] .entry-panel,
 html[data-site-theme="light"] .plan-card,
 html[data-site-theme="light"] .review-card,
-html[data-site-theme="light"] .memory-node {
+html[data-site-theme="light"] .memory-node,
+html[data-site-theme="light"] .course-card,
+html[data-site-theme="light"] .course-stats span,
+html[data-site-theme="light"] .cockpit-lane,
+html[data-site-theme="light"] .scenario-card,
+html[data-site-theme="light"] .device-flow__node {
   border-color: rgba(15, 23, 42, 0.12);
   background: rgba(255, 255, 255, 0.9);
   color: #07111f;
@@ -524,6 +609,13 @@ html[data-site-theme="light"] .module-card h3,
 html[data-site-theme="light"] .entry-panel h3,
 html[data-site-theme="light"] .plan-card h3,
 html[data-site-theme="light"] .review-card strong,
+html[data-site-theme="light"] .course-card h3,
+html[data-site-theme="light"] .course-stats strong,
+html[data-site-theme="light"] .cockpit-kpis strong,
+html[data-site-theme="light"] .cockpit-lane strong,
+html[data-site-theme="light"] .scenario-card h3,
+html[data-site-theme="light"] .scenario-card blockquote,
+html[data-site-theme="light"] .device-flow__node h3,
 html[data-site-theme="light"] .price-line strong {
   color: #07111f;
 }
@@ -571,8 +663,25 @@ html[data-site-theme="light"] .site-footer strong {
 .english-spark-landing button,
 .english-spark-landing small,
 .english-spark-landing span,
-.english-spark-landing li {
+.english-spark-landing li,
+.english-spark-landing article,
+.english-spark-landing figure,
+.english-spark-landing blockquote,
+.english-spark-landing div {
   min-width: 0;
+}
+
+.english-spark-landing .course-card,
+.english-spark-landing .cockpit-lane,
+.english-spark-landing .cockpit-console,
+.english-spark-landing .scenario-card,
+.english-spark-landing .device-flow__node {
+  overflow: hidden;
+}
+
+.english-spark-landing .device-flow__connector {
+  right: 12px;
+  transform: none;
 }
 
 @media (max-width: 920px) {
@@ -584,8 +693,22 @@ html[data-site-theme="light"] .site-footer strong {
   .daily-steps,
   .module-grid,
   .pricing-grid,
-  .reviews-grid {
+  .reviews-grid,
+  .course-cards,
+  .scenario-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cockpit-shell,
+  .device-flow__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cockpit-shell {
+    grid-template-areas:
+      "copy"
+      "console"
+      "lanes";
   }
 }
 
@@ -664,7 +787,35 @@ html[data-site-theme="light"] .site-footer strong {
   .entry-grid,
   .pricing-grid,
   .reviews-grid,
-  .memory-grid {
+  .memory-grid,
+  .course-cards,
+  .course-stats,
+  .cockpit-kpis,
+  .cockpit-metric-grid,
+  .scenario-grid,
+  .device-flow__grid {
     grid-template-columns: 1fr;
+  }
+
+  .english-spark-landing .course-strip,
+  .english-spark-landing .cockpit-section,
+  .english-spark-landing .scenario-section,
+  .english-spark-landing .device-flow {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .cockpit-lane {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .cockpit-lane > span {
+    grid-column: 1 / -1;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .device-flow__connector {
+    display: none;
   }
 }

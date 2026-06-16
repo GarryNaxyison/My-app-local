@@ -215,6 +215,40 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   expect(issues.overflowing).toEqual([]);
 });
 
+test("landing keeps rich product sections below the restored hero", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=en");
+
+  await expect(page.locator(".landing-hero")).toBeVisible();
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
+  await expect(page.locator(".course-strip")).toBeVisible();
+  await expect(page.locator(".course-card")).toHaveCount(3);
+  await expect(page.locator(".course-card", { hasText: "AI Tutor Core" })).toContainText("Start route");
+  await expect(page.locator(".course-stats")).toContainText("35");
+
+  await expect(page.locator(".cockpit-section")).toBeVisible();
+  await expect(page.locator(".cockpit-lane")).toHaveCount(5);
+  await expect(page.locator(".cockpit-console")).toContainText("Live learning loop");
+  await expect(page.locator(".cockpit-console")).toContainText("weak word fixed");
+
+  await expect(page.locator(".scenario-section")).toBeVisible();
+  await expect(page.locator(".scenario-card")).toHaveCount(4);
+  await expect(page.locator(".scenario-card img")).toHaveCount(4);
+  const scenarioImages = await page.locator(".scenario-card img").evaluateAll((imgs) =>
+    imgs.map((img) => ({ src: (img as HTMLImageElement).getAttribute("src"), alt: (img as HTMLImageElement).getAttribute("alt") })),
+  );
+  expect(scenarioImages).toEqual([
+    { src: "/assets/scenarios/travel-ai-tutor.jpg", alt: "Travel practice scene" },
+    { src: "/assets/scenarios/work-ai-tutor.jpg", alt: "Work practice scene" },
+    { src: "/assets/scenarios/exam-ai-tutor.jpg", alt: "Exam practice scene" },
+    { src: "/assets/scenarios/speaking-ai-tutor.jpg", alt: "Speaking practice scene" },
+  ]);
+
+  await expect(page.locator(".device-flow")).toBeVisible();
+  await expect(page.locator(".device-flow__node")).toHaveCount(3);
+  await expect(page.locator(".device-flow__node", { hasText: "Web app" })).toContainText("longer sessions");
+  await expect(page.locator(".device-flow__node", { hasText: "Telegram" })).toContainText("same profile");
+});
+
 test("landing hero keeps animated motion within a bounded frame budget", async ({ page }) => {
   await page.addInitScript(() => {
     const originalRequestAnimationFrame = window.requestAnimationFrame.bind(window);
