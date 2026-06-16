@@ -7620,10 +7620,10 @@ function LeaderboardView({ leaderboard, leaderboardMeta, leaderboardLanguage, se
   );
 }
 
-function PremiumView({ premiumPlans, loadPremiumPlans, paymentHistory, busy, activationKey, setActivationKey, activateKey, copy, setPayment }: ViewRendererProps) {
+function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, busy, activationKey, setActivationKey, activateKey, copy, setPayment }: ViewRendererProps) {
   useEffect(() => {
-    if (!premiumPlans.length && busy !== "premium-plans") void loadPremiumPlans();
-  }, []);
+    void loadPremiumPlans();
+  }, [user.interface_language]);
   const plans = premiumPlanCatalog(premiumPlans, copy);
   return (
     <div className="premium-grid-v2">

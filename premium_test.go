@@ -167,6 +167,11 @@ func TestPremiumPlanLandingCopyCoversAllInterfaceLanguages(t *testing.T) {
 	if len(languages) != 35 {
 		t.Fatalf("interface language count = %d, want 35", len(languages))
 	}
+	russian := map[string]string{
+		"free":     premiumPlanLandingCopy(userState{InterfaceLanguage: "ru"}, "free").Description,
+		"premium":  premiumPlanLandingCopy(userState{InterfaceLanguage: "ru"}, "premium").Description,
+		"platinum": premiumPlanLandingCopy(userState{InterfaceLanguage: "ru"}, "platinum").Description,
+	}
 
 	for _, language := range languages {
 		for _, tier := range []string{"free", "premium", "platinum"} {
@@ -179,6 +184,9 @@ func TestPremiumPlanLandingCopyCoversAllInterfaceLanguages(t *testing.T) {
 			}
 			if tier == "free" && len(copy.Locked) == 0 {
 				t.Fatalf("%s free landing copy has no locked features", language.Code)
+			}
+			if language.Code != "ru" && copy.Description == russian[tier] {
+				t.Fatalf("%s %s landing copy still uses Russian description", language.Code, tier)
 			}
 		}
 	}

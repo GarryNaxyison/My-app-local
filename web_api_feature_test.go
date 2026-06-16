@@ -1362,6 +1362,14 @@ func TestPremiumPlansDTOIncludesLandingPricingCopy(t *testing.T) {
 	if platinumYear["title"] != "Platinum на год" || platinumYear["label"] != "Интенсив" {
 		t.Fatalf("platinum yearly title/label mismatch: %#v", platinumYear)
 	}
+
+	englishPlans := api.premiumPlansDTO(userState{InterfaceLanguage: "en"})
+	if englishPlans[0]["label"] != "Try the path" || englishPlans[0]["body"] == free["body"] {
+		t.Fatalf("English free plan was not localized: %#v", englishPlans[0])
+	}
+	if englishPlans[1]["label"] != "Regular study" || englishPlans[1]["body"] == premium["body"] {
+		t.Fatalf("English premium plan was not localized: %#v", englishPlans[1])
+	}
 }
 
 func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {

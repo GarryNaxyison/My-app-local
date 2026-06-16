@@ -378,6 +378,26 @@ func TestReactPremiumPlansUseLandingPricingCopy(t *testing.T) {
 	}
 }
 
+func TestReactPremiumReloadsPlansWhenInterfaceLanguageChanges(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(source)
+	for _, want := range []string{
+		`function PremiumView({ user, premiumPlans`,
+		`}, [user.interface_language]);`,
+		`void loadPremiumPlans();`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Fatalf("React PremiumView is missing language reload marker %q", want)
+		}
+	}
+	if strings.Contains(page, `if (!premiumPlans.length && busy !== "premium-plans") void loadPremiumPlans();`) {
+		t.Fatal("PremiumView still keeps old plan cache after interface language changes")
+	}
+}
+
 func TestReactFrontendKeepsExpandedInterfaceLocales(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
 	if err != nil {
