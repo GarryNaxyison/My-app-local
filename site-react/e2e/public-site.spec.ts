@@ -38,118 +38,134 @@ const siteLocaleCodes = [
   "vi",
 ];
 
-test("landing presents the premium AI tutor cockpit without losing public contracts", async ({ page }) => {
+const ruCopy = {
+  privacy: "\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430",
+  terms: "\u0423\u0441\u043b\u043e\u0432\u0438\u044f",
+  aiTutor: "AI-\u0440\u0435\u043f\u0435\u0442\u0438\u0442\u043e\u0440\u043e\u043c",
+  lesson: "\u0423\u0440\u043e\u043a",
+  dialogue: "\u0414\u0438\u0430\u043b\u043e\u0433",
+  voice: "\u0413\u043e\u043b\u043e\u0441",
+  photo: "\u0424\u043e\u0442\u043e",
+  fastPractice: "\u0431\u044b\u0441\u0442\u0440\u0430\u044f \u043f\u0440\u0430\u043a\u0442\u0438\u043a\u0430",
+  freePrice: "0 \u20bd",
+  premiumPrice: "300 \u20bd",
+  platinumPrice: "590 \u20bd",
+  oldStart: "\u041d\u0430\u0447\u0430\u0442\u044c \u043e\u0431\u0443\u0447\u0435\u043d\u0438\u0435",
+  oldCourses: "\u041a\u0443\u0440\u0441\u044b \u043d\u0430 \u0432\u044b\u0431\u043e\u0440",
+} as const;
+
+test("landing presents the bold product cockpit without losing public contracts", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/poliglot-ai.html");
 
   await expect(page.locator(".public-nav")).toBeVisible();
-  await expect(page.locator(".public-nav a", { hasText: /^v2$/i })).toHaveCount(0);
   await expect(page.locator(".public-brand__logo img")).toBeVisible();
-  const navPrivacyLink = page.locator(".public-nav nav a", { hasText: "Политика" });
-  const navTermsLink = page.locator(".public-nav nav a", { hasText: "Условия" });
-  await expect(navPrivacyLink).toBeVisible();
-  await expect(navPrivacyLink).toHaveAttribute("href", /privacy\.html(\?.*)?$/);
-  await expect(navTermsLink).toBeVisible();
-  await expect(navTermsLink).toHaveAttribute("href", /terms\.html(\?.*)?$/);
+  await expect(page.locator(".public-nav nav a", { hasText: ruCopy.privacy })).toBeVisible();
+  await expect(page.locator(".public-nav nav a", { hasText: ruCopy.terms })).toBeVisible();
+  await expect(page.locator("[data-site-language-select]")).toBeVisible();
 
-  const appLinks = await page.locator('a[href^="/app"]').evaluateAll((links) => [...new Set(links.map((link) => (link as HTMLAnchorElement).getAttribute("href")))].sort());
-  expect(appLinks).toEqual(["/app/"]);
+  await expect(page.locator(".bold-landing")).toBeVisible();
+  await expect(page.locator(".bold-hero")).toBeVisible();
+  await expect(page.locator(".bold-hero__matter canvas")).toHaveCount(1);
+  const boldCanvasLocations = await page.locator(".bold-landing canvas").evaluateAll((canvases) =>
+    canvases.map((canvas) => Boolean(canvas.closest(".bold-hero"))),
+  );
+  expect(boldCanvasLocations).toEqual([true]);
+  await expect(page.locator(".spark-hero")).toHaveCount(0);
 
-  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
-  const lightHero = await page.locator(".landing-hero").evaluate((hero) => {
-    document.documentElement.dataset.siteTheme = "light";
-    const heroBox = hero.getBoundingClientRect();
-    const matter = hero.querySelector(".landing-hero__matter") as HTMLElement | null;
-    const matterBox = matter?.getBoundingClientRect();
-    const h1 = hero.querySelector("h1") as HTMLElement;
-    const firstGoal = hero.querySelector(".hero-goals a strong") as HTMLElement;
-    return {
-      heroWidth: heroBox.width,
-      heroHeight: heroBox.height,
-      matterWidth: matterBox?.width || 0,
-      matterHeight: matterBox?.height || 0,
-      h1Color: getComputedStyle(h1).color,
-      firstGoalColor: getComputedStyle(firstGoal).color,
-    };
-  });
-  expect(lightHero.matterWidth).toBeGreaterThan(lightHero.heroWidth * 0.9);
-  expect(lightHero.matterHeight).toBeGreaterThan(lightHero.heroHeight * 0.9);
-  expect(lightHero.h1Color).not.toBe("rgb(7, 17, 31)");
-  expect(lightHero.firstGoalColor).not.toBe("rgb(7, 17, 31)");
-  const lightEyebrow = await page.locator(".workflow-section .eyebrow").evaluate((node) => {
-    const style = getComputedStyle(node);
-    return {
-      color: style.color,
-      textFill: style.getPropertyValue("-webkit-text-fill-color"),
-      background: style.backgroundImage || style.backgroundColor,
-    };
-  });
-  expect(lightEyebrow.color).toBe("rgb(15, 23, 42)");
-  expect(lightEyebrow.textFill).toBe("rgb(15, 23, 42)");
-  expect(lightEyebrow.background).not.toBe("rgba(243, 184, 75, 0.1)");
+  const bodyFontFamily = await page.locator("body").evaluate((node) => getComputedStyle(node).fontFamily);
+  expect(bodyFontFamily).not.toContain("Inter");
+  expect(bodyFontFamily).not.toContain("Inrer");
+  const forbiddenLandingFonts = await page.locator(".bold-landing, .bold-landing *").evaluateAll((nodes) =>
+    nodes
+      .map((node) => getComputedStyle(node as HTMLElement).fontFamily)
+      .filter((fontFamily) => /Inter|Inrer/.test(fontFamily)),
+  );
+  expect(forbiddenLandingFonts).toEqual([]);
 
-  await expect(page.locator("h1")).toContainText("AI-репетитором");
-  await expect(page.locator(".hero-goals a")).toHaveCount(4);
-  await expect(page.locator(".hero-goals")).toContainText("Путешествия");
-  await expect(page.locator(".hero-goals")).toContainText("Работа");
-  await expect(page.locator(".hero-goals")).toContainText("Экзамен");
-  await expect(page.locator(".hero-goals")).toContainText("Разговорная речь");
-  await expect(page.locator(".hero-language-picker a")).toHaveCount(8);
-  await expect(page.locator(".course-card")).toHaveCount(3);
-  await expect(page.locator(".cockpit-section")).toBeVisible();
-  await expect(page.locator(".cockpit-lane")).toHaveCount(5);
-  await expect(page.locator(".scenario-card")).toHaveCount(4);
-  await expect(page.locator(".device-flow__node")).toHaveCount(3);
-  await expect(page.locator(".feature-card")).toHaveCount(6);
-  await expect(page.locator(".review-card")).toHaveCount(3);
-  await expect(page.locator(".faq-grid article")).toHaveCount(4);
-  await expect(page.locator(".hero-proof")).toContainText("35");
-  await expect(page.locator(".hero-proof")).toContainText("A1-C2");
-  await expect(page.locator(".hero-proof")).toContainText("Free");
+  await expect(page.locator('a[data-entry="web-app"]')).toHaveCount(3);
+  const webEntryHrefs = await page.locator('a[data-entry="web-app"]').evaluateAll((links) =>
+    links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
+  );
+  expect(webEntryHrefs).toEqual(["/app/", "/app/", "/app/"]);
+  await expect(page.locator('a[data-entry="telegram"]')).toHaveCount(3);
+  const telegramEntryHrefs = await page.locator('a[data-entry="telegram"]').evaluateAll((links) =>
+    links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
+  );
+  expect(telegramEntryHrefs).toEqual([
+    "https://t.me/poliglot_ai_bot",
+    "https://t.me/poliglot_ai_bot",
+    "https://t.me/poliglot_ai_bot",
+  ]);
 
-  await expect(page.locator(".hero-demo__tabs button")).toHaveText(["Урок", "Диалог", "Голос", "Фото"]);
-  await page.locator(".hero-demo__tabs button").nth(1).click();
-  await expect(page.locator(".demo-output p")).toContainText("Could you help me check in?");
-  await page.locator(".hero-demo__tabs button").nth(3).click();
-  await expect(page.locator(".demo-output p")).toContainText("No peanuts");
-  await expect(page.locator(".demo-wave i")).toHaveCount(22);
+  const heroCtas = page.locator(".bold-hero .entry-cta");
+  await expect(heroCtas).toHaveCount(2);
+  const ctaShape = await page.locator(".bold-hero .entry-cta").evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const element = node as HTMLElement;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        minHeight: rect.height,
+        width: Math.round(rect.width),
+        borderRadius: style.borderRadius,
+        background: style.backgroundImage || style.backgroundColor,
+        color: style.color,
+      };
+    }),
+  );
+  expect(ctaShape).toHaveLength(2);
+  expect(ctaShape[0].minHeight).toBeGreaterThanOrEqual(48);
+  expect(ctaShape[1].minHeight).toBeGreaterThanOrEqual(48);
+  expect(Math.abs(ctaShape[0].width - ctaShape[1].width)).toBeLessThanOrEqual(28);
+  expect(ctaShape[0].background).not.toBe("none");
+  expect(ctaShape[1].background).not.toBe("none");
+  expect(ctaShape[0].borderRadius).toBe(ctaShape[1].borderRadius);
 
-  const oldPrices = page.locator(".plan-old-price");
-  await expect(oldPrices).toHaveCount(2);
-  await expect(oldPrices.first()).toHaveCSS("text-decoration-line", /line-through/);
-  const oldPriceColor = await oldPrices.first().evaluate((node) => getComputedStyle(node).color);
-  expect(oldPriceColor).not.toBe("rgb(255, 255, 255)");
-  expect(oldPriceColor).not.toBe("rgba(255, 255, 255, 0.5)");
-  await expect(page.locator(".plan-limit-table")).toHaveCount(3);
-  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("5 уроков");
-  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("15 сообщений");
-  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("голосовые недоступны");
-  const premiumCard = page.locator(".plan-card.is-featured");
-  const platinumCard = page.locator(".plan-card").filter({ hasText: "Интенсив" });
-  await expect(premiumCard).toContainText("50 уроков");
-  await expect(premiumCard).toContainText("200 сообщений");
-  await expect(premiumCard).toContainText("20 голосовых");
-  await expect(premiumCard).toContainText("30 секунд");
-  await expect(premiumCard).toContainText("голос в текст");
-  await expect(premiumCard).toContainText("перевод текста с картинки");
-  await expect(premiumCard).toContainText("практика по контексту голоса или фото");
-  await expect(platinumCard).toContainText("100 уроков");
-  await expect(platinumCard).toContainText("500 сообщений");
-  await expect(platinumCard).toContainText("60 голосовых");
-  await expect(platinumCard).toContainText("максимальные дневные лимиты");
+  await expect(page.locator("h1")).toContainText(ruCopy.aiTutor);
+  await expect(page.locator(".bold-hero__proof")).toContainText("35");
+  await expect(page.locator(".bold-hero__proof")).toContainText("A1-C2");
+
+  await expect(page.locator(".hero-product-tabs button")).toHaveText([ruCopy.lesson, ruCopy.dialogue, ruCopy.voice, ruCopy.photo]);
+  await page.locator(".hero-product-tabs button").nth(1).click();
+  await expect(page.locator(".hero-product-output")).toContainText("Could you help me check in?");
+  await page.locator(".hero-product-tabs button").nth(2).click();
+  await expect(page.locator(".voice-bars i")).toHaveCount(18);
+  await page.locator(".hero-product-tabs button").nth(3).click();
+  await expect(page.locator(".hero-product-output")).toContainText("No peanuts");
+
+  await expect(page.locator(".daily-step")).toHaveCount(3);
+  await expect(page.locator(".module-card")).toHaveCount(4);
+  await expect(page.locator(".module-card", { hasText: "Voice Coach" })).toContainText("weak words");
+  await expect(page.locator(".module-card", { hasText: "Photo Practice" })).toContainText("No peanuts");
+  await expect(page.locator(".memory-node")).toHaveCount(6);
+
+  await expect(page.locator(".entry-panel")).toHaveCount(2);
+  await expect(page.locator(".entry-panel", { hasText: "Web app" })).toContainText("dashboard");
+  await expect(page.locator(".entry-panel", { hasText: "Telegram" })).toContainText(ruCopy.fastPractice);
+
+  await expect(page.locator(".plan-card")).toHaveCount(3);
+  await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText(ruCopy.freePrice);
+  await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText(ruCopy.premiumPrice);
+  await expect(page.locator(".plan-card", { hasText: "Platinum" })).toContainText(ruCopy.platinumPrice);
   await expect(page.locator(".payment-methods")).toContainText("Stars");
   await expect(page.locator(".payment-methods")).toContainText("YooKassa");
   await expect(page.locator(".payment-methods")).toContainText("TON");
   await expect(page.locator(".payment-methods")).toContainText("USDT");
 
-  const footerPrivacyLink = page.locator(".site-footer a", { hasText: "Политика" });
-  const footerTermsLink = page.locator(".site-footer a", { hasText: "Условия" });
+  await expect(page.locator(".review-card")).toHaveCount(3);
+  await expect(page.locator(".review-stars")).toHaveCount(0);
+
+  await expect(page.locator(".final-cta-section")).toContainText("Web app");
+  await expect(page.locator(".final-cta-section")).toContainText("Telegram");
+
+  const footerPrivacyLink = page.locator(".site-footer a", { hasText: ruCopy.privacy });
+  const footerTermsLink = page.locator(".site-footer a", { hasText: ruCopy.terms });
   await expect(footerPrivacyLink).toBeVisible();
   await expect(footerPrivacyLink).toHaveAttribute("href", /privacy\.html(\?.*)?$/);
   await expect(footerTermsLink).toBeVisible();
   await expect(footerTermsLink).toHaveAttribute("href", /terms\.html(\?.*)?$/);
 });
-
 test("landing hero keeps animated motion within a bounded frame budget", async ({ page }) => {
   await page.addInitScript(() => {
     const originalRequestAnimationFrame = window.requestAnimationFrame.bind(window);
@@ -164,7 +180,7 @@ test("landing hero keeps animated motion within a bounded frame budget", async (
   });
 
   await page.goto("/poliglot-ai.html");
-  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
+  await expect(page.locator(".bold-hero__matter canvas")).toHaveCount(1);
   await page.waitForTimeout(1800);
 
   const frameRequests = await page.evaluate(() => (window as Window & { __poliglotFrameRequests?: number }).__poliglotFrameRequests ?? 0);
@@ -172,21 +188,26 @@ test("landing hero keeps animated motion within a bounded frame budget", async (
   expect(frameRequests).toBeLessThan(95);
 });
 
-test("premium cockpit landing stays readable on mobile", async ({ page }) => {
+test("bold product cockpit landing stays readable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/poliglot-ai.html");
 
-  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
-  await expect(page.locator("h1")).toContainText("AI-репетитором");
-  await expect(page.locator(".hero-action--primary").first()).toBeVisible();
-  await expect(page.locator(".hero-goals a")).toHaveCount(4);
-  await expect(page.locator(".hero-demo")).toBeVisible();
-  await expect(page.locator(".site-footer a", { hasText: "Политика" })).toBeVisible();
-  await expect(page.locator(".site-footer a", { hasText: "Условия" })).toBeVisible();
+  await expect(page.locator(".bold-hero__matter canvas")).toHaveCount(1);
+  await expect(page.locator("h1")).toContainText(ruCopy.aiTutor);
+  await expect(page.locator(".bold-hero .entry-cta")).toHaveCount(2);
+  await expect(page.locator(".hero-product-mockup")).toBeVisible();
+  await expect(page.locator(".entry-panel")).toHaveCount(2);
+  await expect(page.locator(".site-footer a", { hasText: ruCopy.privacy })).toBeVisible();
+  await expect(page.locator(".site-footer a", { hasText: ruCopy.terms })).toBeVisible();
 
   const overflow = await page.evaluate(() => {
-    const nodes = Array.from(document.querySelectorAll("h1, h2, h3, p, a, button, .hero-goals a, .hero-proof span, .pricing-grid article, .review-card, .faq-grid article"));
-    return nodes
+    const documentOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 2 || document.body.scrollWidth > document.body.clientWidth + 2;
+    const nodes = Array.from(
+      document.querySelectorAll(
+        ".public-nav, [data-site-language-select], h1, h2, h3, p, a, button, .bold-hero__proof span, .daily-step, .module-card, .memory-node, .entry-panel, .plan-card, .review-card",
+      ),
+    );
+    const elementOverflow = nodes
       .map((node) => {
         const element = node as HTMLElement;
         const rect = element.getBoundingClientRect();
@@ -198,10 +219,10 @@ test("premium cockpit landing stays readable on mobile", async ({ page }) => {
         };
       })
       .filter((item) => item.width > 0 && item.scrollWidth > item.clientWidth + 2);
+    return documentOverflow ? [{ text: "document", scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth, width: window.innerWidth }, ...elementOverflow] : elementOverflow;
   });
   expect(overflow).toEqual([]);
 });
-
 test("premium cockpit landing localizes generated marketing copy for Chinese", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/poliglot-ai.html?lang=zh");
@@ -209,25 +230,24 @@ test("premium cockpit landing localizes generated marketing copy for Chinese", a
 
   const sectionsWithCyrillic = await page.evaluate(() => {
     const selectors = [
-      ".landing-hero",
-      ".course-strip",
-      ".cockpit-section",
-      ".scenario-section",
-      ".feature-section",
-      ".workflow-section",
-      ".device-flow",
+      ".public-brand",
+      ".public-nav nav",
+      ".public-nav__actions a",
+      ".bold-hero",
+      ".daily-loop-section",
+      ".modules-section",
+      ".memory-loop-section",
+      ".entry-section",
       ".pricing-section",
       ".reviews-section",
-      ".progress-section",
-      ".faq-section",
-      ".start-panel",
+      ".final-cta-section",
       ".site-footer",
     ];
     return selectors
       .map((selector) => {
         const node = document.querySelector(selector);
         const text = (node?.textContent || "").replace(/\s+/g, " ").trim();
-        const cyrillic = text.match(/[А-Яа-яЁё][А-Яа-яЁёA-Za-z0-9 ,.:;!?()\-–—]{0,80}/g) || [];
+        const cyrillic = text.match(/\p{Script=Cyrillic}+/gu) || [];
         return { selector, cyrillic: cyrillic.filter((fragment) => !/^[AMS]$/.test(fragment)).slice(0, 5) };
       })
       .filter((item) => item.cyrillic.length > 0);
@@ -259,8 +279,8 @@ test("public site language selector exposes all interface locales", async ({ pag
     const text = await page.locator("body").innerText();
     expect(text).not.toMatch(/Рџ|РЎ|Р’|Рќ|Рњ/);
     if (code !== "ru") {
-      expect(text).not.toContain("Начать обучение");
-      expect(text).not.toContain("Курсы на выбор");
+      expect(text).not.toContain(ruCopy.oldStart);
+      expect(text).not.toContain(ruCopy.oldCourses);
     }
   }
 });
