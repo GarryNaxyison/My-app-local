@@ -745,6 +745,11 @@ test("app shell embeds branded loader before JavaScript hydrates", () => {
   expect(html).toContain("poliglotBootDrift");
 });
 
+test("PWA service worker cache is bumped for the AI Router desktop release", () => {
+  const worker = readFileSync("public/offline-deck-sw.js", "utf8");
+  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-offline-decks-20260616-ai-router"');
+});
+
 test("v2 required labels are localized for all 35 interface languages", () => {
   const keys = [
     "roleplay",
@@ -956,6 +961,7 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   }
   for (const code of appLocaleCodes) {
     expect(appCopy(code, "pay_stars"), `${code}.pay_stars keeps branded payment label`).toBe("Telegram Stars");
+    expect(appCopy(code, "ai_router", "AI Router"), `${code}.ai_router keeps branded tool label`).toBe("AI Router");
   }
   expect(appCopy("vi", "roleplay_scenario_restaurant")).toBe("Nhà hàng");
   expect(appCopy("vi", "roleplay_title")).toBe("Kịch bản nhập vai AI");
@@ -1851,9 +1857,22 @@ test("auth login and registration do not expose Telegram entry", async ({ page }
 
 test("desktop Today has no top quick buttons, has compact quests and a green streak", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop layout assertion");
+  await page.setViewportSize({ width: 1180, height: 825 });
   await page.goto("/app/?view=home");
   await expect(page.locator(".context-display--home")).toBeVisible();
+  await expect(page.locator(".v2-topbar .logout-button-v2")).toBeVisible();
   await expectNoMojibake(page);
+
+  const appBox = await page.locator(".v2-app").boundingBox();
+  const topbarBox = await page.locator(".v2-topbar").boundingBox();
+  const logoutBox = await page.locator(".v2-topbar .logout-button-v2").boundingBox();
+  expect(appBox).not.toBeNull();
+  expect(topbarBox).not.toBeNull();
+  expect(logoutBox).not.toBeNull();
+  expect(appBox!.y).toBeLessThanOrEqual(6);
+  expect(topbarBox!.y).toBeGreaterThanOrEqual(appBox!.y - 1);
+  expect(logoutBox!.x + logoutBox!.width).toBeLessThanOrEqual(appBox!.x + appBox!.width - 6);
+  expect(logoutBox!.y + logoutBox!.height).toBeLessThanOrEqual(topbarBox!.y + topbarBox!.height + 1);
 
   await expect(page.locator(".action-card-v2")).toHaveCount(0);
   await expect(page.locator(".daily-quests-v2__list button")).toHaveCount(4);
@@ -2445,13 +2464,15 @@ test("regression: desktop tools selector buttons stay compact", async ({ page, i
   test.skip(isMobile, "desktop layout assertion");
   await page.goto("/app/?view=tools");
   await expect(page.locator(".context-display--tools")).toBeVisible();
+  await expect(page.locator(".tools-ai-router-v2")).toHaveText("AI Router");
+  await expect(page.locator(".tools-ai-router-v2")).not.toContainText("Раздел");
   const buttons = await page.locator(".tool-switch-v2 .tool-button-v2").evaluateAll((nodes) =>
     nodes.map((node) => {
       const box = (node as HTMLElement).getBoundingClientRect();
       return { width: box.width, height: box.height, scrollWidth: (node as HTMLElement).scrollWidth };
     }),
   );
-  expect(buttons).toHaveLength(3);
+  expect(buttons).toHaveLength(4);
   for (const button of buttons) {
     expect(button.height).toBeLessThanOrEqual(40);
     expect(button.scrollWidth).toBeLessThanOrEqual(button.width + 1);

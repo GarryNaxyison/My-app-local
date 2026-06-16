@@ -1503,10 +1503,10 @@ select {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 8px;
-  width: min(1540px, calc(100vw - 20px));
-  height: calc(100vh - 20px);
-  height: calc(100dvh - 20px);
-  margin: 10px auto;
+  width: min(1540px, calc(100vw - 8px));
+  height: calc(100vh - 8px);
+  height: calc(100dvh - 8px);
+  margin: 4px auto;
   filter: brightness(var(--v2-brightness, 1));
 }
 

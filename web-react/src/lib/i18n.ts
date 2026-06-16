@@ -5429,6 +5429,7 @@ function mojibakeScore(value: string) {
 }
 
 const fallbackLeakAllowedKeys = new Set([
+  "ai_router",
   "app_guide_body",
   "app_guide_step_1_body",
   "app_guide_step_1_title",
