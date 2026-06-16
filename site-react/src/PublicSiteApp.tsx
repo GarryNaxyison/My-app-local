@@ -14,6 +14,7 @@ import {
   Laptop,
   LineChart,
   LockKeyhole,
+  Menu,
   MessageCircle,
   MessagesSquare,
   Mic,
@@ -28,11 +29,12 @@ import {
   Trophy,
   Zap,
   WifiOff,
+  X,
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { privacyDocumentHtml, termsDocumentHtml } from "./legacyLegalContent";
-import { BoldProductLanding } from "./BoldProductLanding";
+import { EnglishSparkLanding } from "./EnglishSparkLanding";
 
 type PageId = "landing" | "privacy" | "terms";
 type SiteTheme = "light" | "dark";
@@ -371,10 +373,69 @@ export function PublicSiteApp() {
 
   return (
     <div className="public-shell">
-      <SiteNav page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      {page === "landing" ? <BoldProductLanding /> : <LegalPage page={page} />}
-      <SiteFooter />
+      <SiteNavDrawer page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
+      {page === "landing" ? <EnglishSparkLanding /> : <LegalPage page={page} />}
+      <SiteFooterEnglish />
     </div>
+  );
+}
+
+function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: SiteTheme; onThemeToggle: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const themeLabel = theme === "dark" ? "Use light theme" : "Use dark theme";
+
+  return (
+    <header className="public-nav public-nav--drawer">
+      <a className="public-brand" href="/poliglot-ai.html" aria-label="Poliglot AI">
+        <span className="public-brand__logo">
+          <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
+        </span>
+        <strong>Poliglot AI</strong>
+      </a>
+      <div className="public-nav__actions">
+        <select data-site-language-select aria-label="Language" />
+        <button className="nav-theme-toggle" type="button" onClick={onThemeToggle} aria-label={themeLabel}>
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        <button className="nav-burger" type="button" aria-expanded={isOpen} aria-controls="public-nav-drawer" onClick={() => setIsOpen((value) => !value)}>
+          {isOpen ? <X size={20} /> : <Menu size={20} />}
+          <span>Menu</span>
+        </button>
+      </div>
+      <div className={isOpen ? "nav-drawer is-open" : "nav-drawer"} id="public-nav-drawer" aria-hidden={!isOpen}>
+        <nav aria-label="Primary navigation">
+          <a href="/poliglot-ai.html#features" onClick={() => setIsOpen(false)}>
+            Features
+          </a>
+          <a href="/poliglot-ai.html#pricing" onClick={() => setIsOpen(false)}>
+            Pricing
+          </a>
+          <a href="/poliglot-ai.html#reviews" onClick={() => setIsOpen(false)}>
+            Reviews
+          </a>
+          <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" onClick={() => setIsOpen(false)}>
+            Privacy
+          </a>
+          <a className={page === "terms" ? "is-active" : undefined} href="/terms.html" onClick={() => setIsOpen(false)}>
+            Terms
+          </a>
+        </nav>
+        <div className="nav-drawer__actions">
+          <button type="button" onClick={onThemeToggle}>
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            {themeLabel}
+          </button>
+          <a href="/app/" onClick={() => setIsOpen(false)}>
+            <Laptop size={18} />
+            Web app
+          </a>
+          <a href="https://t.me/poliglot_ai_bot" onClick={() => setIsOpen(false)}>
+            <MessageCircle size={18} />
+            Telegram
+          </a>
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -919,6 +980,37 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
         <article className="legal-document-shell" dangerouslySetInnerHTML={{ __html: html }} />
       </section>
     </main>
+  );
+}
+
+function SiteFooterEnglish() {
+  return (
+    <footer className="site-footer">
+      <div>
+        <strong>Poliglot AI</strong>
+        <p>AI Tutor for lessons, roleplay, voice, photo practice, and mistake review across web app and Telegram.</p>
+        <span>© 2026 Poliglot AI. All rights reserved.</span>
+      </div>
+      <nav>
+        <strong>Navigation</strong>
+        <a href="/poliglot-ai.html#features">Features</a>
+        <a href="/poliglot-ai.html#pricing">Pricing</a>
+        <a href="/poliglot-ai.html#reviews">Reviews</a>
+        <a href="/app/">Web app</a>
+      </nav>
+      <nav>
+        <strong>Documents</strong>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/terms.html">Terms</a>
+      </nav>
+      <address>
+        <strong>Contacts</strong>
+        <a href="/app/">poliglotai.ru/app</a>
+        <a href="https://t.me/poliglot_ai_bot">@poliglot_ai_bot</a>
+        <a href="https://t.me/AsaselD">@AsaselD</a>
+        <a href="mailto:supportpoliglotai@gmail.com">supportpoliglotai@gmail.com</a>
+      </address>
+    </footer>
   );
 }
 
