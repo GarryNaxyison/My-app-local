@@ -3762,9 +3762,10 @@ Object.entries(planAndNoteFieldOverrides).forEach(([locale, values]) => {
 
 const aiTutorPremiumCopyOverrides: Partial<Record<AppLocaleCode, Record<string, string>>> = {
   ru: {
-    free_plan_body: "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.",
-    premium_month_body: "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты.",
-    platinum_month_body: "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой.",
+    free_plan_label: "Для начала",
+    free_plan_body: "Базовое текстовое обучение, тренировка слов, заметки и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.",
+    premium_month_body: "Основной режим для ежедневной практики: AI Tutor, аудирование, произношение, учебные AI-уроки, голосовые проверки, фото-инструменты и расширенные дневные лимиты.",
+    platinum_month_body: "AI Tutor с максимальными дневными лимитами, глубокими ролевыми сценариями, интенсивным повторением и максимальной практикой голоса и произношения.",
     free_plan_price: "Включено",
     current_plan: "Текущий план",
     tutor_premium_title: "AI Репетитор входит в Premium",
@@ -3772,13 +3773,18 @@ const aiTutorPremiumCopyOverrides: Partial<Record<AppLocaleCode, Record<string, 
     tutor_premium_cta: "Перейти на Premium",
     tutor_premium_required: "AI Репетитор доступен с Premium.",
     free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов",
-    free_feature_phrasebook: "Заметки, Phrasebook и обзор прогресса",
+    free_feature_words: "Базовая тренировка слов",
+    free_feature_phrasebook: "Заметки и обзор прогресса",
     free_feature_no_ai_tutor: "AI Репетитор закрыт до Premium",
-    premium_feature_ai_tutor: "AI Tutor и guided AI lessons включены",
+    free_feature_no_audio: "Аудирование и произношение закрыты до Premium",
+    free_locked_ai_tutor: "AI Tutor закрыт до Premium",
+    free_locked_listening: "Аудирование и произношение закрыты до Premium",
+    free_locked_voice_photo: "Голосовые проверки и фото-инструменты закрыты до Premium",
+    premium_feature_ai_tutor: "AI Tutor и учебные AI-уроки включены",
     premium_feature_voice: "Голос в текст, перевод услышанного, фото-инструменты и практика по контексту",
-    premium_feature_limits: "Словарь ошибок, notes, XP, streak и расширенные дневные лимиты",
+    premium_feature_limits: "Словарь ошибок, заметки, XP, серия дней и расширенные дневные лимиты",
     platinum_feature_ai_tutor: "AI Tutor с максимальными дневными лимитами",
-    platinum_feature_voice: "Больше voice/photo-context практики и интенсивный review слабых мест",
+    platinum_feature_voice: "Больше практики по голосовому и фото-контексту, интенсивное повторение слабых мест",
     platinum_feature_priority: "Лучший режим для поездки, работы, экзамена или плотного темпа",
   },
   en: {
@@ -3794,7 +3800,7 @@ Object.entries(aiTutorPremiumCopyOverrides).forEach(([locale, values]) => {
 });
 
 const freePlanCompleteCopy: Record<AppLocaleCode, Record<string, string>> = {
-  ru: { free_plan_title: "Бесплатный", free_plan_tier: "Базовый", free_plan_body: "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.", free_plan_price: "Включено", current_plan: "Текущий план", free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов", free_feature_phrasebook: "Заметки, Phrasebook и обзор прогресса", free_feature_no_ai_tutor: "AI Tutor закрыт до Premium", free_feature_no_audio: "Listening и pronunciation закрыты до Premium" },
+  ru: { free_plan_title: "Бесплатный", free_plan_tier: "Базовый", free_plan_label: "Для начала", free_plan_body: "Базовое текстовое обучение, тренировка слов, заметки и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium.", free_plan_price: "Включено", current_plan: "Текущий план", free_feature_daily: "Ежедневная привычка, стартовые уроки и базовая тренировка слов", free_feature_words: "Базовая тренировка слов", free_feature_phrasebook: "Заметки и обзор прогресса", free_feature_no_ai_tutor: "AI Tutor закрыт до Premium", free_feature_no_audio: "Аудирование и произношение закрыты до Premium", free_locked_ai_tutor: "AI Tutor закрыт до Premium", free_locked_listening: "Аудирование и произношение закрыты до Premium", free_locked_voice_photo: "Голосовые проверки и фото-инструменты закрыты до Premium" },
   en: { free_plan_title: "Free", free_plan_tier: "Basic", free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.", free_plan_price: "Included", current_plan: "Current plan", free_feature_daily: "Daily habit, starter lessons, and basic word training", free_feature_phrasebook: "Notes, Phrasebook, and progress overview", free_feature_no_ai_tutor: "AI Tutor is locked until Premium", free_feature_no_audio: "Listening and pronunciation are locked until Premium" },
   es: { free_plan_title: "Gratis", free_plan_tier: "Básico", free_plan_body: "Aprendizaje básico con texto, práctica de palabras, notas y resumen de progreso. AI Tutor solo está disponible con Premium.", free_plan_price: "Incluido", current_plan: "Plan actual", free_feature_daily: "Hábito diario, lecciones iniciales y práctica básica de palabras", free_feature_phrasebook: "Notas y resumen de progreso", free_feature_no_ai_tutor: "AI Tutor bloqueado hasta Premium", free_feature_no_audio: "Escucha y pronunciación bloqueadas hasta Premium" },
   de: { free_plan_title: "Kostenlos", free_plan_tier: "Basis", free_plan_body: "Grundlegendes Textlernen, Worttraining, Notizen und Fortschrittsübersicht. AI Tutor gibt es nur mit Premium.", free_plan_price: "Inklusive", current_plan: "Aktueller Plan", free_feature_daily: "Tägliche Routine, Startlektionen und einfaches Worttraining", free_feature_phrasebook: "Notizen und Fortschrittsübersicht", free_feature_no_ai_tutor: "AI Tutor ist bis Premium gesperrt", free_feature_no_audio: "Hören und Aussprache sind bis Premium gesperrt" },

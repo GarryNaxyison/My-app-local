@@ -3123,6 +3123,7 @@ select {
 .plan-card-v2.is-free > span {
   background: color-mix(in srgb, var(--surface-muted) 82%, transparent);
   color: var(--muted);
+  text-transform: none;
 }
 
 .plan-card-v2.is-platinum {
@@ -3742,6 +3743,8 @@ select {
 
 .tools-layout-v2 {
   grid-template-columns: minmax(0, 1fr) minmax(340px, 0.85fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
 }
 
 .tool-switch-v2 {

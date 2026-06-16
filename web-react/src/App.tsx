@@ -1375,7 +1375,7 @@ function premiumPlanTier(plan: PremiumPlan, copy: (key: string, fallback: string
 function premiumPlanLabel(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
   const label = cleanAppText(plan.label);
   if (label) return label;
-  if (premiumPlanIsFree(plan)) return copy("free_plan_label", "Try the path");
+  if (premiumPlanIsFree(plan)) return copy("free_plan_label", "Для начала");
   if (premiumPlanIsPlatinum(plan)) return copy("platinum_plan_label", "Intensive");
   if (premiumPlanIsPremium(plan)) return copy("premium_plan_label", "Regular study");
   return premiumPlanTier(plan, copy);
@@ -8385,17 +8385,17 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       product: "free",
       title: copy("free_plan_title", "Free"),
       tier: "free",
-      label: copy("free_plan_label", "Попробовать маршрут"),
-      body: copy("free_plan_body", "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium."),
+      label: copy("free_plan_label", "Для начала"),
+      body: copy("free_plan_body", "Basic text learning, word training, notes, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium."),
       features: [
         copy("free_feature_daily", "ежедневная привычка и стартовые уроки"),
         copy("free_feature_words", "базовая тренировка слов"),
-        copy("free_feature_phrasebook", "заметки, phrasebook и обзор прогресса"),
+        copy("free_feature_phrasebook", "notes, Phrasebook, and progress overview"),
       ],
       locked_features: [
-        copy("free_locked_ai_tutor", "AI Tutor guided lessons"),
-        copy("free_locked_listening", "Listening и pronunciation"),
-        copy("free_locked_voice_photo", "voice checks и photo tools"),
+        copy("free_locked_ai_tutor", "AI Tutor guided lessons are locked until Premium"),
+        copy("free_locked_listening", "Listening and pronunciation are locked until Premium"),
+        copy("free_locked_voice_photo", "Voice checks and photo tools are locked until Premium"),
       ],
       note: copy("free_plan_note", "Подходит для знакомства с продуктом без оплаты."),
       rub_price: "0",
@@ -8405,12 +8405,12 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("premium_month_title", "Premium"),
       tier: "premium",
       label: copy("premium_plan_label", "Регулярная учеба"),
-      body: copy("premium_month_body", "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты."),
+      body: copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits."),
       features: [
         copy("premium_feature_voice_text", "голос в текст и перевод услышанного"),
         copy("premium_feature_image_text", "перевод текста с картинки"),
         copy("premium_feature_context", "практика по контексту голоса или фото"),
-        copy("premium_feature_errors", "словарь ошибок, notes, XP и streak"),
+        copy("premium_feature_errors", "mistake dictionary, notes, XP, and streak"),
       ],
       note: copy("premium_plan_note", "Лучший выбор для стабильного ежедневного обучения."),
       rub_price: "300",
@@ -8420,12 +8420,12 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("platinum_month_title", "Platinum"),
       tier: "platinum",
       label: copy("platinum_plan_label", "Интенсив"),
-      body: copy("platinum_month_body", "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой."),
+      body: copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice."),
       features: [
         copy("platinum_feature_limits", "максимальные дневные лимиты"),
-        copy("platinum_feature_voice", "больше voice/photo-context практики"),
-        copy("platinum_feature_review", "интенсивный review слабых мест"),
-        copy("platinum_feature_priority", "лучший режим для heavy daily learning"),
+        copy("platinum_feature_voice", "more voice/photo-context practice"),
+        copy("platinum_feature_review", "intensive weak-spot review"),
+        copy("platinum_feature_priority", "best mode for heavy daily learning"),
       ],
       note: copy("platinum_plan_note", "Для поездки, работы, экзамена или очень плотного темпа."),
       rub_price: "590",

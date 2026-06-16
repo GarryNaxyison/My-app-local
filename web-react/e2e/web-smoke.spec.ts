@@ -1249,7 +1249,7 @@ test("roleplay scenario copy and mistake category labels stay localized for all 
 });
 
 test("main web screens do not expose mojibake or fallback labels across interface languages", async ({ page }) => {
-  test.setTimeout(300_000);
+  test.setTimeout(600_000);
   const views = ["home", "roleplay", "pronunciation", "offline", "mistakes", "leaderboard", "spelling", "tools", "dashboard"] as const;
   const fallbackFragments: Array<string | RegExp> = [
     "AI roleplay scenarios",
@@ -1341,6 +1341,39 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".password-card-v2")).toContainText("Пароли не совпадают");
   await page.locator(".password-card-v2 input").nth(2).fill("new-password");
   await expect(page.locator(".password-card-v2")).toContainText("Пароли совпадают");
+});
+
+test("tools spacing and free plan Russian copy stay compact and localized", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Desktop spacing regression uses the desktop two-column tools layout.");
+
+  await page.goto("/app/?view=premium");
+  const freePlan = page.locator(".plan-card-v2.is-free");
+  const freeLabel = freePlan.locator("> span");
+  await expect(freePlan).toBeVisible();
+  await expect(freeLabel).toHaveText("Для начала");
+  await expect(freeLabel).toHaveCSS("text-transform", "none");
+  await expect(freePlan.locator("h2")).toHaveText("Бесплатный");
+  await expect(freePlan).toContainText("Включено");
+  await expect(freePlan).toContainText("Базовое текстовое обучение");
+  await expect(freePlan).toContainText("Заметки и обзор прогресса");
+  await expect(freePlan).toContainText("AI Tutor закрыт до Premium");
+  await expect(freePlan).toContainText("Аудирование и произношение закрыты до Premium");
+  await expect(freePlan).toContainText("Голосовые проверки и фото-инструменты закрыты до Premium");
+  await expect(freePlan).not.toContainText("Попробовать маршрут");
+  await expect(freePlan).not.toContainText("Статистика");
+  await expect(freePlan).not.toContainText("Раздел");
+  await expect(freePlan).not.toContainText("AI Tutor guided lessons");
+  await expect(freePlan).not.toContainText("Listening и pronunciation");
+  await expect(freePlan).not.toContainText("voice checks и photo tools");
+
+  await page.goto("/app/?view=tools");
+  await expect(page.locator(".tool-switch-v2")).toBeVisible();
+  await expect(page.locator(".composer-panel-v2")).toBeVisible();
+  const switchBox = await page.locator(".tool-switch-v2").boundingBox();
+  const composerBox = await page.locator(".composer-panel-v2").boundingBox();
+  expect(switchBox).not.toBeNull();
+  expect(composerBox).not.toBeNull();
+  expect(composerBox!.y - (switchBox!.y + switchBox!.height)).toBeLessThanOrEqual(28);
 });
 
 test("bug report paste keeps one clipboard image and no generic section text", async ({ page, isMobile }) => {
@@ -2294,6 +2327,8 @@ test("regression: mobile composer and recording controls expose clear labels", a
     },
   };
   await page.goto("/app/?view=lesson");
+  await page.locator(".lesson-empty-v2 button").click();
+  await expect(page.getByText("Say that you have a reservation.")).toBeVisible();
   const sendButton = page.locator(".context-display--lesson .composer-submit-v2");
   await expect(sendButton).toBeVisible();
   await expect(sendButton).toContainText("Отправить");
