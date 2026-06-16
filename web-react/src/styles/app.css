@@ -3165,6 +3165,13 @@ select {
   color: var(--rose);
 }
 
+.plan-note-v2 {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .activation-v2 {
   grid-column: 1 / -1;
 }

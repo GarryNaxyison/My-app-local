@@ -1324,6 +1324,46 @@ func TestWebAppRoutesServeWebAndRedirectVersionedPaths(t *testing.T) {
 	}
 }
 
+func TestPremiumPlansDTOIncludesLandingPricingCopy(t *testing.T) {
+	cfg := config{
+		PremiumRubPrice:        300,
+		PremiumStarsPrice:      150,
+		PremiumYearRubPrice:    3000,
+		PremiumYearStarsPrice:  1500,
+		PlatinumRubPrice:       590,
+		PlatinumStarsPrice:     300,
+		PlatinumYearRubPrice:   5900,
+		PlatinumYearStarsPrice: 3000,
+	}
+	api := newWebAPI(cfg, &bot{cfg: cfg})
+
+	plans := api.premiumPlansDTO(userState{InterfaceLanguage: "ru"})
+	if len(plans) != 5 {
+		t.Fatalf("plans len = %d, want free + 4 paid plans: %#v", len(plans), plans)
+	}
+
+	free := plans[0]
+	if free["product"] != "free" || free["label"] != "Попробовать маршрут" || free["body"] != "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium." {
+		t.Fatalf("free plan copy mismatch: %#v", free)
+	}
+	assertStringSlicesEqual(t, free["features"].([]string), []string{"ежедневная привычка и стартовые уроки", "базовая тренировка слов", "заметки, phrasebook и обзор прогресса"})
+	assertStringSlicesEqual(t, free["locked_features"].([]string), []string{"AI Tutor guided lessons", "Listening и pronunciation", "voice checks и photo tools"})
+	if free["note"] != "Подходит для знакомства с продуктом без оплаты." {
+		t.Fatalf("free plan note = %q", free["note"])
+	}
+
+	premium := plans[1]
+	assertStringSlicesEqual(t, premium["features"].([]string), []string{"голос в текст и перевод услышанного", "перевод текста с картинки", "практика по контексту голоса или фото", "словарь ошибок, notes, XP и streak"})
+	if premium["label"] != "Регулярная учеба" || premium["note"] != "Лучший выбор для стабильного ежедневного обучения." {
+		t.Fatalf("premium plan copy mismatch: %#v", premium)
+	}
+
+	platinumYear := plans[4]
+	if platinumYear["title"] != "Platinum на год" || platinumYear["label"] != "Интенсив" {
+		t.Fatalf("platinum yearly title/label mismatch: %#v", platinumYear)
+	}
+}
+
 func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
 	if err != nil {

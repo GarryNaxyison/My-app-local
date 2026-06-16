@@ -3858,53 +3858,32 @@ func (b *bot) premiumText(user userState) string {
 	platinumMonthly, _ := b.premiumPlan(platinumMonthlyProduct)
 	platinumYearly, _ := b.premiumPlan(platinumYearlyProduct)
 	copy := premiumUI(user)
+	freeLanding := premiumPlanLandingCopy(user, "free")
+	premiumLanding := premiumPlanLandingCopy(user, "premium")
+	platinumLanding := premiumPlanLandingCopy(user, "platinum")
 	return "*Free*\n" +
-		escapeMarkdownV2(premiumPlanLandingDescription(user, "free")) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.LessonsPerDay, freeLessonLimit)) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PracticeMessagesPerDay, freePracticeLimit)) + "\n" +
-		"• " + escapeMarkdownV2(copy.FreeVoiceUnavailable) + "\n\n" +
-		"*Premium* ⭐ " + escapeMarkdownV2(copy.BestValueLabel) + "\n" +
-		escapeMarkdownV2(premiumPlanLandingDescription(user, "premium")) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.LessonsPerDay, premiumLessonLimit)) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PracticeMessagesPerDay, premiumPracticeLimit)) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PremiumVoicesPerDay, premiumVoiceLimit, b.cfg.MaxVoiceSeconds)) + "\n" +
-		"• " + escapeMarkdownV2(copy.VoiceTextAndTranslation) + "\n" +
-		"• " + escapeMarkdownV2(copy.ImageTextTranslation) + "\n" +
-		"• " + escapeMarkdownV2(copy.VoicePhotoContextPractice) + "\n\n" +
+		premiumLandingMarkdownWithLimits(freeLanding, []string{
+			fmt.Sprintf(copy.LessonsPerDay, freeLessonLimit),
+			fmt.Sprintf(copy.PracticeMessagesPerDay, freePracticeLimit),
+			copy.FreeVoiceUnavailable,
+		}) + "\n\n" +
+		"*Premium* " + escapeMarkdownV2(copy.BestValueLabel) + "\n" +
+		premiumLandingMarkdownWithLimits(premiumLanding, []string{
+			fmt.Sprintf(copy.LessonsPerDay, premiumLessonLimit),
+			fmt.Sprintf(copy.PracticeMessagesPerDay, premiumPracticeLimit),
+			fmt.Sprintf(copy.PremiumVoicesPerDay, premiumVoiceLimit, b.cfg.MaxVoiceSeconds),
+		}) + "\n\n" +
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.MonthPrice, premiumMonthly.RubPrice, premiumMonthly.StarsPrice)) + "*\n" +
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.YearPrice, premiumYearly.RubPrice, premiumYearly.StarsPrice, annualDiscountPercent)) + "*\n\n" +
-		"*Platinum* 💠 " + escapeMarkdownV2(copy.MaxAccessLabel) + "\n" +
-		escapeMarkdownV2(premiumPlanLandingDescription(user, "platinum")) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.LessonsPerDay, platinumLessonLimit)) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PracticeMessagesPerDay, platinumPracticeLimit)) + "\n" +
-		"• " + escapeMarkdownV2(fmt.Sprintf(copy.PremiumVoicesPerDay, platinumVoiceLimit, b.cfg.MaxVoiceSeconds)) + "\n" +
-		"• " + escapeMarkdownV2(copy.PlatinumPriority) + "\n\n" +
+		"*Platinum* " + escapeMarkdownV2(copy.MaxAccessLabel) + "\n" +
+		premiumLandingMarkdownWithLimits(platinumLanding, []string{
+			fmt.Sprintf(copy.LessonsPerDay, platinumLessonLimit),
+			fmt.Sprintf(copy.PracticeMessagesPerDay, platinumPracticeLimit),
+			fmt.Sprintf(copy.PremiumVoicesPerDay, platinumVoiceLimit, b.cfg.MaxVoiceSeconds),
+		}) + "\n\n" +
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.PlatinumMonthPrice, platinumMonthly.RubPrice, platinumMonthly.StarsPrice)) + "*\n" +
 		"*" + escapeMarkdownV2(fmt.Sprintf(copy.PlatinumYearPrice, platinumYearly.RubPrice, platinumYearly.StarsPrice, annualDiscountPercent)) + "*\n\n" +
 		"_" + escapeMarkdownV2(copy.InviteFree) + "_"
-}
-
-func premiumPlanLandingDescription(user userState, tier string) string {
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		switch tier {
-		case "free":
-			return "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium."
-		case "premium":
-			return "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты."
-		case "platinum":
-			return "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой."
-		}
-	}
-	switch tier {
-	case "free":
-		return "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium."
-	case "premium":
-		return "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits."
-	case "platinum":
-		return "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice."
-	default:
-		return ""
-	}
 }
 
 func (b *bot) limitsText(user userState) string {

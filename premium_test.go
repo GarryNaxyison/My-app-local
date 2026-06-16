@@ -132,6 +132,70 @@ func TestPremiumTextUsesLandingPlanDescriptionsForRussian(t *testing.T) {
 	}
 }
 
+func TestPremiumPlanLandingCopyMatchesLandingPricingCards(t *testing.T) {
+	free := premiumPlanLandingCopy(userState{InterfaceLanguage: "ru"}, "free")
+	if free.Label != "Попробовать маршрут" || free.Description != "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium." {
+		t.Fatalf("free landing copy mismatch: %+v", free)
+	}
+	assertStringSlicesEqual(t, free.Included, []string{"ежедневная привычка и стартовые уроки", "базовая тренировка слов", "заметки, phrasebook и обзор прогресса"})
+	assertStringSlicesEqual(t, free.Locked, []string{"AI Tutor guided lessons", "Listening и pronunciation", "voice checks и photo tools"})
+	if free.Note != "Подходит для знакомства с продуктом без оплаты." {
+		t.Fatalf("free note mismatch: %q", free.Note)
+	}
+
+	premium := premiumPlanLandingCopy(userState{InterfaceLanguage: "ru"}, "premium")
+	if premium.Label != "Регулярная учеба" || premium.Description != "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты." {
+		t.Fatalf("premium landing copy mismatch: %+v", premium)
+	}
+	assertStringSlicesEqual(t, premium.Included, []string{"голос в текст и перевод услышанного", "перевод текста с картинки", "практика по контексту голоса или фото", "словарь ошибок, notes, XP и streak"})
+	if premium.Note != "Лучший выбор для стабильного ежедневного обучения." {
+		t.Fatalf("premium note mismatch: %q", premium.Note)
+	}
+
+	platinum := premiumPlanLandingCopy(userState{InterfaceLanguage: "ru"}, "platinum")
+	if platinum.Label != "Интенсив" || platinum.Description != "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой." {
+		t.Fatalf("platinum landing copy mismatch: %+v", platinum)
+	}
+	assertStringSlicesEqual(t, platinum.Included, []string{"максимальные дневные лимиты", "больше voice/photo-context практики", "интенсивный review слабых мест", "лучший режим для heavy daily learning"})
+	if platinum.Note != "Для поездки, работы, экзамена или очень плотного темпа." {
+		t.Fatalf("platinum note mismatch: %q", platinum.Note)
+	}
+}
+
+func TestPremiumPlanLandingCopyCoversAllInterfaceLanguages(t *testing.T) {
+	languages := interfaceLanguages()
+	if len(languages) != 35 {
+		t.Fatalf("interface language count = %d, want 35", len(languages))
+	}
+
+	for _, language := range languages {
+		for _, tier := range []string{"free", "premium", "platinum"} {
+			copy := premiumPlanLandingCopy(userState{InterfaceLanguage: language.Code}, tier)
+			if copy.Label == "" || copy.Description == "" || copy.Note == "" {
+				t.Fatalf("%s %s landing copy has empty headline fields: %+v", language.Code, tier, copy)
+			}
+			if len(copy.Included) == 0 {
+				t.Fatalf("%s %s landing copy has no included features", language.Code, tier)
+			}
+			if tier == "free" && len(copy.Locked) == 0 {
+				t.Fatalf("%s free landing copy has no locked features", language.Code)
+			}
+		}
+	}
+}
+
+func assertStringSlicesEqual(t *testing.T, got []string, want []string) {
+	t.Helper()
+	if len(got) != len(want) {
+		t.Fatalf("slice length = %d, want %d: %#v", len(got), len(want), got)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("slice[%d] = %q, want %q; full=%#v", i, got[i], want[i], got)
+		}
+	}
+}
+
 func TestPremiumPaymentOptionsKeyboardShowsMethodsForSelectedPlan(t *testing.T) {
 	user := userState{InterfaceLanguage: "en"}
 	plan := premiumPlan{

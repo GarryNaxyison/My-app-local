@@ -1355,22 +1355,36 @@ function premiumPlanIsPremium(plan: PremiumPlan | undefined) {
 
 function premiumPlanTitle(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
   const source = premiumPlanSource(plan);
-  if (premiumPlanIsFree(plan)) return copy("free_plan_title", cleanAppText(plan.title || "Free"));
-  if (source.includes("year") || source.includes("365")) return copy("premium_year_title", "Premium for a year");
-  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_title", cleanAppText(plan.title || "Platinum"));
-  if (premiumPlanIsPremium(plan)) return copy("premium_month_title", cleanAppText(plan.title || "Premium"));
+  const title = cleanAppText(plan.title);
+  const isYear = source.includes("year") || source.includes("365");
+  if (premiumPlanIsFree(plan)) return title || copy("free_plan_title", "Free");
+  if (premiumPlanIsPlatinum(plan)) return title || copy(isYear ? "platinum_year_title" : "platinum_month_title", isYear ? "Platinum for a year" : "Platinum");
+  if (premiumPlanIsPremium(plan)) return title || copy(isYear ? "premium_year_title" : "premium_month_title", isYear ? "Premium for a year" : "Premium");
   return cleanAppText(plan.title || plan.product || copy("premium", "Premium"));
 }
 
 function premiumPlanTier(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
-  if (premiumPlanIsFree(plan)) return copy("free_plan_tier", "Basic");
+  const tier = cleanAppText(plan.tier);
+  if (tier && !["free", "basic", "premium", "platinum"].includes(tier.toLowerCase())) return tier;
+  if (premiumPlanIsFree(plan)) return copy("free_plan_tier", "Free");
   if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_tier", "Platinum");
   if (premiumPlanIsPremium(plan)) return copy("premium_month_tier", "Premium");
   return cleanAppText(plan.tier || plan.product || copy("premium", "Premium"));
 }
 
+function premiumPlanLabel(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
+  const label = cleanAppText(plan.label);
+  if (label) return label;
+  if (premiumPlanIsFree(plan)) return copy("free_plan_label", "Try the path");
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_plan_label", "Intensive");
+  if (premiumPlanIsPremium(plan)) return copy("premium_plan_label", "Regular study");
+  return premiumPlanTier(plan, copy);
+}
+
 function premiumPlanBody(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
   const source = premiumPlanSource(plan);
+  const body = cleanAppText(plan.body);
+  if (body) return body;
   if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.");
   if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice.");
   if (source.includes("year") || source.includes("365")) return copy("premium_year_body", "Same daily AI audio limits, paid yearly.");
@@ -1391,7 +1405,20 @@ function premiumPlanCatalog(plans: PremiumPlan[], copy: (key: string, fallback: 
   });
 }
 
+function premiumPlanTextList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => cleanAppText(item)).filter(Boolean);
+}
+
 function premiumPlanFeatures(plan: PremiumPlan, copy: (key: string, fallback: string) => string): PremiumPlanFeature[] {
+  const features = premiumPlanTextList(plan.features);
+  const lockedFeatures = premiumPlanTextList(plan.locked_features);
+  if (features.length || lockedFeatures.length) {
+    return [
+      ...features.map((text, index) => ({ text, highlight: index === 0 && !premiumPlanIsFree(plan) })),
+      ...lockedFeatures.map((text) => ({ text, locked: true })),
+    ];
+  }
   if (premiumPlanIsFree(plan)) {
     return [
       { text: copy("free_feature_daily", "Daily habit, starter lessons, and basic word training") },
@@ -1402,9 +1429,9 @@ function premiumPlanFeatures(plan: PremiumPlan, copy: (key: string, fallback: st
   }
   if (premiumPlanIsPlatinum(plan)) {
     return [
-      { text: copy("platinum_feature_ai_tutor", "AI Tutor with intensive daily limits"), highlight: true },
-      { text: copy("platinum_feature_voice", "Maximum Listening and pronunciation practice") },
-      { text: copy("platinum_feature_priority", "Best tier for heavy daily learning") },
+      { text: copy("platinum_feature_ai_tutor", "Maximum daily limits"), highlight: true },
+      { text: copy("platinum_feature_voice", "More voice/photo-context practice") },
+      { text: copy("platinum_feature_priority", "Best mode for heavy daily learning") },
     ];
   }
   return [
@@ -5586,7 +5613,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
           <div className="tutor-paywall-v2__features">
             <span><ShieldCheck size={16} />{copy("free_feature_daily", "Daily habit, starter lessons, and basic word training")}</span>
             <span><Sparkles size={16} />{copy("premium_feature_ai_tutor", "AI Tutor guided lessons included")}</span>
-            <span><Crown size={16} />{copy("platinum_feature_priority", "Best tier for heavy daily learning")}</span>
+            <span><Crown size={16} />{copy("platinum_feature_priority", "Best mode for heavy daily learning")}</span>
           </div>
           <Button type="button" onClick={() => setView("premium")}>
             <Crown size={18} />
@@ -7602,9 +7629,10 @@ function PremiumView({ premiumPlans, loadPremiumPlans, paymentHistory, busy, act
     <div className="premium-grid-v2">
       {plans.map((plan) => {
         const isFree = premiumPlanIsFree(plan);
+        const planNote = cleanAppText(plan.note);
         return (
         <section className={cn("v2-panel plan-card-v2", isFree && "is-free", premiumPlanIsPlatinum(plan) && "is-platinum")} key={plan.product}>
-          <span>{premiumPlanTier(plan, copy)}</span>
+          <span>{premiumPlanLabel(plan, copy)}</span>
           <h2>{premiumPlanTitle(plan, copy)}</h2>
           <strong>{isFree ? copy("free_plan_price", "Included") : plan.rub_price ? `${plan.rub_price} RUB` : plan.usdt_price ? `${plan.usdt_price} USDT` : copy("available", "Available")}</strong>
           <p>{premiumPlanBody(plan, copy)}</p>
@@ -7616,6 +7644,7 @@ function PremiumView({ premiumPlans, loadPremiumPlans, paymentHistory, busy, act
               </li>
             ))}
           </ul>
+          {planNote && <p className="plan-note-v2">{planNote}</p>}
           <Button variant={isFree ? "outline" : "default"} onClick={() => setPayment({ plan })} disabled={isFree || busy === "premium-plans"}>
             {isFree ? <ShieldCheck size={18} /> : <CircleDollarSign size={18} />}
             {isFree ? copy("current_plan", "Current plan") : copy("payment_options", "Payment options")}
@@ -8352,9 +8381,55 @@ function formatLimit(value: unknown, max: unknown) {
 
 function fallbackPlans(copy: (key: string, fallback: string) => string): PremiumPlan[] {
   return [
-    { product: "free", title: copy("free_plan_title", "Free"), tier: copy("free_plan_tier", "Basic"), days_label: copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium."), rub_price: "0" },
-    { product: "premium_month", title: copy("premium_month_title", "Premium"), tier: copy("premium_month_tier", "Premium"), days_label: copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits."), rub_price: "300" },
-    { product: "platinum_month", title: copy("platinum_month_title", "Platinum"), tier: copy("platinum_month_tier", "Platinum"), days_label: copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice."), rub_price: "590" },
+    {
+      product: "free",
+      title: copy("free_plan_title", "Free"),
+      tier: "free",
+      label: copy("free_plan_label", "Попробовать маршрут"),
+      body: copy("free_plan_body", "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium."),
+      features: [
+        copy("free_feature_daily", "ежедневная привычка и стартовые уроки"),
+        copy("free_feature_words", "базовая тренировка слов"),
+        copy("free_feature_phrasebook", "заметки, phrasebook и обзор прогресса"),
+      ],
+      locked_features: [
+        copy("free_locked_ai_tutor", "AI Tutor guided lessons"),
+        copy("free_locked_listening", "Listening и pronunciation"),
+        copy("free_locked_voice_photo", "voice checks и photo tools"),
+      ],
+      note: copy("free_plan_note", "Подходит для знакомства с продуктом без оплаты."),
+      rub_price: "0",
+    },
+    {
+      product: "premium_month",
+      title: copy("premium_month_title", "Premium"),
+      tier: "premium",
+      label: copy("premium_plan_label", "Регулярная учеба"),
+      body: copy("premium_month_body", "Основной режим для ежедневной практики: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools и расширенные дневные лимиты."),
+      features: [
+        copy("premium_feature_voice_text", "голос в текст и перевод услышанного"),
+        copy("premium_feature_image_text", "перевод текста с картинки"),
+        copy("premium_feature_context", "практика по контексту голоса или фото"),
+        copy("premium_feature_errors", "словарь ошибок, notes, XP и streak"),
+      ],
+      note: copy("premium_plan_note", "Лучший выбор для стабильного ежедневного обучения."),
+      rub_price: "300",
+    },
+    {
+      product: "platinum_month",
+      title: copy("platinum_month_title", "Platinum"),
+      tier: "platinum",
+      label: copy("platinum_plan_label", "Интенсив"),
+      body: copy("platinum_month_body", "AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой."),
+      features: [
+        copy("platinum_feature_limits", "максимальные дневные лимиты"),
+        copy("platinum_feature_voice", "больше voice/photo-context практики"),
+        copy("platinum_feature_review", "интенсивный review слабых мест"),
+        copy("platinum_feature_priority", "лучший режим для heavy daily learning"),
+      ],
+      note: copy("platinum_plan_note", "Для поездки, работы, экзамена или очень плотного темпа."),
+      rub_price: "590",
+    },
   ];
 }
 

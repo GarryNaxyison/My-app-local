@@ -211,6 +211,11 @@ export type PremiumPlan = {
   product: string;
   tier?: string;
   title?: string;
+  label?: string;
+  body?: string;
+  features?: string[];
+  locked_features?: string[];
+  note?: string;
   days_label?: string;
   rub_price?: string | number;
   stars_price?: string | number;

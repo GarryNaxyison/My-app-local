@@ -334,6 +334,50 @@ func TestReactFrontendIncludesPremiumDashboardSurfaces(t *testing.T) {
 	}
 }
 
+func TestReactPremiumPlansUseLandingPricingCopy(t *testing.T) {
+	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	typeSource, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "types.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(appSource) + "\n" + string(typeSource)
+	for _, want := range []string{
+		`body?: string`,
+		`features?: string[]`,
+		`locked_features?: string[]`,
+		`note?: string`,
+		`label?: string`,
+		`cleanAppText(plan.body)`,
+		`plan.features`,
+		`plan.locked_features`,
+		`plan.note`,
+		`platinum_year_title`,
+		`AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой.`,
+		`голос в текст и перевод услышанного`,
+		`перевод текста с картинки`,
+		`словарь ошибок, notes, XP и streak`,
+		`лучший режим для heavy daily learning`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Fatalf("React premium landing copy is missing marker %q", want)
+		}
+	}
+	for _, forbidden := range []string{
+		`AI Репетитор доступен только с Premium`,
+		`AI Tutor is Premium-only`,
+		`AI Tutor with intensive daily limits`,
+		`Best tier for heavy daily learning`,
+		`Premium на год", "Premium for a year`,
+	} {
+		if strings.Contains(page, forbidden) {
+			t.Fatalf("React premium source still contains old copy marker %q", forbidden)
+		}
+	}
+}
+
 func TestReactFrontendKeepsExpandedInterfaceLocales(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
 	if err != nil {

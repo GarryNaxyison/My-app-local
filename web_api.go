@@ -4538,18 +4538,39 @@ func (api *webAPI) levelQuestionDTO(user userState, index int, score int) webLev
 
 func (api *webAPI) premiumPlansDTO(user userState) []map[string]any {
 	plans := localizedPremiumPlans(user, api.bot.premiumPlanList())
-	result := make([]map[string]any, 0, len(plans))
+	result := make([]map[string]any, 0, len(plans)+1)
+	free := premiumPlanLandingCopy(user, "free")
+	result = append(result, map[string]any{
+		"product":         "free",
+		"tier":            "free",
+		"title":           "Free",
+		"label":           free.Label,
+		"body":            free.Description,
+		"features":        free.Included,
+		"locked_features": free.Locked,
+		"note":            free.Note,
+		"rub_price":       0,
+		"stars_price":     0,
+		"crypto_enabled":  false,
+		"crypto_methods":  []map[string]any{},
+	})
 	for _, plan := range plans {
+		landing := premiumPlanLandingCopy(user, plan.Tier)
 		result = append(result, map[string]any{
-			"product":        plan.Product,
-			"tier":           plan.Tier,
-			"title":          plan.Title,
-			"days_label":     plan.DaysLabel,
-			"rub_price":      plan.RubPrice,
-			"stars_price":    plan.StarsPrice,
-			"usdt_price":     api.usdtPriceLabel(plan.Product),
-			"crypto_enabled": api.cfg.cryptoPlanEnabled(plan.Product),
-			"crypto_methods": api.cryptoPaymentMethodsDTO(plan.Product),
+			"product":         plan.Product,
+			"tier":            plan.Tier,
+			"title":           plan.Title,
+			"label":           landing.Label,
+			"body":            landing.Description,
+			"features":        landing.Included,
+			"locked_features": landing.Locked,
+			"note":            landing.Note,
+			"days_label":      plan.DaysLabel,
+			"rub_price":       plan.RubPrice,
+			"stars_price":     plan.StarsPrice,
+			"usdt_price":      api.usdtPriceLabel(plan.Product),
+			"crypto_enabled":  api.cfg.cryptoPlanEnabled(plan.Product),
+			"crypto_methods":  api.cryptoPaymentMethodsDTO(plan.Product),
 		})
 	}
 	return result
