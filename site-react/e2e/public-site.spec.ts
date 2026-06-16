@@ -58,18 +58,19 @@ test("landing presents the approved English spark hero product site", async ({ p
   expect(["fixed", "sticky"]).not.toContain(navPosition);
 
   await expect(page.locator(".english-spark-landing")).toBeVisible();
-  await expect(page.locator(".spark-hero")).toBeVisible();
+  await expect(page.locator(".landing-hero")).toBeVisible();
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
+  await expect(page.locator(".spark-hero")).toHaveCount(0);
   await expect(page.locator(".bold-hero")).toHaveCount(0);
-  await expect(page.locator(".spark-hero canvas")).toHaveCount(1);
-  const heroHeight = await page.locator(".spark-hero").evaluate((node) => node.getBoundingClientRect().height);
+  const heroHeight = await page.locator(".landing-hero").evaluate((node) => node.getBoundingClientRect().height);
   const viewportHeight = await page.evaluate(() => window.innerHeight);
   expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.9);
 
   await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
-  await expect(page.locator(".spark-hero__proof")).toContainText("35 languages later");
-  await expect(page.locator(".spark-hero__proof")).toContainText("A1-C2");
+  await expect(page.locator(".hero-proof")).toContainText("35 languages");
+  await expect(page.locator(".hero-proof")).toContainText("A1-C2");
 
-  const heroCtas = page.locator(".spark-hero .entry-cta");
+  const heroCtas = page.locator(".landing-hero .entry-cta");
   await expect(heroCtas).toHaveCount(2);
   await expect(page.locator('a[data-entry="web-app"]')).toHaveCount(3);
   const webEntryHrefs = await page.locator('a[data-entry="web-app"]').evaluateAll((links) =>
@@ -88,6 +89,14 @@ test("landing presents the approved English spark hero product site", async ({ p
 
   await expect(page.locator(".skeleton-card")).toHaveCount(2);
   await expect(page.locator(".skeleton-line")).toHaveCount(6);
+  await expect(page.locator(".hero-demo")).toBeVisible();
+  await expect(page.locator(".hero-demo__tabs button")).toHaveText(["Lesson", "Dialogue", "Voice", "Photo"]);
+  await page.locator(".hero-demo__tabs button").nth(1).click();
+  await expect(page.locator(".hero-demo__panel")).toContainText("Could you help me check in?");
+  await page.locator(".hero-demo__tabs button").nth(2).click();
+  await expect(page.locator(".demo-wave i")).toHaveCount(22);
+  await page.locator(".hero-demo__tabs button").nth(3).click();
+  await expect(page.locator(".hero-demo__panel")).toContainText("No peanuts");
 
   await expect(page.locator(".daily-step")).toHaveCount(3);
   await expect(page.locator(".module-card")).toHaveCount(4);
@@ -122,6 +131,15 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(page.locator(".payment-methods")).toContainText("USDT");
 
   await expect(page.locator(".review-card")).toHaveCount(3);
+  await expect(page.locator(".review-card img")).toHaveCount(3);
+  const reviewImages = await page.locator(".review-card img").evaluateAll((imgs) =>
+    imgs.map((img) => ({ src: (img as HTMLImageElement).getAttribute("src"), alt: (img as HTMLImageElement).getAttribute("alt") })),
+  );
+  expect(reviewImages).toEqual([
+    { src: "/assets/testimonials/anna.jpg", alt: "Anna" },
+    { src: "/assets/testimonials/marat.jpg", alt: "Marat" },
+    { src: "/assets/testimonials/sofia.jpg", alt: "Sofia" },
+  ]);
   await expect(page.locator(".review-stars")).toHaveCount(0);
 
   await expect(page.locator(".final-cta-section")).toContainText("Web app");
@@ -148,6 +166,55 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(footerTermsLink).toHaveAttribute("href", /terms\.html(\?.*)?$/);
 });
 
+test("landing light theme keeps the approved layout readable", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=en");
+  await page.evaluate(() => {
+    document.documentElement.dataset.siteTheme = "light";
+    localStorage.setItem("poliglot-site-theme", "light");
+  });
+
+  await expect(page.locator(".landing-hero")).toBeVisible();
+  await expect(page.locator(".hero-demo")).toBeVisible();
+  await expect(page.locator(".site-footer a", { hasText: "Privacy" })).toBeVisible();
+  await expect(page.locator(".site-footer a", { hasText: "Terms" })).toBeVisible();
+
+  const issues = await page.evaluate(() => {
+    const selectors = [
+      ".public-nav",
+      ".landing-hero h1",
+      ".landing-hero__copy p",
+      ".hero-demo",
+      ".daily-step",
+      ".module-card",
+      ".entry-panel",
+      ".plan-card",
+      ".review-card",
+      ".site-footer",
+    ];
+    const contrastIssues = selectors
+      .map((selector) => {
+        const node = document.querySelector(selector) as HTMLElement | null;
+        if (!node) return null;
+        const style = getComputedStyle(node);
+        return { selector, color: style.color, background: style.backgroundColor };
+      })
+      .filter(Boolean)
+      .filter((item) => item!.color === item!.background);
+    const overflowX = Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const overflowing = Array.from(document.querySelectorAll("h1,h2,h3,p,a,button,.plan-card,.review-card,.module-card,.entry-panel"))
+      .map((node) => {
+        const element = node as HTMLElement;
+        return { text: (element.textContent || "").trim().slice(0, 80), sw: element.scrollWidth, cw: element.clientWidth, width: element.getBoundingClientRect().width };
+      })
+      .filter((item) => item.width > 0 && item.sw > item.cw + 2);
+    return { contrastIssues, overflowX, overflowing };
+  });
+
+  expect(issues.contrastIssues).toEqual([]);
+  expect(issues.overflowX).toBe(0);
+  expect(issues.overflowing).toEqual([]);
+});
+
 test("landing hero keeps animated motion within a bounded frame budget", async ({ page }) => {
   await page.addInitScript(() => {
     const originalRequestAnimationFrame = window.requestAnimationFrame.bind(window);
@@ -162,7 +229,7 @@ test("landing hero keeps animated motion within a bounded frame budget", async (
   });
 
   await page.goto("/poliglot-ai.html?lang=en");
-  await expect(page.locator(".spark-hero canvas")).toHaveCount(1);
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await page.waitForTimeout(1800);
 
   const frameRequests = await page.evaluate(() => (window as Window & { __poliglotFrameRequests?: number }).__poliglotFrameRequests ?? 0);
@@ -174,15 +241,15 @@ test("English spark landing stays readable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/poliglot-ai.html?lang=en");
 
-  await expect(page.locator(".spark-hero canvas")).toHaveCount(1);
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
-  await expect(page.locator(".spark-hero .entry-cta")).toHaveCount(2);
-  await expect(page.locator(".spark-hero__proof")).toBeVisible();
+  await expect(page.locator(".landing-hero .entry-cta")).toHaveCount(2);
+  await expect(page.locator(".hero-proof")).toBeVisible();
   await expect(page.locator(".entry-panel")).toHaveCount(2);
   await expect(page.locator(".site-footer a", { hasText: "Privacy" })).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Terms" })).toBeVisible();
 
-  const heroHeight = await page.locator(".spark-hero").evaluate((node) => node.getBoundingClientRect().height);
+  const heroHeight = await page.locator(".landing-hero").evaluate((node) => node.getBoundingClientRect().height);
   const viewportHeight = await page.evaluate(() => window.innerHeight);
   expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.9);
 
@@ -190,7 +257,7 @@ test("English spark landing stays readable on mobile", async ({ page }) => {
     const documentOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 2 || document.body.scrollWidth > document.body.clientWidth + 2;
     const nodes = Array.from(
       document.querySelectorAll(
-        ".public-nav, .nav-drawer, [data-site-language-select], h1, h2, h3, p, a, button, .spark-hero__proof span, .daily-step, .module-card, .memory-node, .entry-panel, .plan-card, .review-card",
+        ".public-nav, .nav-drawer, [data-site-language-select], h1, h2, h3, p, a, button, .hero-proof span, .daily-step, .module-card, .memory-node, .entry-panel, .plan-card, .review-card",
       ),
     );
     const elementOverflow = nodes
@@ -219,7 +286,7 @@ test("public site language selector exposes all interface locales", async ({ pag
   const optionValues = await select.locator("option").evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
   expect(optionValues).toEqual(siteLocaleCodes);
 
-  for (const code of ["en", "ar", "bn", "cs", "hi", "ta", "te", "th", "tr", "vi"]) {
+  for (const code of siteLocaleCodes.filter((locale) => locale !== "ru")) {
     await page.evaluate((nextCode) => {
       const languageSelect = document.querySelector("[data-site-language-select]") as HTMLSelectElement | null;
       if (!languageSelect) throw new Error("missing public site language selector");
@@ -232,6 +299,8 @@ test("public site language selector exposes all interface locales", async ({ pag
     if (code !== "ru") {
       expect(text).not.toContain(ruCopy.oldStart);
       expect(text).not.toContain(ruCopy.oldCourses);
+      const landingText = await page.locator(".english-spark-landing").innerText();
+      expect(landingText).not.toMatch(/\p{Script=Cyrillic}/u);
     }
   }
 });

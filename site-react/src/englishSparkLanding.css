@@ -96,59 +96,67 @@
 .english-spark-landing {
   background: #070b16;
   color: #f7fbff;
+  overflow-x: clip;
 }
 
-.english-spark-landing .spark-hero {
+.english-spark-landing .landing-hero {
   min-height: 100svh;
   display: grid;
   align-items: center;
   padding-top: 92px;
+  background: #050914;
 }
 
-.english-spark-landing .spark-hero__sparkles {
+.english-spark-landing .landing-hero__matter {
+  position: absolute;
   z-index: 0;
 }
 
-.english-spark-landing .spark-hero__veil {
+.english-spark-landing .landing-hero__veil {
+  position: absolute;
+  inset: 0;
   z-index: 1;
 }
 
-.spark-hero__copy {
+.english-spark-landing .landing-hero__inner {
+  position: relative;
+  z-index: 2;
+  width: min(1240px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.landing-hero__copy {
   min-width: 0;
 }
 
-.spark-hero__proof {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 26px;
+.english-spark-landing .landing-hero h1,
+.english-spark-landing .landing-hero__copy > p,
+.english-spark-landing .hero-lead {
+  overflow-wrap: anywhere;
 }
 
-.spark-hero__proof span {
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  padding: 9px 12px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
-  font-weight: 900;
+.english-spark-landing .landing-hero h1 {
+  color: #ffffff;
 }
 
-.english-spark-landing .hero-product__lesson {
-  display: flex;
-  align-items: stretch;
-  gap: 12px;
-  margin-top: 18px;
+.english-spark-landing .landing-hero__copy > p,
+.english-spark-landing .hero-lead {
+  color: rgba(255, 255, 255, 0.78);
 }
 
-.english-spark-landing .hero-product__lesson p {
+.hero-demo__skeletons {
+  position: relative;
+  z-index: 1;
   display: grid;
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 20px 20px;
 }
 
 .skeleton-card {
   display: grid;
   gap: 10px;
-  margin-top: 14px;
+  min-width: 0;
   padding: 14px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
@@ -203,6 +211,20 @@
 .memory-loop-section p,
 .final-cta-section p {
   color: rgba(236, 246, 255, 0.78);
+}
+
+.section-copy,
+.memory-loop-section__copy,
+.daily-step,
+.module-card,
+.entry-panel,
+.plan-card,
+.review-card,
+.memory-node,
+.payment-methods span,
+.site-footer,
+.site-footer * {
+  overflow-wrap: anywhere;
 }
 
 .daily-steps,
@@ -343,7 +365,10 @@
 .price-line s,
 .price-line del {
   color: rgba(236, 246, 255, 0.5);
+  text-decoration-line: line-through;
   text-decoration-thickness: 2px;
+  text-decoration-color: currentColor;
+  text-decoration-skip-ink: none;
 }
 
 .price-line strong {
@@ -387,15 +412,14 @@
   gap: 12px;
 }
 
-.review-card > div > span {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
+.review-card > div > img {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
   border-radius: 50%;
-  color: #07111f;
-  background: #8ff1d0;
-  font-weight: 950;
+  object-fit: cover;
+  border: 2px solid rgba(143, 241, 208, 0.45);
+  background: #dbe7f5;
 }
 
 .final-cta-section {
@@ -414,8 +438,145 @@
   margin-top: 24px;
 }
 
+html[data-site-theme="light"] .public-shell,
+html[data-site-theme="light"] .english-spark-landing {
+  background: #f5f8fc;
+  color: #07111f;
+}
+
+html[data-site-theme="light"] .public-nav--drawer {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  color: #07111f;
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.12);
+}
+
+html[data-site-theme="light"] .nav-burger,
+html[data-site-theme="light"] .nav-drawer__actions a,
+html[data-site-theme="light"] .nav-drawer__actions button,
+html[data-site-theme="light"] .public-nav--drawer .nav-theme-toggle {
+  border-color: rgba(15, 23, 42, 0.14);
+  color: #07111f;
+  background: rgba(15, 23, 42, 0.05);
+}
+
+html[data-site-theme="light"] .nav-drawer {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.18);
+}
+
+html[data-site-theme="light"] .nav-drawer nav a {
+  color: #243247;
+}
+
+html[data-site-theme="light"] .english-spark-landing .landing-hero {
+  background: #050914;
+}
+
+html[data-site-theme="light"] .spark-section,
+html[data-site-theme="light"] .pricing-section,
+html[data-site-theme="light"] .memory-loop-section,
+html[data-site-theme="light"] .final-cta-section {
+  color: #07111f;
+}
+
+html[data-site-theme="light"] .english-spark-landing .section-copy h2,
+html[data-site-theme="light"] .memory-loop-section h2,
+html[data-site-theme="light"] .final-cta-section h2 {
+  color: #07111f;
+}
+
+html[data-site-theme="light"] .english-spark-landing .section-copy p,
+html[data-site-theme="light"] .memory-loop-section p,
+html[data-site-theme="light"] .final-cta-section p,
+html[data-site-theme="light"] .daily-step p,
+html[data-site-theme="light"] .module-card p,
+html[data-site-theme="light"] .entry-panel p,
+html[data-site-theme="light"] .plan-card p,
+html[data-site-theme="light"] .review-card p,
+html[data-site-theme="light"] .plan-card li,
+html[data-site-theme="light"] .review-card small {
+  color: #475569;
+}
+
+html[data-site-theme="light"] .daily-step,
+html[data-site-theme="light"] .module-card,
+html[data-site-theme="light"] .entry-panel,
+html[data-site-theme="light"] .plan-card,
+html[data-site-theme="light"] .review-card,
+html[data-site-theme="light"] .memory-node {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: #07111f;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+}
+
+html[data-site-theme="light"] .plan-card.is-featured {
+  border-color: rgba(18, 184, 215, 0.28);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(143, 241, 208, 0.2), transparent 36%),
+    rgba(255, 255, 255, 0.94);
+}
+
+html[data-site-theme="light"] .daily-step h3,
+html[data-site-theme="light"] .module-card h3,
+html[data-site-theme="light"] .entry-panel h3,
+html[data-site-theme="light"] .plan-card h3,
+html[data-site-theme="light"] .review-card strong,
+html[data-site-theme="light"] .price-line strong {
+  color: #07111f;
+}
+
+html[data-site-theme="light"] .price-line s,
+html[data-site-theme="light"] .price-line del {
+  color: #8a1f1f;
+  text-decoration-color: #dc2626;
+}
+
+html[data-site-theme="light"] .payment-methods span {
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #243247;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+html[data-site-theme="light"] .hero-action--secondary,
+html[data-site-theme="light"] .final-cta-section a[data-entry="telegram"] {
+  border-color: rgba(15, 23, 42, 0.16);
+  color: #07111f;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+html[data-site-theme="light"] .site-footer {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: #07111f;
+}
+
+html[data-site-theme="light"] .site-footer p,
+html[data-site-theme="light"] .site-footer span,
+html[data-site-theme="light"] .site-footer a {
+  color: #475569;
+}
+
+html[data-site-theme="light"] .site-footer strong {
+  color: #07111f;
+}
+
+.english-spark-landing h1,
+.english-spark-landing h2,
+.english-spark-landing h3,
+.english-spark-landing p,
+.english-spark-landing a,
+.english-spark-landing button,
+.english-spark-landing small,
+.english-spark-landing span,
+.english-spark-landing li {
+  min-width: 0;
+}
+
 @media (max-width: 920px) {
-  .english-spark-landing .spark-hero__content,
+  .english-spark-landing .landing-hero__inner,
   .memory-loop-section {
     grid-template-columns: 1fr;
   }
@@ -452,18 +613,18 @@
     display: none;
   }
 
-  .english-spark-landing .spark-hero {
+  .english-spark-landing .landing-hero {
     min-height: 100svh;
-    height: 100svh;
     padding-top: 82px;
   }
 
-  .english-spark-landing .spark-hero__content {
-    padding: 62px 16px 20px;
+  .english-spark-landing .landing-hero__inner {
+    width: calc(100% - 32px);
+    padding: 62px 0 38px;
     gap: 16px;
   }
 
-  .spark-hero h1 {
+  .english-spark-landing .landing-hero h1 {
     font-size: clamp(2.45rem, 12.5vw, 3.65rem);
     overflow-wrap: anywhere;
   }
@@ -474,17 +635,21 @@
   }
 
   .hero-actions,
-  .spark-hero__proof {
+  .hero-proof {
     gap: 8px;
   }
 
-  .spark-hero__proof span {
+  .hero-proof span {
     padding: 7px 10px;
     font-size: 0.86rem;
   }
 
-  .english-spark-landing .hero-product__card {
-    display: none;
+  .english-spark-landing .hero-demo {
+    max-width: 100%;
+  }
+
+  .hero-demo__skeletons {
+    grid-template-columns: 1fr;
   }
 
   .spark-section,
