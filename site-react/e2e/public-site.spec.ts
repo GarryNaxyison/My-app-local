@@ -46,6 +46,28 @@ const ruCopy = {
 } as const;
 
 const cyrillicInterfaceLocales = new Set(["ru", "tg", "tt", "kk", "ky", "uk"]);
+const englishLandingCopyThatMustLocalize = [
+  "Travel without panic",
+  "Short hotel, cafe, airport, and doctor phrases are practiced before the moment gets stressful.",
+  "Work calls and messages",
+  "Emails, calls, self-intros, and deadline questions become rehearsals that make speaking easier.",
+  "Exam and level progress",
+  "A1-C2 vocabulary, grammar, listening, and speaking stay in a route with visible progress steps.",
+  "Everyday conversation",
+  "The tutor gives a natural version and a next repetition until your answer sounds more confident.",
+  "Learn the phrase",
+  "Get the meaning, grammar hint, natural example, and one focused prompt.",
+  "Use it in context",
+  "Practice through a short roleplay, voice answer, or photo-based task.",
+  "Review the weak spot",
+  "Mistakes, notes, weak words, XP, and streak point to the next repetition.",
+  "Travel practice",
+  "I rehearsed check-in, cafe orders, and transport before the trip. The phrases stayed in notes for quick review.",
+  "English for work",
+  "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.",
+  "Pronunciation",
+  "Voice practice shows which words sound weak and gives a better sentence to repeat right away.",
+] as const;
 
 test("landing presents the approved English spark hero product site", async ({ page }) => {
   test.setTimeout(120_000);
@@ -393,6 +415,9 @@ test("landing localizes core product copy across all 35 interface locales", asyn
       expect(landingText).not.toContain("Practice speaking before the moment matters");
       expect(landingText).not.toContain("Real situations where the language has to work today");
       expect(landingText).not.toContain("Start free");
+      for (const englishCopy of englishLandingCopyThatMustLocalize) {
+        expect(landingText).not.toContain(englishCopy);
+      }
     }
     if (!cyrillicInterfaceLocales.has(code) && code !== "en") {
       expect(landingText).not.toMatch(/\p{Script=Cyrillic}/u);

@@ -155,6 +155,8 @@ function isMeaningful(value) {
   if (!hasLetter(text)) return false;
   if (isOnlyProtectedName(text)) return false;
   if (text.length > 700) return false;
+  if (/[<>]/.test(text)) return false;
+  if (/\\[sS]|\/[gimsuy]*$|\$\s*\p{Nd}+/u.test(text)) return false;
   if (/^[a-z][a-z0-9_-]{2,}$/.test(text)) return false;
   if (/[{}]|=>|className=|style=|children=|useState|useEffect|window\.|document\.|querySelector|addEventListener|removeEventListener/.test(text)) return false;
   if (/\b(?:import|export|return|const|let|var|function|type|interface)\b/.test(text) && /[{}()[\];]/.test(text)) return false;
@@ -274,17 +276,18 @@ function collectCandidates() {
       continue;
     }
 
-    const withoutComments = source
-      .replace(/\/\*[\s\S]*?\*\//g, " ")
-      .replace(/\/\/.*$/gm, " ")
+    const withoutImports = source
       .replace(/\bimport[\s\S]*?\bfrom\s+["'][^"']+["'];/g, " ")
       .replace(/\bimport\s+["'][^"']+["'];/g, " ");
+    const withoutComments = withoutImports
+      .replace(/\/\*[\s\S]*?\*\//g, " ")
+      .replace(/\/\/.*$/gm, " ");
 
     for (const match of withoutComments.matchAll(/>([^<>]+)</g)) {
       addCandidate(candidates, decodeHtmlEntities(match[1]));
     }
 
-    for (const value of collectQuotedLiterals(withoutComments)) {
+    for (const value of collectQuotedLiterals(withoutImports)) {
       addCandidate(candidates, decodeHtmlEntities(value));
     }
   }
@@ -398,7 +401,12 @@ function needsTranslation(source, lang, current, english) {
 
 function hasTranslationLeak(value) {
   const text = String(value || "");
-  return /\[\[?\s*\d+\s*\]?\]?/.test(text) || /__\s*P\s*\d+\s*__/i.test(text);
+  return /\[\[?\s*\p{Nd}+\s*\]?\]?/u.test(text)
+    || /_{1,2}\s*[PП]\s*\p{Nd}+\s*_{1,2}/iu.test(text)
+    || /_{2}\s*[PП]\s*\p{Nd}+/iu.test(text)
+    || /[PП]\s*\p{Nd}+\s*_{1,2}/iu.test(text)
+    || /_[PП]\p{Nd}+_/iu.test(text)
+    || /\$\s*\p{Nd}+/u.test(text);
 }
 
 async function translateBatch(items, targetGoogleCode) {
@@ -437,7 +445,7 @@ async function translateBatch(items, targetGoogleCode) {
           const singleRaw = await fetchGoogle(item.protectedItem.text, sourceGoogleCode, targetGoogleCode);
           restored = item.protectedItem.restore(singleRaw.replace(/^\[\[\d+\]\]\s*/, ""));
         }
-        batch[index].result = restored;
+        batch[index].result = restored && !hasTranslationLeak(restored) ? restored : "";
       }
 
       if (TRANSLATION_PAUSE_MS > 0) {
@@ -493,10 +501,10 @@ async function fetchGoogle(text, sl, tl) {
 
 function splitMarkedTranslation(text, expectedCount) {
   const result = new Map();
-  const marker = /\[\[(\d+)\]\]/g;
+  const marker = /\[\[\s*(\p{Nd}+)\s*\]\]/gu;
   const matches = [...text.matchAll(marker)];
   for (let i = 0; i < matches.length; i += 1) {
-    const index = Number(matches[i][1]);
+    const index = parseLocalizedNumber(matches[i][1]);
     const start = matches[i].index + matches[i][0].length;
     const end = i + 1 < matches.length ? matches[i + 1].index : text.length;
     if (index >= 0 && index < expectedCount) {
@@ -504,6 +512,41 @@ function splitMarkedTranslation(text, expectedCount) {
     }
   }
   return result;
+}
+
+function parseLocalizedNumber(value) {
+  const digits = [];
+  for (const char of String(value || "")) {
+    const digit = localizedDigitValue(char);
+    if (digit === null) return Number.NaN;
+    digits.push(String(digit));
+  }
+  return digits.length ? Number(digits.join("")) : Number.NaN;
+}
+
+function localizedDigitValue(char) {
+  const code = char.codePointAt(0);
+  if (code === undefined) return null;
+  const ranges = [
+    0x0030, // ASCII
+    0x0660, // Arabic-Indic
+    0x06f0, // Extended Arabic-Indic
+    0x0966, // Devanagari
+    0x09e6, // Bengali
+    0x0a66, // Gurmukhi
+    0x0ae6, // Gujarati
+    0x0b66, // Oriya
+    0x0be6, // Tamil
+    0x0c66, // Telugu
+    0x0ce6, // Kannada
+    0x0d66, // Malayalam
+    0x0e50, // Thai
+    0xff10, // Fullwidth
+  ];
+  for (const start of ranges) {
+    if (code >= start && code <= start + 9) return code - start;
+  }
+  return null;
 }
 
 function buildCurrentSites(phrasesSource, i18nSource) {
@@ -561,6 +604,7 @@ async function main() {
       await translateBatch(items, googleCode);
       for (const item of items) {
         if (shouldKeepEnglishTerm(item.source, item.result)) continue;
+        if (!item.result || hasTranslationLeak(item.result)) continue;
         generated[item.source] ||= {};
         generated[item.source][lang] = item.result;
       }
