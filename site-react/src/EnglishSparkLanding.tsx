@@ -263,16 +263,20 @@ const reviews = [
   },
 ] as const;
 
-export function EnglishSparkLanding() {
+type EnglishSparkLandingProps = {
+  siteTheme?: "dark" | "light";
+};
+
+export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingProps) {
   const [activeTab, setActiveTab] = useState(0);
   const activeDemo = demoScreens[activeTab] ?? demoScreens[0];
   const activeLabel = activeDemo.tab;
 
   return (
     <main className="english-spark-landing">
-      <section className="landing-hero">
+      <section className="landing-hero" data-hero-preset={siteTheme}>
         <div className="landing-hero__matter">
-          <GenerativeArtScene animate color="#7bdcff" particleColor="#f5d27a" />
+          <GenerativeArtScene animate variant={siteTheme} color="#7bdcff" particleColor="#f5d27a" />
         </div>
         <div className="landing-hero__veil" aria-hidden="true" />
 

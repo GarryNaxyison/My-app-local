@@ -573,16 +573,16 @@ html[data-site-theme="light"] .english-spark-landing .landing-hero {
 }
 
 html[data-site-theme="light"] .english-spark-landing .landing-hero__matter {
-  opacity: 0.36;
-  mix-blend-mode: multiply;
-  filter: saturate(0.86) contrast(0.94);
+  opacity: 0.68;
+  mix-blend-mode: normal;
+  filter: saturate(1.18) contrast(1.14);
 }
 
 html[data-site-theme="light"] .english-spark-landing .landing-hero__veil {
   background:
-    radial-gradient(circle at 72% 18%, rgba(255, 255, 255, 0.42), transparent 31%),
-    linear-gradient(90deg, rgba(246, 250, 255, 0.94) 0%, rgba(236, 245, 252, 0.82) 48%, rgba(232, 241, 248, 0.48) 100%),
-    linear-gradient(180deg, rgba(246, 250, 255, 0.08), rgba(245, 248, 252, 0.94));
+    radial-gradient(circle at 72% 18%, rgba(255, 255, 255, 0.18), transparent 31%),
+    linear-gradient(90deg, rgba(246, 250, 255, 0.94) 0%, rgba(236, 245, 252, 0.72) 46%, rgba(232, 241, 248, 0.2) 100%),
+    linear-gradient(180deg, rgba(246, 250, 255, 0.02), rgba(245, 248, 252, 0.86));
 }
 
 html[data-site-theme="light"] .english-spark-landing .landing-hero h1,

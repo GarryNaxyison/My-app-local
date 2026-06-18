@@ -1,20 +1,61 @@
 import { Suspense, useEffect, useRef } from "react";
 import * as THREE from "three";
 
+type HeroShaderVariant = "dark" | "light";
+
 type GenerativeArtSceneProps = {
   className?: string;
   color?: string;
   particleColor?: string;
   animate?: boolean;
+  variant?: HeroShaderVariant;
 };
 
-export function GenerativeArtScene({ className = "", color = "#6bdcff", particleColor = "#ffffff", animate = false }: GenerativeArtSceneProps) {
+const shaderPresets = {
+  dark: {
+    baseColor: [0.0, 0.0, 0.0],
+    cloudColor: [0.22, 0.15, 0.08],
+    accentBlue: [0.1, 0.33, 0.95],
+    accentCyan: [0.05, 0.85, 0.78],
+    lineGain: 1.0,
+    cloudGain: 1.0,
+    backdropAlpha: 1.0,
+    particleCount: 90,
+    particleSize: 0.015,
+    particleOpacity: 0.66,
+    meshDiffuse: 0.7,
+    meshFresnel: 0.95,
+    meshAmbient: 0.18,
+    meshOpacity: 0.95,
+  },
+  light: {
+    baseColor: [0.72, 0.84, 0.96],
+    cloudColor: [0.42, 0.58, 0.74],
+    accentBlue: [0.02, 0.18, 0.56],
+    accentCyan: [0.0, 0.55, 0.72],
+    lineGain: 1.9,
+    cloudGain: 0.72,
+    backdropAlpha: 0.92,
+    particleCount: 132,
+    particleSize: 0.02,
+    particleOpacity: 0.82,
+    meshDiffuse: 0.9,
+    meshFresnel: 1.45,
+    meshAmbient: 0.24,
+    meshOpacity: 0.98,
+  },
+} as const;
+
+export function GenerativeArtScene({ className = "", color = "#6bdcff", particleColor = "#ffffff", animate = false, variant = "dark" }: GenerativeArtSceneProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const lightRef = useRef<THREE.PointLight | null>(null);
 
   useEffect(() => {
     const currentMount = mountRef.current;
     if (!currentMount) return undefined;
+    const preset = shaderPresets[variant];
+    const meshColor = variant === "light" ? "#0a4fc7" : color;
+    const pointColor = variant === "light" ? "#0f5fd1" : particleColor;
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(68, currentMount.clientWidth / currentMount.clientHeight, 0.1, 1000);
@@ -34,6 +75,13 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
       uniforms: {
         time: { value: 0 },
         resolution: { value: new THREE.Vector2(currentMount.clientWidth, currentMount.clientHeight) },
+        baseColor: { value: new THREE.Vector3(...preset.baseColor) },
+        cloudColor: { value: new THREE.Vector3(...preset.cloudColor) },
+        accentBlue: { value: new THREE.Vector3(...preset.accentBlue) },
+        accentCyan: { value: new THREE.Vector3(...preset.accentCyan) },
+        lineGain: { value: preset.lineGain },
+        cloudGain: { value: preset.cloudGain },
+        backdropAlpha: { value: preset.backdropAlpha },
       },
       vertexShader: `
         varying vec2 vUv;
@@ -46,6 +94,13 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
         precision highp float;
         uniform vec2 resolution;
         uniform float time;
+        uniform vec3 baseColor;
+        uniform vec3 cloudColor;
+        uniform vec3 accentBlue;
+        uniform vec3 accentCyan;
+        uniform float lineGain;
+        uniform float cloudGain;
+        uniform float backdropAlpha;
         varying vec2 vUv;
 
         float rnd(vec2 p) {
@@ -83,33 +138,32 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
           float mn = min(resolution.x, resolution.y);
           vec2 uv = (frag - 0.5 * resolution) / mn;
           vec2 st = uv * vec2(2.0, 1.0);
-          vec3 col = vec3(0.0);
+          vec3 col = baseColor * 0.018;
           float bg = clouds(vec2(st.x + time * 0.26, -st.y));
           uv *= 1.0 - 0.22 * (sin(time * 0.2) * 0.5 + 0.5);
           for (float i = 1.0; i < 7.0; i++) {
             uv += 0.1 * cos(i * vec2(0.1 + 0.01 * i, 0.8) + i * i + time * 0.38 + 0.1 * uv.x);
             vec2 p = uv;
             float d = max(length(p), 0.015);
-            col += 0.0015 / d * (cos(sin(i) * vec3(1.0, 2.0, 3.0)) + 1.0);
+            col += lineGain * 0.0015 / d * (cos(sin(i) * vec3(1.0, 2.0, 3.0)) + 1.0);
             float b = noise(i + p + bg * 1.731);
-            col += 0.0022 * b / length(max(abs(p), vec2(b * abs(p.x) * 0.02, abs(p.y))));
-            col = mix(col, vec3(bg * 0.22, bg * 0.15, bg * 0.08), smoothstep(0.0, 1.25, d));
+            col += lineGain * 0.0022 * b / length(max(abs(p), vec2(b * abs(p.x) * 0.02, abs(p.y))));
+            col = mix(col, baseColor + cloudColor * bg * cloudGain, smoothstep(0.0, 1.25, d));
           }
-          vec3 blue = vec3(0.10, 0.33, 0.95);
-          vec3 cyan = vec3(0.05, 0.85, 0.78);
-          col += blue * smoothstep(0.65, 0.0, length(st - vec2(-0.44, 0.06))) * 0.18;
-          col += cyan * smoothstep(0.72, 0.0, length(st - vec2(0.72, -0.08))) * 0.16;
-          gl_FragColor = vec4(col, 1.0);
+          col += accentBlue * smoothstep(0.65, 0.0, length(st - vec2(-0.44, 0.06))) * 0.18 * lineGain;
+          col += accentCyan * smoothstep(0.72, 0.0, length(st - vec2(0.72, -0.08))) * 0.16 * lineGain;
+          gl_FragColor = vec4(col, backdropAlpha);
         }
       `,
       depthTest: false,
       depthWrite: false,
+      transparent: true,
     });
     const backdrop = new THREE.Mesh(backdropGeometry, backdropMaterial);
     backdrop.renderOrder = -10;
     scene.add(backdrop);
 
-    const particleCount = 90;
+    const particleCount = preset.particleCount;
     const particlePositions = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount; i++) {
       particlePositions[i * 3] = (Math.random() - 0.5) * 7.4;
@@ -119,10 +173,10 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
     const particlesGeometry = new THREE.BufferGeometry();
     particlesGeometry.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
     const particlesMaterial = new THREE.PointsMaterial({
-      color: new THREE.Color(particleColor),
-      size: 0.015,
+      color: new THREE.Color(pointColor),
+      size: preset.particleSize,
       transparent: true,
-      opacity: 0.66,
+      opacity: preset.particleOpacity,
       depthWrite: false,
     });
     const particles = new THREE.Points(particlesGeometry, particlesMaterial);
@@ -133,7 +187,11 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
       uniforms: {
         time: { value: 0 },
         pointLightPos: { value: new THREE.Vector3(0, 0, 5) },
-        color: { value: new THREE.Color(color) },
+        color: { value: new THREE.Color(meshColor) },
+        diffuseGain: { value: preset.meshDiffuse },
+        fresnelGain: { value: preset.meshFresnel },
+        ambientGain: { value: preset.meshAmbient },
+        meshOpacity: { value: preset.meshOpacity },
       },
       vertexShader: `
         uniform float time;
@@ -202,6 +260,10 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
       fragmentShader: `
         uniform vec3 color;
         uniform vec3 pointLightPos;
+        uniform float diffuseGain;
+        uniform float fresnelGain;
+        uniform float ambientGain;
+        uniform float meshOpacity;
         varying vec3 vNormal;
         varying vec3 vPosition;
 
@@ -210,8 +272,8 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
           vec3 lightDir = normalize(pointLightPos - vPosition);
           float diffuse = max(dot(normal, lightDir), 0.0);
           float fresnel = pow(1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0), 2.0);
-          vec3 finalColor = color * (diffuse * 0.7 + fresnel * 0.95 + 0.18);
-          gl_FragColor = vec4(finalColor, 0.95);
+          vec3 finalColor = color * (diffuse * diffuseGain + fresnel * fresnelGain + ambientGain);
+          gl_FragColor = vec4(finalColor, meshOpacity);
         }
       `,
       wireframe: true,
@@ -337,9 +399,9 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
         currentMount.removeChild(renderer.domElement);
       }
     };
-  }, [animate, color, particleColor]);
+  }, [animate, color, particleColor, variant]);
 
-  return <div ref={mountRef} className={`generative-art-scene ${className}`} aria-hidden="true" />;
+  return <div ref={mountRef} className={`generative-art-scene ${className}`} data-hero-preset={variant} aria-hidden="true" />;
 }
 
 type AnomalousMatterHeroProps = {

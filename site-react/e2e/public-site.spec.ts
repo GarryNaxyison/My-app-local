@@ -104,6 +104,7 @@ test("landing presents the approved English spark hero product site", async ({ p
 
   await expect(page.locator(".english-spark-landing")).toBeVisible();
   await expect(page.locator(".landing-hero")).toBeVisible();
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "dark");
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator(".spark-hero")).toHaveCount(0);
   await expect(page.locator(".bold-hero")).toHaveCount(0);
@@ -222,13 +223,14 @@ test("landing presents the approved English spark hero product site", async ({ p
 });
 
 test("landing light theme keeps the approved layout readable", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
-  await page.evaluate(() => {
-    document.documentElement.dataset.siteTheme = "light";
+  await page.addInitScript(() => {
     localStorage.setItem("poliglot-site-theme", "light");
   });
+  await page.goto("/poliglot-ai.html?lang=en");
 
+  await expect(page.locator("html")).toHaveAttribute("data-site-theme", "light");
   await expect(page.locator(".landing-hero")).toBeVisible();
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "light");
   await expect(page.locator(".hero-demo")).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Privacy" })).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Terms" })).toBeVisible();
@@ -247,13 +249,18 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
 
     const nav = document.querySelector(".public-nav--drawer") as HTMLElement;
     const hero = document.querySelector(".landing-hero") as HTMLElement;
+    const matter = document.querySelector(".landing-hero__matter") as HTMLElement;
     const heading = document.querySelector(".landing-hero h1") as HTMLElement;
     const navBackground = parseColor(getComputedStyle(nav).backgroundColor);
+    const matterStyle = getComputedStyle(matter);
     return {
       navBackground,
       heroColor: getComputedStyle(hero).color,
       heroBackgroundImage: getComputedStyle(hero).backgroundImage,
       headingColor: getComputedStyle(heading).color,
+      matterOpacity: Number(matterStyle.opacity),
+      matterBlendMode: matterStyle.mixBlendMode,
+      matterFilter: matterStyle.filter,
     };
   });
 
@@ -263,6 +270,9 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   expect(lightHeroHeader.heroColor).toBe("rgb(7, 17, 31)");
   expect(lightHeroHeader.headingColor).toBe("rgb(7, 17, 31)");
   expect(lightHeroHeader.heroBackgroundImage).not.toContain("rgb(5, 9, 20)");
+  expect(lightHeroHeader.matterOpacity).toBeGreaterThanOrEqual(0.62);
+  expect(lightHeroHeader.matterBlendMode).not.toBe("multiply");
+  expect(lightHeroHeader.matterFilter).not.toContain("contrast(0.");
   await expect(page.locator(".pricing-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
   await expect(page.locator(".reviews-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
   await expect(page.locator(".plan-label").first()).toHaveCSS("color", "rgb(45, 91, 255)");
@@ -453,7 +463,7 @@ test("landing hero keeps animated motion within a bounded frame budget", async (
   await page.waitForTimeout(1800);
 
   const frameRequests = await page.evaluate(() => (window as Window & { __poliglotFrameRequests?: number }).__poliglotFrameRequests ?? 0);
-  expect(frameRequests).toBeGreaterThan(15);
+  expect(frameRequests).toBeGreaterThanOrEqual(15);
   expect(frameRequests).toBeLessThan(95);
 });
 

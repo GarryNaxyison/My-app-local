@@ -374,7 +374,7 @@ export function PublicSiteApp() {
   return (
     <div className="public-shell">
       <SiteNavDrawer page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      {page === "landing" ? <EnglishSparkLanding /> : <LegalPage page={page} />}
+      {page === "landing" ? <EnglishSparkLanding siteTheme={theme} /> : <LegalPage page={page} />}
       <SiteFooterEnglish />
     </div>
   );
