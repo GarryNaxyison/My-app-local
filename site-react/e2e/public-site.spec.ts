@@ -232,6 +232,37 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   await expect(page.locator(".hero-demo")).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Privacy" })).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Terms" })).toBeVisible();
+
+  const lightHeroHeader = await page.evaluate(() => {
+    const parseColor = (value: string) => {
+      const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/);
+      if (!match) return null;
+      return {
+        red: Number(match[1]),
+        green: Number(match[2]),
+        blue: Number(match[3]),
+        alpha: match[4] ? Number(match[4]) : 1,
+      };
+    };
+
+    const nav = document.querySelector(".public-nav--drawer") as HTMLElement;
+    const hero = document.querySelector(".landing-hero") as HTMLElement;
+    const heading = document.querySelector(".landing-hero h1") as HTMLElement;
+    const navBackground = parseColor(getComputedStyle(nav).backgroundColor);
+    return {
+      navBackground,
+      heroColor: getComputedStyle(hero).color,
+      heroBackgroundImage: getComputedStyle(hero).backgroundImage,
+      headingColor: getComputedStyle(heading).color,
+    };
+  });
+
+  expect(lightHeroHeader.navBackground).toEqual(expect.objectContaining({ red: expect.any(Number), green: expect.any(Number), blue: expect.any(Number), alpha: expect.any(Number) }));
+  expect(Math.max(lightHeroHeader.navBackground!.red, lightHeroHeader.navBackground!.green, lightHeroHeader.navBackground!.blue)).toBeLessThan(250);
+  expect(lightHeroHeader.navBackground!.alpha).toBeLessThanOrEqual(0.78);
+  expect(lightHeroHeader.heroColor).toBe("rgb(7, 17, 31)");
+  expect(lightHeroHeader.headingColor).toBe("rgb(7, 17, 31)");
+  expect(lightHeroHeader.heroBackgroundImage).not.toContain("rgb(5, 9, 20)");
   await expect(page.locator(".pricing-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
   await expect(page.locator(".reviews-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
   await expect(page.locator(".plan-label").first()).toHaveCSS("color", "rgb(45, 91, 255)");
