@@ -358,7 +358,7 @@ function useLegacySiteI18n(page: PageId, theme: SiteTheme) {
 }
 
 function useSiteTheme() {
-  const [theme, setTheme] = useState<SiteTheme>(() => (localStorage.getItem("poliglot-site-theme") === "dark" ? "dark" : "light"));
+  const [theme, setTheme] = useState<SiteTheme>(() => (localStorage.getItem("poliglot-site-theme") === "light" ? "light" : "dark"));
   useEffect(() => {
     document.documentElement.dataset.siteTheme = theme;
     localStorage.setItem("poliglot-site-theme", theme);

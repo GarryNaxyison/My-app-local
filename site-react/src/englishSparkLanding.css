@@ -306,6 +306,10 @@
   color: #8ff1d0;
 }
 
+html[data-site-theme="light"] .plan-label {
+  color: #2d5bff !important;
+}
+
 .daily-step h3,
 .module-card h3,
 .entry-panel h3,
@@ -653,6 +657,22 @@ html[data-site-theme="light"] .site-footer a {
 
 html[data-site-theme="light"] .site-footer strong {
   color: #07111f;
+}
+
+html[data-site-theme="light"] .english-spark-landing .plan-label,
+html[data-site-theme="light"] .english-spark-landing .course-card > span,
+html[data-site-theme="light"] .english-spark-landing .cockpit-lane > span,
+html[data-site-theme="light"] .english-spark-landing .scenario-modules span,
+html[data-site-theme="light"] .english-spark-landing .price-tags span {
+  border-color: rgba(45, 91, 255, 0.24) !important;
+  background: rgba(45, 91, 255, 0.08) !important;
+  color: #2d5bff !important;
+  -webkit-text-fill-color: #2d5bff !important;
+}
+
+html[data-site-theme="light"] .english-spark-landing .course-card > span,
+html[data-site-theme="light"] .english-spark-landing .scenario-modules span {
+  border: 1px solid rgba(45, 91, 255, 0.24) !important;
 }
 
 .english-spark-landing h1,

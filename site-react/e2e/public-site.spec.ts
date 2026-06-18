@@ -45,10 +45,13 @@ const ruCopy = {
   oldCourses: "\u041a\u0443\u0440\u0441\u044b \u043d\u0430 \u0432\u044b\u0431\u043e\u0440",
 } as const;
 
+const cyrillicInterfaceLocales = new Set(["ru", "tg", "tt", "kk", "ky", "uk"]);
+
 test("landing presents the approved English spark hero product site", async ({ page }) => {
-  test.setTimeout(60_000);
+  test.setTimeout(120_000);
   await page.goto("/poliglot-ai.html?lang=en");
 
+  await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");
   await expect(page.locator(".public-nav")).toBeVisible();
   await expect(page.locator(".public-brand__logo img")).toBeVisible();
   await expect(page.locator(".nav-burger")).toBeVisible();
@@ -132,14 +135,24 @@ test("landing presents the approved English spark hero product site", async ({ p
 
   await expect(page.locator(".review-card")).toHaveCount(3);
   await expect(page.locator(".review-card img")).toHaveCount(3);
+  await page.locator(".review-card").last().scrollIntoViewIfNeeded();
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll<HTMLImageElement>(".review-card img")).every((image) => image.complete && image.naturalWidth > 0),
+  );
   const reviewImages = await page.locator(".review-card img").evaluateAll((imgs) =>
-    imgs.map((img) => ({ src: (img as HTMLImageElement).getAttribute("src"), alt: (img as HTMLImageElement).getAttribute("alt") })),
+    imgs.map((img) => ({
+      src: (img as HTMLImageElement).getAttribute("src"),
+      alt: (img as HTMLImageElement).getAttribute("alt"),
+      naturalWidth: (img as HTMLImageElement).naturalWidth,
+      complete: (img as HTMLImageElement).complete,
+    })),
   );
   expect(reviewImages).toEqual([
-    { src: "/assets/testimonials/anna.jpg", alt: "Anna" },
-    { src: "/assets/testimonials/marat.jpg", alt: "Marat" },
-    { src: "/assets/testimonials/sofia.jpg", alt: "Sofia" },
+    { src: "/assets/testimonials/anna.jpg", alt: "Anna", naturalWidth: expect.any(Number), complete: true },
+    { src: "/assets/testimonials/marat.jpg", alt: "Marat", naturalWidth: expect.any(Number), complete: true },
+    { src: "/assets/testimonials/sofia.jpg", alt: "Sofia", naturalWidth: expect.any(Number), complete: true },
   ]);
+  expect(reviewImages.every((img) => img.naturalWidth >= 240)).toBe(true);
   await expect(page.locator(".review-stars")).toHaveCount(0);
 
   await expect(page.locator(".final-cta-section")).toContainText("Web app");
@@ -177,6 +190,11 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   await expect(page.locator(".hero-demo")).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Privacy" })).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Terms" })).toBeVisible();
+  await expect(page.locator(".pricing-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
+  await expect(page.locator(".reviews-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
+  await expect(page.locator(".plan-label").first()).toHaveCSS("color", "rgb(45, 91, 255)");
+  await expect(page.locator(".course-card span").first()).toHaveCSS("color", "rgb(45, 91, 255)");
+  await expect(page.locator(".scenario-modules span").first()).toHaveCSS("color", "rgb(45, 91, 255)");
 
   const issues = await page.evaluate(() => {
     const selectors = [
@@ -233,15 +251,27 @@ test("landing keeps rich product sections below the restored hero", async ({ pag
   await expect(page.locator(".scenario-section")).toBeVisible();
   await expect(page.locator(".scenario-card")).toHaveCount(4);
   await expect(page.locator(".scenario-card img")).toHaveCount(4);
+  for (const image of await page.locator(".scenario-card img").all()) {
+    await image.scrollIntoViewIfNeeded();
+  }
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll<HTMLImageElement>(".scenario-card img")).every((image) => image.complete && image.naturalWidth > 0),
+  );
   const scenarioImages = await page.locator(".scenario-card img").evaluateAll((imgs) =>
-    imgs.map((img) => ({ src: (img as HTMLImageElement).getAttribute("src"), alt: (img as HTMLImageElement).getAttribute("alt") })),
+    imgs.map((img) => ({
+      src: (img as HTMLImageElement).getAttribute("src"),
+      alt: (img as HTMLImageElement).getAttribute("alt"),
+      naturalWidth: (img as HTMLImageElement).naturalWidth,
+      complete: (img as HTMLImageElement).complete,
+    })),
   );
   expect(scenarioImages).toEqual([
-    { src: "/assets/scenarios/travel-ai-tutor.jpg", alt: "Travel practice scene" },
-    { src: "/assets/scenarios/work-ai-tutor.jpg", alt: "Work practice scene" },
-    { src: "/assets/scenarios/exam-ai-tutor.jpg", alt: "Exam practice scene" },
-    { src: "/assets/scenarios/speaking-ai-tutor.jpg", alt: "Speaking practice scene" },
+    { src: "/assets/scenarios/travel-ai-tutor.jpg", alt: "Travel practice scene", naturalWidth: expect.any(Number), complete: true },
+    { src: "/assets/scenarios/work-ai-tutor.jpg", alt: "Work practice scene", naturalWidth: expect.any(Number), complete: true },
+    { src: "/assets/scenarios/exam-ai-tutor.jpg", alt: "Exam practice scene", naturalWidth: expect.any(Number), complete: true },
+    { src: "/assets/scenarios/speaking-ai-tutor.jpg", alt: "Speaking practice scene", naturalWidth: expect.any(Number), complete: true },
   ]);
+  expect(scenarioImages.every((img) => img.naturalWidth >= 480)).toBe(true);
 
   await expect(page.locator(".device-flow")).toBeVisible();
   await expect(page.locator(".device-flow__node")).toHaveCount(3);
@@ -312,7 +342,7 @@ test("English spark landing stays readable on mobile", async ({ page }) => {
 });
 
 test("public site language selector exposes all interface locales", async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
   await page.goto("/poliglot-ai.html");
   const select = page.locator("[data-site-language-select]");
   await expect(select).toBeVisible();
@@ -330,21 +360,52 @@ test("public site language selector exposes all interface locales", async ({ pag
     await page.waitForTimeout(80);
     const text = await page.locator("body").innerText();
     expect(text).not.toMatch(/Рџ|РЎ|Р’|Рќ|Рњ/);
-    if (code !== "ru") {
-      expect(text).not.toContain(ruCopy.oldStart);
-      expect(text).not.toContain(ruCopy.oldCourses);
-      const landingText = await page.locator(".english-spark-landing").innerText();
+    expect(text).not.toContain(ruCopy.oldStart);
+    expect(text).not.toContain(ruCopy.oldCourses);
+    const landingText = await page.locator(".english-spark-landing").innerText();
+    if (!cyrillicInterfaceLocales.has(code)) {
       expect(landingText).not.toMatch(/\p{Script=Cyrillic}/u);
     }
   }
 });
 
-test("privacy and terms keep contacts and dark language picker readable", async ({ page }) => {
+test("landing localizes core product copy across all 35 interface locales", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/poliglot-ai.html?lang=en");
+  const select = page.locator("[data-site-language-select]");
+  await expect(select).toBeVisible();
+
+  for (const code of siteLocaleCodes) {
+    await page.evaluate((nextCode) => {
+      const languageSelect = document.querySelector("[data-site-language-select]") as HTMLSelectElement | null;
+      if (!languageSelect) throw new Error("missing public site language selector");
+      languageSelect.value = nextCode;
+      languageSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }, code);
+    await page.waitForTimeout(140);
+
+    const htmlLang = await page.locator("html").getAttribute("lang");
+    expect(htmlLang).toBe(code);
+
+    const landingText = await page.locator(".english-spark-landing").innerText();
+    expect(landingText).toContain("35");
+    if (code !== "en") {
+      expect(landingText).not.toContain("Practice speaking before the moment matters");
+      expect(landingText).not.toContain("Real situations where the language has to work today");
+      expect(landingText).not.toContain("Start free");
+    }
+    if (!cyrillicInterfaceLocales.has(code) && code !== "en") {
+      expect(landingText).not.toMatch(/\p{Script=Cyrillic}/u);
+    }
+  }
+});
+
+test("privacy and terms keep contacts and both themes readable", async ({ page }) => {
   for (const path of ["/privacy.html", "/terms.html"]) {
+    await page.context().clearCookies();
+    await page.addInitScript(() => localStorage.clear());
     await page.goto(path);
-    await page.evaluate(() => {
-      document.documentElement.dataset.siteTheme = "dark";
-    });
+    await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");
 
     const select = page.locator("[data-site-language-select]");
     await expect(select).toBeVisible();
@@ -368,6 +429,52 @@ test("privacy and terms keep contacts and dark language picker readable", async 
     expect(text).toContain("@AsaselD");
     expect(text).toContain("@poliglot_ai_bot");
     expect(text).toContain("35");
+
+    for (const theme of ["dark", "light"] as const) {
+      await page.evaluate((nextTheme) => {
+        document.documentElement.dataset.siteTheme = nextTheme;
+        localStorage.setItem("poliglot-site-theme", nextTheme);
+      }, theme);
+      const readability = await page.evaluate(() => {
+        const selectors = [
+          ".legal-page",
+          ".legal-hero h1",
+          ".legal-hero p",
+          ".legal-pills span",
+          ".legal-aside a",
+          ".legal-price-tags span",
+          ".legal-old-price",
+          ".legal-document-shell",
+          ".legal-document-shell h2",
+          ".legal-document-shell p",
+          ".legal-document-shell li",
+          ".legal-contact-grid a",
+        ];
+        const nodes = selectors
+          .map((selector) => {
+            const node = document.querySelector(selector) as HTMLElement | null;
+            if (!node) return null;
+            const style = getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+            return {
+              selector,
+              color: style.color,
+              background: style.backgroundColor,
+              width: rect.width,
+              overflow: node.scrollWidth > node.clientWidth + 2,
+            };
+          })
+          .filter(Boolean);
+        return {
+          sameColors: nodes.filter((item) => item!.color === item!.background),
+          overflowing: nodes.filter((item) => item!.width > 0 && item!.overflow),
+          horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        };
+      });
+      expect(readability.sameColors).toEqual([]);
+      expect(readability.overflowing).toEqual([]);
+      expect(readability.horizontalOverflow).toBe(0);
+    }
   }
 });
 
@@ -378,4 +485,51 @@ test("privacy Russian contact grid keeps Telegram bot visible", async ({ page })
   await expect(botContact).toBeVisible();
   await expect(botContact.locator("small")).toHaveText("Telegram bot");
   await expect(botContact).toContainText("@poliglot_ai_bot");
+});
+
+test("production public-site output keeps all image and localization assets for deploy", async ({ page, request }) => {
+  const assetPaths = [
+    "/assets/site-i18n.js",
+    "/assets/site-phrases.js",
+    "/assets/privacy-policy-i18n.js",
+    "/assets/scenarios/travel-ai-tutor.jpg",
+    "/assets/scenarios/work-ai-tutor.jpg",
+    "/assets/scenarios/exam-ai-tutor.jpg",
+    "/assets/scenarios/speaking-ai-tutor.jpg",
+    "/assets/testimonials/anna.jpg",
+    "/assets/testimonials/marat.jpg",
+    "/assets/testimonials/sofia.jpg",
+  ];
+
+  for (const assetPath of assetPaths) {
+    const response = await request.get(assetPath);
+    expect(response.status(), `${assetPath} should be shipped with the built public site`).toBe(200);
+    const body = await response.body();
+    expect(body.length, `${assetPath} should not be empty`).toBeGreaterThan(100);
+  }
+
+  await page.goto("/poliglot-ai.html?lang=en");
+  for (const image of await page.locator(".scenario-card img, .review-card img").all()) {
+    await image.scrollIntoViewIfNeeded();
+  }
+  await page.waitForFunction(() =>
+    Array.from(document.images)
+      .filter((image) => image.src.includes("/assets/scenarios/") || image.src.includes("/assets/testimonials/"))
+      .every((image) => image.complete && image.naturalWidth > 0),
+  );
+  const imageState = await page.evaluate(() =>
+    Array.from(document.images)
+      .filter((image) => image.src.includes("/assets/scenarios/") || image.src.includes("/assets/testimonials/"))
+      .map((image) => ({
+        src: new URL(image.src).pathname,
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight,
+        complete: image.complete,
+      })),
+  );
+
+  expect(imageState).toHaveLength(7);
+  expect(imageState.every((image) => image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
+  expect(imageState.filter((image) => image.src.includes("/assets/scenarios/")).every((image) => image.naturalWidth >= 480)).toBe(true);
+  expect(imageState.filter((image) => image.src.includes("/assets/testimonials/")).every((image) => image.naturalWidth >= 240)).toBe(true);
 });

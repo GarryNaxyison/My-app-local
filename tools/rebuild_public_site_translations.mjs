@@ -12,13 +12,14 @@ const MIRROR_PHRASES_PATHS = [
 const PAGES = ["poliglot-ai.html", "terms.html", "privacy.html"];
 const REACT_SOURCES = [
   path.join(ROOT, "site-react", "src", "PublicSiteApp.tsx"),
-  path.join(ROOT, "site-react", "src", "BoldProductLanding.tsx"),
+  path.join(ROOT, "site-react", "src", "EnglishSparkLanding.tsx"),
   path.join(ROOT, "site-react", "src", "legacyLegalContent.ts"),
 ];
 const GENERATED_START = "// <public-site-translations-generated>";
 const GENERATED_END = "// </public-site-translations-generated>";
 
 const LANGS = [
+  ["ru", "ru"],
   ["en", "en"],
   ["es", "es"],
   ["de", "de"],
@@ -58,6 +59,7 @@ const LANGS = [
 const SITE_LANG_CODES = LANGS.map(([code]) => code);
 const TRANSLATION_CONCURRENCY = Math.max(1, Number(process.env.TRANSLATION_CONCURRENCY || 4));
 const TRANSLATION_PAUSE_MS = Math.max(0, Number(process.env.TRANSLATION_PAUSE_MS || 0));
+const TRANSLATION_TIMEOUT_MS = Math.max(1_000, Number(process.env.TRANSLATION_TIMEOUT_MS || 12_000));
 const NATIVE_LANGUAGE_NAMES = new Set([
   "English",
   "Español",
@@ -152,6 +154,10 @@ function isMeaningful(value) {
   if (!text || text.length < 2) return false;
   if (!hasLetter(text)) return false;
   if (isOnlyProtectedName(text)) return false;
+  if (text.length > 700) return false;
+  if (/^[a-z][a-z0-9_-]{2,}$/.test(text)) return false;
+  if (/[{}]|=>|className=|style=|children=|useState|useEffect|window\.|document\.|querySelector|addEventListener|removeEventListener/.test(text)) return false;
+  if (/\b(?:import|export|return|const|let|var|function|type|interface)\b/.test(text) && /[{}()[\];]/.test(text)) return false;
   if (text.includes("${") || text.includes("querySelector") || text.includes("classList")) return false;
   if (/^(?:target|href|src|class|id|dataset|style|function|return|const|let|var)\b/.test(text)) return false;
   if (/^(?:https?:|mailto:|tel:|\/|#|\.)/.test(text)) return false;
@@ -172,6 +178,50 @@ function decodeHtmlEntities(value) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, "\"");
+}
+
+function decodeJsLiteral(value) {
+  return String(value)
+    .replace(/\\n/g, " ")
+    .replace(/\\r/g, " ")
+    .replace(/\\t/g, " ")
+    .replace(/\\`/g, "`")
+    .replace(/\\"/g, "\"")
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, "\\");
+}
+
+function collectQuotedLiterals(source) {
+  const literals = [];
+  const literalPattern = /(["'`])((?:\\[\s\S]|(?!\1)[\s\S])*?)\1/g;
+
+  for (const match of source.matchAll(literalPattern)) {
+    const quote = match[1];
+    const raw = match[2];
+    if (quote === "`" && raw.includes("${")) continue;
+    if (quote !== "`" && /[\r\n]/.test(raw)) continue;
+    literals.push(decodeJsLiteral(raw));
+  }
+
+  return literals;
+}
+
+function currentPublicSiteSource(file, source) {
+  if (!file.endsWith("PublicSiteApp.tsx")) return source;
+
+  let next = source;
+  const legacyNavStart = next.indexOf("function SiteNav(");
+  const legalHelpersStart = next.indexOf("function ensurePrivacyBotContact(");
+  if (legacyNavStart !== -1 && legalHelpersStart !== -1 && legalHelpersStart > legacyNavStart) {
+    next = `${next.slice(0, legacyNavStart)}\n${next.slice(legalHelpersStart)}`;
+  }
+
+  const legacyFooterStart = next.indexOf("function SiteFooter() ");
+  if (legacyFooterStart !== -1) {
+    next = next.slice(0, legacyFooterStart);
+  }
+
+  return next;
 }
 
 function collectCandidates() {
@@ -212,7 +262,7 @@ function collectCandidates() {
 
   for (const file of REACT_SOURCES) {
     if (!fs.existsSync(file)) continue;
-    const source = fs.readFileSync(file, "utf8");
+    const source = currentPublicSiteSource(file, fs.readFileSync(file, "utf8"));
     if (file.endsWith("legacyLegalContent.ts")) {
       for (const match of source.matchAll(/=\s*"((?:\\.|[^"\\])*)"/g)) {
         try {
@@ -226,19 +276,15 @@ function collectCandidates() {
 
     const withoutComments = source
       .replace(/\/\*[\s\S]*?\*\//g, " ")
-      .replace(/\/\/.*$/gm, " ");
+      .replace(/\/\/.*$/gm, " ")
+      .replace(/\bimport[\s\S]*?\bfrom\s+["'][^"']+["'];/g, " ")
+      .replace(/\bimport\s+["'][^"']+["'];/g, " ");
 
     for (const match of withoutComments.matchAll(/>([^<>]+)</g)) {
       addCandidate(candidates, decodeHtmlEntities(match[1]));
     }
 
-    for (const match of withoutComments.matchAll(/["'`]((?:\\.|[^"'`\\]){2,})["'`]/g)) {
-      let value = match[1];
-      try {
-        value = JSON.parse(`"${value.replace(/"/g, '\\"')}"`);
-      } catch {
-        // Keep raw string literal content.
-      }
+    for (const value of collectQuotedLiterals(withoutComments)) {
       addCandidate(candidates, decodeHtmlEntities(value));
     }
   }
@@ -340,13 +386,19 @@ function googleSourceCode(source) {
 }
 
 function needsTranslation(source, lang, current, english) {
-  if (lang === "ru") return false;
   if (!isMeaningful(source)) return false;
   if (isOnlyProtectedName(source)) return false;
+  if (hasTranslationLeak(current)) return true;
+  if (lang === "ru") return !hasCyrillic(source) && hasLatinWord(source) && current === source;
   if (lang === "en") return hasCyrillic(source) && current === source;
   if (current === source) return true;
   if (english && current === english && hasLatinWord(english) && !isOnlyProtectedName(english)) return true;
   return false;
+}
+
+function hasTranslationLeak(value) {
+  const text = String(value || "");
+  return /\[\[?\s*\d+\s*\]?\]?/.test(text) || /__\s*P\s*\d+\s*__/i.test(text);
 }
 
 async function translateBatch(items, targetGoogleCode) {
@@ -378,8 +430,14 @@ async function translateBatch(items, targetGoogleCode) {
       const parts = await translateMarkedBatch(batch, sourceGoogleCode, targetGoogleCode);
 
       for (let index = 0; index < batch.length; index += 1) {
-        const raw = parts.get(index) || await fetchGoogle(batch[index].protectedItem.text, sourceGoogleCode, targetGoogleCode);
-        batch[index].result = batch[index].protectedItem.restore(raw.replace(/^\[\[\d+\]\]\s*/, ""));
+        const item = batch[index];
+        const raw = parts.get(index);
+        let restored = raw ? item.protectedItem.restore(raw.replace(/^\[\[\d+\]\]\s*/, "")) : "";
+        if (!restored || hasTranslationLeak(restored)) {
+          const singleRaw = await fetchGoogle(item.protectedItem.text, sourceGoogleCode, targetGoogleCode);
+          restored = item.protectedItem.restore(singleRaw.replace(/^\[\[\d+\]\]\s*/, ""));
+        }
+        batch[index].result = restored;
       }
 
       if (TRANSLATION_PAUSE_MS > 0) {
@@ -395,7 +453,9 @@ async function translateMarkedBatch(batch, sourceGoogleCode, targetGoogleCode) {
     const translated = await fetchGoogle(marked, sourceGoogleCode, targetGoogleCode);
     return splitMarkedTranslation(translated, batch.length);
   } catch (error) {
-    if (!String(error?.message || error).includes("HTTP 413") || batch.length <= 1) throw error;
+    if (batch.length <= 1) {
+      throw error;
+    }
     const midpoint = Math.ceil(batch.length / 2);
     const left = await translateMarkedBatch(batch.slice(0, midpoint), sourceGoogleCode, targetGoogleCode);
     const right = await translateMarkedBatch(batch.slice(midpoint), sourceGoogleCode, targetGoogleCode);
@@ -414,14 +474,18 @@ async function fetchGoogle(text, sl, tl) {
   url.searchParams.set("q", text);
 
   for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TRANSLATION_TIMEOUT_MS);
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
       return (data?.[0] || []).map((part) => part?.[0] || "").join("");
     } catch (error) {
       if (attempt === 4) throw error;
       await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+    } finally {
+      clearTimeout(timer);
     }
   }
   return text;
@@ -463,13 +527,20 @@ async function main() {
   const candidateSet = new Set(candidates);
   const currentSites = buildCurrentSites(phraseFile, i18nSource);
   const englishSite = currentSites.en;
-  const generated = JSON.parse(JSON.stringify(existingGenerated));
+  const generated = {};
+  for (const source of Object.keys(existingGenerated)) {
+    if (!candidateSet.has(source)) continue;
+    for (const [lang, value] of Object.entries(existingGenerated[source] || {})) {
+      if (hasTranslationLeak(value)) continue;
+      generated[source] ||= {};
+      generated[source][lang] = value;
+    }
+  }
   const workByLang = new Map();
 
   for (const source of candidates) {
     const english = englishSite.translatePhrase(source);
     for (const [lang, googleCode] of LANGS) {
-      if (lang === "ru") continue;
       const current = currentSites[lang].translatePhrase(source);
       if (!needsTranslation(source, lang, current, english)) continue;
       if (!workByLang.has(lang)) workByLang.set(lang, []);
@@ -501,7 +572,7 @@ async function main() {
   for (const source of Object.keys(generated).filter((source) => candidateSet.has(source)).sort((a, b) => a.localeCompare(b, "ru"))) {
     ordered[source] = {};
     for (const [code] of LANGS) {
-      if (code !== "ru" && generated[source][code]) ordered[source][code] = generated[source][code];
+      if (generated[source][code]) ordered[source][code] = generated[source][code];
     }
   }
 

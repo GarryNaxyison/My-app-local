@@ -269,7 +269,7 @@ export function EnglishSparkLanding() {
   const activeLabel = activeDemo.tab;
 
   return (
-    <main className="english-spark-landing" data-no-translate="">
+    <main className="english-spark-landing">
       <section className="landing-hero">
         <div className="landing-hero__matter">
           <GenerativeArtScene animate color="#7bdcff" particleColor="#f5d27a" />

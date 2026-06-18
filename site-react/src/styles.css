@@ -3435,3 +3435,204 @@ html[data-site-theme="light"] .plan-locked li {
     text-align: left;
   }
 }
+
+/* Final readability layer for the current public landing and legal pages. */
+html[data-site-theme="light"] .english-spark-landing .landing-band .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .spark-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .pricing-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .course-strip .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .cockpit-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .scenario-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .reviews-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .feature-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .workflow-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .device-flow .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .memory-loop-section .eyebrow,
+html[data-site-theme="light"] .english-spark-landing .final-cta-section .eyebrow {
+  border-color: rgba(45, 91, 255, 0.28) !important;
+  background: rgba(45, 91, 255, 0.08) !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+html[data-site-theme="light"] .english-spark-landing .plan-label,
+html[data-site-theme="light"] .english-spark-landing .course-card > span,
+html[data-site-theme="light"] .english-spark-landing .cockpit-lane > span,
+html[data-site-theme="light"] .english-spark-landing .scenario-modules span,
+html[data-site-theme="light"] .english-spark-landing .price-tags span {
+  border-color: rgba(45, 91, 255, 0.24) !important;
+  background: rgba(45, 91, 255, 0.08) !important;
+  color: #2d5bff !important;
+  -webkit-text-fill-color: #2d5bff !important;
+  text-shadow: none !important;
+}
+
+html[data-site-theme="light"] .english-spark-landing .section-copy h2,
+html[data-site-theme="light"] .english-spark-landing .course-strip__intro h2,
+html[data-site-theme="light"] .english-spark-landing .cockpit-copy h2,
+html[data-site-theme="light"] .english-spark-landing .device-flow__copy h2,
+html[data-site-theme="light"] .english-spark-landing .memory-loop-section h2,
+html[data-site-theme="light"] .english-spark-landing .final-cta-section h2 {
+  color: #07111f !important;
+  text-shadow: none !important;
+}
+
+html[data-site-theme="light"] .legal-page {
+  background: #f5f8fc !important;
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .legal-hero {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(45, 91, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #eef5ff 100%) !important;
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .legal-hero h1,
+html[data-site-theme="light"] .legal-hero p,
+html[data-site-theme="light"] .legal-hero .eyebrow {
+  color: #07111f !important;
+  -webkit-text-fill-color: #07111f !important;
+  text-shadow: none !important;
+}
+
+html[data-site-theme="light"] .legal-pills span {
+  border-color: rgba(45, 91, 255, 0.22) !important;
+  background: rgba(45, 91, 255, 0.08) !important;
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .legal-aside a,
+html[data-site-theme="light"] .legal-document-shell,
+html[data-site-theme="light"] .legal-document-shell .legal-feature-card,
+html[data-site-theme="light"] .legal-document-shell .bg-blue-50,
+html[data-site-theme="light"] .legal-document-shell .bg-gray-50,
+html[data-site-theme="light"] .legal-document-shell .bg-purple-50,
+html[data-site-theme="light"] .legal-contact-grid a,
+html[data-site-theme="light"] .legal-contact-grid span {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: #ffffff !important;
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .legal-document-shell .border-primary {
+  border-color: rgba(45, 91, 255, 0.42) !important;
+}
+
+html[data-site-theme="light"] .legal-document-shell .border-violet {
+  border-color: rgba(124, 58, 237, 0.38) !important;
+}
+
+html[data-site-theme="light"] .legal-document-shell h1,
+html[data-site-theme="light"] .legal-document-shell h2,
+html[data-site-theme="light"] .legal-document-shell h3,
+html[data-site-theme="light"] .legal-document-shell strong,
+html[data-site-theme="light"] .legal-contact-grid strong {
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .legal-document-shell p,
+html[data-site-theme="light"] .legal-document-shell li,
+html[data-site-theme="light"] .legal-document-shell .text-gray-500,
+html[data-site-theme="light"] .legal-document-shell .text-gray-700,
+html[data-site-theme="light"] .legal-contact-grid small {
+  color: #334155 !important;
+}
+
+html[data-site-theme="light"] .legal-document-shell .text-primary,
+html[data-site-theme="light"] .legal-document-shell .text-accent {
+  color: #2d5bff !important;
+}
+
+html[data-site-theme="light"] .legal-document-shell .text-violet {
+  color: #6d28d9 !important;
+}
+
+html[data-site-theme="light"] .legal-price-line strong,
+html[data-site-theme="light"] .legal-price-line span,
+html[data-site-theme="light"] .legal-price-tags span {
+  color: #07111f !important;
+}
+
+html[data-site-theme="light"] .legal-old-price {
+  color: #8a1f1f !important;
+  text-decoration: line-through !important;
+  text-decoration-color: #dc2626 !important;
+  text-decoration-thickness: 2px !important;
+}
+
+html[data-site-theme="light"] .legal-price-tags span {
+  border: 1px solid rgba(45, 91, 255, 0.22) !important;
+  background: rgba(45, 91, 255, 0.08) !important;
+}
+
+html[data-site-theme="dark"] .legal-hero {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(45, 91, 255, 0.28), transparent 30%),
+    #050914 !important;
+  color: #f8fbff !important;
+}
+
+html[data-site-theme="dark"] .legal-pills span {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #e7eefb !important;
+}
+
+html[data-site-theme="dark"] .legal-aside a,
+html[data-site-theme="dark"] .legal-document-shell,
+html[data-site-theme="dark"] .legal-document-shell .legal-feature-card,
+html[data-site-theme="dark"] .legal-document-shell .bg-blue-50,
+html[data-site-theme="dark"] .legal-document-shell .bg-gray-50,
+html[data-site-theme="dark"] .legal-document-shell .bg-purple-50,
+html[data-site-theme="dark"] .legal-contact-grid a,
+html[data-site-theme="dark"] .legal-contact-grid span {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: #0d1524 !important;
+  color: #eef6ff !important;
+}
+
+html[data-site-theme="dark"] .legal-document-shell h1,
+html[data-site-theme="dark"] .legal-document-shell h2,
+html[data-site-theme="dark"] .legal-document-shell h3,
+html[data-site-theme="dark"] .legal-document-shell strong,
+html[data-site-theme="dark"] .legal-contact-grid strong {
+  color: #f8fbff !important;
+}
+
+html[data-site-theme="dark"] .legal-document-shell p,
+html[data-site-theme="dark"] .legal-document-shell li,
+html[data-site-theme="dark"] .legal-document-shell .text-gray-500,
+html[data-site-theme="dark"] .legal-document-shell .text-gray-700,
+html[data-site-theme="dark"] .legal-contact-grid small {
+  color: #a8b5c7 !important;
+}
+
+html[data-site-theme="dark"] .legal-document-shell .text-primary,
+html[data-site-theme="dark"] .legal-document-shell .text-accent {
+  color: #7bdcff !important;
+}
+
+html[data-site-theme="dark"] .legal-document-shell .text-violet {
+  color: #d8b4fe !important;
+}
+
+html[data-site-theme="dark"] .legal-price-line strong,
+html[data-site-theme="dark"] .legal-price-line span,
+html[data-site-theme="dark"] .legal-price-tags span {
+  color: #f8fbff !important;
+}
+
+html[data-site-theme="dark"] .legal-old-price {
+  color: rgba(255, 255, 255, 0.66) !important;
+  text-decoration: line-through !important;
+  text-decoration-color: #ff786a !important;
+  text-decoration-thickness: 2px !important;
+}
+
+html[data-site-theme="dark"] .legal-price-tags span {
+  border: 1px solid rgba(245, 210, 122, 0.22) !important;
+  background: rgba(245, 210, 122, 0.14) !important;
+}

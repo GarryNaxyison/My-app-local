@@ -51,7 +51,7 @@
         "{workspaceRoot}/Сайт полиглота для бота/poliglot-ai.html",
         "{workspaceRoot}/Сайт полиглота для бота/privacy.html",
         "{workspaceRoot}/Сайт полиглота для бота/terms.html",
-        "{workspaceRoot}/Сайт полиглота для бота/assets/site-react"
+        "{workspaceRoot}/Сайт полиглота для бота/assets"
       ]
     },
     "test": {

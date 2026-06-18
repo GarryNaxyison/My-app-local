@@ -1009,8 +1009,11 @@
         const normalized = normalizePhrase(source);
         const decoded = normalizePhrase(decodeMaybeMojibake(normalized));
         if (!normalized) return fallback || source || "";
-        if (lang === "ru") return fallback || decoded || normalized;
         const entry = phraseEntryFor(normalized);
+        if (lang === "ru") {
+            const translated = entry?.ru;
+            return translated ? decodeMaybeMojibake(translated) : fallback || decoded || normalized;
+        }
         const translated = entry?.[lang] || entry?.en;
         return translated ? decodeMaybeMojibake(translated) : fallback || decoded || normalized;
     }
@@ -1025,6 +1028,15 @@
         if (!normalized) return;
         if (node.parentElement?.closest("[data-i18n], [data-email-text], [data-no-translate], [data-site-language-select]")) return;
         if (skippedTextParents.has(node.parentElement?.tagName || "")) return;
+        if (currentLanguage() === "ru" && node.parentElement?.closest(".legal-document-shell")) {
+            const source = textNodeSources.get(node);
+            if (source) {
+                const leading = raw.match(/^\s*/)?.[0] || "";
+                const trailing = raw.match(/\s*$/)?.[0] || "";
+                node.nodeValue = `${leading}${source}${trailing}`;
+            }
+            return;
+        }
         if (!textNodeSources.has(node)) {
             if (!hasPhraseTranslation(normalized)) return;
             textNodeSources.set(node, normalizePhrase(decodeMaybeMojibake(normalized)) || normalized);
@@ -1047,6 +1059,12 @@
         const normalized = normalizePhrase(raw);
         if (!normalized || node.closest?.("[data-no-translate], [data-site-language-select]")) return;
         node.__poliglotOriginalAttrs ||= {};
+        if (currentLanguage() === "ru" && node.closest?.(".legal-document-shell")) {
+            if (node.__poliglotOriginalAttrs[attr]) {
+                node.setAttribute(attr, node.__poliglotOriginalAttrs[attr]);
+            }
+            return;
+        }
         if (!node.__poliglotOriginalAttrs[attr]) {
             if (!hasPhraseTranslation(normalized)) return;
             node.__poliglotOriginalAttrs[attr] = normalizePhrase(decodeMaybeMojibake(normalized)) || normalized;
