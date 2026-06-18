@@ -11657,7 +11657,7 @@ const publicSiteGeneratedTranslations = {
     "kk": "300 Telegram Stars",
     "ky": "300 Telegram Stars",
     "ka": "300 Telegram Stars",
-    "uk": "300 Telegram Stars",
+    "uk": "300 Telegram Stars\nМаршрути рівня",
     "pl": "300 Telegram Stars",
     "ro": "300 Telegram Stars",
     "pt": "300 Telegram Stars",
@@ -16661,7 +16661,7 @@ const publicSiteGeneratedTranslations = {
   },
   "либо @Poliglot_AI_bot.": {
     "ar": "أو @Poliglot_AI_bot.",
-    "bn": "বা @Poliglot_AI_bot।",
+    "bn": "বা @Poliglot_AI_bot",
     "cs": "nebo @Poliglot_AI_bot.",
     "el": "ή @Poliglot_AI_bot.",
     "hi": "या @Poliglot_AI_bot।",
@@ -23836,7 +23836,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "ngôn ngữ giao diện"
   },
   "A complete A1-C2 route with lessons, practice, review, and XP in one controlled loop.": {
-    "ru": "Полный маршрут A1-C2 с уроками, практикой, обзором и опытом в одном контролируемом цикле.",
+    "ru": "Полный маршрут A1-C2 с уроками, практикой, повторением и XP в одном цикле.",
     "es": "Una ruta completa A1-C2 con lecciones, práctica, repaso y XP en un circuito controlado.",
     "de": "Eine vollständige A1-C2-Route mit Lektionen, Übungen, Wiederholungen und XP in einer kontrollierten Schleife.",
     "fr": "Un parcours A1-C2 complet avec leçons, pratique, révision et XP dans une boucle contrôlée.",
@@ -23872,7 +23872,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Lộ trình A1-C2 hoàn chỉnh với các bài học, thực hành, ôn tập và XP trong một vòng lặp được kiểm soát."
   },
   "A menu or sign becomes translation, context, notes, and a short practice loop.": {
-    "ru": "Меню или знак становятся переводом, контекстом, примечаниями и коротким циклом практики.",
+    "ru": "Меню или вывеска превращаются в перевод, контекст, заметку и короткую практику.",
     "es": "Un menú o letrero se convierte en traducción, contexto, notas y un breve bucle de práctica.",
     "de": "Ein Menü oder Zeichen wird zu Übersetzung, Kontext, Notizen und einer kurzen Übungsschleife.",
     "fr": "Un menu ou un signe devient une traduction, un contexte, des notes et une courte boucle de pratique.",
@@ -23943,7 +23943,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "A1-C2"
   },
   "A1-C2 vocabulary, grammar, listening, and speaking stay in a route with visible progress steps.": {
-    "ru": "Словарный запас A1–C2, грамматика, аудирование и разговорная речь остаются на маршруте с видимыми шагами прогресса.",
+    "ru": "Лексика, грамматика, аудирование и речь от A1 до C2 идут по маршруту с понятными шагами прогресса.",
     "es": "El vocabulario, la gramática, la comprensión auditiva y la expresión oral de A1-C2 se mantienen en una ruta con pasos de progreso visibles.",
     "de": "Vokabular, Grammatik, Hörverstehen und Sprechen A1-C2 bleiben auf einem Weg mit sichtbaren Fortschrittsschritten.",
     "fr": "Le vocabulaire, la grammaire, l'écoute et l'expression orale A1-C2 restent dans un parcours avec des étapes de progression visibles.",
@@ -24230,7 +24230,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "AI gia sư ngôn ngữ cho Telegram và ứng dụng web."
   },
   "AI Tutor": {
-    "ru": "AI Репетитор",
+    "ru": "AI Tutor",
     "es": "AI Tutor",
     "de": "AI Nachhilfelehrer",
     "fr": "AI Tuteur",
@@ -24338,7 +24338,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "AI Gia sư với giới hạn tối đa hàng ngày, nhập vai sâu sắc, ôn tập chuyên sâu và thực hành phát âm/giọng nói tối đa."
   },
   "AI Tutor cockpit": {
-    "ru": "AI Кабина наставника",
+    "ru": "Панель AI Tutor",
     "es": "AI Cabina de tutor",
     "de": "AI Tutor-Cockpit",
     "fr": "AI Cockpit du tuteur",
@@ -24374,7 +24374,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "AI Buồng lái của giáo viên"
   },
   "AI Tutor Cockpit": {
-    "ru": "AI Панель наставника",
+    "ru": "Панель AI Tutor",
     "es": "AI Cabina del tutor",
     "de": "AI Tutor-Cockpit",
     "fr": "AI Cockpit du tuteur",
@@ -24410,7 +24410,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "AI Buồng lái gia sư"
   },
   "AI Tutor Core": {
-    "ru": "AI Ядро репетитора",
+    "ru": "База AI Tutor",
     "es": "AI Tutor principal",
     "de": "AI Tutor Core",
     "fr": "AI Noyau du tuteur",
@@ -24518,7 +24518,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "AI Bài học có sự hướng dẫn của gia sư"
   },
   "AI Tutor is checking the answer": {
-    "ru": "AI Преподаватель проверяет ответ",
+    "ru": "AI Tutor проверяет ответ",
     "es": "AI El tutor está revisando la respuesta",
     "de": "AI Der Tutor überprüft die Antwort",
     "fr": "AI Le tuteur vérifie la réponse",
@@ -24590,7 +24590,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "AI Ví dụ bài học của gia sư"
   },
   "AI Tutor routes": {
-    "ru": "AI Маршруты репетиторов",
+    "ru": "Маршруты AI Tutor",
     "es": "AI Rutas del tutor",
     "de": "AI Tutor-Routen",
     "fr": "AI Itinéraires du tuteur",
@@ -24870,7 +24870,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Anna"
   },
   "At the airport, on a work call, before an exam, or in everyday conversation, Poliglot AI turns practice into a concrete speaking moment.": {
-    "ru": "В аэропорту, во время рабочего звонка, перед экзаменом или в повседневной беседе Poliglot AI превращает практику в конкретный разговорный момент.",
+    "ru": "В аэропорту, на рабочем звонке, перед экзаменом или в обычном разговоре Poliglot AI превращает практику в конкретный речевой момент.",
     "es": "En el aeropuerto, en una llamada de trabajo, antes de un examen o en una conversación cotidiana, Poliglot AI convierte la práctica en un momento concreto de conversación.",
     "de": "Am Flughafen, bei einem Arbeitsgespräch, vor einer Prüfung oder im alltäglichen Gespräch – Poliglot AI verwandelt die Übung in einen konkreten Sprechmoment.",
     "fr": "À l'aéroport, lors d'un appel professionnel, avant un examen ou dans une conversation quotidienne, Poliglot AI transforme la pratique en un moment de parole concret.",
@@ -24941,7 +24941,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "B1 Deutsch · 126 cụm từ nghe"
   },
   "Basic notes and phrasebook": {
-    "ru": "Основные заметки и разговорник",
+    "ru": "Заметки и разговорник",
     "es": "Apuntes básicos y libro de frases",
     "de": "Grundlegende Notizen und Sprachführer",
     "fr": "Notes de base et guide de conversation",
@@ -24977,7 +24977,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Ghi chú và từ điển cơ bản"
   },
   "Basic text practice for trying lessons, word training, notes, and progress without payment.": {
-    "ru": "Базовая текстовая практика для пробных уроков, тренировки слов, заметок и прогресса без оплаты.",
+    "ru": "Базовая текстовая практика: уроки, слова, заметки и прогресс без оплаты.",
     "es": "Práctica de texto básica para probar lecciones, entrenamiento de palabras, notas y progreso sin pago.",
     "de": "Grundlegende Textübungen zum Ausprobieren von Lektionen, Worttraining, Notizen und Fortschritt ohne Bezahlung.",
     "fr": "Pratique textuelle de base pour essayer des leçons, apprendre des mots, prendre des notes et progresser sans paiement.",
@@ -25013,7 +25013,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Thực hành văn bản cơ bản để thử bài, luyện từ, ghi chú và tiến bộ mà không cần trả phí."
   },
   "Better: \"I have a reservation under my name.\"": {
-    "ru": "Лучше: «У меня есть бронь на мое имя».",
+    "ru": "Лучше: «I have a reservation under my name.»",
     "es": "Mejor: \"Tengo una reserva a mi nombre\".",
     "de": "Besser: „Ich habe eine Reservierung unter meinem Namen.“",
     "fr": "Mieux: \"J'ai une réservation à mon nom.\"",
@@ -25049,7 +25049,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tốt hơn: \"Tôi đã đặt chỗ dưới tên của mình.\""
   },
   "Built for concrete speaking moments": {
-    "ru": "Создано для конкретных моментов разговора",
+    "ru": "Для конкретных речевых ситуаций",
     "es": "Creado para momentos de conversación concretos",
     "de": "Gebaut für konkrete Sprechmomente",
     "fr": "Conçu pour des moments de parole concrets",
@@ -25085,7 +25085,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Được xây dựng cho những khoảnh khắc nói chuyện cụ thể"
   },
   "calls, emails, small talk": {
-    "ru": "звонки, электронные письма, светские беседы",
+    "ru": "звонки, письма, small talk",
     "es": "llamadas, correos electrónicos, pequeñas charlas",
     "de": "Anrufe, E-Mails, Smalltalk",
     "fr": "appels, e-mails, petites discussions",
@@ -25157,7 +25157,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tiếng Trung"
   },
   "Choose plan": {
-    "ru": "Выбрать план",
+    "ru": "Выбрать тариф",
     "es": "Elige plan",
     "de": "Plan auswählen",
     "fr": "Choisir un forfait",
@@ -25193,7 +25193,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Chọn phương án"
   },
   "Choose travel, work, exam, or conversation practice. Poliglot AI connects lesson, dialogue, voice, photo, and review into one controlled cycle.": {
-    "ru": "Выберите путешествие, работу, экзамен или разговорную практику. Poliglot AI объединяет урок, диалог, голос, фото и обзор в один управляемый цикл.",
+    "ru": "Выберите поездки, работу, экзамен или разговорную практику. Poliglot AI связывает урок, диалог, голос, фото и повторение в один понятный цикл.",
     "es": "Elige viaje, trabajo, examen o práctica de conversación. Poliglot AI conecta lección, diálogo, voz, fotografía y revisión en un ciclo controlado.",
     "de": "Wählen Sie Reisen, Arbeit, Prüfung oder Konversationsübungen. Poliglot AI verbindet Lektion, Dialog, Stimme, Foto und Rezension in einem kontrollierten Zyklus.",
     "fr": "Choisissez un voyage, un travail, un examen ou une conversation. Poliglot AI relie la leçon, le dialogue, la voix, la photo et la révision en un seul cycle contrôlé.",
@@ -25265,7 +25265,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Liên hệ"
   },
   "context role": {
-    "ru": "роль контекста",
+    "ru": "роль и контекст",
     "es": "rol de contexto",
     "de": "Kontextrolle",
     "fr": "rôle contextuel",
@@ -25337,7 +25337,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Cuộc trò chuyện"
   },
   "Could you help me check in?": {
-    "ru": "Не могли бы вы помочь мне зарегистрироваться?",
+    "ru": "Could you help me check in?",
     "es": "¿Podrías ayudarme a registrarme?",
     "de": "Könnten Sie mir beim Einchecken helfen?",
     "fr": "Pourriez-vous m'aider à m'enregistrer?",
@@ -25445,7 +25445,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Vòng lặp hàng ngày"
   },
   "Daily speaking plan": {
-    "ru": "План выступлений на день",
+    "ru": "Ежедневная практика",
     "es": "Plan de conversación diario",
     "de": "Täglicher Sprechplan",
     "fr": "Plan de conversation quotidien",
@@ -25519,7 +25519,7 @@ const publicSiteGeneratedTranslations = {
   "DL": {
     "es": "DL",
     "de": "DL",
-    "fr": "DL",
+    "fr": "DL\nMenu",
     "it": "DL",
     "zh": "DL",
     "ja": "DL",
@@ -25641,7 +25641,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Hỗ trợ qua email"
   },
   "Emails, calls, self-intros, and deadline questions become rehearsals that make speaking easier.": {
-    "ru": "Электронные письма, звонки, самопрезентации и вопросы о сроках становятся репетициями, которые облегчают выступление.",
+    "ru": "Письма, звонки, самопрезентация и вопросы о сроках становятся репетицией, после которой говорить проще.",
     "es": "Los correos electrónicos, las llamadas, las presentaciones personales y las preguntas sobre fechas límite se convierten en ensayos que facilitan el habla.",
     "de": "E-Mails, Anrufe, Selbstvorstellungen und Deadline-Fragen werden zu Proben, die das Sprechen einfacher machen.",
     "fr": "Les e-mails, les appels, les présentations personnelles et les questions sur les délais deviennent des répétitions qui facilitent la prise de parole.",
@@ -25819,7 +25819,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tiếng Tây Ban Nha"
   },
   "Every session ends with a visible next step": {
-    "ru": "Каждый сеанс заканчивается видимым следующим шагом",
+    "ru": "Каждая сессия заканчивается понятным следующим шагом",
     "es": "Cada sesión termina con un siguiente paso visible",
     "de": "Jede Sitzung endet mit einem sichtbaren nächsten Schritt",
     "fr": "Chaque session se termine par une étape suivante visible",
@@ -25855,7 +25855,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Mỗi phiên kết thúc với bước tiếp theo hiển thị"
   },
   "Everyday conversation": {
-    "ru": "Повседневный разговор",
+    "ru": "Разговор на каждый день",
     "es": "Conversación cotidiana",
     "de": "Alltagsgespräch",
     "fr": "Conversation quotidienne",
@@ -25927,7 +25927,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Kỳ thi"
   },
   "Exam and level progress": {
-    "ru": "Экзамен и прогресс уровня",
+    "ru": "Экзамен и рост уровня",
     "es": "Examen y progreso de nivel",
     "de": "Prüfungs- und Levelfortschritt",
     "fr": "Examen et progression du niveau",
@@ -25999,7 +25999,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Cảnh luyện thi"
   },
   "Explains a phrase, gives an example, asks for your answer, and shows the next correction.": {
-    "ru": "Объясняет фразу, приводит пример, спрашивает ваш ответ и показывает следующее исправление.",
+    "ru": "Объясняет фразу, дает пример, просит ответить и показывает следующее исправление.",
     "es": "Explica una frase, da un ejemplo, pide tu respuesta y muestra la siguiente corrección.",
     "de": "Erklärt einen Satz, gibt ein Beispiel, fragt nach Ihrer Antwort und zeigt die nächste Korrektur an.",
     "fr": "Explique une phrase, donne un exemple, demande votre réponse et montre la correction suivante.",
@@ -26246,7 +26246,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Free, Premium hay Platinum?"
   },
   "Get the meaning, grammar hint, natural example, and one focused prompt.": {
-    "ru": "Узнайте значение, грамматическую подсказку, естественный пример и одну конкретную подсказку.",
+    "ru": "Получите значение, подсказку по грамматике, естественный пример и один точный вопрос.",
     "es": "Obtenga el significado, la sugerencia gramatical, el ejemplo natural y una sugerencia enfocada.",
     "de": "Erhalten Sie die Bedeutung, einen Grammatikhinweis, ein natürliches Beispiel und eine gezielte Eingabeaufforderung.",
     "fr": "Obtenez le sens, un indice de grammaire, un exemple naturel et une invite ciblée.",
@@ -26318,7 +26318,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Mục tiêu"
   },
   "Guided lessons turn a phrase into an answer, a correction, and a next action.": {
-    "ru": "Уроки с инструкциями превращают фразу в ответ, исправление и следующее действие.",
+    "ru": "Уроки превращают фразу в ответ, исправление и следующее действие.",
     "es": "Las lecciones guiadas convierten una frase en una respuesta, una corrección y una siguiente acción.",
     "de": "Geführte Lektionen verwandeln einen Satz in eine Antwort, eine Korrektur und eine nächste Aktion.",
     "fr": "Les leçons guidées transforment une phrase en une réponse, une correction et une action suivante.",
@@ -26390,7 +26390,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "h-đầy đủ w-đầy đủ"
   },
   "Higher limits for travel, work, exam preparation, and longer AI-dialogue sessions.": {
-    "ru": "Более высокие лимиты на поездки, работу, подготовку к экзаменам и более длительные сеансы AI-диалога.",
+    "ru": "Повышенные лимиты для поездок, работы, экзаменов и более длинных AI-диалогов.",
     "es": "Límites más altos para viajes, trabajo, preparación de exámenes y sesiones de diálogo AI más largas.",
     "de": "Höhere Grenzwerte für Reisen, Arbeit, Prüfungsvorbereitung und längere AI-Dialogsitzungen.",
     "fr": "Limites plus élevées pour les déplacements, le travail, la préparation aux examens et les sessions de dialogue AI plus longues.",
@@ -26462,7 +26462,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Nhận phòng khách sạn"
   },
   "hotel, cafe, airport": {
-    "ru": "гостиница, кафе, аэропорт",
+    "ru": "отель, кафе, аэропорт",
     "es": "hotel, cafetería, aeropuerto",
     "de": "Hotel, Café, Flughafen",
     "fr": "hôtel, café, aéroport",
@@ -26534,7 +26534,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Poliglot AI điều hành một bài học như thế nào"
   },
   "I agree with the statement because...": {
-    "ru": "Я согласен с этим утверждением, потому что...",
+    "ru": "I agree with the statement because...",
     "es": "Estoy de acuerdo con la afirmación porque...",
     "de": "Ich stimme der Aussage zu, weil...",
     "fr": "Je suis d'accord avec cette affirmation parce que...",
@@ -26606,7 +26606,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tôi có đặt chỗ dưới tên của mình."
   },
   "I have been trying to say...": {
-    "ru": "Я пытался сказать...",
+    "ru": "I have been trying to say...",
     "es": "He estado tratando de decir...",
     "de": "Ich habe versucht zu sagen...",
     "fr": "J'ai essayé de dire...",
@@ -26642,7 +26642,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tôi đã cố gắng nói..."
   },
   "I rehearsed check-in, cafe orders, and transport before the trip. The phrases stayed in notes for quick review.": {
-    "ru": "Перед поездкой я репетировала регистрацию, заказ кафе и транспорт. Фразы оставались в заметках для быстрого просмотра.",
+    "ru": "Перед поездкой я отработала регистрацию, заказ в кафе и транспорт. Фразы остались в заметках для быстрого повтора.",
     "es": "Ensayé el check-in, los pedidos de café y el transporte antes del viaje. Las frases quedaron en notas para una rápida revisión.",
     "de": "Ich habe vor der Reise den Check-in, die Café-Bestellungen und den Transport geübt. Die Sätze blieben zur schnellen Überprüfung in Notizen.",
     "fr": "J'ai répété l'enregistrement, les commandes de café et le transport avant le voyage. Les phrases sont restées dans des notes pour une révision rapide.",
@@ -26678,7 +26678,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tôi đã luyện tập cách nhận phòng, đặt hàng quán cà phê và vận chuyển trước chuyến đi. Các cụm từ ở lại trong ghi chú để xem xét nhanh chóng."
   },
   "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.": {
-    "ru": "Я использую веб-приложение для более длительных уроков и Telegram для слабых слов перед звонком. Тот же профиль делает это простым.",
+    "ru": "Длинные уроки прохожу в веб-приложении, а слабые слова перед звонками повторяю в Telegram. Один профиль все упрощает.",
     "es": "Utilizo la aplicación web para lecciones más largas y Telegram para palabras débiles antes de las llamadas. El mismo perfil lo mantiene simple.",
     "de": "Ich verwende die Web-App für längere Unterrichtsstunden und Telegram für schwache Wörter vor Anrufen. Das gleiche Profil macht es einfach.",
     "fr": "J'utilise l'application Web pour les cours plus longs et Telegram pour les mots faibles avant les appels. Le même profil reste simple.",
@@ -26714,7 +26714,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tôi sử dụng ứng dụng web cho các bài học dài hơn và Telegram cho những từ yếu trước khi gọi. Hồ sơ tương tự giữ cho nó đơn giản."
   },
   "I would like to book a table for tonight.": {
-    "ru": "Я хотел бы забронировать столик на сегодняшний вечер.",
+    "ru": "Я хотел бы забронировать столик на сегодня вечером.",
     "es": "Me gustaría reservar una mesa para esta noche.",
     "de": "Ich möchte für heute Abend einen Tisch reservieren.",
     "fr": "J'aimerais réserver une table pour ce soir.",
@@ -26822,7 +26822,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sự chuẩn bị chuyên sâu"
   },
   "interface coverage": {
-    "ru": "покрытие интерфейса",
+    "ru": "интерфейс",
     "es": "cobertura de interfaz",
     "de": "Schnittstellenabdeckung",
     "fr": "couverture de l'interface",
@@ -26858,7 +26858,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "phạm vi phủ sóng giao diện"
   },
   "interface languages": {
-    "ru": "язык интерфейса",
+    "ru": "языков интерфейса",
     "es": "idiomas de la interfaz",
     "de": "Schnittstellensprachen",
     "fr": "langues d'interface",
@@ -26930,7 +26930,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tiếng Nhật"
   },
   "Keeps travel, work, exam, or casual speaking scenarios focused without empty replies.": {
-    "ru": "Сохраняет концентрацию на поездках, работе, экзаменах или непринужденных разговорах без пустых ответов.",
+    "ru": "Держит фокус на поездке, работе, экзамене или обычном разговоре без пустых реплик.",
     "es": "Mantiene enfocados los escenarios de viajes, trabajo, exámenes o conversaciones informales sin respuestas vacías.",
     "de": "Hält den Fokus auf Reise-, Arbeits-, Prüfungs- oder Gelegenheitssprechszenarien, ohne leere Antworten.",
     "fr": "Permet de rester concentré sur les scénarios de voyage, de travail, d'examen ou de conversation occasionnelle, sans réponses vides.",
@@ -27110,7 +27110,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Ngôn ngữ"
   },
   "Learn the phrase": {
-    "ru": "Выучите фразу",
+    "ru": "Изучите фразу",
     "es": "Aprende la frase",
     "de": "Lerne den Satz",
     "fr": "Apprenez la phrase",
@@ -27290,7 +27290,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bài học"
   },
   "lessons and review": {
-    "ru": "уроки и обзор",
+    "ru": "уроки и повторение",
     "es": "lecciones y repaso",
     "de": "Lektionen und Rückblick",
     "fr": "leçons et révision",
@@ -27326,7 +27326,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "bài học và ôn tập"
   },
   "Lessons, conversation, voice, and photos work as one system": {
-    "ru": "Уроки, разговоры, голос и фотографии работают как одна система.",
+    "ru": "Уроки, диалоги, голос и фото работают как одна система",
     "es": "Las lecciones, la conversación, la voz y las fotos funcionan como un solo sistema.",
     "de": "Unterricht, Konversation, Stimme und Fotos funktionieren als ein System",
     "fr": "Les leçons, les conversations, la voix et les photos fonctionnent comme un seul système.",
@@ -27362,7 +27362,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bài học, cuộc trò chuyện, giọng nói và hình ảnh hoạt động như một hệ thống"
   },
   "Lessons, dialogue, pronunciation, photo translation, mistake review, and progress live in one profile across web, PWA, and Telegram.": {
-    "ru": "Уроки, диалоги, произношение, перевод фотографий, обзор ошибок и прогресс доступны в одном профиле в Интернете, PWA и Telegram.",
+    "ru": "Уроки, диалоги, произношение, перевод по фото, разбор ошибок и прогресс хранятся в одном профиле: веб, PWA и Telegram.",
     "es": "Lecciones, diálogos, pronunciación, traducción de fotografías, revisión de errores y progreso en vivo en un perfil en la web, PWA y Telegram.",
     "de": "Lektionen, Dialoge, Aussprache, Fotoübersetzung, Fehlerüberprüfung und Fortschritte live in einem Profil über Web, PWA und Telegram.",
     "fr": "Leçons, dialogues, prononciation, traduction de photos, révision des erreurs et progrès en direct dans un seul profil sur le Web, PWA et Telegram.",
@@ -27398,7 +27398,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Các bài học, hội thoại, phát âm, dịch ảnh, đánh giá lỗi và tiến bộ đều có trong một hồ sơ trên web, PWA và Telegram."
   },
   "Let me clarify the deadline.": {
-    "ru": "Позвольте мне уточнить сроки.",
+    "ru": "Let me clarify the deadline.",
     "es": "Permítanme aclarar el plazo.",
     "de": "Lassen Sie mich die Frist klarstellen.",
     "fr": "Permettez-moi de clarifier la date limite.",
@@ -27434,7 +27434,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Hãy để tôi nói rõ thời hạn."
   },
   "level routes": {
-    "ru": "маршруты уровня",
+    "ru": "маршруты по уровням",
     "es": "rutas de nivel",
     "de": "Level-Routen",
     "fr": "itinéraires de niveau",
@@ -27469,7 +27469,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "tuyến đường cấp"
   },
   "Listening": {
-    "ru": "Прослушивание",
+    "ru": "Аудирование",
     "es": "Escuchando",
     "de": "Zuhören",
     "fr": "Écoute",
@@ -27577,7 +27577,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "nghe và nói"
   },
   "live answers without memorizing": {
-    "ru": "живые ответы без запоминания",
+    "ru": "живые ответы без заучивания",
     "es": "respuestas en vivo sin memorizar",
     "de": "Live-Antworten ohne Auswendiglernen",
     "fr": "réponses en direct sans mémorisation",
@@ -27613,7 +27613,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "đáp án trực tiếp không cần ghi nhớ"
   },
   "Live learning loop": {
-    "ru": "Цикл живого обучения",
+    "ru": "Живой цикл обучения",
     "es": "Bucle de aprendizaje en vivo",
     "de": "Live-Lernschleife",
     "fr": "Boucle d'apprentissage en direct",
@@ -27721,7 +27721,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Thực đơn"
   },
   "Menus, signs, or tasks become translation, notes, and a practice prompt in context.": {
-    "ru": "Меню, знаки или задачи становятся переводом, примечаниями и практическими подсказками в контексте.",
+    "ru": "Меню, вывески и задания превращаются в перевод, заметки и практику по контексту.",
     "es": "Los menús, carteles o tareas se convierten en traducción, notas y una guía de práctica en contexto.",
     "de": "Menüs, Schilder oder Aufgaben werden im Kontext zu Übersetzungen, Notizen und einer Übungsaufforderung.",
     "fr": "Les menus, les panneaux ou les tâches deviennent des traductions, des notes et une invite de pratique en contexte.",
@@ -27865,7 +27865,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sai lầm, Ghi chú, từ yếu, XP và chuỗi quay lại chính xác điểm yếu."
   },
   "Mistakes, notes, weak words, XP, and streak point to the next repetition.": {
-    "ru": "Ошибки, примечания, слабые слова, опыт и полоса указывают на следующее повторение.",
+    "ru": "Ошибки, заметки, слабые слова, XP и серия подсказывают, что повторять дальше.",
     "es": "Errores, notas, palabras débiles, XP y racha apuntan a la siguiente repetición.",
     "de": "Fehler, Notizen, schwache Wörter, XP und Streifen weisen auf die nächste Wiederholung hin.",
     "fr": "Erreurs, notes, mots faibles, XP et séquences pointent vers la prochaine répétition.",
@@ -27901,7 +27901,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Lỗi, ghi chú, từ yếu, XP và dấu vết cho lần lặp lại tiếp theo."
   },
   "Mistakes, notes, weak words, XP, and streaks keep weak spots visible until they become easy.": {
-    "ru": "Ошибки, заметки, слабые слова, опыт и полосы делают слабые места видимыми, пока они не станут легкими.",
+    "ru": "Ошибки, заметки, слабые слова, XP и серия держат слабые места на виду, пока они не станут проще.",
     "es": "Los errores, las notas, las palabras débiles, la XP y las rayas mantienen los puntos débiles visibles hasta que se vuelven fáciles.",
     "de": "Fehler, Notizen, schwache Wörter, XP und Streaks halten Schwachstellen sichtbar, bis sie einfach werden.",
     "fr": "Les erreurs, les notes, les mots faibles, l'XP et les séquences gardent les points faibles visibles jusqu'à ce qu'ils deviennent faciles.",
@@ -27937,7 +27937,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Những sai lầm, ghi chú, từ yếu, XP và các vệt giúp hiển thị các điểm yếu cho đến khi chúng trở nên dễ dàng."
   },
   "Mobile web": {
-    "ru": "Мобильный Интернет",
+    "ru": "Мобильная версия",
     "es": "Web móvil",
     "de": "Mobiles Web",
     "fr": "Web mobile",
@@ -28081,7 +28081,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Làm ơn đừng có đậu phộng nữa. Món ăn này cay đến mức nào?"
   },
   "Notes": {
-    "ru": "Примечания",
+    "ru": "Заметки",
     "es": "Notas",
     "de": "Notizen",
     "fr": "Remarques",
@@ -28153,7 +28153,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Ghi chú, Sai lầm, từ yếu, XP và vệt nhắc nhở lần lặp lại tiếp theo."
   },
   "Offline decks": {
-    "ru": "Офлайн-колоды",
+    "ru": "Офлайн-наборы",
     "es": "Mazos sin conexión",
     "de": "Offline-Decks",
     "fr": "Decks hors ligne",
@@ -28189,7 +28189,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bộ bài ngoại tuyến"
   },
   "One profile for web, mobile, and Telegram": {
-    "ru": "Один профиль для Интернета, мобильных устройств и Telegram",
+    "ru": "Один профиль для веба, мобильной версии и Telegram",
     "es": "Un perfil para web, móvil y Telegram",
     "de": "Ein Profil für Web, Mobilgeräte und Telegram",
     "fr": "Un seul profil pour le Web, les appareils mobiles et Telegram",
@@ -28225,7 +28225,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Một hồ sơ dành cho web, thiết bị di động và Telegram"
   },
   "One short session always ends with the next useful step": {
-    "ru": "Одна короткая сессия всегда заканчивается следующим полезным шагом",
+    "ru": "Каждая короткая сессия заканчивается понятным следующим шагом",
     "es": "Una sesión corta siempre termina con el siguiente paso útil",
     "de": "Eine kurze Sitzung endet immer mit dem nächsten nützlichen Schritt",
     "fr": "Une courte session se termine toujours par la prochaine étape utile",
@@ -28297,7 +28297,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Mở Telegram"
   },
   "Open the dashboard for deep sessions, progress, pricing, mistakes, and longer AI Tutor work.": {
-    "ru": "Откройте панель управления, чтобы увидеть подробные сеансы, прогресс, цены, ошибки и более длительную AI репетиторскую работу.",
+    "ru": "Откройте веб-приложение для длинных занятий, прогресса, тарифов, ошибок и работы с AI Tutor.",
     "es": "Abra el panel para sesiones profundas, progreso, precios, errores y trabajo más prolongado del AI Tutor.",
     "de": "Öffnen Sie das Dashboard für ausführliche Sitzungen, Fortschritte, Preise, Fehler und längere AI Tutorenarbeiten.",
     "fr": "Ouvrez le tableau de bord pour les sessions approfondies, les progrès, les prix, les erreurs et le travail plus long du tuteur AI.",
@@ -28333,7 +28333,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Mở bảng điều khiển để xem các phiên học chuyên sâu, tiến độ, giá cả, lỗi và thời gian dài hơn AI Công việc của gia sư."
   },
   "Open the loop and run the first lesson today": {
-    "ru": "Откройте цикл и запустите первый урок сегодня.",
+    "ru": "Запустите цикл и начните первый урок сегодня",
     "es": "Abra el bucle y ejecute la primera lección de hoy.",
     "de": "Öffnen Sie den Kreislauf und führen Sie noch heute die erste Lektion durch",
     "fr": "Ouvrez la boucle et exécutez la première leçon aujourd'hui",
@@ -28405,7 +28405,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Mở ứng dụng Web"
   },
   "Payment is available through Telegram Stars, YooKassa/SBP, TON, and USDT.": {
-    "ru": "Оплата доступна через Telegram Stars, YooKassa/SBP, TON и USDT.",
+    "ru": "Оплата доступна через Telegram Stars, YooKassa/СБП, TON и USDT.",
     "es": "El pago está disponible a través de Telegram Stars, YooKassa/SBP, TON y USDT.",
     "de": "Die Zahlung ist über Telegram Stars, YooKassa/SBP, TON und USDT möglich.",
     "fr": "Le paiement est disponible via Telegram Stars, YooKassa/SBP, TON et USDT.",
@@ -28583,7 +28583,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Ảnh"
   },
   "Photo Practice": {
-    "ru": "Фотопрактика",
+    "ru": "Практика по фото",
     "es": "Práctica fotográfica",
     "de": "Fotopraxis",
     "fr": "Pratique photo",
@@ -28619,7 +28619,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Thực hành chụp ảnh"
   },
   "Photo Tools": {
-    "ru": "Инструменты для работы с фотографиями",
+    "ru": "Фотоинструменты",
     "es": "Herramientas de fotografía",
     "de": "Foto-Tools",
     "fr": "Outils photo",
@@ -29118,7 +29118,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Poliglot AI luồng thiết bị"
   },
   "Poliglot AI does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.": {
-    "ru": "Poliglot AI не оставляет вас наедине с задачей. Он объясняет, просит ответить, проверяет голосовой или фотоконтекст и возвращается к ошибкам до тех пор, пока слабое место не станет знакомым.",
+    "ru": "Poliglot AI не оставляет вас один на один с заданием: объясняет, просит ответить, проверяет голос или фото и возвращает к ошибкам, пока слабое место не станет понятным.",
     "es": "Poliglot AI no te deja solo con una tarea. Explica, pide una respuesta, comprueba el contexto de la voz o la fotografía y vuelve a los errores hasta que el punto débil se vuelve familiar.",
     "de": "Poliglot AI lässt Sie mit einer Aufgabe nicht allein. Es erklärt, bittet um eine Antwort, überprüft den Sprach- oder Fotokontext und kehrt zu Fehlern zurück, bis die Schwachstelle bekannt wird.",
     "fr": "Poliglot AI ne vous laisse pas seul avec une tâche. Il explique, demande une réponse, vérifie le contexte vocal ou photo et revient sur les erreurs jusqu'à ce que le point faible devienne familier.",
@@ -29154,7 +29154,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Poliglot AI không để bạn một mình với một nhiệm vụ. Nó giải thích, yêu cầu câu trả lời, kiểm tra ngữ cảnh bằng giọng nói hoặc hình ảnh và quay lại các lỗi sai cho đến khi điểm yếu trở nên quen thuộc."
   },
   "Poliglot AI gives the phrase, meaning, example, and one short next step.": {
-    "ru": "Poliglot AI дает фразу, ее значение, пример и один короткий следующий шаг.",
+    "ru": "Poliglot AI дает фразу, смысл, пример и короткий следующий шаг.",
     "es": "Poliglot AI proporciona la frase, el significado, el ejemplo y un breve paso siguiente.",
     "de": "Poliglot AI gibt den Satz, die Bedeutung, ein Beispiel und einen kurzen nächsten Schritt an.",
     "fr": "Poliglot AI donne la phrase, sa signification, un exemple et une courte étape suivante.",
@@ -29190,7 +29190,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Poliglot AI đưa ra cụm từ, ý nghĩa, ví dụ và một bước ngắn tiếp theo."
   },
   "Poliglot AI is built around a simple loop: learn, use, review. Every module feeds the same progress profile.": {
-    "ru": "Poliglot AI построен на простом цикле: изучить, использовать, просмотреть. Каждый модуль предоставляет один и тот же профиль прогресса.",
+    "ru": "Poliglot AI построен на простом цикле: изучить, применить, повторить. Каждый модуль ведет в общий профиль прогресса.",
     "es": "Poliglot AI se basa en un ciclo simple: aprender, usar, revisar. Cada módulo alimenta el mismo perfil de progreso.",
     "de": "Poliglot AI basiert auf einer einfachen Schleife: Lernen, Verwenden, Überprüfen. Jedes Modul speist das gleiche Fortschrittsprofil.",
     "fr": "Poliglot AI est construit autour d'une boucle simple: apprendre, utiliser, réviser. Chaque module alimente le même profil de progression.",
@@ -29478,7 +29478,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Ngôn ngữ học phổ biến"
   },
   "Popular learning languages:": {
-    "ru": "Популярные языки изучения:",
+    "ru": "Популярные языки:",
     "es": "Idiomas de aprendizaje populares:",
     "de": "Beliebte Lernsprachen:",
     "fr": "Langues d'apprentissage populaires:",
@@ -29514,7 +29514,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Ngôn ngữ học phổ biến:"
   },
   "Practice speaking before the moment matters": {
-    "ru": "Практикуйтесь в разговорной речи до того, как момент станет важным",
+    "ru": "Потренируйте речь до важного момента",
     "es": "Practica hablar antes de que el momento importe",
     "de": "Üben Sie das Sprechen, bevor der Moment zählt",
     "fr": "Entraînez-vous à parler avant que le moment ne compte",
@@ -29550,7 +29550,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Luyện nói trước thời điểm quan trọng"
   },
   "Practice through a short roleplay, voice answer, or photo-based task.": {
-    "ru": "Попрактикуйтесь в короткой ролевой игре, голосовом ответе или задании с фотографиями.",
+    "ru": "Отработайте фразу в короткой ролевой сцене, голосовом ответе или задании по фото.",
     "es": "Practica mediante un juego de roles breve, una respuesta de voz o una tarea basada en fotografías.",
     "de": "Üben Sie durch ein kurzes Rollenspiel, eine Sprachantwort oder eine fotobasierte Aufgabe.",
     "fr": "Entraînez-vous à travers un court jeu de rôle, une réponse vocale ou une tâche basée sur des photos.",
@@ -29796,7 +29796,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Premium giá 300 ₽ mỗi tháng, 150 Telegram Stars hoặc khoảng 4,15 USDT. Chi phí truy cập hàng năm 3000 ₽, 1500 Stars hoặc khoảng 41,50 USDT. Platinum có giá 590 ₽ mỗi tháng hoặc 5900 ₽ mỗi năm."
   },
   "Premium AI tutor for daily practice": {
-    "ru": "Premium AI репетитор для ежедневной практики",
+    "ru": "Премиум AI-тьютор для ежедневной практики",
     "es": "Premium AI tutor para la práctica diaria",
     "de": "Premium AI Tutor für die tägliche Praxis",
     "fr": "Premium AI tuteur pour la pratique quotidienne",
@@ -29940,7 +29940,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Premium, 365 ngày"
   },
   "Pricing": {
-    "ru": "Цены",
+    "ru": "Тарифы",
     "es": "Precios",
     "de": "Preise",
     "fr": "Tarifs",
@@ -30190,7 +30190,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Mô-đun sản phẩm"
   },
   "profile everywhere": {
-    "ru": "профиль везде",
+    "ru": "один профиль везде",
     "es": "perfil en todas partes",
     "de": "Profil überall",
     "fr": "profil partout",
@@ -30226,7 +30226,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "hồ sơ ở khắp mọi nơi"
   },
   "profile for web, PWA, Telegram": {
-    "ru": "профиль для Интернета, PWA, Telegram",
+    "ru": "профиль для веба, PWA и Telegram",
     "es": "perfil para web, PWA, Telegram",
     "de": "Profil für Web, PWA, Telegram",
     "fr": "profil pour le Web, PWA, Telegram",
@@ -30298,7 +30298,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Cách phát âm"
   },
   "Pronunciation practice highlights weak words, rhythm, and the next sentence to repeat.": {
-    "ru": "Практика произношения выделяет слабые слова, ритм и следующее предложение, которое нужно повторить.",
+    "ru": "Тренировка произношения показывает слабые слова, ритм и следующую фразу для повтора.",
     "es": "La práctica de pronunciación resalta las palabras débiles, el ritmo y la siguiente oración a repetir.",
     "de": "Das Üben der Aussprache hebt schwache Wörter, den Rhythmus und den nächsten zu wiederholenden Satz hervor.",
     "fr": "La pratique de la prononciation met en évidence les mots faibles, le rythme et la prochaine phrase à répéter.",
@@ -30406,7 +30406,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "PWA và web di động"
   },
   "Real situations where the language has to work today": {
-    "ru": "Реальные ситуации, когда язык должен работать сегодня",
+    "ru": "Реальные ситуации, где язык нужен уже сегодня",
     "es": "Situaciones reales donde el lenguaje tiene que funcionar hoy",
     "de": "Echte Situationen, in denen die Sprache heute funktionieren muss",
     "fr": "Situations réelles où la langue doit fonctionner aujourd'hui",
@@ -30442,7 +30442,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Tình huống thực tế mà ngôn ngữ phải hoạt động ngày nay"
   },
   "real-life scenes": {
-    "ru": "сцены из реальной жизни",
+    "ru": "живые ситуации",
     "es": "escenas de la vida real",
     "de": "Szenen aus dem wirklichen Leben",
     "fr": "scènes réelles",
@@ -30478,7 +30478,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "cảnh đời thực"
   },
   "Review": {
-    "ru": "Обзор",
+    "ru": "Повторение",
     "es": "Revisión",
     "de": "Rezension",
     "fr": "Révision",
@@ -30514,7 +30514,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Đánh giá"
   },
   "Review is not a separate folder. It is the connective tissue between lessons, voice, notes, and Telegram practice.": {
-    "ru": "Обзор не представляет собой отдельную папку. Это соединительная ткань между уроками, голосом, конспектами и Telegram практикой.",
+    "ru": "Повторение не лежит в отдельной папке. Оно связывает уроки, голос, заметки и практику в Telegram.",
     "es": "La revisión no es una carpeta separada. Es el tejido conectivo entre las lecciones, la voz, las notas y la práctica de Telegram.",
     "de": "Rezension ist kein separater Ordner. Es ist das Bindegewebe zwischen Unterricht, Stimme, Notizen und Telegram-Übungen.",
     "fr": "La révision n'est pas un dossier distinct. C'est le tissu conjonctif entre les leçons, la voix, les notes et la pratique de Telegram.",
@@ -30550,7 +30550,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Review không phải là một thư mục riêng biệt. Nó là mô liên kết giữa bài học, giọng nói, ghi chú và Telegram thực hành."
   },
   "Review memory": {
-    "ru": "Просмотр памяти",
+    "ru": "Память повторения",
     "es": "Revisar memoria",
     "de": "Speicher überprüfen",
     "fr": "Vérifier la mémoire",
@@ -30586,7 +30586,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Xem lại trí nhớ"
   },
   "Review the weak spot": {
-    "ru": "Рассмотрите слабое место",
+    "ru": "Разберите слабое место",
     "es": "Revisar el punto débil",
     "de": "Überprüfen Sie die Schwachstelle",
     "fr": "Examiner le point faible",
@@ -30730,7 +30730,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "vai trò + ảnh"
   },
   "Roleplay": {
-    "ru": "Ролевая игра",
+    "ru": "Ролевая сцена",
     "es": "Juego de roles",
     "de": "Rollenspiel",
     "fr": "Jeu de rôle",
@@ -30766,7 +30766,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Nhập vai"
   },
   "Roleplay scenes, photo translation, quick phrases, and dialogues for moments outside the classroom.": {
-    "ru": "Сцены ролевых игр, перевод фотографий, быстрые фразы и диалоги для моментов вне класса.",
+    "ru": "Ролевые сцены, перевод по фото, быстрые фразы и диалоги для ситуаций вне урока.",
     "es": "Escenas de juegos de roles, traducción de fotografías, frases rápidas y diálogos para momentos fuera del aula.",
     "de": "Rollenspielszenen, Fotoübersetzung, schnelle Sätze und Dialoge für Momente außerhalb des Klassenzimmers.",
     "fr": "Scènes de jeu de rôle, traduction de photos, phrases rapides et dialogues pour des moments en dehors de la classe.",
@@ -30802,7 +30802,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Các cảnh nhập vai, dịch ảnh, các cụm từ nhanh và các đoạn hội thoại trong những khoảnh khắc bên ngoài lớp học."
   },
   "Routes for the goal, not an endless exercise feed": {
-    "ru": "Маршруты к цели, а не бесконечная лента упражнений",
+    "ru": "Маршруты под цель, а не бесконечная лента упражнений",
     "es": "Rutas hacia la meta, no un interminable feed de ejercicios",
     "de": "Routen zum Ziel, kein endloser Übungsfeed",
     "fr": "Des itinéraires vers l'objectif, pas un flux d'exercices sans fin",
@@ -30838,7 +30838,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Lộ trình cho mục tiêu, không phải là nguồn cấp dữ liệu bài tập vô tận"
   },
   "Run short lessons, repeat weak words, or practice a phrase when you are away from the desk.": {
-    "ru": "Проводите короткие уроки, повторяйте слабые слова или тренируйте фразу, когда находитесь вдали от парты.",
+    "ru": "Проходите короткие уроки, повторяйте слабые слова и тренируйте фразы, когда вы не за компьютером.",
     "es": "Ejecute lecciones breves, repita palabras débiles o practique una frase cuando no esté en el escritorio.",
     "de": "Führen Sie kurze Lektionen durch, wiederholen Sie schwache Wörter oder üben Sie einen Satz, wenn Sie nicht am Schreibtisch sind.",
     "fr": "Organisez de courtes leçons, répétez des mots faibles ou répétez une phrase lorsque vous n'êtes pas au bureau.",
@@ -30874,7 +30874,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Chạy những bài học ngắn, lặp lại những từ còn yếu hoặc luyện tập một cụm từ khi bạn rời khỏi bàn làm việc."
   },
   "Say it naturally: \"Could you help me check in?\"": {
-    "ru": "Скажите это естественно: «Не могли бы вы помочь мне зарегистрироваться?»",
+    "ru": "Скажите естественно: «Could you help me check in?»",
     "es": "Dígalo con naturalidad: \"¿Podrías ayudarme a registrarme?\"",
     "de": "Sagen Sie es natürlich: „Könnten Sie mir beim Einchecken helfen?“",
     "fr": "Dites-le naturellement: « Pourriez-vous m'aider à m'enregistrer?",
@@ -30982,7 +30982,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Kịch bản"
   },
   "score + weak words": {
-    "ru": "балл + слабые слова",
+    "ru": "оценка + слабые слова",
     "es": "puntuación + palabras débiles",
     "de": "Punktzahl + schwache Wörter",
     "fr": "score + mots faibles",
@@ -31018,7 +31018,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "điểm + từ yếu"
   },
   "Shadowing": {
-    "ru": "Слежение",
+    "ru": "Шэдоуинг",
     "es": "Sombreado",
     "de": "Beschattung",
     "fr": "Ombrage",
@@ -31090,7 +31090,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bóng, từ yếu, điểm phát âm và lịch sử giọng nói."
   },
   "Shadowing, weak words, pronunciation score, and voice history for steady speaking practice.": {
-    "ru": "Затенение, слабые слова, оценка произношения и история голоса для постоянной разговорной практики.",
+    "ru": "Шэдоуинг, слабые слова, оценка произношения и история голоса для регулярной практики.",
     "es": "Seguimiento, palabras débiles, puntaje de pronunciación e historial de voz para una práctica oral constante.",
     "de": "Shadowing, schwache Wörter, Aussprachebewertung und Stimmverlauf für stetiges Sprechtraining.",
     "fr": "Observation, mots faibles, score de prononciation et historique de la voix pour une pratique orale régulière.",
@@ -31126,7 +31126,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bóng, từ yếu, điểm phát âm và lịch sử giọng nói để luyện nói ổn định."
   },
   "Short hotel, cafe, airport, and doctor phrases are practiced before the moment gets stressful.": {
-    "ru": "Короткие фразы об отеле, кафе, аэропорту и докторе отрабатываются до того, как момент станет стрессовым.",
+    "ru": "Короткие фразы для отеля, кафе, аэропорта и врача отрабатываются заранее, до стрессового момента.",
     "es": "Se practican frases cortas sobre hoteles, cafeterías, aeropuertos y médicos antes de que el momento se vuelva estresante.",
     "de": "Kurze Hotel-, Café-, Flughafen- und Arztphrasen werden geübt, bevor es stressig wird.",
     "fr": "De courtes phrases d'hôtel, de café, d'aéroport et de médecin sont pratiquées avant que le moment ne devienne stressant.",
@@ -31377,7 +31377,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "phần đánh giá phần tia lửa"
   },
   "Speaking": {
-    "ru": "Говорю",
+    "ru": "Разговор",
     "es": "Hablando",
     "de": "Sprechen",
     "fr": "Parler",
@@ -31449,7 +31449,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Cảnh luyện nói"
   },
   "speaking routes": {
-    "ru": "маршруты разговора",
+    "ru": "маршруты для речи",
     "es": "rutas de habla",
     "de": "Sprechrouten",
     "fr": "itinéraires parlants",
@@ -31629,7 +31629,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Xem trước tuyến đường ổn định"
   },
   "Start a longer lesson on desktop, repeat weak words from mobile, and return to Telegram without losing Premium status, progress, notes, or mistake history.": {
-    "ru": "Начните более длительный урок на компьютере, повторяйте слабые слова с мобильного устройства и возвращайтесь к Telegram, не теряя статуса Premium, прогресса, заметок или истории ошибок.",
+    "ru": "Начните длинный урок на компьютере, повторите слабые слова с телефона и вернитесь в Telegram без потери Premium, прогресса, заметок и истории ошибок.",
     "es": "Inicie una lección más larga en una computadora de escritorio, repita palabras débiles desde el dispositivo móvil y regrese a Telegram sin perder el estado, el progreso, las notas o el historial de errores de Premium.",
     "de": "Beginnen Sie eine längere Lektion auf dem Desktop, wiederholen Sie schwache Wörter auf dem Mobilgerät und kehren Sie zu Telegram zurück, ohne den Premium-Status, den Fortschritt, die Notizen oder den Fehlerverlauf zu verlieren.",
     "fr": "Commencez une leçon plus longue sur ordinateur, répétez les mots faibles depuis votre mobile et revenez à Telegram sans perdre le statut, la progression, les notes ou l'historique des erreurs de Premium.",
@@ -31665,7 +31665,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bắt đầu một bài học dài hơn trên máy tính để bàn, lặp lại các từ yếu trên thiết bị di động và quay lại Telegram mà không làm mất trạng thái Premium, tiến độ, ghi chú hoặc lịch sử lỗi."
   },
   "Start free": {
-    "ru": "Начните бесплатно",
+    "ru": "Начать бесплатно",
     "es": "Empezar gratis",
     "de": "Kostenlos starten",
     "fr": "Démarrer gratuitement",
@@ -31701,7 +31701,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bắt đầu miễn phí"
   },
   "Start free, then unlock the daily practice limits you actually need": {
-    "ru": "Начните бесплатно, а затем разблокируйте те ежедневные ограничения, которые вам действительно нужны.",
+    "ru": "Начните бесплатно, затем подключите нужные дневные лимиты",
     "es": "Comienza gratis y luego desbloquea los límites de práctica diaria que realmente necesitas",
     "de": "Beginnen Sie kostenlos und schalten Sie dann die täglichen Übungslimits frei, die Sie tatsächlich benötigen",
     "fr": "Commencez gratuitement, puis débloquez les limites de pratique quotidienne dont vous avez réellement besoin",
@@ -31737,7 +31737,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bắt đầu miễn phí, sau đó mở khóa giới hạn luyện tập hàng ngày mà bạn thực sự cần"
   },
   "Start quick practice, voice checks, reminders, and weak-word review from the same profile.": {
-    "ru": "Начните быструю практику, голосовые проверки, напоминания и проверку слабых слов из одного и того же профиля.",
+    "ru": "Начинайте быструю практику, проверку голоса, напоминания и повторение слабых слов из одного профиля.",
     "es": "Inicie prácticas rápidas, comprobaciones de voz, recordatorios y revisión de palabras débiles desde el mismo perfil.",
     "de": "Beginnen Sie mit Schnellübungen, Sprachtests, Erinnerungen und der Überprüfung schwacher Wörter über dasselbe Profil.",
     "fr": "Démarrez une pratique rapide, des vérifications vocales, des rappels et une révision des mots faibles à partir du même profil.",
@@ -31773,7 +31773,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bắt đầu luyện tập nhanh, kiểm tra giọng nói, nhắc nhở và ôn lại từ yếu từ cùng một hồ sơ."
   },
   "Start quickly, receive reminders, send voice, and keep practicing from the same profile.": {
-    "ru": "Начните быстро, получайте напоминания, отправляйте голосовые сообщения и продолжайте тренироваться из того же профиля.",
+    "ru": "Быстро начинайте практику, получайте напоминания, отправляйте голос и продолжайте из того же профиля.",
     "es": "Comienza rápidamente, recibe recordatorios, envía voz y sigue practicando desde el mismo perfil.",
     "de": "Beginnen Sie schnell, erhalten Sie Erinnerungen, senden Sie Sprachnachrichten und üben Sie mit demselben Profil weiter.",
     "fr": "Commencez rapidement, recevez des rappels, envoyez de la voix et continuez à vous entraîner à partir du même profil.",
@@ -31845,7 +31845,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Lộ trình bắt đầu"
   },
   "start without payment": {
-    "ru": "начать без оплаты",
+    "ru": "старт без оплаты",
     "es": "empezar sin pago",
     "de": "ohne Bezahlung starten",
     "fr": "commencer sans paiement",
@@ -31917,7 +31917,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "quyền truy cập ban đầu"
   },
   "Streak": {
-    "ru": "Полоса",
+    "ru": "Серия",
     "es": "Racha",
     "de": "Streik",
     "fr": "Série",
@@ -32133,7 +32133,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Điều khoản sử dụng - Poliglot AI"
   },
   "The main plan for daily progress with AI Tutor, roleplay, pronunciation, voice checks, and photo tools.": {
-    "ru": "Основной план ежедневного прогресса с AI Репетитор, ролевые игры, произношение, голосовые проверки и фотоинструменты.",
+    "ru": "Основной тариф: AI Tutor, ролевые диалоги, произношение, проверка голоса и работа с фото.",
     "es": "El plan principal para el progreso diario con AI Tutor, juegos de roles, pronunciación, controles de voz y herramientas fotográficas.",
     "de": "Der Hauptplan für den täglichen Fortschritt mit AI Tutor, Rollenspiel, Aussprache, Sprachtests und Fototools.",
     "fr": "Le plan principal pour progresser quotidiennement avec le tuteur AI, le jeu de rôle, la prononciation, les contrôles vocaux et les outils photo.",
@@ -32205,7 +32205,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Bức ảnh trở thành bản dịch, ghi chú và lời nhắc thực hành."
   },
   "The phrase moves straight into your route and review loop.": {
-    "ru": "Фраза сразу переходит в цикл маршрута и обзора.",
+    "ru": "Фраза сразу попадает в маршрут и повторение.",
     "es": "La frase pasa directamente a su ruta y bucle de revisión.",
     "de": "Die Phrase gelangt direkt in Ihre Routen- und Überprüfungsschleife.",
     "fr": "La phrase se déplace directement dans votre boucle d'itinéraire et de révision.",
@@ -32277,7 +32277,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Vai trò này giữ nguyên bối cảnh và yêu cầu bạn trả lời giống như trong tình huống thực tế."
   },
   "The tutor gives a natural version and a next repetition until your answer sounds more confident.": {
-    "ru": "Преподаватель дает естественный вариант и следующее повторение, пока ваш ответ не станет более уверенным.",
+    "ru": "Тьютор показывает естественный вариант и дает повторение, пока ответ не звучит увереннее.",
     "es": "El tutor da una versión natural y una siguiente repetición hasta que tu respuesta suene más segura.",
     "de": "Der Tutor gibt eine natürliche Version und eine nächste Wiederholung, bis Ihre Antwort sicherer klingt.",
     "fr": "Le tuteur donne une version naturelle et une répétition suivante jusqu'à ce que votre réponse semble plus confiante.",
@@ -32385,7 +32385,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "bản dịch đã được lưu"
   },
   "Travel": {
-    "ru": "Путешествие",
+    "ru": "Поездки",
     "es": "Viajes",
     "de": "Reisen",
     "fr": "Voyage",
@@ -32421,7 +32421,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Du lịch"
   },
   "Travel & Work": {
-    "ru": "Путешествия и работа",
+    "ru": "Поездки и работа",
     "es": "Viajes y trabajo",
     "de": "Reisen & Arbeit",
     "fr": "Voyages et travail",
@@ -32457,7 +32457,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Du lịch & Công tác"
   },
   "travel dialogues": {
-    "ru": "диалоги о путешествиях",
+    "ru": "диалоги в поездке",
     "es": "diálogos de viajes",
     "de": "Reisedialoge",
     "fr": "dialogues de voyage",
@@ -32493,7 +32493,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "đối thoại du lịch"
   },
   "Travel practice": {
-    "ru": "Практика путешествий",
+    "ru": "Практика перед поездкой",
     "es": "Práctica de viajes",
     "de": "Reisepraxis",
     "fr": "Pratique du voyage",
@@ -32565,7 +32565,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Cảnh thực hành du lịch"
   },
   "Travel without panic": {
-    "ru": "Путешествуйте без паники",
+    "ru": "Поездка без паники",
     "es": "Viaja sin pánico",
     "de": "Reisen Sie ohne Panik",
     "fr": "Voyagez sans panique",
@@ -32637,7 +32637,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Du lịch, làm việc, thi cử hoặc ngôn ngữ nói thay đổi lộ trình và nhiệm vụ đầu tiên."
   },
   "Travel, work, exam, or casual speaking scenarios stay on topic and correct your reply.": {
-    "ru": "Сценарии путешествия, работы, экзамена или непринужденной беседы сохраняйте тему и исправляйте свой ответ.",
+    "ru": "Сценарии поездки, работы, экзамена или обычного разговора держат контекст и исправляют ответ.",
     "es": "Situaciones de viajes, trabajo, exámenes o conversaciones informales mantén el tema y corrige tu respuesta.",
     "de": "Reise-, Arbeits-, Prüfungs- oder Gelegenheitssprechszenarien bleiben beim Thema und korrigieren Ihre Antwort.",
     "fr": "Les scénarios de voyage, de travail, d'examen ou de conversation occasionnelle restent sur le sujet et corrigent votre réponse.",
@@ -32673,7 +32673,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Các tình huống du lịch, công việc, thi cử hoặc nói chuyện thông thường hãy bám sát chủ đề và sửa câu trả lời của bạn."
   },
   "Try the loop": {
-    "ru": "Попробуйте цикл",
+    "ru": "Попробовать цикл",
     "es": "Prueba el bucle",
     "de": "Probieren Sie die Schleife aus",
     "fr": "Essayez la boucle",
@@ -32817,7 +32817,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sử dụng giao diện tối"
   },
   "Use it in context": {
-    "ru": "Используйте это в контексте",
+    "ru": "Используйте её в контексте",
     "es": "Úselo en contexto",
     "de": "Verwenden Sie es im Kontext",
     "fr": "Utilisez-le dans son contexte",
@@ -32889,7 +32889,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sử dụng giao diện nhẹ nhàng"
   },
   "Use the large screen for longer sessions, pricing, progress, mistake review, and AI Tutor work.": {
-    "ru": "Используйте большой экран для более длительных занятий, ценообразования, прогресса, проверки ошибок и AI репетиторской работы.",
+    "ru": "Большой экран удобен для длинных занятий, тарифов, прогресса, разбора ошибок и работы с AI Tutor.",
     "es": "Utilice la pantalla grande para sesiones más largas, fijación de precios, progreso, revisión de errores y AI trabajo del tutor.",
     "de": "Nutzen Sie den großen Bildschirm für längere Sitzungen, Preise, Fortschritte, Fehlerüberprüfung und AI Tutorenarbeit.",
     "fr": "Utilisez le grand écran pour les sessions plus longues, les tarifs, les progrès, la révision des erreurs et le travail du tuteur AI.",
@@ -32925,7 +32925,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sử dụng màn hình lớn để xem các buổi học dài hơn, định giá, tiến độ, xem lại lỗi và AI Bài tập của gia sư."
   },
   "Use the same profile for deep sessions and quick practice": {
-    "ru": "Используйте один и тот же профиль для углубленных занятий и быстрой практики.",
+    "ru": "Один профиль для длинных занятий и быстрой практики",
     "es": "Utilice el mismo perfil para sesiones profundas y práctica rápida",
     "de": "Verwenden Sie dasselbe Profil für tiefe Sitzungen und schnelles Üben",
     "fr": "Utilisez le même profil pour des sessions approfondies et une pratique rapide",
@@ -32961,7 +32961,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sử dụng cùng một cấu hình cho các phiên học sâu và thực hành nhanh"
   },
   "Use the web app for a full session or Telegram for a fast practice check.": {
-    "ru": "Используйте веб-приложение для полного сеанса или Telegram для быстрой практической проверки.",
+    "ru": "Используйте веб-приложение для полноценной сессии или Telegram для быстрой проверки.",
     "es": "Utilice la aplicación web para una sesión completa o Telegram para una prueba de práctica rápida.",
     "de": "Verwenden Sie die Web-App für eine vollständige Sitzung oder Telegram für einen schnellen Übungscheck.",
     "fr": "Utilisez l'application Web pour une session complète ou Telegram pour une vérification pratique rapide.",
@@ -32997,7 +32997,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Sử dụng ứng dụng web cho cả buổi học hoặc Telegram để kiểm tra thực hành nhanh."
   },
   "User stories": {
-    "ru": "Истории пользователей",
+    "ru": "Отзывы",
     "es": "Historias de usuarios",
     "de": "Benutzergeschichten",
     "fr": "Témoignages d'utilisateurs",
@@ -33068,7 +33068,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "VÕ"
   },
   "vocabulary and speech": {
-    "ru": "словарный запас и речь",
+    "ru": "лексика и речь",
     "es": "vocabulario y habla",
     "de": "Wortschatz und Sprache",
     "fr": "vocabulaire et discours",
@@ -33104,7 +33104,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "từ vựng và lời nói"
   },
   "vocabulary, grammar, speaking": {
-    "ru": "словарный запас, грамматика, разговорная речь",
+    "ru": "лексика, грамматика, речь",
     "es": "vocabulario, gramática, expresión oral",
     "de": "Wortschatz, Grammatik, Sprechen",
     "fr": "vocabulaire, grammaire, expression orale",
@@ -33212,7 +33212,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "công cụ kiểm tra giọng nói và ảnh"
   },
   "Voice checks, shadowing, and repeat prompts help you hear and fix pronunciation quickly.": {
-    "ru": "Голосовые проверки, дублирование и повторные подсказки помогут вам быстро услышать и исправить произношение.",
+    "ru": "Проверки голоса, шэдоуинг и повторение помогают быстро услышать и исправить произношение.",
     "es": "Las comprobaciones de voz, el seguimiento y las indicaciones repetidas te ayudan a escuchar y corregir la pronunciación rápidamente.",
     "de": "Stimmkontrollen, Schatten und Wiederholungsaufforderungen helfen Ihnen, die Aussprache schnell zu verstehen und zu korrigieren.",
     "fr": "Les vérifications vocales, l'observation et les invites de répétition vous aident à entendre et à corriger rapidement la prononciation.",
@@ -33248,7 +33248,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Kiểm tra giọng nói, tạo bóng và lặp lại lời nhắc giúp bạn nghe và sửa lỗi phát âm nhanh chóng."
   },
   "Voice Coach": {
-    "ru": "Голосовой тренер",
+    "ru": "Тренер произношения",
     "es": "Entrenador de voz",
     "de": "Stimmtrainer",
     "fr": "Coach vocal",
@@ -33320,7 +33320,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Lịch sử giọng nói cho thấy điều gì trở nên dễ dàng hơn sau khi lặp lại."
   },
   "Voice practice shows which words sound weak and gives a better sentence to repeat right away.": {
-    "ru": "Голосовая практика показывает, какие слова звучат слабо, и помогает сразу же повторить предложение.",
+    "ru": "Голосовая практика показывает слабые слова и сразу дает более естественную фразу для повтора.",
     "es": "La práctica de voz muestra qué palabras suenan débiles y proporciona una mejor oración para repetir de inmediato.",
     "de": "Stimmübungen zeigen, welche Wörter schwach klingen und ergeben einen besseren Satz, den man sofort wiederholen kann.",
     "fr": "La pratique vocale montre quels mots semblent faibles et donne une meilleure phrase à répéter immédiatement.",
@@ -33356,7 +33356,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Luyện giọng cho biết từ nào nghe yếu và đưa ra câu hay hơn để lặp lại ngay."
   },
   "weak word fixed": {
-    "ru": "исправлено слабое слово",
+    "ru": "слабое слово исправлено",
     "es": "palabra débil arreglada",
     "de": "Schwaches Wort behoben",
     "fr": "mot faible corrigé",
@@ -33428,7 +33428,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "Từ yếu"
   },
   "Web + mobile + Telegram": {
-    "ru": "Интернет + мобильный + Telegram",
+    "ru": "Веб, мобильная версия и Telegram",
     "es": "Web + móvil + Telegram",
     "de": "Web + Mobil + Telegram",
     "fr": "Web + mobile + Telegram",
@@ -33644,7 +33644,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "công việc và thi cử"
   },
   "Work calls and messages": {
-    "ru": "Рабочие звонки и сообщения",
+    "ru": "Рабочие звонки и переписка",
     "es": "Llamadas y mensajes de trabajo",
     "de": "Arbeitsanrufe und Nachrichten",
     "fr": "Appels et messages professionnels",
@@ -33893,7 +33893,7 @@ const publicSiteGeneratedTranslations = {
     "vi": "YooKassa/SBP"
   },
   "Your weak spots stay visible until they become easy": {
-    "ru": "Ваши слабые места остаются видимыми, пока они не станут легкими",
+    "ru": "Слабые места остаются на виду, пока не станут проще",
     "es": "Tus puntos débiles permanecen visibles hasta que se vuelven fáciles",
     "de": "Ihre Schwachstellen bleiben sichtbar, bis sie leicht werden",
     "fr": "Vos points faibles restent visibles jusqu'à ce qu'ils deviennent faciles",

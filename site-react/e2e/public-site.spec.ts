@@ -69,6 +69,26 @@ const englishLandingCopyThatMustLocalize = [
   "Voice practice shows which words sound weak and gives a better sentence to repeat right away.",
 ] as const;
 
+const curatedRussianLandingCopy = [
+  "Поездка без паники",
+  "Рабочие звонки и переписка",
+  "Изучите фразу",
+  "Используйте её в контексте",
+  "Разберите слабое место",
+  "Мобильная версия",
+  "Ежедневный цикл",
+  "Практика перед поездкой",
+  "Открыть веб-приложение",
+] as const;
+
+const awkwardRussianLandingCopy = [
+  "Мобильный Интернет",
+  "План выступлений на день",
+  "AI Репетитор",
+  "более длительную AI репетиторскую работу",
+  "Более высокие лимиты на поездки",
+] as const;
+
 test("landing presents the approved English spark hero product site", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/poliglot-ai.html?lang=en");
@@ -299,6 +319,77 @@ test("landing keeps rich product sections below the restored hero", async ({ pag
   await expect(page.locator(".device-flow__node")).toHaveCount(3);
   await expect(page.locator(".device-flow__node", { hasText: "Web app" })).toContainText("longer sessions");
   await expect(page.locator(".device-flow__node", { hasText: "Telegram" })).toContainText("same profile");
+});
+
+test("Russian landing uses edited copy and keeps CTAs and connectors aligned", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.evaluate(() => {
+    document.documentElement.dataset.siteTheme = "light";
+    localStorage.setItem("poliglot-site-theme", "light");
+  });
+  await expect(page.locator(".english-spark-landing")).toBeVisible();
+
+  const landingText = await page.locator(".english-spark-landing").innerText();
+  for (const expected of curatedRussianLandingCopy) {
+    expect(landingText).toContain(expected);
+  }
+  for (const forbidden of awkwardRussianLandingCopy) {
+    expect(landingText).not.toContain(forbidden);
+  }
+
+  const alignment = await page.evaluate(() => {
+    const centerDelta = (card: Element, cta: Element) => {
+      const cardBox = card.getBoundingClientRect();
+      const ctaBox = cta.getBoundingClientRect();
+      return Math.abs((cardBox.left + cardBox.right) / 2 - (ctaBox.left + ctaBox.right) / 2);
+    };
+
+    const planMetrics = Array.from(document.querySelectorAll(".plan-card")).map((card) => {
+      const cta = card.querySelector("a");
+      if (!cta) return null;
+      const cardBox = card.getBoundingClientRect();
+      const ctaBox = cta.getBoundingClientRect();
+      return {
+        centerDelta: centerDelta(card, cta),
+        bottomGap: Math.round(cardBox.bottom - ctaBox.bottom),
+      };
+    }).filter(Boolean) as Array<{ centerDelta: number; bottomGap: number }>;
+
+    const entryCenterDeltas = Array.from(document.querySelectorAll(".entry-panel")).map((card) => {
+      const cta = card.querySelector("a");
+      return cta ? centerDelta(card, cta) : 999;
+    });
+
+    const connectors = Array.from(document.querySelectorAll(".device-flow__connector")).map((connector) => {
+      const parent = connector.parentElement;
+      const connectorBox = connector.getBoundingClientRect();
+      const parentBox = parent?.getBoundingClientRect();
+      const connectorStyles = getComputedStyle(connector);
+      return {
+        extendsPastCard: Boolean(parentBox && connectorBox.right > parentBox.right),
+        display: connectorStyles.display,
+        parentOverflowX: parent ? getComputedStyle(parent).overflowX : "",
+      };
+    });
+
+    return { planMetrics, entryCenterDeltas, connectors };
+  });
+
+  expect(alignment.planMetrics).toHaveLength(3);
+  expect(alignment.planMetrics.every((metric) => metric.centerDelta <= 1)).toBe(true);
+  expect(new Set(alignment.planMetrics.map((metric) => metric.bottomGap)).size).toBe(1);
+  expect(alignment.entryCenterDeltas.every((delta) => delta <= 1)).toBe(true);
+  if (alignment.connectors.every((connector) => connector.display === "none")) {
+    expect(alignment.connectors).toEqual([
+      { extendsPastCard: false, display: "none", parentOverflowX: "visible" },
+      { extendsPastCard: false, display: "none", parentOverflowX: "visible" },
+    ]);
+  } else {
+    expect(alignment.connectors).toEqual([
+      { extendsPastCard: true, display: "block", parentOverflowX: "visible" },
+      { extendsPastCard: true, display: "block", parentOverflowX: "visible" },
+    ]);
+  }
 });
 
 test("landing hero keeps animated motion within a bounded frame budget", async ({ page }) => {

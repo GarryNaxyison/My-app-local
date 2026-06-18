@@ -405,6 +405,17 @@ html[data-site-theme="light"] .plan-label {
   background: linear-gradient(135deg, var(--gold), #8ff1d0);
 }
 
+.entry-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry-panel .entry-cta {
+  width: min(100%, 306px);
+  margin-top: auto;
+  margin-inline: auto;
+}
+
 .hero-action--secondary,
 .final-cta-section a[data-entry="telegram"] {
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -416,6 +427,12 @@ html[data-site-theme="light"] .plan-label {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.plan-card a {
+  width: 100%;
+  margin-top: auto;
+  text-align: center;
 }
 
 .plan-card.is-featured {
@@ -694,14 +711,17 @@ html[data-site-theme="light"] .english-spark-landing .scenario-modules span {
 .english-spark-landing .course-card,
 .english-spark-landing .cockpit-lane,
 .english-spark-landing .cockpit-console,
-.english-spark-landing .scenario-card,
-.english-spark-landing .device-flow__node {
+.english-spark-landing .scenario-card {
   overflow: hidden;
 }
 
+.english-spark-landing .device-flow__node {
+  overflow: visible;
+}
+
 .english-spark-landing .device-flow__connector {
-  right: 12px;
-  transform: none;
+  right: -28px;
+  transform: translateY(-50%);
 }
 
 @media (max-width: 920px) {
