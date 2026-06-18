@@ -724,6 +724,14 @@ html[data-site-theme="light"] .english-spark-landing .scenario-modules span {
   transform: translateY(-50%);
 }
 
+html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
+  z-index: 2;
+  background: linear-gradient(90deg, #7bdcff, #f5d27a);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.78),
+    0 0 18px rgba(123, 220, 255, 0.42);
+}
+
 @media (max-width: 920px) {
   .english-spark-landing .landing-hero__inner,
   .memory-loop-section {

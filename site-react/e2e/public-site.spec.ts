@@ -372,7 +372,16 @@ test("Russian landing uses edited copy and keeps CTAs and connectors aligned", a
       };
     });
 
-    return { planMetrics, entryCenterDeltas, connectors };
+    const connectorVisuals = Array.from(document.querySelectorAll(".device-flow__connector")).map((connector) => {
+      const connectorStyles = getComputedStyle(connector);
+      return {
+        backgroundImage: connectorStyles.backgroundImage,
+        boxShadow: connectorStyles.boxShadow,
+        zIndex: connectorStyles.zIndex,
+      };
+    });
+
+    return { planMetrics, entryCenterDeltas, connectors, connectorVisuals };
   });
 
   expect(alignment.planMetrics).toHaveLength(3);
@@ -389,6 +398,9 @@ test("Russian landing uses edited copy and keeps CTAs and connectors aligned", a
       { extendsPastCard: true, display: "block", parentOverflowX: "visible" },
       { extendsPastCard: true, display: "block", parentOverflowX: "visible" },
     ]);
+    expect(alignment.connectorVisuals.every((connector) => connector.backgroundImage.includes("rgb(123, 220, 255)") && connector.backgroundImage.includes("rgb(245, 210, 122)"))).toBe(true);
+    expect(alignment.connectorVisuals.every((connector) => connector.boxShadow !== "none")).toBe(true);
+    expect(alignment.connectorVisuals.every((connector) => connector.zIndex === "2")).toBe(true);
   }
 });
 
