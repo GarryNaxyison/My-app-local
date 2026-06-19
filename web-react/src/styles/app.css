@@ -1503,10 +1503,11 @@ select {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   gap: 8px;
-  width: min(1540px, calc(100vw - 8px));
-  height: calc(100vh - 8px);
-  height: calc(100dvh - 8px);
-  margin: 4px auto;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  padding: 4px;
   filter: brightness(var(--v2-brightness, 1));
 }
 
@@ -2409,6 +2410,20 @@ select {
   color: var(--primary);
 }
 
+.audio-wave-button-v2.is-loading {
+  cursor: progress;
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--line));
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-strong));
+}
+
+.audio-wave-button-v2.is-loading .audio-wave-button-v2__icon {
+  color: #ffffff;
+}
+
+.audio-wave-button-v2__loader {
+  animation: spin 0.9s linear infinite;
+}
+
 .audio-wave-button-v2__meta {
   min-width: 0;
   display: grid;
@@ -3128,6 +3143,18 @@ select {
 
 .plan-card-v2.is-platinum {
   border-color: color-mix(in srgb, var(--gold) 45%, var(--line));
+}
+
+.plan-card-v2.is-current {
+  border-color: color-mix(in srgb, var(--teal) 58%, var(--line));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--teal) 30%, transparent),
+    var(--soft-shadow);
+}
+
+.plan-card-v2.is-current > span {
+  background: color-mix(in srgb, var(--teal) 18%, var(--surface-strong));
+  color: color-mix(in srgb, var(--teal) 82%, var(--text));
 }
 
 .plan-features-v2 {
@@ -3971,14 +3998,33 @@ select {
 }
 
 .auth-page-controls-v2 {
+  position: relative;
+  z-index: 1300;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
 }
 
+.auth-page-controls-v2:has(.animated-select-v2.is-open) {
+  z-index: 1700;
+}
+
+.sign-in-page-v2__form-card:has(.auth-page-language-v2.is-open) {
+  overflow: visible;
+}
+
 .auth-page-language-v2 .animated-select-v2__label {
   display: none;
+}
+
+.auth-page-language-v2.animated-select-v2.is-open {
+  z-index: 1710;
+}
+
+.auth-page-language-v2 .animated-select-v2__menu {
+  z-index: 1720;
+  max-height: min(320px, calc(100dvh - 180px));
 }
 
 .auth-page-theme-v2 {

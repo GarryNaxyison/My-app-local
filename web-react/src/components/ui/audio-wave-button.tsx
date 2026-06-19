@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { PauseCircle, PlayCircle, Volume2 } from "lucide-react";
+import { Loader2, PauseCircle, PlayCircle, Volume2 } from "lucide-react";
 import { motion, type Variants } from "framer-motion";
 import { apiBlob } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -95,16 +95,17 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
 
   return (
     <button
-      className={cn("audio-wave-button-v2", compact && "is-compact", playing && "is-playing", className)}
+      className={cn("audio-wave-button-v2", compact && "is-compact", playing && "is-playing", loading && "is-loading", className)}
       type="button"
       onClick={() => void play()}
       disabled={loading || (!wordId && !text.trim())}
+      aria-busy={loading}
     >
       <span className="audio-wave-button-v2__icon">
-        {playing ? <PauseCircle size={compact ? 24 : 32} fill="currentColor" /> : <PlayCircle size={compact ? 24 : 32} fill="currentColor" />}
+        {loading ? <Loader2 className="audio-wave-button-v2__loader" size={compact ? 22 : 30} /> : playing ? <PauseCircle size={compact ? 24 : 32} fill="currentColor" /> : <PlayCircle size={compact ? 24 : 32} fill="currentColor" />}
       </span>
       <span className="audio-wave-button-v2__meta">
-        <small><Volume2 size={12} />{error || label}</small>
+        <small><Volume2 size={12} />{error || (loading ? "Loading..." : label)}</small>
         <span className="audio-wave-button-v2__waves" aria-hidden="true">
           {variants.map((variant, index) => (
             <motion.i
@@ -112,7 +113,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
               style={{ height: `${waveHeights[index]}px` }}
               variants={variant}
               initial="initial"
-              animate={playing ? "animate" : "initial"}
+              animate={playing || loading ? "animate" : "initial"}
             />
           ))}
         </span>

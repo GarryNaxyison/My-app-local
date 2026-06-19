@@ -3317,6 +3317,95 @@ test("phrasebook loads from session and save calls persistent API", async ({ pag
   await expect.poll(() => savedPhrase).toContain("Could you say that again");
 });
 
+test("regression: paid Platinum subscription is marked as the current plan", async ({ page }) => {
+  usePremiumSession({ plan: "Platinum 2026-07-12", premium_until: "2026-07-12T12:00:00Z" });
+  await page.goto("/app/?view=premium");
+  const freeCard = page.locator(".plan-card-v2.is-free");
+  const platinumCard = page.locator(".plan-card-v2").filter({ hasText: /Platinum 30/ }).first();
+  await expect(freeCard).toBeVisible();
+  await expect(platinumCard).toBeVisible();
+  await expect(freeCard.getByRole("button", { name: /Текущий план|Current plan/ })).toHaveCount(0);
+  await expect(platinumCard.getByRole("button", { name: /Текущий план|Current plan/ })).toBeVisible();
+});
+
+test("regression: phrasebook note field can add a manual note without a phrase", async ({ page }) => {
+  let savedItem: Record<string, unknown> | null = null;
+  await page.route("**/api/phrasebook**", async (route) => {
+    const request = route.request();
+    if (request.method() === "POST") {
+      savedItem = request.postDataJSON() as Record<string, unknown>;
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: [savedItem, ...phrasebookSeed] }) });
+      return;
+    }
+    await route.fallback();
+  });
+  await page.goto("/app/?view=phrasebook");
+  await page.getByPlaceholder(ru("phrasebook_note_placeholder", "Заметка или перевод")).fill("Today is a good day.");
+  await page.locator(".phrasebook-add-v2 button[type='submit']").click();
+  await expect.poll(() => String(savedItem?.phrase || "")).toBe("Today is a good day.");
+  expect(String(savedItem?.note || savedItem?.translation || "")).toBe("");
+});
+
+test("regression: audio buttons show a loading status while speech is generated", async ({ page }) => {
+  let resolveSpeech: (() => void) | null = null;
+  await page.addInitScript(() => {
+    Object.defineProperty(HTMLMediaElement.prototype, "play", {
+      configurable: true,
+      value() {
+        setTimeout(() => this.dispatchEvent(new Event("ended")), 0);
+        return Promise.resolve();
+      },
+    });
+  });
+  await page.unroute("**/api/tools/translator-speech");
+  await page.route("**/api/tools/translator-speech", async (route) => {
+    await new Promise<void>((resolve) => {
+      resolveSpeech = resolve;
+    });
+    await route.fulfill({ status: 200, contentType: "audio/mpeg", body: Buffer.from("test-audio") });
+  });
+  await page.goto("/app/?view=phrasebook");
+  const audioButton = page.locator(".phrasebook-card-v2 .audio-wave-button-v2").first();
+  await audioButton.click();
+  await expect(audioButton).toContainText(/Загрузка|Loading/);
+  resolveSpeech?.();
+  await expect(audioButton).not.toContainText(/Загрузка|Loading/);
+});
+
+test("regression: pronunciation history normalizes over-limit score", async ({ page }) => {
+  usePremiumSession();
+  await page.addInitScript(() => {
+    localStorage.setItem("poliglot-pronunciation-v2:demor22", JSON.stringify([
+      {
+        score: 222,
+        feedback: "Оценка: 22/100. Балл ограничен: сравниваем распознанный текст с образцом.",
+        expected: "Do you think this shirt looks good on me",
+        spoken: "Do you think this shirt",
+        createdAt: "2026-06-19T12:00:00.000Z",
+      },
+    ]));
+  });
+  await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".pronunciation-score-v2")).toContainText("22/100");
+  await expect(page.locator(".pronunciation-history-v2")).toContainText("22/100");
+  await expect(page.locator(".pronunciation-history-v2")).not.toContainText("222/100");
+});
+
+test("regression: auth language menu is layered above privacy and captcha blocks", async ({ page }) => {
+  await mockAnonymousAuth(page);
+  await page.goto("/app/login");
+  await page.locator(".auth-page-language-v2 > button").click();
+  const menu = page.locator(".auth-page-language-v2 .animated-select-v2__menu");
+  await expect(menu).toBeVisible();
+  const zIndex = await menu.evaluate((node) => Number(getComputedStyle(node).zIndex || 0));
+  expect(zIndex).toBeGreaterThanOrEqual(1200);
+  const menuBox = await menu.boundingBox();
+  const privacyBox = await page.locator(".auth-privacy-v2").boundingBox();
+  expect(menuBox).not.toBeNull();
+  expect(privacyBox).not.toBeNull();
+  expect(menuBox!.y + menuBox!.height).toBeGreaterThan(privacyBox!.y);
+});
+
 test("main mobile and desktop views have scrollable output without mojibake", async ({ page, isMobile }) => {
   const views = isMobile ? ["home", "offline", "referral", "settings", "tools"] : ["home", "offline", "premium", "referral", "settings"];
   for (const view of views) {

@@ -1161,6 +1161,43 @@ function recordMistakes(value: unknown) {
     .filter((item): item is ApiRecord => Boolean(item));
 }
 
+function clampPercentScore(value: unknown, scaleUnitValue = false) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return 0;
+  const scaled = scaleUnitValue && numeric > 0 && numeric <= 1 ? numeric * 100 : numeric;
+  return Math.max(0, Math.min(100, Math.round(scaled)));
+}
+
+function pronunciationFeedbackScore(value: unknown) {
+  const text = cleanAppText(value);
+  const preferred = text.match(/(?:score|оценка|балл)[^0-9]{0,16}(\d{1,3})\s*\/\s*100/i);
+  if (preferred) return clampPercentScore(preferred[1]);
+  const matches = Array.from(text.matchAll(/(\d{1,3})\s*\/\s*100/g));
+  const last = matches[matches.length - 1];
+  return last ? clampPercentScore(last[1]) : 0;
+}
+
+function normalizedPronunciationScore(report: Partial<PronunciationAssessment> | null | undefined) {
+  if (!report) return 0;
+  const feedbackScore = pronunciationFeedbackScore(report.feedback);
+  const rawScore = Number(report.score);
+  if (Number.isFinite(rawScore)) {
+    if (rawScore > 100 && feedbackScore) return feedbackScore;
+    return clampPercentScore(rawScore);
+  }
+  const similarity = Number(report.similarity);
+  if (Number.isFinite(similarity)) {
+    if (similarity > 100 && feedbackScore) return feedbackScore;
+    return clampPercentScore(similarity, true);
+  }
+  const averageConfidence = Number(report.average_confidence);
+  if (Number.isFinite(averageConfidence)) {
+    if (averageConfidence > 100 && feedbackScore) return feedbackScore;
+    return clampPercentScore(averageConfidence, true);
+  }
+  return feedbackScore;
+}
+
 function pronunciationFrom(record: ApiRecord): PronunciationAssessment | null {
   const value = record.pronunciation;
   return value && typeof value === "object" ? (value as PronunciationAssessment) : null;
@@ -1177,7 +1214,7 @@ function pronunciationFingerprint(report: PronunciationAssessment) {
   return [
     cleanAppText(report.expected),
     cleanAppText(report.spoken),
-    Math.round(Number(report.score || report.similarity || report.average_confidence || 0)),
+    normalizedPronunciationScore(report),
     cleanAppText(report.feedback),
     words,
   ].join("::");
@@ -1208,9 +1245,9 @@ function formatPronunciationPlain(record: ApiRecord, copy: (key: string, fallbac
   const p = pronunciationFrom(record);
   if (!p) return "";
   const lines = [
-    `${copy("pronunciation_score", "Pronunciation")}: ${Number(p.score || 0)}/100`,
-    `${copy("accent_strength", "Accent")}: ${Number(p.accent_strength || 0)}/100`,
-    `${copy("fluency", "Fluency")}: ${Number(p.fluency || 0)}/100`,
+    `${copy("pronunciation_score", "Pronunciation")}: ${normalizedPronunciationScore(p)}/100`,
+    `${copy("accent_strength", "Accent")}: ${clampPercentScore(p.accent_strength, true)}/100`,
+    `${copy("fluency", "Fluency")}: ${clampPercentScore(p.fluency, true)}/100`,
   ];
   if (p.feedback) lines.push(cleanAppText(p.feedback));
   const firstProblem = Array.isArray(p.problem_words) ? p.problem_words[0] : null;
@@ -1351,6 +1388,27 @@ function premiumPlanIsPlatinum(plan: PremiumPlan | undefined) {
 function premiumPlanIsPremium(plan: PremiumPlan | undefined) {
   const source = premiumPlanSource(plan);
   return !premiumPlanIsPlatinum(plan) && (source.includes("premium") || source.includes("month") || source.includes("year"));
+}
+
+function premiumPlanTierKey(plan: PremiumPlan | undefined) {
+  if ((plan?.current || plan?.active || plan?.is_current) && premiumPlanIsFree(plan)) return "free";
+  if (premiumPlanIsPlatinum(plan)) return "platinum";
+  if (premiumPlanIsPremium(plan)) return "premium";
+  if (premiumPlanIsFree(plan)) return "free";
+  return cleanAppText(plan?.tier || plan?.product).toLowerCase();
+}
+
+function currentUserPlanKey(user: UserProfile) {
+  const source = `${user.plan || ""} ${user.premium_until || ""}`.toLowerCase();
+  if (source.includes("platinum")) return "platinum";
+  if (source.includes("premium")) return "premium";
+  if (!user.premium) return "free";
+  return "premium";
+}
+
+function premiumPlanIsCurrent(plan: PremiumPlan | undefined, user: UserProfile) {
+  if (plan?.current || plan?.active || plan?.is_current) return true;
+  return premiumPlanTierKey(plan) === currentUserPlanKey(user);
 }
 
 function premiumPlanTitle(plan: PremiumPlan, copy: (key: string, fallback: string) => string) {
@@ -6275,7 +6333,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   }, [storageKey, liveReports]);
   const reports = mergePronunciationHistory(liveReports, storedReports);
   const latest = reports[0];
-  const score = latest?.score || latest?.similarity || latest?.average_confidence || 0;
+  const score = normalizedPronunciationScore(latest);
   const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || shadowingTarget || pronunciationPracticeFallback(user, copy));
   const problemWords = uniquePronunciationProblems(reports.flatMap((report) => report.problem_words || []));
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
@@ -6344,7 +6402,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
         <h2>{copy("pronunciation_dashboard", p.title)}</h2>
         <p>{copy("pronunciation_dashboard_body", "Карта слабых слов и звуков собирается из ваших голосовых ответов и проверок произношения.")}</p>
         <div className="pronunciation-score-v2">
-          <strong>{Math.round(Number(score || 0))}/100</strong>
+          <strong>{score}/100</strong>
           <span>{user.level || "A1"} · {copy("latest_score", "latest score")}</span>
         </div>
       </section>
@@ -6372,7 +6430,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
           {reports.slice(0, 5).map((report, index) => (
             <div key={index}>
               <span>{copy("attempt", "Попытка")} {index + 1}</span>
-              <strong>{Math.round(Number(report.score || report.similarity || 0))}/100</strong>
+              <strong>{normalizedPronunciationScore(report)}/100</strong>
               <small>{report.feedback || report.expected || ""}</small>
             </div>
           ))}
@@ -6947,9 +7005,9 @@ function PronunciationReport({ pronunciation, user, copy, compact = false }: { p
   return (
     <div className={cn("pronunciation-report-v2", compact && "is-compact")}>
       <div className="pronunciation-metrics-v2">
-        <Metric label={copy("pronunciation_score", "Pronunciation")} value={`${Number(pronunciation.score || 0)}/100`} />
-        <Metric label={copy("accent_strength", "Accent")} value={`${Number(pronunciation.accent_strength || 0)}/100`} />
-        <Metric label={copy("fluency", "Fluency")} value={`${Number(pronunciation.fluency || 0)}/100`} />
+        <Metric label={copy("pronunciation_score", "Pronunciation")} value={`${normalizedPronunciationScore(pronunciation)}/100`} />
+        <Metric label={copy("accent_strength", "Accent")} value={`${clampPercentScore(pronunciation.accent_strength, true)}/100`} />
+        <Metric label={copy("fluency", "Fluency")} value={`${clampPercentScore(pronunciation.fluency, true)}/100`} />
       </div>
       {pronunciation.feedback ? <p>{cleanAppText(pronunciation.feedback)}</p> : null}
       {diagnostics.length ? (
@@ -7355,8 +7413,10 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
   const addManualPhrase = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const phrase = manualPhrase.trim();
-    if (!phrase) return;
-    savePhrase(phrase, "manual", { note: manualNote });
+    const note = manualNote.trim();
+    const text = phrase || note;
+    if (!text) return;
+    savePhrase(text, "manual", phrase && note ? { note } : {});
     setManualPhrase("");
     setManualNote("");
   };
@@ -7629,9 +7689,11 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
     <div className="premium-grid-v2">
       {plans.map((plan) => {
         const isFree = premiumPlanIsFree(plan);
+        const isCurrent = premiumPlanIsCurrent(plan, user);
+        const canPay = !isFree && !isCurrent;
         const planNote = cleanAppText(plan.note);
         return (
-        <section className={cn("v2-panel plan-card-v2", isFree && "is-free", premiumPlanIsPlatinum(plan) && "is-platinum")} key={plan.product}>
+        <section className={cn("v2-panel plan-card-v2", isFree && "is-free", isCurrent && "is-current", premiumPlanIsPlatinum(plan) && "is-platinum")} key={plan.product} aria-current={isCurrent ? "true" : undefined}>
           <span>{premiumPlanLabel(plan, copy)}</span>
           <h2>{premiumPlanTitle(plan, copy)}</h2>
           <strong>{isFree ? copy("free_plan_price", "Included") : plan.rub_price ? `${plan.rub_price} RUB` : plan.usdt_price ? `${plan.usdt_price} USDT` : copy("available", "Available")}</strong>
@@ -7645,9 +7707,9 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
             ))}
           </ul>
           {planNote && <p className="plan-note-v2">{planNote}</p>}
-          <Button variant={isFree ? "outline" : "default"} onClick={() => setPayment({ plan })} disabled={isFree || busy === "premium-plans"}>
-            {isFree ? <ShieldCheck size={18} /> : <CircleDollarSign size={18} />}
-            {isFree ? copy("current_plan", "Current plan") : copy("payment_options", "Payment options")}
+          <Button variant={canPay ? "default" : "outline"} onClick={() => canPay && setPayment({ plan })} disabled={!canPay || busy === "premium-plans"}>
+            {canPay ? <CircleDollarSign size={18} /> : <ShieldCheck size={18} />}
+            {isCurrent ? copy("current_plan", "Current plan") : isFree ? copy("free_plan_price", "Included") : copy("payment_options", "Payment options")}
           </Button>
         </section>
         );
@@ -8080,9 +8142,9 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
   return (
     <div className={cn("tools-layout-v2", mobilePickerOpen && "is-picker-open")} onPaste={handleToolsPaste}>
       <div className="tool-switch-v2">
-        <ToolButton active={toolMode === "translator"} icon={Languages} title={copy("text_translator", "Text translator")} onClick={() => chooseTool("translator")} />
-        <ToolButton active={toolMode === "voice"} icon={FileAudio} title={copy("voice_to_text", "Voice to text")} onClick={() => chooseTool("voice")} />
-        <ToolButton active={toolMode === "image"} icon={ImageIcon} title={copy("photo_translation", "Photo translation")} onClick={() => chooseTool("image")} />
+        <ToolButton active={!mobilePickerOpen && toolMode === "translator"} icon={Languages} title={copy("text_translator", "Text translator")} onClick={() => chooseTool("translator")} />
+        <ToolButton active={!mobilePickerOpen && toolMode === "voice"} icon={FileAudio} title={copy("voice_to_text", "Voice to text")} onClick={() => chooseTool("voice")} />
+        <ToolButton active={!mobilePickerOpen && toolMode === "image"} icon={ImageIcon} title={copy("photo_translation", "Photo translation")} onClick={() => chooseTool("image")} />
         <a className="tool-button-v2 tools-ai-router-v2" href={aiRouterTelegramURL} target="_blank" rel="noreferrer" aria-label={copy("ai_router", "AI Router")}>
           <Bot size={18} />
           {copy("ai_router", "AI Router")}
@@ -8184,7 +8246,7 @@ function ActionCard({ icon: Icon, title, meta, onClick, busy }: { icon: LucideIc
 
 function ToolButton({ active, icon: Icon, title, onClick }: { active: boolean; icon: LucideIcon; title: string; onClick: () => void }) {
   return (
-    <button className={cn("tool-button-v2", active && "is-active")} type="button" onClick={onClick}>
+    <button className={cn("tool-button-v2", active && "is-active")} type="button" onClick={onClick} aria-pressed={active}>
       <Icon size={18} />
       {title}
     </button>

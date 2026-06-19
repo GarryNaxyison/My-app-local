@@ -210,6 +210,9 @@ export type SessionData = {
 export type PremiumPlan = {
   product: string;
   tier?: string;
+  current?: boolean;
+  active?: boolean;
+  is_current?: boolean;
   title?: string;
   label?: string;
   body?: string;
