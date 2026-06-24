@@ -301,7 +301,8 @@ func TestAITutorSubmitProductionRequiresAtLeastTwoSentences(t *testing.T) {
 	if result.Session.CurrentStage != aiTutorStageProduction {
 		t.Fatalf("one-sentence production answer advanced to %q", result.Session.CurrentStage)
 	}
-	if result.Feedback.OK || !strings.Contains(strings.ToLower(result.Feedback.Message), "two") {
+	feedback := strings.ToLower(result.Feedback.Message)
+	if result.Feedback.OK || (!strings.Contains(feedback, "two") && !strings.Contains(feedback, "два")) {
 		t.Fatalf("feedback = %#v", result.Feedback)
 	}
 	if ai.calls != 0 {
@@ -377,6 +378,33 @@ func TestAITutorStepOptionsDoNotExposeCorrectFlag(t *testing.T) {
 	}
 	if strings.Contains(string(body), `"correct"`) {
 		t.Fatalf("step JSON exposes correct answer metadata: %s", string(body))
+	}
+}
+
+func TestAITutorBuildStepUsesSpecificLocalizedInstructions(t *testing.T) {
+	lesson := validAITutorLessonPayloadForTest()
+	lesson.Title = "A Beach Evening"
+	lesson.Theme = "a short travel story"
+	lesson.Story.TitleInterface = "Вечер на пляже"
+	lesson.RetellTask.InstructionInterface = ""
+	lesson.ProductionTask.InstructionInterface = ""
+
+	story := aiTutorBuildStep(lesson, aiTutorStageStoryIntro)
+	if story.Title != "Вечер на пляже" {
+		t.Fatalf("story title = %q, want story_title_interface", story.Title)
+	}
+	if strings.Contains(story.Instruction, "Дальше") || strings.Contains(story.Instruction, "?") || story.Instruction == "" {
+		t.Fatalf("story instruction is not specific: %q", story.Instruction)
+	}
+
+	retell := aiTutorBuildStep(lesson, aiTutorStageRetell)
+	if !strings.Contains(retell.Instruction, "2-3") || !strings.Contains(strings.ToLower(retell.Instruction), "перескаж") {
+		t.Fatalf("retell instruction is not specific: %q", retell.Instruction)
+	}
+
+	production := aiTutorBuildStep(lesson, aiTutorStageProduction)
+	if !strings.Contains(production.Instruction, "2-3") || !strings.Contains(production.Instruction, "3") {
+		t.Fatalf("production instruction is not specific: %q", production.Instruction)
 	}
 }
 

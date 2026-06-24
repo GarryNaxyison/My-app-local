@@ -526,14 +526,16 @@ func premiumPlanLandingCopy(user userState, tier string) premiumLandingPlanCopy 
 		set = premiumLandingCopyByLanguage["en"]
 	}
 
+	var copy premiumLandingPlanCopy
 	switch normalizedPremiumLandingTier(tier) {
 	case "free":
-		return clonePremiumLandingPlanCopy(set.Free)
+		copy = clonePremiumLandingPlanCopy(set.Free)
 	case "platinum":
-		return clonePremiumLandingPlanCopy(set.Platinum)
+		copy = clonePremiumLandingPlanCopy(set.Platinum)
 	default:
-		return clonePremiumLandingPlanCopy(set.Premium)
+		copy = clonePremiumLandingPlanCopy(set.Premium)
 	}
+	return normalizePremiumLandingPlanCopy(code, normalizedPremiumLandingTier(tier), copy)
 }
 
 func normalizedPremiumLandingTier(tier string) string {
@@ -552,6 +554,105 @@ func clonePremiumLandingPlanCopy(copy premiumLandingPlanCopy) premiumLandingPlan
 	copy.Included = append([]string(nil), copy.Included...)
 	copy.Locked = append([]string(nil), copy.Locked...)
 	return copy
+}
+
+type premiumLandingTermSet struct {
+	StarterLabel           string
+	AITutorLessons         string
+	ListeningPronunciation string
+	VoicePhotoTools        string
+	VoiceReview            string
+	ImageTools             string
+	AIGuidedLessons        string
+	Roleplay               string
+	Review                 string
+	VoicePronunciation     string
+	VoicePhotoContext      string
+	HeavyStudy             string
+}
+
+var premiumLandingTermsByLanguage = map[string]premiumLandingTermSet{
+	"ru": {StarterLabel: "Начальный", AITutorLessons: "Уроки с AI Tutor", ListeningPronunciation: "Аудирование и произношение", VoicePhotoTools: "Проверка голоса и фото-инструменты", VoiceReview: "проверки голоса", ImageTools: "фото-инструменты", AIGuidedLessons: "AI-уроки", Roleplay: "ролевой практикой", Review: "повторением", VoicePronunciation: "практикой голоса и произношения", VoicePhotoContext: "практики по голосу или фото", HeavyStudy: "плотной ежедневной учебы"},
+	"en": {StarterLabel: "Starter", AITutorLessons: "AI-guided tutor lessons", ListeningPronunciation: "Listening practice and pronunciation scoring", VoicePhotoTools: "Voice review and image tools", VoiceReview: "voice review", ImageTools: "image tools", AIGuidedLessons: "AI-guided tutor lessons", Roleplay: "role-play practice", Review: "review practice", VoicePronunciation: "voice and pronunciation practice", VoicePhotoContext: "voice or image-context practice", HeavyStudy: "dense daily study"},
+	"es": {StarterLabel: "Inicial", AITutorLessons: "lecciones con AI Tutor", ListeningPronunciation: "escucha y pronunciación", VoicePhotoTools: "revisión de voz y herramientas de imagen", VoiceReview: "revisiones de voz", ImageTools: "herramientas de imagen", AIGuidedLessons: "lecciones guiadas por IA", Roleplay: "práctica de roles", Review: "repaso", VoicePronunciation: "práctica de voz y pronunciación", VoicePhotoContext: "práctica con voz o imagen", HeavyStudy: "estudio diario intenso"},
+	"de": {StarterLabel: "Einstieg", AITutorLessons: "Lektionen mit AI Tutor", ListeningPronunciation: "Hören und Aussprache", VoicePhotoTools: "Stimmprüfung und Bildwerkzeuge", VoiceReview: "Stimmprüfungen", ImageTools: "Bildwerkzeuge", AIGuidedLessons: "KI-geführte Lektionen", Roleplay: "Rollenspielpraxis", Review: "Wiederholung", VoicePronunciation: "Stimm- und Aussprachepraxis", VoicePhotoContext: "Übung mit Stimme oder Bild", HeavyStudy: "intensives tägliches Lernen"},
+	"fr": {StarterLabel: "Départ", AITutorLessons: "leçons avec AI Tutor", ListeningPronunciation: "écoute et prononciation", VoicePhotoTools: "vérification vocale et outils image", VoiceReview: "vérifications vocales", ImageTools: "outils image", AIGuidedLessons: "leçons guidées par IA", Roleplay: "jeu de rôle", Review: "révision", VoicePronunciation: "pratique de la voix et de la prononciation", VoicePhotoContext: "pratique avec voix ou image", HeavyStudy: "étude quotidienne intensive"},
+}
+
+func premiumLandingTerms(code string) premiumLandingTermSet {
+	if terms, ok := premiumLandingTermsByLanguage[normalizeInterfaceLanguage(code)]; ok {
+		return terms
+	}
+	return premiumLandingTermsByLanguage["en"]
+}
+
+func normalizePremiumLandingPlanCopy(code string, tier string, copy premiumLandingPlanCopy) premiumLandingPlanCopy {
+	terms := premiumLandingTerms(code)
+	if tier == "free" {
+		copy.Label = terms.StarterLabel
+	}
+	if code == "ru" {
+		copy = normalizeRussianPremiumLandingPlanCopy(tier, copy)
+	}
+	copy.Label = normalizePremiumLandingText(copy.Label, terms)
+	copy.Description = normalizePremiumLandingText(copy.Description, terms)
+	copy.Note = normalizePremiumLandingText(copy.Note, terms)
+	copy.Included = normalizePremiumLandingTexts(copy.Included, terms)
+	copy.Locked = normalizePremiumLandingTexts(copy.Locked, terms)
+	return copy
+}
+
+func normalizeRussianPremiumLandingPlanCopy(tier string, copy premiumLandingPlanCopy) premiumLandingPlanCopy {
+	switch tier {
+	case "free":
+		copy.Locked = []string{"Уроки с AI Tutor", "Аудирование и произношение", "Проверка голоса и фото-инструменты"}
+	case "premium":
+		copy.Description = "Основной режим для ежедневной практики: AI Tutor, аудирование, произношение, AI-уроки, проверки голоса, фото-инструменты и расширенные дневные лимиты."
+	case "platinum":
+		copy.Description = "AI Tutor с максимальными дневными лимитами, глубокой ролевой практикой, интенсивным повторением и максимальной практикой голоса и произношения."
+		copy.Included = []string{"максимальные дневные лимиты", "больше практики по голосу или фото", "интенсивное повторение слабых мест", "лучший режим для плотной ежедневной учебы"}
+	}
+	return copy
+}
+
+func normalizePremiumLandingTexts(values []string, terms premiumLandingTermSet) []string {
+	out := append([]string(nil), values...)
+	for index, value := range out {
+		out[index] = normalizePremiumLandingText(value, terms)
+	}
+	return out
+}
+
+func normalizePremiumLandingText(value string, terms premiumLandingTermSet) string {
+	replacements := map[string]string{
+		"Try the path": terms.StarterLabel,
+		"Попробовать " + "маршрут":               terms.StarterLabel,
+		"AI Tutor " + "guided lessons":           terms.AITutorLessons,
+		"guided AI " + "lessons":                 terms.AIGuidedLessons,
+		"guided " + "lessons":                    terms.AIGuidedLessons,
+		"listening, pronunciation":               terms.ListeningPronunciation,
+		"Listening and pronunciation":            terms.ListeningPronunciation,
+		"Listening и pronunciation":              terms.ListeningPronunciation,
+		"Listening y pronunciation":              terms.ListeningPronunciation,
+		"Listening und pronunciation":            terms.ListeningPronunciation,
+		"Listening et pronunciation":             terms.ListeningPronunciation,
+		"Listening e pronunciation":              terms.ListeningPronunciation,
+		"Listening va pronunciation":             terms.ListeningPronunciation,
+		"Listening và pronunciation":             terms.ListeningPronunciation,
+		"voice " + "checks and photo " + "tools": terms.VoicePhotoTools,
+		"voice " + "checks и photo " + "tools":   terms.VoicePhotoTools,
+		"voice " + "checks":                      terms.VoiceReview,
+		"photo " + "tools":                       terms.ImageTools,
+		"voice/" + "pronunciation":               terms.VoicePronunciation,
+		"voice/" + "photo-context":               terms.VoicePhotoContext,
+		"heavy daily " + "learning":              terms.HeavyStudy,
+		"roleplay":                               terms.Roleplay,
+		"review":                                 terms.Review,
+	}
+	for old, replacement := range replacements {
+		value = strings.ReplaceAll(value, old, replacement)
+	}
+	return value
 }
 
 func premiumPlanLandingDescription(user userState, tier string) string {

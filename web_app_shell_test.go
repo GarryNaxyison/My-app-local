@@ -63,6 +63,41 @@ func TestWebAppHTMLLoadsBuiltReactApp(t *testing.T) {
 	}
 }
 
+func TestWebAppAssetsOnlyKeepCurrentIndexBundle(t *testing.T) {
+	html, err := os.ReadFile(filepath.Join("web", "index.html"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	matches := regexp.MustCompile(`/app/assets/(index-[^"]+\.(?:js|css))`).FindAllStringSubmatch(string(html), -1)
+	expected := map[string]bool{}
+	for _, match := range matches {
+		expected[match[1]] = true
+	}
+	if len(expected) < 2 {
+		t.Fatalf("web/index.html does not reference both current index JS and CSS assets: %v", expected)
+	}
+	entries, err := os.ReadDir(filepath.Join("web", "assets"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	actual := map[string]bool{}
+	for _, entry := range entries {
+		name := entry.Name()
+		if !strings.HasPrefix(name, "index-") || (!strings.HasSuffix(name, ".js") && !strings.HasSuffix(name, ".css")) {
+			continue
+		}
+		actual[name] = true
+		if !expected[name] {
+			t.Fatalf("stale web app asset %q is still tracked; old PWA shells can load stale UI from it", name)
+		}
+	}
+	for name := range expected {
+		if !actual[name] {
+			t.Fatalf("current web app asset %q referenced by index.html is missing", name)
+		}
+	}
+}
+
 func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
 	if err != nil {
@@ -116,14 +151,6 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 			t.Fatalf("React frontend is missing Go API contract marker %q", want)
 		}
 	}
-	for _, want := range []string{
-		"Listening and pronunciation",
-		"AI Tutor, listening, pronunciation",
-	} {
-		if !strings.Contains(page, want) {
-			t.Fatalf("React premium copy is missing %q", want)
-		}
-	}
 	for _, forbidden := range []string{
 		"unlinkTelegram",
 		"data-unlink-telegram",
@@ -131,6 +158,45 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 	} {
 		if strings.Contains(page, forbidden) {
 			t.Fatalf("React frontend should not expose Telegram unlink action %q", forbidden)
+		}
+	}
+}
+
+func TestReactFrontendPremiumAndTutorCopyRegressions(t *testing.T) {
+	page, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	i18n, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(page) + "\n" + string(i18n)
+	for _, want := range []string{
+		`setPayment({ plan })`,
+		`copy("extend_plan"`,
+		`ai_tutor_xp_awarded`,
+		`ai_tutor_xp_awarded: "+40 XP за этот урок AI репетитора."`,
+		`const serverInstruction = isVisibleComplete ? ""`,
+		`heroLevel} · ${heroTopic`,
+		`isGenericSectionCopy(line)`,
+		`tutor_need_two_sentences`,
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("React frontend is missing copy regression marker %q", want)
+		}
+	}
+	for _, forbidden := range []string{
+		`heroLevel} ? ${heroTopic`,
+		`disabled={!canPay || busy === "premium-plans"}`,
+		`Listening and pronunciation`,
+		`AI Tutor, listening, pronunciation`,
+		`Write your own answer using the lesson words.`,
+		`Write at least two complete sentences before moving on.`,
+		`You finished the guided sequence`,
+	} {
+		if strings.Contains(source, forbidden) {
+			t.Fatalf("React frontend still contains stale copy %q", forbidden)
 		}
 	}
 }
@@ -281,7 +347,7 @@ func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 		`const hadController = !!navigator.serviceWorker.controller`,
 		`registration.update()`,
 		`SKIP_WAITING`,
-		`poliglot-v2-offline-decks-20260624-mobile-ui`,
+		`poliglot-v2-offline-decks-20260624-tutor-copy`,
 		`fetch(request)`,
 		`request.mode === "navigate"`,
 	} {

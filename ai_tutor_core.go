@@ -64,6 +64,8 @@ type aiTutorGrammarFocus struct {
 }
 
 type aiTutorStory struct {
+	TitleInterface  string `json:"title_interface,omitempty"`
+	StoryTitle      string `json:"story_title,omitempty"`
 	TextTarget      string `json:"text_target"`
 	AudioTextTarget string `json:"audio_text_target"`
 	SentenceCount   int    `json:"sentence_count"`
@@ -349,6 +351,19 @@ func aiTutorTrimmedStrings(values []string) []string {
 }
 
 func normalizeAITutorLessonPayload(lesson aiTutorLessonPayload) aiTutorLessonPayload {
+	lesson.Story.TitleInterface = firstNonEmpty(lesson.Story.TitleInterface, lesson.Story.StoryTitle, aiTutorCleanGeneratedLabel(lesson.Title), aiTutorCleanGeneratedLabel(lesson.Theme))
+	lesson.LessonGoal = firstNonEmpty(
+		aiTutorCleanGeneratedInstruction(lesson.LessonGoal),
+		aiTutorDefaultStoryInstruction(lesson.InterfaceLanguage),
+	)
+	lesson.RetellTask.InstructionInterface = firstNonEmpty(
+		aiTutorCleanGeneratedInstruction(lesson.RetellTask.InstructionInterface),
+		aiTutorDefaultRetellInstruction(lesson.InterfaceLanguage),
+	)
+	lesson.ProductionTask.InstructionInterface = firstNonEmpty(
+		aiTutorCleanGeneratedInstruction(lesson.ProductionTask.InstructionInterface),
+		aiTutorDefaultProductionInstruction(lesson.InterfaceLanguage, lesson.ProductionTask.RequiredWordCount),
+	)
 	if len(lesson.Words) == 6 {
 		if len(lesson.WordLearning) != 6 {
 			lesson.WordLearning = aiTutorWordTasksFromWords(lesson.Words)
@@ -361,6 +376,112 @@ func normalizeAITutorLessonPayload(lesson aiTutorLessonPayload) aiTutorLessonPay
 		lesson.ReviewOptions = []string{"tomorrow", "3_days", "1_week", "no_review"}
 	}
 	return lesson
+}
+
+func aiTutorCleanGeneratedLabel(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	lower := strings.ToLower(value)
+	if strings.Contains(value, "?") || lower == "story" || lower == "retell" || lower == "writing" || lower == "complete" || lower == "section" || lower == "раздел" {
+		return ""
+	}
+	if strings.HasPrefix(lower, "section:") || strings.HasPrefix(lower, "раздел:") || strings.HasPrefix(lower, "topic/theme seed") {
+		return ""
+	}
+	return value
+}
+
+func aiTutorCleanGeneratedInstruction(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	lower := strings.ToLower(value)
+	blocked := []string{
+		"write your answer",
+		"write your own answer",
+		"answer to the active lesson",
+		"next",
+		"section",
+		"напишите свой ответ",
+		"ответ к активному уроку",
+		"дальше",
+		"раздел",
+	}
+	for _, item := range blocked {
+		if strings.Contains(lower, item) {
+			return ""
+		}
+	}
+	if aiTutorCleanGeneratedLabel(value) == "" {
+		return ""
+	}
+	return value
+}
+
+func aiTutorDefaultStoryInstruction(interfaceLanguage string) string {
+	switch normalizeInterfaceLanguage(interfaceLanguage) {
+	case "ru":
+		return "Прочитайте историю, запомните главный сюжет и продолжайте к пересказу."
+	case "de":
+		return "Lies die Geschichte, merke dir die Haupthandlung und fahre dann mit der Nacherzählung fort."
+	case "es":
+		return "Lee la historia, recuerda la idea principal y continúa con el recuento."
+	case "fr":
+		return "Lis l'histoire, retiens l'idée principale, puis passe au récit."
+	default:
+		return "Read the story, remember the main plot, then continue to the retell task."
+	}
+}
+
+func aiTutorDefaultRetellInstruction(interfaceLanguage string) string {
+	switch normalizeInterfaceLanguage(interfaceLanguage) {
+	case "ru":
+		return "Перескажите историю своими словами: 2-3 предложения на языке урока, с главным событием и концовкой."
+	case "de":
+		return "Erzähle die Geschichte mit eigenen Worten nach: 2-3 Sätze in der Zielsprache, mit Hauptidee und Ende."
+	case "es":
+		return "Vuelve a contar la historia con tus propias palabras: 2-3 frases en el idioma de estudio, con la idea principal y el final."
+	case "fr":
+		return "Raconte l'histoire avec tes propres mots : 2-3 phrases dans la langue étudiée, avec l'idée principale et la fin."
+	default:
+		return "Retell the story in your own words: 2-3 target-language sentences with the main event and ending."
+	}
+}
+
+func aiTutorDefaultProductionInstruction(interfaceLanguage string, requiredWords int) string {
+	if requiredWords < 1 {
+		requiredWords = 3
+	}
+	switch normalizeInterfaceLanguage(interfaceLanguage) {
+	case "ru":
+		return "Напишите 2-3 предложения на языке урока по теме истории и используйте минимум " + itoa(requiredWords) + " новых слова из списка."
+	case "de":
+		return "Schreibe 2-3 Sätze in der Zielsprache zum Thema der Geschichte und nutze mindestens " + itoa(requiredWords) + " neue Wörter aus der Liste."
+	case "es":
+		return "Escribe 2-3 frases en el idioma de estudio sobre el tema de la historia y usa al menos " + itoa(requiredWords) + " palabras nuevas de la lista."
+	case "fr":
+		return "Écris 2-3 phrases dans la langue étudiée sur le thème de l'histoire et utilise au moins " + itoa(requiredWords) + " mots nouveaux de la liste."
+	default:
+		return "Write 2-3 target-language sentences about the story topic and use at least " + itoa(requiredWords) + " new words from the list."
+	}
+}
+
+func aiTutorNeedTwoSentencesMessage(interfaceLanguage string) string {
+	switch normalizeInterfaceLanguage(interfaceLanguage) {
+	case "ru":
+		return "Напишите минимум два полных предложения, чтобы продолжить."
+	case "de":
+		return "Schreibe mindestens zwei vollständige Sätze, um fortzufahren."
+	case "es":
+		return "Escribe al menos dos frases completas para continuar."
+	case "fr":
+		return "Écris au moins deux phrases complètes pour continuer."
+	default:
+		return "Add at least two complete sentences to continue."
+	}
 }
 
 func aiTutorWordTasksFromWords(words []aiTutorWord) []aiTutorWordTask {

@@ -663,7 +663,7 @@ const clientCopyPreferredKeys = new Set([
 
 function isGenericSectionCopy(value: string) {
   const text = value.trim();
-  return /^[^\s:]+:\s*[a-z0-9_ -]+$/i.test(text) || /^(Section|Раздел|Mục):\s*/i.test(text);
+  return /^[^\s:]+:\s*[a-z0-9_ -]+$/i.test(text) || /^(Section|Раздел|Mục)(?:\s*:.*)?$/i.test(text);
 }
 
 function isTutorWordLearnStage(stage?: string | null) {
@@ -713,7 +713,10 @@ function cleanTutorPrompt(value: unknown) {
     .split(/\n+/)
     .map((line) => line.trim())
     .filter(Boolean)
-    .filter((line) => !/^Question\s+\d+\s*$/i.test(line));
+    .filter((line) => !/^Question\s+\d+\s*$/i.test(line))
+    .filter((line) => !isGenericSectionCopy(line))
+    .filter((line) => !/^(Next|Continue|Дальше)$/i.test(line))
+    .filter((line) => !/Напишите\s+(свой\s+)?ответ к активному уроку/i.test(line));
   const seen = new Set<string>();
   return lines
     .filter((line) => {
@@ -1443,11 +1446,11 @@ function premiumPlanBody(plan: PremiumPlan, copy: (key: string, fallback: string
   const source = premiumPlanSource(plan);
   const body = cleanAppText(plan.body);
   if (body) return body;
-  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium.");
-  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice.");
+  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening practice, pronunciation scoring, and voice review open in Premium.");
+  if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper role-play practice, intensive review practice, and maximum voice and pronunciation practice.");
   if (source.includes("year") || source.includes("365")) return copy("premium_year_body", "Same daily AI audio limits, paid yearly.");
-  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits.");
-  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, listening, pronunciation, voice tools, image practice, and focused daily training.");
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.");
+  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, listening practice, pronunciation scoring, voice tools, image practice, and focused daily training.");
 }
 
 function premiumPlanCatalog(plans: PremiumPlan[], copy: (key: string, fallback: string) => string) {
@@ -1483,19 +1486,19 @@ function premiumPlanFeatures(plan: PremiumPlan, copy: (key: string, fallback: st
       { text: copy("free_feature_phrasebook", "Phrasebook and progress overview") },
       { text: copy("free_feature_phrase_audio", "Phrase audio is available") },
       { text: copy("free_feature_no_ai_tutor", "AI Tutor is locked until Premium"), locked: true },
-      { text: copy("free_feature_no_audio", "Listening and pronunciation are locked until Premium"), locked: true },
+      { text: copy("free_feature_no_audio", "Listening practice and pronunciation scoring need Premium"), locked: true },
     ];
   }
   if (premiumPlanIsPlatinum(plan)) {
     return [
       { text: copy("platinum_feature_ai_tutor", "Maximum daily limits"), highlight: true },
-      { text: copy("platinum_feature_voice", "More voice/photo-context practice") },
-      { text: copy("platinum_feature_priority", "Best mode for heavy daily learning") },
+      { text: copy("platinum_feature_voice", "More voice or image-context practice") },
+      { text: copy("platinum_feature_priority", "Best mode for dense daily study") },
     ];
   }
   return [
-    { text: copy("premium_feature_ai_tutor", "AI Tutor guided lessons included"), highlight: true },
-    { text: copy("premium_feature_voice", "Listening and pronunciation, photo, and translator tools") },
+    { text: copy("premium_feature_ai_tutor", "AI-guided tutor lessons included"), highlight: true },
+    { text: copy("premium_feature_voice", "Listening practice, pronunciation scoring, image, and translator tools") },
     { text: copy("premium_feature_limits", "Expanded daily limits for steady learning") },
   ];
 }
@@ -5437,12 +5440,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   };
 
   const stageInstruction = (stage: string) => {
-    if (stage === "story_intro") return copy("tutor_story_instruction", "Read and listen to the story, then continue.");
-    if (stage === "retell") return copy("tutor_retell_instruction", "Retell the story in your own words.");
+    if (stage === "story_intro") return copy("tutor_story_instruction", "Read the story, remember the main plot, then continue.");
+    if (stage === "retell") return copy("tutor_retell_instruction", "Retell the story in 2-3 target-language sentences.");
     if (/^question_\d+$/.test(stage)) return copy("tutor_question_instruction", "Answer the question before moving on.");
     if (isTutorWordLearnStage(stage)) return copy("tutor_words_instruction", "Study this word and the example, then continue.");
     if (isTutorWordRecallStage(stage)) return copy("tutor_final_check_instruction", "Choose the target-language word.");
-    if (stage === "production") return copy("tutor_writing_instruction", "Write 2-3 sentences using the lesson words.");
+    if (stage === "production") return copy("tutor_writing_instruction", "Write 2-3 target-language sentences about the story and use at least 3 lesson words.");
     if (stage === "lesson_feedback") return copy("tutor_final_assessment_instruction", "Choose how this lesson felt.");
     if (stage === "review_schedule") return copy("tutor_review_instruction", "Choose when to review this lesson.");
     if (stage === "complete") return "";
@@ -5619,19 +5622,18 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     if (!visibleTutorStep) return null;
     const storyText = display(lesson?.story?.text_target);
     const storyAudioText = display(lesson?.story?.audio_text_target || lesson?.story?.text_target);
+    const storyTitle = cleanTutorPrompt(lesson?.story?.title_interface || lesson?.story?.story_title || visibleTutorStep.title);
     const localInstruction = stageInstruction(visibleTutorStep.stage);
     const questionText = cleanTutorPrompt(visibleTutorStep.question?.question_target);
-    const instruction = cleanTutorPrompt(
-      isTutorKnownInstructionStage(visibleTutorStep.stage)
-        ? localInstruction
-        : visibleTutorStep.instruction || localInstruction,
-    );
+    const serverInstruction = isVisibleComplete ? "" : cleanTutorPrompt(visibleTutorStep.instruction);
+    const instruction = isVisibleComplete ? "" : cleanTutorPrompt(serverInstruction || localInstruction);
     const showQuestionText = Boolean(questionText && !sameTutorText(questionText, instruction));
+    const cardTitle = visibleTutorStep.kind === "story" && storyTitle ? storyTitle : stageLabel(visibleTutorStep.stage);
     return (
       <article className="tutor-message-v2 is-active">
         <div className="tutor-message-v2__avatar"><Sparkles size={16} /></div>
         <div>
-          <strong>{stageLabel(visibleTutorStep.stage)}</strong>
+          <strong>{cardTitle}</strong>
           {instruction ? <p>{instruction}</p> : null}
           {visibleTutorStep.kind === "story" && storyText ? (
             <>
@@ -5643,7 +5645,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
           {showQuestionText ? <p className="tutor-task-copy-v2">{questionText}</p> : null}
           {isVisibleComplete ? (
             <div className="tutor-review-summary-v2">
-              <span>{copy("tutor_complete_body", "You finished the guided AI Tutor lesson.")}</span>
+              <span>{copy("tutor_complete_body", "Lesson finished: story, retell, questions, words, writing, assessment, and review.")}</span>
               <span>{copy("ai_tutor_xp_awarded", "+40 XP awarded for this AI Tutor lesson.")}</span>
             </div>
           ) : null}
@@ -5679,7 +5681,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
         </div>
         <div className="tutor-hero__copy">
           <span className="eyebrow">{copy("ai_tutor", "AI Tutor")}</span>
-          <h2>{tutorPremiumLocked ? copy("tutor_premium_title", "AI Tutor is included with Premium") : aiTutorStep ? `${heroLevel} ? ${heroTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
+          <h2>{tutorPremiumLocked ? copy("tutor_premium_title", "AI Tutor is included with Premium") : aiTutorStep ? `${heroLevel} · ${heroTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
           <p>{tutorPremiumLocked ? copy("tutor_premium_body", "Free keeps basic text practice. Upgrade to Premium to use guided AI Tutor lessons.") : heroGoal}</p>
           <div className="tutor-hero__meta">
             <span>{copy("tutor_duration", "5-10 minutes")}</span>
@@ -5708,8 +5710,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
           </div>
           <div className="tutor-paywall-v2__features">
             <span><ShieldCheck size={16} />{copy("free_feature_daily", "Daily habit, starter lessons, and basic word training")}</span>
-            <span><Sparkles size={16} />{copy("premium_feature_ai_tutor", "AI Tutor guided lessons included")}</span>
-            <span><Crown size={16} />{copy("platinum_feature_priority", "Best mode for heavy daily learning")}</span>
+            <span><Sparkles size={16} />{copy("premium_feature_ai_tutor", "AI-guided tutor lessons included")}</span>
+            <span><Crown size={16} />{copy("platinum_feature_priority", "Best mode for dense daily study")}</span>
           </div>
           <Button type="button" onClick={() => setView("premium")}>
             <Crown size={18} />
@@ -5806,7 +5808,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
                   </div>
                 ) : null}
                 {isProduction && tutorDraft.trim() && productionSentenceCount < 2 ? (
-                  <p className="tutor-feedback-v2 is-error">{copy("tutor_need_two_sentences", "Write at least two complete sentences before moving on.")}</p>
+                  <p className="tutor-feedback-v2 is-error">{copy("tutor_need_two_sentences", "Add at least two complete sentences to continue.")}</p>
                 ) : null}
                 <Button
                   type="submit"
@@ -7741,7 +7743,7 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
       {plans.map((plan) => {
         const isFree = premiumPlanIsFree(plan);
         const isCurrent = premiumPlanIsCurrent(plan, user);
-        const canPay = !isFree && !isCurrent;
+        const canPay = !isFree;
         const planNote = cleanAppText(plan.note);
         return (
         <section className={cn("v2-panel plan-card-v2", isFree && "is-free", isCurrent && "is-current", premiumPlanIsPlatinum(plan) && "is-platinum")} key={plan.product} aria-current={isCurrent ? "true" : undefined}>
@@ -7758,9 +7760,9 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
             ))}
           </ul>
           {planNote && <p className="plan-note-v2">{planNote}</p>}
-          <Button variant={canPay ? "default" : "outline"} onClick={() => canPay && setPayment({ plan })} disabled={!canPay || busy === "premium-plans"}>
+          <Button variant={canPay ? "default" : "outline"} onClick={() => canPay && setPayment({ plan })} disabled={isFree || busy === "premium-plans"}>
             {canPay ? <CircleDollarSign size={18} /> : <ShieldCheck size={18} />}
-            {isCurrent ? copy("current_plan", "Current plan") : isFree ? copy("free_plan_price", "Included") : copy("payment_options", "Payment options")}
+            {isCurrent ? copy("extend_plan", "Extend") : isFree ? copy("free_plan_price", "Included") : copy("payment_options", "Payment options")}
           </Button>
         </section>
         );
@@ -8499,7 +8501,7 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("free_plan_title", "Free"),
       tier: "free",
       label: copy("free_plan_label", "Для начала"),
-      body: copy("free_plan_body", "Basic text learning, word training, notes, and progress overview. AI Tutor, listening, pronunciation, and voice checks open in Premium."),
+      body: copy("free_plan_body", "Basic text learning, word training, notes, and progress overview. AI Tutor, listening practice, pronunciation scoring, and voice review open in Premium."),
       features: [
         copy("free_feature_daily", "ежедневная привычка и стартовые уроки"),
         copy("free_feature_words", "базовая тренировка слов"),
@@ -8507,9 +8509,9 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
         copy("free_feature_phrase_audio", "Phrase audio is available"),
       ],
       locked_features: [
-        copy("free_locked_ai_tutor", "AI Tutor guided lessons are locked until Premium"),
-        copy("free_locked_listening", "Listening and pronunciation are locked until Premium"),
-        copy("free_locked_voice_photo", "Voice checks and photo tools are locked until Premium"),
+        copy("free_locked_ai_tutor", "AI-guided tutor lessons are locked until Premium"),
+        copy("free_locked_listening", "Listening practice and pronunciation scoring need Premium"),
+        copy("free_locked_voice_photo", "Voice review and image tools are locked until Premium"),
       ],
       note: copy("free_plan_note", "Подходит для знакомства с продуктом без оплаты."),
       rub_price: "0",
@@ -8519,7 +8521,7 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("premium_month_title", "Premium"),
       tier: "premium",
       label: copy("premium_plan_label", "Регулярная учеба"),
-      body: copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening, pronunciation, guided AI lessons, voice checks, photo tools, and expanded daily limits."),
+      body: copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits."),
       features: [
         copy("premium_feature_voice_text", "голос в текст и перевод услышанного"),
         copy("premium_feature_image_text", "перевод текста с картинки"),
@@ -8534,12 +8536,12 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("platinum_month_title", "Platinum"),
       tier: "platinum",
       label: copy("platinum_plan_label", "Интенсив"),
-      body: copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper roleplay, intensive review, and maximum voice/pronunciation practice."),
+      body: copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper role-play practice, intensive review practice, and maximum voice and pronunciation practice."),
       features: [
         copy("platinum_feature_limits", "максимальные дневные лимиты"),
-        copy("platinum_feature_voice", "more voice/photo-context practice"),
+        copy("platinum_feature_voice", "more voice or image-context practice"),
         copy("platinum_feature_review", "intensive weak-spot review"),
-        copy("platinum_feature_priority", "best mode for heavy daily learning"),
+        copy("platinum_feature_priority", "best mode for dense daily study"),
       ],
       note: copy("platinum_plan_note", "Для поездки, работы, экзамена или очень плотного темпа."),
       rub_price: "590",

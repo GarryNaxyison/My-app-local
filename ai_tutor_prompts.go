@@ -102,6 +102,9 @@ Requirements:
    - Natural, everyday, culturally neutral.
    - Match the exact CEFR level strictly.
    - Do not include translations inside the story.
+   - Create a concrete short story title in the interface language and put it in story.title_interface.
+   - Also put an English-safe machine title in story.story_title.
+   - Do not use generic titles such as Story, Continue, Next, Section, Раздел, or Дальше.
 2. Select exactly 6 useful target words or short chunks from the story.
    - Each word must include target form and interface-language translation.
    - Each word must include audio_text_target for target-language word/chunk audio.
@@ -129,7 +132,7 @@ Return exactly this JSON shape:
   "theme": "",
   "lesson_goal": "",
   "grammar_focus": {"name": "", "short_explanation_interface": "", "model_sentence_target": ""},
-  "story": {"text_target": "", "audio_text_target": "", "sentence_count": 0},
+  "story": {"title_interface": "", "story_title": "", "text_target": "", "audio_text_target": "", "sentence_count": 0},
   "words": [{"id": "", "target": "", "interface_translation": "", "part_of_speech": "", "example_sentence_target": "", "example_translation_interface": "", "audio_text_target": "", "example_audio_text_target": "", "difficulty_note_interface": ""}],
   "retell_task": {"instruction_interface": "", "min_sentences": 2, "feedback_rubric": []},
   "comprehension_questions": [{"id": "", "question_target": "", "expected_points": [], "feedback_rule_interface": ""}],

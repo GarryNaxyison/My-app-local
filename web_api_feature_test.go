@@ -1387,11 +1387,11 @@ func TestPremiumPlansDTOIncludesLandingPricingCopy(t *testing.T) {
 	}
 
 	free := plans[0]
-	if free["product"] != "free" || free["label"] != "Попробовать маршрут" || free["body"] != "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium." {
+	if free["product"] != "free" || free["label"] != "Начальный" || free["body"] != "Базовое текстовое обучение, тренировка слов, Phrasebook и обзор прогресса. AI Tutor, аудирование, произношение и голосовые проверки открываются в Premium." {
 		t.Fatalf("free plan copy mismatch: %#v", free)
 	}
 	assertStringSlicesEqual(t, free["features"].([]string), []string{"ежедневная привычка и стартовые уроки", "базовая тренировка слов", "заметки, phrasebook и обзор прогресса"})
-	assertStringSlicesEqual(t, free["locked_features"].([]string), []string{"AI Tutor guided lessons", "Listening и pronunciation", "voice checks и photo tools"})
+	assertStringSlicesEqual(t, free["locked_features"].([]string), []string{"Уроки с AI Tutor", "Аудирование и произношение", "Проверка голоса и фото-инструменты"})
 	if free["note"] != "Подходит для знакомства с продуктом без оплаты." {
 		t.Fatalf("free plan note = %q", free["note"])
 	}
@@ -1408,7 +1408,7 @@ func TestPremiumPlansDTOIncludesLandingPricingCopy(t *testing.T) {
 	}
 
 	englishPlans := api.premiumPlansDTO(userState{InterfaceLanguage: "en"})
-	if englishPlans[0]["label"] != "Try the path" || englishPlans[0]["body"] == free["body"] {
+	if englishPlans[0]["label"] != "Starter" || englishPlans[0]["body"] == free["body"] {
 		t.Fatalf("English free plan was not localized: %#v", englishPlans[0])
 	}
 	if englishPlans[1]["label"] != "Regular study" || englishPlans[1]["body"] == premium["body"] {

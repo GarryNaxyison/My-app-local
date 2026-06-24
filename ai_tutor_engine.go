@@ -124,7 +124,7 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 				Session:  session,
 				Lesson:   lesson,
 				NextStep: aiTutorBuildStep(lesson.Payload, current),
-				Feedback: aiTutorFeedback{OK: false, Message: "Write at least two complete sentences before moving on."},
+				Feedback: aiTutorFeedback{OK: false, Message: aiTutorNeedTwoSentencesMessage(user.InterfaceLanguage)},
 			}, nil
 		}
 		checkRaw, err := e.checkFreeTextStage(ctx, user, lesson.Payload, current, answerText)
@@ -466,16 +466,17 @@ func (e *aiTutorEngine) finishAITutorLesson(ctx context.Context, user userState,
 }
 
 func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {
+	lesson = normalizeAITutorLessonPayload(lesson)
 	step := aiTutorStep{Stage: stage, Lesson: lesson}
 	switch stage {
 	case aiTutorStageStoryIntro:
 		step.Kind = "story"
-		step.Title = lesson.Title
-		step.Instruction = lesson.LessonGoal
+		step.Title = firstNonEmpty(lesson.Story.TitleInterface, lesson.Story.StoryTitle, aiTutorCleanGeneratedLabel(lesson.Title), aiTutorLocalizedStepTitle(lesson.InterfaceLanguage, stage))
+		step.Instruction = firstNonEmpty(aiTutorCleanGeneratedInstruction(lesson.LessonGoal), aiTutorDefaultStoryInstruction(lesson.InterfaceLanguage))
 	case aiTutorStageRetell:
 		step.Kind = "free_text"
-		step.Title = "Retell"
-		step.Instruction = lesson.RetellTask.InstructionInterface
+		step.Title = aiTutorLocalizedStepTitle(lesson.InterfaceLanguage, stage)
+		step.Instruction = firstNonEmpty(aiTutorCleanGeneratedInstruction(lesson.RetellTask.InstructionInterface), aiTutorDefaultRetellInstruction(lesson.InterfaceLanguage))
 	case aiTutorStageQuestion1, aiTutorStageQuestion2, aiTutorStageQuestion3:
 		index := map[string]int{aiTutorStageQuestion1: 0, aiTutorStageQuestion2: 1, aiTutorStageQuestion3: 2}[stage]
 		step.Kind = "free_text"
@@ -487,8 +488,8 @@ func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {
 		}
 	case aiTutorStageProduction:
 		step.Kind = "free_text"
-		step.Title = "Your sentences"
-		step.Instruction = lesson.ProductionTask.InstructionInterface
+		step.Title = aiTutorLocalizedStepTitle(lesson.InterfaceLanguage, stage)
+		step.Instruction = firstNonEmpty(aiTutorCleanGeneratedInstruction(lesson.ProductionTask.InstructionInterface), aiTutorDefaultProductionInstruction(lesson.InterfaceLanguage, lesson.ProductionTask.RequiredWordCount))
 	case aiTutorStageLessonFeedback:
 		step.Kind = "rating"
 		step.Title = "Lesson feedback"
@@ -520,6 +521,29 @@ func aiTutorBuildStep(lesson aiTutorLessonPayload, stage string) aiTutorStep {
 		}
 	}
 	return step
+}
+
+func aiTutorLocalizedStepTitle(interfaceLanguage string, stage string) string {
+	ru := normalizeInterfaceLanguage(interfaceLanguage) == "ru"
+	switch stage {
+	case aiTutorStageStoryIntro:
+		if ru {
+			return "История"
+		}
+		return "Story"
+	case aiTutorStageRetell:
+		if ru {
+			return "Пересказ"
+		}
+		return "Retell"
+	case aiTutorStageProduction:
+		if ru {
+			return "Письмо"
+		}
+		return "Writing"
+	default:
+		return strings.ReplaceAll(stage, "_", " ")
+	}
 }
 
 func aiTutorOptions(values ...string) []aiTutorStepOption {

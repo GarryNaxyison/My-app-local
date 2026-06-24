@@ -21,6 +21,8 @@ func TestAITutorGenerationPromptContract(t *testing.T) {
 		"word_recall",
 		"audio_text_target",
 		"example_audio_text_target",
+		"story_title",
+		"title_interface",
 		"recommendations_interface",
 		"review_options",
 		"tomorrow",
