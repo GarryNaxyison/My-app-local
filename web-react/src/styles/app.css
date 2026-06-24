@@ -2349,6 +2349,8 @@ select {
 .audio-action-row-v2 .audio-wave-button-v2,
 .audio-wave-button-v2 {
   width: min(100%, 340px);
+  max-width: 100%;
+  min-width: 0;
   min-height: 54px;
   border: 1px solid color-mix(in srgb, var(--line) 78%, var(--primary));
   border-radius: 12px;
@@ -2370,7 +2372,8 @@ select {
 }
 
 .audio-action-row-v2 .audio-wave-button-v2 {
-  min-width: min(340px, 100%);
+  width: min(100%, 340px);
+  min-width: 0;
   min-height: 68px;
   border-radius: 18px;
   padding: 10px 14px;
@@ -2378,7 +2381,8 @@ select {
 
 .audio-action-row-v2 .audio-wave-button-v2.is-compact,
 .chat-interface__audio .audio-wave-button-v2.is-compact {
-  min-width: min(310px, 100%);
+  width: min(100%, 310px);
+  min-width: 0;
   min-height: 68px;
   border-radius: 18px;
   padding: 10px 14px;
@@ -2437,10 +2441,16 @@ select {
   color: var(--muted);
   font-size: 11px;
   font-weight: 900;
-  white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
 .audio-wave-button-v2__waves {
+  min-width: 0;
+  max-width: 100%;
   height: 24px;
   display: flex;
   align-items: center;
@@ -2631,6 +2641,8 @@ select {
 }
 
 .file-controls-v2 {
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -2642,6 +2654,8 @@ select {
 .record-button-v2,
 .clear-file-v2 {
   position: relative;
+  min-width: 0;
+  max-width: 100%;
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -2653,6 +2667,14 @@ select {
   padding: 9px 12px;
   color: var(--muted);
   cursor: pointer;
+}
+
+.file-controls-v2 span,
+.file-controls-v2 strong,
+.file-controls-v2 small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .record-button-v2,
@@ -6653,13 +6675,31 @@ select {
 }
 
 .mistake-list-card-v2 {
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: 20px;
   background: color-mix(in srgb, var(--surface) 82%, transparent);
   padding: 12px;
 }
 
+.mistake-header-actions-v2 {
+  align-items: center;
+}
+
+.mistake-click-hint-v2 {
+  max-width: min(280px, 100%);
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.mistake-card-main-v2,
 .mistake-list-card-v2 > button {
+  min-width: 0;
   width: 100%;
   border: 0;
   background: transparent;
@@ -6670,6 +6710,12 @@ select {
   cursor: pointer;
 }
 
+.mistake-card-main-v2:hover strong,
+.mistake-card-main-v2:focus-visible strong {
+  color: var(--primary);
+}
+
+.mistake-card-main-v2 span,
 .mistake-list-card-v2 > button span {
   color: var(--primary);
   font-size: 12px;
@@ -6690,10 +6736,26 @@ select {
   margin: 0;
   color: var(--muted);
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
-.mistake-list-card-v2 .audio-actions-v2 {
+.mistake-card-actions-v2 {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 10px;
+}
+
+.mistake-card-actions-v2 .audio-action-row-v2 {
+  min-width: 0;
+  flex: 1 1 260px;
+  margin-top: 0;
+}
+
+.mistake-delete-v2 {
+  flex: 0 0 auto;
 }
 
 .learning-lab-v2 {
@@ -8871,4 +8933,54 @@ select {
   min-height: max-content !important;
   max-height: none !important;
   overflow: visible !important;
+}
+
+@media (max-width: 760px) {
+  .tools-work-v2 {
+    grid-template-rows: auto auto auto !important;
+    align-content: start;
+  }
+
+  .tools-work-v2 .composer-panel-v2 {
+    min-width: 0;
+    display: grid;
+    gap: 10px;
+    overflow: visible;
+  }
+
+  .tool-input-shell-v2 {
+    position: static;
+    gap: 10px;
+  }
+
+  .tool-input-shell-v2 textarea {
+    min-height: 128px;
+    max-height: none;
+    padding: 14px !important;
+  }
+
+  .tools-submit-v2 {
+    position: static !important;
+    justify-self: stretch;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    height: auto;
+    border-radius: 16px;
+    padding: 0 14px;
+  }
+
+  .tools-submit-v2 span {
+    display: inline !important;
+  }
+
+  .language-row-v2,
+  .language-row-v2--with-swap {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .tools-work-v2 .file-controls-v2 {
+    width: 100%;
+  }
 }

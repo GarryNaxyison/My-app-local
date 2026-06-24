@@ -209,6 +209,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/mistakes", api.handleMistakes)
 	mux.HandleFunc("/api/mistakes/practice/start", api.handleMistakePracticeStart)
 	mux.HandleFunc("/api/mistakes/practice/answer", api.handleMistakePracticeAnswer)
+	mux.HandleFunc("/api/mistakes/delete", api.handleMistakeDelete)
 	mux.HandleFunc("/api/mistakes/clear", api.handleMistakesClear)
 	mux.HandleFunc("/api/tools/voice-text", api.handleToolVoiceText)
 	mux.HandleFunc("/api/tools/image-translate", api.handleToolImageTranslate)
@@ -3186,6 +3187,51 @@ func (api *webAPI) handleMistakePracticeAnswer(w http.ResponseWriter, r *http.Re
 		"xp":                    8,
 		"promoted_to":           promotedTo,
 		"user":                  api.userDTO(refreshed),
+	})
+}
+
+func (api *webAPI) handleMistakeDelete(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	var req struct {
+		Index *int `json:"index"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	if req.Index == nil {
+		writeAPIError(w, http.StatusBadRequest, "Mistake index is required.")
+		return
+	}
+	mistakes := mistakesForLanguage(user)
+	index := *req.Index
+	if index < 0 || index >= len(mistakes) {
+		writeAPIError(w, http.StatusBadRequest, "Mistake index is out of range.")
+		return
+	}
+	removed := mistakes[index]
+	if err := api.bot.store.removeMistake(user.TelegramID, user.LearningLanguage, removed.Word, removed.Correction); err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if strings.TrimPrefix(user.Mode, modeWebMistakePrefix) == strconv.Itoa(index) {
+		_ = api.bot.store.setMode(user.TelegramID, "idle")
+	}
+	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	remaining := mistakesForLanguage(refreshed)
+	items := webMistakeDTOsNewestFirst(remaining)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ok":      true,
+		"removed": webMistakeDTOFromEntry(removed, index),
+		"items":   items,
+		"total":   len(remaining),
+		"user":    api.userDTO(refreshed),
 	})
 }
 

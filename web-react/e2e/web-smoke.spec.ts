@@ -1357,8 +1357,9 @@ test("tools spacing and free plan Russian copy stay compact and localized", asyn
   await expect(freePlan).toContainText("Базовое текстовое обучение");
   await expect(freePlan).toContainText("Заметки и обзор прогресса");
   await expect(freePlan).toContainText("AI Tutor закрыт до Premium");
-  await expect(freePlan).toContainText("Аудирование и произношение закрыты до Premium");
-  await expect(freePlan).toContainText("Голосовые проверки и фото-инструменты закрыты до Premium");
+  await expect(freePlan).toContainText("Озвучивание фраз доступно");
+  await expect(freePlan).toContainText("Проверка голоса и произношения - в Premium");
+  await expect(freePlan).toContainText("Фото-инструменты закрыты до Premium");
   await expect(freePlan).not.toContainText("Попробовать маршрут");
   await expect(freePlan).not.toContainText("Статистика");
   await expect(freePlan).not.toContainText("Раздел");
@@ -2314,6 +2315,61 @@ test("regression: lesson tab keeps one active task until the learner submits", a
   expect(lessonStarts).toBe(2);
 });
 
+test("regression: lesson opens at the beginning instead of auto-scrolling to the answer form", async ({ page }) => {
+  await page.unroute("**/api/lesson/start").catch(() => undefined);
+  const longTask = Array.from({ length: 28 }, (_, index) => `• Step ${index + 1}: read this lesson line before answering.`).join("\n");
+  await page.route("**/api/lesson/start", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        prompt: `Read from the top first.\n${longTask}`,
+        example: "Would you like to come to my birthday party this Saturday?",
+        question_audio_text: "Would you like to come to my birthday party this Saturday?",
+      }),
+    }),
+  );
+
+  await page.goto("/app/?view=lesson");
+  await page.locator(".lesson-new-button-v2").click();
+  await expect(page.locator(".chat-interface__scroll")).toBeVisible();
+  const metrics = await page.locator(".chat-interface__scroll").evaluate((node) => {
+    const element = node as HTMLElement;
+    return { scrollTop: element.scrollTop, clientHeight: element.clientHeight, scrollHeight: element.scrollHeight };
+  });
+  expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight + 20);
+  expect(metrics.scrollTop).toBeLessThanOrEqual(2);
+});
+
+test("regression: level tab keeps its active question when the learner returns", async ({ page }) => {
+  let levelStarts = 0;
+  await page.unroute("**/api/level-test/start").catch(() => undefined);
+  await page.route("**/api/level-test/start", (route) => {
+    levelStarts += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        question: {
+          index: levelStarts,
+          total: 36,
+          question: `Level question ${levelStarts}`,
+          options: ["Option A", "Option B", "Option C", "Option D", "I do not know"],
+        },
+      }),
+    });
+  });
+
+  await page.goto("/app/?view=level");
+  await expect(page.locator(".context-display--level")).toContainText("Level question 1");
+  await page.locator('[data-view="home"]:visible').first().click();
+  await expect(page.locator(".context-display--home")).toBeVisible();
+  await page.locator('[data-view="level"]:visible').first().click();
+  await expect(page.locator(".context-display--level")).toContainText("Level question 1");
+  await expect(page.locator(".context-display--level")).not.toContainText("Level question 2");
+  expect(levelStarts).toBe(1);
+});
+
 test("regression: mobile composer and recording controls expose clear labels", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
   testSessionPayloadOverride = {
@@ -3206,6 +3262,28 @@ test("mobile practice and tools keep input controls visible and tools selectable
   expect(submitButton!.y + submitButton!.height).toBeLessThanOrEqual(inputShell!.y + inputShell!.height + 2);
 });
 
+test("regression: mobile tools translator controls stack without overlap", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  await page.goto("/app/?view=tools");
+  await expect(page.locator(".context-display--tools")).toBeVisible();
+  await page.locator(".tool-switch-v2 button").first().click();
+  await expect(page.locator(".tools-change-v2")).toBeVisible();
+  await page.locator(".composer-panel-v2 textarea").fill("Hello");
+
+  const composer = await page.locator(".tools-work-v2 .composer-panel-v2").boundingBox();
+  const textarea = await page.locator(".tool-input-shell-v2 textarea").boundingBox();
+  const submit = await page.locator(".tools-submit-v2").boundingBox();
+  const languageRow = await page.locator(".language-row-v2").boundingBox();
+  expect(composer).not.toBeNull();
+  expect(textarea).not.toBeNull();
+  expect(submit).not.toBeNull();
+  expect(languageRow).not.toBeNull();
+  expect(submit!.y).toBeGreaterThanOrEqual(textarea!.y + textarea!.height + 6);
+  expect(languageRow!.y).toBeGreaterThanOrEqual(submit!.y + submit!.height + 6);
+  expect(languageRow!.x).toBeGreaterThanOrEqual(composer!.x - 2);
+  expect(languageRow!.x + languageRow!.width).toBeLessThanOrEqual(composer!.x + composer!.width + 2);
+});
+
 test("mobile mistakes dictionary paginates after ten cards", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=mistakes");
@@ -3216,6 +3294,58 @@ test("mobile mistakes dictionary paginates after ten cards", async ({ page, isMo
   await page.locator(".mistake-pagination-v2 button").nth(1).click();
   await expect(page.locator(".mistake-list-card-v2")).toHaveCount(8);
   await expect(page.getByText("wrong phrase 18")).toBeVisible();
+});
+
+test("regression: mobile mistakes show practice hint, delete one item, and train a different similar mistake", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  let items = [
+    { index: 0, word: "wrong grammar one", correction: "Correct phrase 1.", explanation: "Use the verb and article." },
+    { index: 1, word: "wrong grammar two", correction: "Correct phrase 2.", explanation: "Use the verb and article." },
+    { index: 2, word: "wrong spelling one", correction: "Correct spelling.", explanation: "Spelling needs correction." },
+  ];
+  const startedIndices: number[] = [];
+  await page.unroute("**/api/mistakes").catch(() => undefined);
+  await page.unroute("**/api/mistakes/delete").catch(() => undefined);
+  await page.unroute("**/api/mistakes/practice/start").catch(() => undefined);
+  await page.route("**/api/mistakes", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ items, total: items.length }),
+    }),
+  );
+  await page.route("**/api/mistakes/delete", async (route) => {
+    const body = route.request().postDataJSON() as { index?: number };
+    items = items.filter((item) => item.index !== Number(body.index));
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, items, total: items.length }),
+    });
+  });
+  await page.route("**/api/mistakes/practice/start", async (route) => {
+    const body = route.request().postDataJSON() as { index?: number };
+    const index = Number(body.index ?? 0);
+    startedIndices.push(index);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ empty: false, mistake: items.find((item) => item.index === index) || items[0] }),
+    });
+  });
+
+  await page.goto("/app/?view=mistakes");
+  await expect(page.locator(".mistake-click-hint-v2")).toContainText("Нажмите на ошибку");
+  await expect(page.locator(".mistake-list-card-v2")).toHaveCount(3);
+  await page.locator(".mistake-delete-v2").first().click();
+  await expect(page.locator(".mistake-list-card-v2")).toHaveCount(2);
+  await expect(page.getByText("wrong grammar one")).toHaveCount(0);
+
+  await page.locator(".mistake-card-main-v2").first().click();
+  await expect(page.locator(".mistake-practice-v2")).toBeVisible();
+  await page.getByRole("button", { name: /Потренировать похожие|Train similar/ }).click();
+  expect(startedIndices.length).toBeGreaterThanOrEqual(2);
+  expect(startedIndices[startedIndices.length - 1]).not.toBe(startedIndices[startedIndices.length - 2]);
 });
 
 test("mobile phrasebook list can scroll below the bottom menu", async ({ page, isMobile }) => {

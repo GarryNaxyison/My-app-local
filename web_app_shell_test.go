@@ -281,7 +281,7 @@ func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 		`const hadController = !!navigator.serviceWorker.controller`,
 		`registration.update()`,
 		`SKIP_WAITING`,
-		`poliglot-v2-offline-decks-20260530`,
+		`poliglot-v2-offline-decks-20260624-mobile-ui`,
 		`fetch(request)`,
 		`request.mode === "navigate"`,
 	} {
@@ -343,7 +343,11 @@ func TestReactPremiumPlansUseLandingPricingCopy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	page := string(appSource) + "\n" + string(typeSource)
+	i18nSource, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := string(appSource) + "\n" + string(typeSource) + "\n" + string(i18nSource)
 	for _, want := range []string{
 		`body?: string`,
 		`features?: string[]`,
@@ -355,11 +359,11 @@ func TestReactPremiumPlansUseLandingPricingCopy(t *testing.T) {
 		`plan.locked_features`,
 		`plan.note`,
 		`platinum_year_title`,
-		`AI Tutor с максимальными дневными лимитами, глубиной roleplay, интенсивным review и максимальной voice/pronunciation практикой.`,
+		`AI Tutor с максимальными дневными лимитами, глубокими ролевыми сценариями, интенсивным повторением и максимальной практикой голоса и произношения.`,
 		`голос в текст и перевод услышанного`,
 		`перевод текста с картинки`,
-		`словарь ошибок, notes, XP и streak`,
-		`лучший режим для heavy daily learning`,
+		`Словарь ошибок, заметки, XP, серия дней и расширенные дневные лимиты`,
+		`Лучший режим для поездки, работы, экзамена или плотного темпа`,
 	} {
 		if !strings.Contains(page, want) {
 			t.Fatalf("React premium landing copy is missing marker %q", want)

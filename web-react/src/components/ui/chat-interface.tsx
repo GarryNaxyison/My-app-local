@@ -41,8 +41,8 @@ export default function ChatComponent({ config, uiConfig = {} }: { config: ChatC
   useEffect(() => {
     const node = scrollRef.current;
     if (!node) return;
-    node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
-  }, [messages.length, messages[messages.length - 1]?.id]);
+    node.scrollTo({ top: 0, behavior: "auto" });
+  }, [messages[0]?.id]);
 
   return (
     <div

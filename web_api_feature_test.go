@@ -847,6 +847,50 @@ func TestWebMistakesReturnsAllItemsForClientPagination(t *testing.T) {
 	}
 }
 
+func TestWebMistakeDeleteRemovesOneItem(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	entries := []mistakeEntry{
+		{
+			Language:    "en",
+			Word:        "first wrong",
+			Correction:  "first correct",
+			Explanation: "grammar",
+			AddedAt:     time.Now().UTC().Add(-2 * time.Minute),
+		},
+		{
+			Language:    "en",
+			Word:        "second wrong",
+			Correction:  "second correct",
+			Explanation: "grammar",
+			AddedAt:     time.Now().UTC().Add(-time.Minute),
+		},
+	}
+	if err := store.addMistakes(-42, "en", entries); err != nil {
+		t.Fatalf("add mistakes: %v", err)
+	}
+
+	response := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/delete", map[string]any{"index": 0})
+	if ok, _ := response["ok"].(bool); !ok {
+		t.Fatalf("delete response = %#v, want ok", response)
+	}
+	if total, _ := response["total"].(float64); total != 1 {
+		t.Fatalf("delete total = %#v, want 1; response %#v", response["total"], response)
+	}
+	items, _ := response["items"].([]any)
+	if len(items) != 1 {
+		t.Fatalf("delete items = %#v, want one remaining item", response)
+	}
+	remaining, _ := items[0].(map[string]any)
+	if remaining["word"] != "second wrong" {
+		t.Fatalf("wrong item was removed or ordering changed: %#v", response)
+	}
+
+	after := requestJSON(t, api, cookie, http.MethodGet, "/api/mistakes", nil)
+	if total, _ := after["total"].(float64); total != 1 {
+		t.Fatalf("persisted total = %#v, want 1; response %#v", after["total"], after)
+	}
+}
+
 func TestWebLessonAndPracticeFallbackPersistMistakes(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	responses := []string{

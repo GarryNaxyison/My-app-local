@@ -1481,6 +1481,7 @@ function premiumPlanFeatures(plan: PremiumPlan, copy: (key: string, fallback: st
     return [
       { text: copy("free_feature_daily", "Daily habit, starter lessons, and basic word training") },
       { text: copy("free_feature_phrasebook", "Phrasebook and progress overview") },
+      { text: copy("free_feature_phrase_audio", "Phrase audio is available") },
       { text: copy("free_feature_no_ai_tutor", "AI Tutor is locked until Premium"), locked: true },
       { text: copy("free_feature_no_audio", "Listening and pronunciation are locked until Premium"), locked: true },
     ];
@@ -1806,6 +1807,7 @@ export function App() {
   const [vocabularyMeta, setVocabularyMeta] = useState<VocabularyPage>({ page: 0, page_size: 10, total: 0, total_pages: 1 });
   const [mistakes, setMistakes] = useState<MistakeItem[]>([]);
   const [mistakePractice, setMistakePractice] = useState<MistakeItem | null>(null);
+  const [mistakePracticeIndex, setMistakePracticeIndex] = useState<number | null>(null);
   const [mistakeAnswer, setMistakeAnswer] = useState("");
   const [mistakeResult, setMistakeResult] = useState<TrainerResult | null>(null);
   const [shadowingTarget, setShadowingTarget] = useState("");
@@ -2700,6 +2702,11 @@ export function App() {
     }
   };
 
+  const ensureLevelStarted = () => {
+    if (levelQuestion || levelResult || busy === "level") return;
+    void startLevel();
+  };
+
   const loadVocabulary = async (page = vocabularyMeta.page, options: { navigate?: boolean } = {}): Promise<VocabularyItem[]> => {
     const payload = await runAction("vocabulary", () => api<ApiRecord>(`/api/vocabulary?page=${encodeURIComponent(String(page))}`));
     if (!payload) return [];
@@ -2737,7 +2744,10 @@ export function App() {
       setView("mistakes");
       return;
     }
-    setMistakePractice((record.mistake || null) as MistakeItem | null);
+    const selectedMistake = (record.mistake || null) as MistakeItem | null;
+    setMistakePractice(selectedMistake);
+    const selectedIndex = typeof selectedMistake?.index === "number" ? selectedMistake.index : typeof index === "number" ? index : null;
+    setMistakePracticeIndex(selectedIndex);
     setMistakeAnswer("");
     setMistakeResult(null);
     setView("mistakes");
@@ -2756,6 +2766,7 @@ export function App() {
     setMistakeResult(makeTrainerResult(record, copy, undefined));
     if (record.correct) {
       setMistakePractice(null);
+      setMistakePracticeIndex(null);
       setMistakeAnswer("");
       setMessages((current) => [
         panelMessage(formatLearningRecord(record, copy, `${asText(mistake.word || mistake.correction, copy("answer_checked", "Answer checked."))} +${asText(record.xp, "8")} XP`), "success", copy("mistake_repaired", "Mistake repaired"), record, "mistakes"),
@@ -2767,13 +2778,35 @@ export function App() {
       return;
     }
     setMistakePractice(mistake);
+    setMistakePracticeIndex(typeof mistake.index === "number" ? mistake.index : mistakePracticeIndex);
     setMessages((current) => [panelMessage(formatLearningRecord(record, copy, copy("try_again", "Try again.")), "warning", copy("mistake_practice", "Mistake practice"), record, "mistakes"), userMessage(text, copy("you", "You"), "mistakes"), ...current]);
   };
 
   const cancelMistakePractice = () => {
     setMistakePractice(null);
+    setMistakePracticeIndex(null);
     setMistakeAnswer("");
     setMistakeResult(null);
+  };
+
+  const deleteMistake = async (index: number) => {
+    const payload = await runAction("mistake-delete", () =>
+      api<ApiRecord>("/api/mistakes/delete", { method: "POST", body: { index } }),
+      copy("mistake_deleted", "Mistake deleted."),
+    );
+    if (!payload) return;
+    const record = getRecord(payload);
+    if (Array.isArray(record.items)) {
+      setMistakes(record.items as MistakeItem[]);
+    } else {
+      await loadMistakes({ navigate: false });
+    }
+    if (mistakePracticeIndex === index) {
+      setMistakePractice(null);
+      setMistakePracticeIndex(null);
+      setMistakeAnswer("");
+      setMistakeResult(null);
+    }
   };
 
   const clearMistakes = async () => {
@@ -2781,6 +2814,7 @@ export function App() {
     if (!payload) return;
     setMistakes([]);
     setMistakePractice(null);
+    setMistakePracticeIndex(null);
     setMistakeAnswer("");
     setMistakeResult(null);
   };
@@ -3077,7 +3111,7 @@ export function App() {
     if (view === "words") void startWord();
     if (view === "word-game") void startWordGame();
     if (view === "spelling") void startSpelling();
-    if (view === "level") void startLevel();
+    if (view === "level") ensureLevelStarted();
     if (view === "vocabulary") void loadVocabulary(0);
     if (view === "offline") {
       void loadVocabulary(0, { navigate: false });
@@ -3214,12 +3248,14 @@ export function App() {
     mistakes,
     loadMistakes,
     mistakePractice,
+    mistakePracticeIndex,
     mistakeAnswer,
     setMistakeAnswer,
     startMistakePractice,
     submitMistakeAnswer,
     cancelMistakePractice,
     mistakeResult,
+    deleteMistake,
     clearMistakes,
     shadowingTarget,
     leaderboard,
@@ -5214,12 +5250,14 @@ type ViewRendererProps = {
   mistakes: MistakeItem[];
   loadMistakes: (options?: { navigate?: boolean }) => Promise<MistakeItem[]>;
   mistakePractice: MistakeItem | null;
+  mistakePracticeIndex: number | null;
   mistakeAnswer: string;
   setMistakeAnswer: (value: string) => void;
   startMistakePractice: (index?: number) => Promise<void>;
   submitMistakeAnswer: () => Promise<void>;
   cancelMistakePractice: () => void;
   mistakeResult: TrainerResult | null;
+  deleteMistake: (index: number) => Promise<void>;
   clearMistakes: () => Promise<void>;
   shadowingTarget: string;
   leaderboard: LeaderboardEntry[];
@@ -7486,7 +7524,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
   );
 }
 
-function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, clearMistakes, mistakePractice, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy }: ViewRendererProps) {
+function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy }: ViewRendererProps) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [activeCategory, setActiveCategory] = useState<MistakeCategory | "all">("all");
   const [page, setPage] = useState(0);
@@ -7517,10 +7555,15 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
     if (activeCategory !== "all" && grouped[activeCategory].length === 0) setActiveCategory("all");
   }, [activeCategory, grouped]);
 
-  const startPracticeFor = (item: MistakeItem, index: number) => startMistakePractice(item.index ?? index);
+  const itemIndex = (item: MistakeItem, index: number) => item.index ?? index;
+  const startPracticeFor = (item: MistakeItem, index: number) => startMistakePractice(itemIndex(item, index));
   const trainSimilar = () => {
     const category = mistakePractice ? mistakeCategory(mistakePractice) : activeCategory === "all" ? "grammar" : activeCategory;
-    const candidate = grouped[category]?.[0] || visibleMistakes[0];
+    const activeIndex = mistakePracticeIndex ?? (typeof mistakePractice?.index === "number" ? mistakePractice.index : null);
+    const pool = grouped[category]?.length ? grouped[category] : visibleMistakes;
+    const candidate = pool.find(({ item, index }) => itemIndex(item, index) !== activeIndex)
+      || visibleMistakes.find(({ item, index }) => itemIndex(item, index) !== activeIndex)
+      || pool[0];
     if (candidate) void startPracticeFor(candidate.item, candidate.index);
   };
 
@@ -7579,7 +7622,8 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
             <span className="eyebrow">{copy("mistakes", "Mistakes")}</span>
             <h2>{mistakes.length ? `${mistakes.length} ${copy("items", "items")}` : copy("no_mistakes_loaded", "No mistakes loaded")}</h2>
           </div>
-          <div className="panel-actions-v2">
+          <div className="panel-actions-v2 mistake-header-actions-v2">
+            <p className="mistake-click-hint-v2">{copy("mistake_click_hint", "Нажмите на ошибку, чтобы проработать её")}</p>
             <Button variant="outline" size="sm" onClick={() => void loadMistakes({ navigate: false })} disabled={busy === "mistakes"}>
               {busy === "mistakes" ? <Spinner size="small" className="button-spinner-v2" /> : <Search size={15} />}
               {copy("refresh", "Refresh")}
@@ -7609,15 +7653,22 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
         <div className="mistake-list-v2">
           {visibleMistakes.length ? pagedMistakes.map(({ item, index }) => {
             const category = mistakeCategory(item);
+            const indexValue = itemIndex(item, index);
             return (
               <article key={`${item.word || "mistake"}-${index}`} className="mistake-list-card-v2">
-                <button type="button" onClick={() => void startPracticeFor(item, index)}>
+                <button className="mistake-card-main-v2" type="button" onClick={() => void startPracticeFor(item, index)}>
                   <span>{mistakeCategoryLabel(category, copy)}</span>
                   <strong>{item.word || item.context || copy("mistake", "Mistake")}</strong>
                   {item.correction ? <em>{item.correction}</em> : null}
                   {item.explanation ? <p>{item.explanation}</p> : item.context ? <p>{item.context}</p> : null}
                 </button>
-                {item.correction ? <AudioActionRow clips={[{ label: copy("correct_variant", "Correct variant"), text: item.correction }]} /> : null}
+                <div className="mistake-card-actions-v2">
+                  {item.correction ? <AudioActionRow clips={[{ label: copy("correct_variant", "Correct variant"), text: item.correction }]} /> : null}
+                  <Button className="mistake-delete-v2" variant="outline" size="sm" type="button" onClick={() => void deleteMistake(indexValue)} disabled={busy === "mistake-delete"}>
+                    <Trash2 size={15} />
+                    {copy("remove", "Remove")}
+                  </Button>
+                </div>
               </article>
             );
           }) : (
@@ -8453,6 +8504,7 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
         copy("free_feature_daily", "ежедневная привычка и стартовые уроки"),
         copy("free_feature_words", "базовая тренировка слов"),
         copy("free_feature_phrasebook", "notes, Phrasebook, and progress overview"),
+        copy("free_feature_phrase_audio", "Phrase audio is available"),
       ],
       locked_features: [
         copy("free_locked_ai_tutor", "AI Tutor guided lessons are locked until Premium"),

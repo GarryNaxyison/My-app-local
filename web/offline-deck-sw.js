@@ -1,4 +1,4 @@
-const CACHE_NAME = "poliglot-v2-offline-decks-20260616-ai-router";
+const CACHE_NAME = "poliglot-v2-offline-decks-20260624-mobile-ui";
 const APP_SHELL = ["/app/", "/app/index.html", "/app/assets/brand-logo-mini.png"];
 
 self.addEventListener("install", (event) => {
