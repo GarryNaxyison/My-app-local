@@ -16,7 +16,11 @@ import (
 	"time"
 )
 
-const privacyPolicyURL = "https://poliglotai.ru/privacy.html"
+const (
+	privacyPolicyURL       = "https://poliglotai.ru/privacy.html"
+	personalDataConsentURL = "https://poliglotai.ru/consent.html"
+	userAgreementURL       = "https://poliglotai.ru/agreement.html"
+)
 
 type telegramEditTarget struct {
 	ChatID    int64
@@ -800,6 +804,8 @@ func privacyPromptKeyboard() map[string]any {
 		"inline_keyboard": [][]map[string]any{
 			{{"text": "Продолжить", "callback_data": "privacy_continue"}},
 			{{"text": "Политика обработки персональных данных", "url": privacyPolicyURL}},
+			{{"text": "Согласие на обработку ПДн", "url": personalDataConsentURL}},
+			{{"text": "Пользовательское соглашение", "url": userAgreementURL}},
 		},
 	}
 }

@@ -693,6 +693,30 @@ html[data-site-theme="dark"] .public-nav select option {
   font-weight: 800;
 }
 
+.legal-operator-card {
+  margin: 0 0 clamp(28px, 5vw, 44px);
+  border: 1px solid rgba(45, 91, 255, 0.18);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--blue) 7%, var(--card));
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.legal-operator-card h2,
+.legal-document-heading h2 {
+  margin-bottom: 16px;
+}
+
+.legal-document-heading {
+  margin-bottom: clamp(28px, 5vw, 44px);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 22px;
+}
+
+.legal-document-heading .eyebrow {
+  margin-bottom: 14px;
+  color: #07111f;
+}
+
 .site-footer {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(160px, 0.5fr));
@@ -718,6 +742,77 @@ html[data-site-theme="dark"] .public-nav select option {
 
 .site-footer strong {
   color: white;
+}
+
+.cookie-consent-banner {
+  position: fixed;
+  right: clamp(14px, 3vw, 28px);
+  bottom: clamp(14px, 3vw, 28px);
+  z-index: 80;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  width: min(720px, calc(100vw - 28px));
+  border: 1px solid color-mix(in srgb, var(--blue) 26%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 94%, transparent);
+  box-shadow: 0 24px 80px rgba(7, 17, 31, 0.22);
+  padding: 18px;
+  color: var(--ink);
+  backdrop-filter: blur(22px);
+}
+
+.cookie-consent-banner strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.cookie-consent-banner p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.cookie-consent-banner nav,
+.cookie-consent-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cookie-consent-banner nav {
+  margin-top: 10px;
+}
+
+.cookie-consent-banner a {
+  color: var(--blue);
+  font-weight: 850;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cookie-consent-banner__actions {
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.cookie-consent-banner button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: var(--card);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.cookie-consent-banner button:last-child {
+  border-color: transparent;
+  color: #07111f;
+  background: linear-gradient(135deg, var(--gold), #8ff1d0);
 }
 
 @media (max-width: 1080px) {
@@ -749,7 +844,7 @@ html[data-site-theme="dark"] .public-nav select option {
 
   .legal-aside {
     position: static;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .site-footer {
@@ -840,6 +935,18 @@ html[data-site-theme="dark"] .public-nav select option {
 
   .legal-document-shell {
     overflow-wrap: anywhere;
+  }
+
+  .cookie-consent-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .cookie-consent-banner__actions {
+    justify-content: stretch;
+  }
+
+  .cookie-consent-banner button {
+    flex: 1 1 190px;
   }
 }
 

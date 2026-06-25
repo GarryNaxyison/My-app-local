@@ -1355,18 +1355,20 @@ func TestStartCommandShowsPrivacyPolicyBeforeOnboarding(t *testing.T) {
 		t.Fatalf("expected reply markup, got %#v", payloads[0]["reply_markup"])
 	}
 	rows, ok := replyMarkup["inline_keyboard"].([]any)
-	if !ok || len(rows) != 2 {
-		t.Fatalf("expected continue and policy rows, got %#v", replyMarkup["inline_keyboard"])
+	if !ok || len(rows) != 4 {
+		t.Fatalf("expected continue and three legal document rows, got %#v", replyMarkup["inline_keyboard"])
 	}
 	continueRow := rows[0].([]any)
 	continueButton := continueRow[0].(map[string]any)
 	if continueButton["callback_data"] != "privacy_continue" {
 		t.Fatalf("expected privacy continue callback, got %#v", continueButton)
 	}
-	policyRow := rows[1].([]any)
-	policyButton := policyRow[0].(map[string]any)
-	if policyButton["url"] != privacyPolicyURL {
-		t.Fatalf("expected privacy URL %q, got %#v", privacyPolicyURL, policyButton)
+	for index, want := range []string{privacyPolicyURL, personalDataConsentURL, userAgreementURL} {
+		row := rows[index+1].([]any)
+		button := row[0].(map[string]any)
+		if button["url"] != want {
+			t.Fatalf("expected legal URL %q, got %#v", want, button)
+		}
 	}
 }
 

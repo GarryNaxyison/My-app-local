@@ -4096,6 +4096,90 @@ select {
   margin: 12px 0 4px;
 }
 
+.app-cookie-consent-banner {
+  position: fixed;
+  right: clamp(12px, 3vw, 24px);
+  bottom: clamp(12px, 3vw, 24px);
+  z-index: 90;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  width: min(700px, calc(100vw - 24px));
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, var(--line));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+  box-shadow: var(--shadow-xl);
+  padding: 16px;
+  color: var(--text);
+  backdrop-filter: blur(24px) saturate(1.1);
+}
+
+.app-cookie-consent-banner strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-size: 0.96rem;
+}
+
+.app-cookie-consent-banner p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.app-cookie-consent-banner nav,
+.app-cookie-consent-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-cookie-consent-banner nav {
+  margin-top: 10px;
+}
+
+.app-cookie-consent-banner a {
+  color: var(--primary);
+  font-size: 0.84rem;
+  font-weight: 850;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.app-cookie-consent-banner__actions {
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.app-cookie-consent-banner button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0 13px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.app-cookie-consent-banner button:last-child {
+  border-color: transparent;
+  color: #06111f;
+  background: linear-gradient(135deg, var(--gold), #8ff1d0);
+}
+
+.sign-in-page-v2 + .app-cookie-consent-banner {
+  right: auto;
+  left: clamp(12px, 3vw, 24px);
+  width: min(380px, calc(100vw - 24px));
+  grid-template-columns: 1fr;
+}
+
+.sign-in-page-v2 + .app-cookie-consent-banner .app-cookie-consent-banner__actions {
+  justify-content: flex-start;
+}
+
 .settings-error-v2 {
   margin: 8px 0 0;
   color: #fecaca;
@@ -4138,6 +4222,28 @@ select {
 }
 
 @media (max-width: 760px) {
+  .app-cookie-consent-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .sign-in-page-v2 + .app-cookie-consent-banner {
+    top: 8px;
+    right: 8px;
+    bottom: auto;
+    left: 8px;
+    width: auto;
+    max-height: 36vh;
+    overflow: auto;
+  }
+
+  .app-cookie-consent-banner__actions {
+    justify-content: stretch;
+  }
+
+  .app-cookie-consent-banner button {
+    flex: 1 1 160px;
+  }
+
   .v2-shell {
     overflow: visible;
   }

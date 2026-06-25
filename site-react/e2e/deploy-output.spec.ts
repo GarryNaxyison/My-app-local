@@ -4,6 +4,7 @@ const requiredDeployAssets = [
   "assets/site-i18n.js",
   "assets/site-phrases.js",
   "assets/privacy-policy-i18n.js",
+  "assets/legal-documents-i18n.js",
   "assets/scenarios/travel-ai-tutor.jpg",
   "assets/scenarios/work-ai-tutor.jpg",
   "assets/scenarios/exam-ai-tutor.jpg",
@@ -29,7 +30,12 @@ test("built public-site folder contains every asset required by the deploy packa
     }
   }
 
-  const htmlFiles = ["poliglot-ai.html", "privacy.html", "terms.html"];
+  const htmlFiles = ["poliglot-ai.html", "privacy.html", "terms.html", "agreement.html", "consent.html"];
+  for (const htmlFile of htmlFiles) {
+    const stat = await fs.stat(path.join(outputRoot, htmlFile));
+    expect(stat.size, `${htmlFile} should be present in build output`).toBeGreaterThan(100);
+  }
+
   const referencedBundles = new Set<string>();
   for (const htmlFile of htmlFiles) {
     const html = await fs.readFile(path.join(outputRoot, htmlFile), "utf8");

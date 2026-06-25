@@ -33,17 +33,21 @@ import {
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SparklesCore } from "@/components/ui/sparkles";
-import { privacyDocumentHtml, termsDocumentHtml } from "./legacyLegalContent";
+import { personalDataConsentDocumentHtml, privacyDocumentHtml, termsDocumentHtml, userAgreementDocumentHtml } from "./legacyLegalContent";
 import { EnglishSparkLanding } from "./EnglishSparkLanding";
 
-type PageId = "landing" | "privacy" | "terms";
+type PageId = "landing" | "privacy" | "terms" | "agreement" | "consent";
 type SiteTheme = "light" | "dark";
+type LegalPageId = Exclude<PageId, "landing">;
 
 declare global {
   interface Window {
     poliglotSiteI18n?: {
       apply: () => void;
       currentLanguage: () => string;
+    };
+    poliglotLegalDocumentsI18n?: {
+      apply: () => void;
     };
   }
 }
@@ -341,13 +345,18 @@ function getPage(): PageId {
   const raw = document.documentElement.dataset.sitePage || "";
   if (raw === "privacy" || location.pathname.includes("privacy")) return "privacy";
   if (raw === "terms" || location.pathname.includes("terms")) return "terms";
+  if (raw === "agreement" || location.pathname.includes("agreement")) return "agreement";
+  if (raw === "consent" || location.pathname.includes("consent")) return "consent";
   return "landing";
 }
 
 function useLegacySiteI18n(page: PageId, theme: SiteTheme) {
   useEffect(() => {
     document.body.dataset.page = page;
-    const apply = () => window.poliglotSiteI18n?.apply();
+    const apply = () => {
+      window.poliglotSiteI18n?.apply();
+      window.poliglotLegalDocumentsI18n?.apply();
+    };
     const timers = [0, 120, 320, 700, 1200].map((delay) => window.setTimeout(apply, delay));
     window.addEventListener("poliglot-language-change", apply);
     return () => {
@@ -374,8 +383,9 @@ export function PublicSiteApp() {
   return (
     <div className="public-shell">
       <SiteNavDrawer page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      {page === "landing" ? <EnglishSparkLanding siteTheme={theme} /> : <LegalPage page={page} />}
+      {page === "landing" ? <EnglishSparkLanding siteTheme={theme} /> : <LegalPageV2 page={page} />}
       <SiteFooterEnglish />
+      <CookieConsentBanner />
     </div>
   );
 }
@@ -418,6 +428,12 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
           </a>
           <a className={page === "terms" ? "is-active" : undefined} href="/terms.html" onClick={() => setIsOpen(false)}>
             Terms
+          </a>
+          <a className={page === "agreement" ? "is-active" : undefined} href="/agreement.html" onClick={() => setIsOpen(false)}>
+            Agreement
+          </a>
+          <a className={page === "consent" ? "is-active" : undefined} href="/consent.html" onClick={() => setIsOpen(false)}>
+            Consent
           </a>
         </nav>
         <div className="nav-drawer__actions">
@@ -936,6 +952,133 @@ function ensurePrivacyBotContact(html: string) {
   return next;
 }
 
+const legalPageMetaV2: Record<LegalPageId, { title: string; badge: string; description: string }> = {
+  privacy: {
+    title: "Политика обработки персональных данных",
+    badge: "Защита данных",
+    description: "Как Poliglot AI обрабатывает данные пользователей сайта, веб-приложения и Telegram-бота.",
+  },
+  terms: {
+    title: "Условия использования",
+    badge: "Правила сервиса",
+    description: "Правила использования сайта, веб-приложения и Telegram-бота Poliglot AI.",
+  },
+  agreement: {
+    title: "Пользовательское соглашение",
+    badge: "Публичная оферта",
+    description: "Публичное пользовательское соглашение для сайта, веб-приложения и Telegram-бота Poliglot AI.",
+  },
+  consent: {
+    title: "Согласие на обработку персональных данных",
+    badge: "152-ФЗ",
+    description: "Отдельное согласие пользователя на обработку персональных данных в Poliglot AI.",
+  },
+};
+
+const legalDocumentHtmlV2: Record<LegalPageId, string> = {
+  privacy: ensurePrivacyBotContact(privacyDocumentHtml),
+  terms: termsDocumentHtml,
+  agreement: userAgreementDocumentHtml,
+  consent: personalDataConsentDocumentHtml,
+};
+
+const legalOperatorNoticeHtmlV2 = `
+<section id="operator-details" class="legal-operator-card">
+  <h2>Оператор и реквизиты</h2>
+  <div class="legal-contact-grid">
+    <span><small>Оператор</small><strong>Самозанятый Чебан Денис Игоревич</strong></span>
+    <span><small>ИНН</small><strong>ИНН 505017471160</strong></span>
+    <span><small>Адрес</small><strong>г. Щёлково, ул. Сиреневая, 9к1, кв. 9</strong></span>
+    <a href="mailto:supportpoliglotai@gmail.com"><small>Email</small><strong>supportpoliglotai@gmail.com</strong></a>
+    <a href="https://t.me/poliglot_ai_bot"><small>Telegram bot</small><strong>@poliglot_ai_bot</strong></a>
+  </div>
+</section>`;
+
+function LegalPageV2({ page }: { page: LegalPageId }) {
+  const meta = legalPageMetaV2[page];
+  const html = expandLegalLanguageCopy(`${legalOperatorNoticeHtmlV2}${legalDocumentHtmlV2[page]}`);
+
+  return (
+    <main className="legal-page">
+      <section className="legal-hero">
+        <div className="legal-hero__sparkles" aria-hidden="true">
+          <SparklesCore background="transparent" minSize={0.3} maxSize={0.9} particleDensity={100} particleColor="#ffffff" speed={0.75} className="h-full w-full" />
+        </div>
+        <div className="legal-hero__content">
+          <span className="eyebrow" data-legal-badge>{meta.badge}</span>
+          <h1 data-legal-title>{meta.title}</h1>
+          <p data-legal-description>{meta.description}</p>
+          <div className="legal-pills">
+            <span>35 языков интерфейса</span>
+            <span>Сайт и Telegram</span>
+            <span>Единый профиль</span>
+            <span>Free, Premium и Platinum</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="legal-layout">
+        <aside className="legal-aside">
+          <a href="/poliglot-ai.html">
+            <Sparkles size={16} /> Poliglot AI
+          </a>
+          <a href="/privacy.html" className={page === "privacy" ? "is-active" : undefined}>
+            <ShieldCheck size={16} /> <span data-legal-nav="privacy">Политика</span>
+          </a>
+          <a href="/terms.html" className={page === "terms" ? "is-active" : undefined}>
+            <FileText size={16} /> <span data-legal-nav="terms">Условия</span>
+          </a>
+          <a href="/agreement.html" className={page === "agreement" ? "is-active" : undefined}>
+            <FileText size={16} /> <span data-legal-nav="agreement">Соглашение</span>
+          </a>
+          <a href="/consent.html" className={page === "consent" ? "is-active" : undefined}>
+            <ShieldCheck size={16} /> <span data-legal-nav="consent">Согласие на ПДн</span>
+          </a>
+        </aside>
+        <article className="legal-document-shell" dangerouslySetInnerHTML={{ __html: html }} />
+      </section>
+    </main>
+  );
+}
+
+function CookieConsentBanner() {
+  const [choice, setChoice] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("poliglot-cookie-consent");
+    } catch {
+      return null;
+    }
+  });
+
+  const saveChoice = (value: string) => {
+    try {
+      localStorage.setItem("poliglot-cookie-consent", value);
+    } catch {
+      // Ignore storage failures; the banner can still close for this session.
+    }
+    setChoice(value);
+  };
+
+  if (choice) return null;
+
+  return (
+    <section className="cookie-consent-banner" aria-label="Cookie consent">
+      <div>
+        <strong data-legal-cookie="title">Cookie и технические данные</strong>
+        <p data-legal-cookie="body">Мы используем необходимые cookie и локальное хранилище для входа, языка, темы, безопасности, сохранения согласий и корректной работы сайта. Необязательные cookie применяются только после согласия.</p>
+        <nav>
+          <a href="/privacy.html" data-legal-cookie="privacy">Политика</a>
+          <a href="/consent.html" data-legal-cookie="consent">Согласие</a>
+        </nav>
+      </div>
+      <div className="cookie-consent-banner__actions">
+        <button type="button" onClick={() => saveChoice("necessary")} data-legal-cookie="necessary">Только необходимые</button>
+        <button type="button" onClick={() => saveChoice("accepted")} data-legal-cookie="accept">Принять все cookie</button>
+      </div>
+    </section>
+  );
+}
+
 function LegalPage({ page }: { page: "privacy" | "terms" }) {
   const isPrivacy = page === "privacy";
   const title = isPrivacy ? "Политика обработки персональных данных" : "Условия использования";
@@ -1002,6 +1145,8 @@ function SiteFooterEnglish() {
         <strong>Documents</strong>
         <a href="/privacy.html">Privacy</a>
         <a href="/terms.html">Terms</a>
+        <a href="/agreement.html">Agreement</a>
+        <a href="/consent.html">Consent</a>
       </nav>
       <address>
         <strong>Contacts</strong>

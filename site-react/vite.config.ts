@@ -21,6 +21,8 @@ export default defineConfig({
         main: path.resolve(__dirname, "poliglot-ai.html"),
         privacy: path.resolve(__dirname, "privacy.html"),
         terms: path.resolve(__dirname, "terms.html"),
+        agreement: path.resolve(__dirname, "agreement.html"),
+        consent: path.resolve(__dirname, "consent.html"),
       },
       output: {
         entryFileNames: "assets/site-react/[name]-[hash].js",

@@ -656,11 +656,41 @@ test("privacy Russian contact grid keeps Telegram bot visible", async ({ page })
   await expect(botContact).toContainText("@poliglot_ai_bot");
 });
 
+test("legal document package exposes operator details and cookie opt-in", async ({ page }) => {
+  test.setTimeout(90_000);
+
+  for (const path of ["/privacy.html", "/terms.html", "/agreement.html", "/consent.html"]) {
+    await page.goto(`${path}?lang=ru`);
+    await expect(page.locator(".legal-page")).toBeVisible();
+    await expect(page.locator(".legal-document-shell")).toContainText("Самозанятый Чебан Денис Игоревич");
+    await expect(page.locator(".legal-document-shell")).toContainText("ИНН 505017471160");
+    await expect(page.locator(".legal-document-shell")).toContainText("supportpoliglotai@gmail.com");
+    await expect(page.locator(".legal-aside a[href*='privacy.html']")).toBeVisible();
+    await expect(page.locator(".legal-aside a[href*='terms.html']")).toBeVisible();
+    await expect(page.locator(".legal-aside a[href*='agreement.html']")).toBeVisible();
+    await expect(page.locator(".legal-aside a[href*='consent.html']")).toBeVisible();
+  }
+
+  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => localStorage.removeItem("poliglot-cookie-consent"));
+  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  const banner = page.locator(".cookie-consent-banner");
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText("cookie");
+  await expect(banner.locator("a[href*='privacy.html']")).toBeVisible();
+  await expect(banner.locator("a[href*='consent.html']")).toBeVisible();
+  await banner.getByRole("button", { name: /Принять/ }).click();
+  await expect(banner).toHaveCount(0);
+  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".cookie-consent-banner")).toHaveCount(0);
+});
+
 test("production public-site output keeps all image and localization assets for deploy", async ({ page, request }) => {
   const assetPaths = [
     "/assets/site-i18n.js",
     "/assets/site-phrases.js",
     "/assets/privacy-policy-i18n.js",
+    "/assets/legal-documents-i18n.js",
     "/assets/scenarios/travel-ai-tutor.jpg",
     "/assets/scenarios/work-ai-tutor.jpg",
     "/assets/scenarios/exam-ai-tutor.jpg",

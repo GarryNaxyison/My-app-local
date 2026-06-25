@@ -3534,6 +3534,26 @@ test("regression: auth language menu is layered above privacy and captcha blocks
   expect(menuBox).not.toBeNull();
   expect(privacyBox).not.toBeNull();
   expect(menuBox!.y + menuBox!.height).toBeGreaterThan(privacyBox!.y);
+  await expect(page.locator(".auth-privacy-v2 a[href*='privacy.html']")).toBeVisible();
+  await expect(page.locator(".auth-privacy-v2 a[href*='consent.html']")).toBeVisible();
+  await expect(page.locator(".auth-privacy-v2 a[href*='agreement.html']")).toBeVisible();
+});
+
+test("web app shows cookie consent banner until a choice is saved", async ({ page }) => {
+  test.setTimeout(60_000);
+
+  await mockAnonymousAuth(page);
+  await page.goto("/app/login", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => localStorage.removeItem("poliglot-app-cookie-consent"));
+  await page.goto("/app/login", { waitUntil: "domcontentloaded" });
+  const banner = page.locator(".app-cookie-consent-banner");
+  await expect(banner).toBeVisible();
+  await expect(banner.locator("a[href*='privacy.html']")).toBeVisible();
+  await expect(banner.locator("a[href*='consent.html']")).toBeVisible();
+  await banner.getByRole("button", { name: /Accept|Принять/ }).click();
+  await expect(banner).toHaveCount(0);
+  await page.goto("/app/login", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".app-cookie-consent-banner")).toHaveCount(0);
 });
 
 test("main mobile and desktop views have scrollable output without mojibake", async ({ page, isMobile }) => {

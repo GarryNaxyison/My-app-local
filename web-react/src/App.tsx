@@ -3313,6 +3313,7 @@ export function App() {
   return (
     <div className="v2-shell" data-v2-shell="ios-function-ribbon" style={{ "--v2-brightness": brightness / 100 } as CSSProperties}>
       <ThemeBackground theme={theme} />
+      <AppCookieConsentBanner language={user.interface_language || "ru"} />
       <div className="v2-app">
         <TopBar
           user={user}
@@ -3516,7 +3517,10 @@ function AuthStandaloneView({
   const copy = useCallback((key: string, fallback: string) => appCopy(language, key, fallback), [language]);
   const captcha = session?.captcha;
   const captchaEnabled = Boolean(captcha?.enabled && captcha.provider === "turnstile" && captcha.site_key);
-  const privacyURL = `https://poliglotai.online/privacy.html?lang=${encodeURIComponent(languageCode(language || "ru"))}`;
+  const legalLanguage = languageCode(language || "ru");
+  const privacyURL = legalDocumentURL("privacy.html", legalLanguage);
+  const consentURL = legalDocumentURL("consent.html", legalLanguage);
+  const agreementURL = legalDocumentURL("agreement.html", legalLanguage);
   const heroImageSrc = theme === "dark" ? "/app/assets/auth-login-hero-dark.png?v=flux2-20260527-auth" : "/app/assets/auth-login-hero-light.png?v=flux2-20260527-auth";
   const testimonials = useMemo<Testimonial[]>(
     () => [
@@ -3632,6 +3636,8 @@ function AuthStandaloneView({
           captcha_token: captchaToken,
           privacy_consent: mode === "register" ? privacyAccepted : undefined,
           privacy_policy_url: mode === "register" ? privacyURL : undefined,
+          personal_data_consent_url: mode === "register" ? consentURL : undefined,
+          user_agreement_url: mode === "register" ? agreementURL : undefined,
         },
       });
       afterAuth(payload);
@@ -3673,6 +3679,10 @@ function AuthStandaloneView({
         <span>
           {copy("auth_privacy_consent", "I agree to personal data processing under the policy.")}{" "}
           <a href={privacyURL} target="_blank" rel="noreferrer">{copy("auth_privacy_policy", "Privacy policy")}</a>
+          {" · "}
+          <a href={consentURL} target="_blank" rel="noreferrer">{copy("auth_personal_data_consent", "Personal data consent")}</a>
+          {" · "}
+          <a href={agreementURL} target="_blank" rel="noreferrer">{copy("auth_user_agreement", "User agreement")}</a>
         </span>
       </label>
     </>
@@ -3718,6 +3728,7 @@ function AuthStandaloneView({
         onCreateAccount={() => setMode("register")}
         onLoginMode={() => setMode("login")}
       />
+      <AppCookieConsentBanner language={language} />
     </>
   );
 }
@@ -3740,6 +3751,51 @@ function optionLabel(option: LanguageOption | { code: string; name?: string; nat
 
 function languageCode(code?: string) {
   return (code || "en").split("-")[0].toLowerCase();
+}
+
+function legalDocumentURL(path: "privacy.html" | "consent.html" | "agreement.html" | "terms.html", language: string) {
+  return `https://poliglotai.online/${path}?lang=${encodeURIComponent(languageCode(language || "ru"))}`;
+}
+
+function AppCookieConsentBanner({ language }: { language: string }) {
+  const [choice, setChoice] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("poliglot-app-cookie-consent");
+    } catch {
+      return null;
+    }
+  });
+  const copy = useCallback((key: string, fallback: string) => appCopy(language, key, fallback), [language]);
+  const privacyURL = legalDocumentURL("privacy.html", language);
+  const consentURL = legalDocumentURL("consent.html", language);
+
+  const saveChoice = (value: string) => {
+    try {
+      localStorage.setItem("poliglot-app-cookie-consent", value);
+    } catch {
+      // The banner can still close for this session when storage is unavailable.
+    }
+    setChoice(value);
+  };
+
+  if (choice) return null;
+
+  return (
+    <section className="app-cookie-consent-banner" aria-label={copy("cookie_consent_title", "Cookie consent")}>
+      <div>
+        <strong>{copy("cookie_consent_title", "Cookie and technical data")}</strong>
+        <p>{copy("cookie_consent_body", "We use necessary cookies and local storage for login, language, theme, security, saved consents, and stable app operation. Optional cookies are used only after consent.")}</p>
+        <nav>
+          <a href={privacyURL} target="_blank" rel="noreferrer">{copy("auth_privacy_policy", "Privacy policy")}</a>
+          <a href={consentURL} target="_blank" rel="noreferrer">{copy("auth_personal_data_consent", "Personal data consent")}</a>
+        </nav>
+      </div>
+      <div className="app-cookie-consent-banner__actions">
+        <button type="button" onClick={() => saveChoice("necessary")}>{copy("cookie_necessary", "Necessary only")}</button>
+        <button type="button" onClick={() => saveChoice("accepted")}>{copy("cookie_accept", "Accept all cookies")}</button>
+      </div>
+    </section>
+  );
 }
 
 function languageDisplayName(code: string | undefined, options?: LanguageOption[]) {
@@ -7828,7 +7884,10 @@ function SettingsView({
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const telegramLinked = Boolean(user.telegram_account?.id || user.telegram_linked);
-  const privacyURL = `https://poliglotai.online/privacy.html?lang=${encodeURIComponent(languageCode(interfaceLanguage || user.interface_language || "ru"))}`;
+  const legalLanguage = languageCode(interfaceLanguage || user.interface_language || "ru");
+  const privacyURL = legalDocumentURL("privacy.html", legalLanguage);
+  const consentURL = legalDocumentURL("consent.html", legalLanguage);
+  const agreementURL = legalDocumentURL("agreement.html", legalLanguage);
   const passwordTooShort = newPassword.length > 0 && newPassword.length < 8;
   const passwordsMatch = newPassword.length > 0 && newPasswordConfirm.length > 0 && newPassword === newPasswordConfirm;
   const passwordsMismatch = newPasswordConfirm.length > 0 && newPassword !== newPasswordConfirm;
@@ -7867,13 +7926,23 @@ function SettingsView({
       return;
     }
     setTelegramPrivacyError("");
-    const request = await startTelegramCode({ privacy_consent: true, privacy_policy_url: privacyURL });
+    const request = await startTelegramCode({
+      privacy_consent: true,
+      privacy_policy_url: privacyURL,
+      personal_data_consent_url: consentURL,
+      user_agreement_url: agreementURL,
+    });
     if (!request) return;
     setTelegramRequest(request);
     setTelegramOtpOpen(true);
   };
   const resendTelegramTwoFactor = async () => {
-    const request = await startTelegramCode({ privacy_consent: true, privacy_policy_url: privacyURL });
+    const request = await startTelegramCode({
+      privacy_consent: true,
+      privacy_policy_url: privacyURL,
+      personal_data_consent_url: consentURL,
+      user_agreement_url: agreementURL,
+    });
     if (!request) return false;
     setTelegramRequest(request);
     return true;
@@ -7957,6 +8026,10 @@ function SettingsView({
               <span>
                 {copy("auth_privacy_consent", "I agree to personal data processing under the policy.")}{" "}
                 <a href={privacyURL} target="_blank" rel="noreferrer">{copy("auth_privacy_policy", "Privacy policy")}</a>
+                {" · "}
+                <a href={consentURL} target="_blank" rel="noreferrer">{copy("auth_personal_data_consent", "Personal data consent")}</a>
+                {" · "}
+                <a href={agreementURL} target="_blank" rel="noreferrer">{copy("auth_user_agreement", "User agreement")}</a>
               </span>
             </label>
           ) : null}

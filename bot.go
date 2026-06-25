@@ -561,7 +561,7 @@ func (b *bot) sendLearningMenu(ctx context.Context, chatID int64, users ...userS
 }
 
 func (b *bot) sendPrivacyPrompt(ctx context.Context, chatID int64) error {
-	text := "Перед началом подтвердите, что принимаете Политику обработки персональных данных."
+	text := "Перед началом подтвердите, что принимаете Политику обработки персональных данных, Согласие на обработку персональных данных и Пользовательское соглашение."
 	return b.telegram.sendInlineMessage(ctx, chatID, text, privacyPromptKeyboard())
 }
 

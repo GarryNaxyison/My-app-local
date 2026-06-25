@@ -4183,6 +4183,32 @@ appLocaleCodes.forEach((code) => {
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ...authCopy[code] };
 });
 
+const legalConsentAndCookieCopy: Record<"ru" | "en", Record<string, string>> = {
+  ru: {
+    auth_personal_data_consent: "Согласие на обработку ПДн",
+    auth_user_agreement: "Пользовательское соглашение",
+    cookie_consent_title: "Cookie и технические данные",
+    cookie_consent_body: "Мы используем необходимые cookie и локальное хранилище для входа, языка, темы, безопасности, сохранения согласий и корректной работы приложения. Необязательные cookie применяются только после согласия.",
+    cookie_necessary: "Только необходимые",
+    cookie_accept: "Принять все cookie",
+  },
+  en: {
+    auth_personal_data_consent: "Personal data consent",
+    auth_user_agreement: "User agreement",
+    cookie_consent_title: "Cookie and technical data",
+    cookie_consent_body: "We use necessary cookies and local storage for login, language, theme, security, saved consents, and stable app operation. Optional cookies are used only after consent.",
+    cookie_necessary: "Necessary only",
+    cookie_accept: "Accept all cookies",
+  },
+};
+
+appLocaleCodes.forEach((code) => {
+  localeOverrides[code] = {
+    ...(localeOverrides[code] || {}),
+    ...(code === "ru" ? legalConsentAndCookieCopy.ru : legalConsentAndCookieCopy.en),
+  };
+});
+
 const latestFeatureCopy: Record<AppLocaleCode, Record<string, string>> = {
   ru: { monday_short: "Пн", tuesday_short: "Вт", wednesday_short: "Ср", thursday_short: "Чт", friday_short: "Пт", saturday_short: "Сб", sunday_short: "Вс", v2_learning_lab: "Новые функции", v2_learning_lab_title: "Из последнего крупного обновления", tutor_short_hint: "Полный урок: слова, грамматика, аудирование, письмо, диалог и повторение", plan_words: "Словарная база", plan_words_count: "Одна тема: значение, пример, повтор.", plan_practice: "Фразы в речь", plan_practice_count: "Соберите полезные фразы и сохраните лучшую.", plan_listening: "Цикл аудирования", plan_listening_count: "Послушать, повторить, сравнить, повторить ещё раз.", plan_roleplay: "Диалог", plan_roleplay_count: "Одна практическая сцена на тему недели.", plan_pronunciation: "Произношение", plan_pronunciation_count: "Исправьте слабые слова и один повторяющийся звук.", plan_offline: "Оффлайн-ревью", plan_offline_count: "Обновите карточки и компактный TXT-пакет.", plan_dashboard: "Итоги недели", weekly_review: "Проверьте прогресс и выберите фокус следующей недели." },
   en: { monday_short: "Mon", tuesday_short: "Tue", wednesday_short: "Wed", thursday_short: "Thu", friday_short: "Fri", saturday_short: "Sat", sunday_short: "Sun", v2_learning_lab: "New features", v2_learning_lab_title: "From the latest major update", tutor_short_hint: "Full lesson: words, grammar, listening, writing, dialogue, and review", plan_words: "Vocabulary base", plan_words_count: "One theme: meaning, example, review.", plan_practice: "Phrase output", plan_practice_count: "Make useful phrases and save the best one.", plan_listening: "Listening loop", plan_listening_count: "Listen, repeat, compare, then retry once.", plan_roleplay: "Dialogue", plan_roleplay_count: "Run one practical scene on the week theme.", plan_pronunciation: "Pronunciation", plan_pronunciation_count: "Repair weak words and one recurring sound.", plan_offline: "Offline review", plan_offline_count: "Refresh cards and export a compact TXT pack.", plan_dashboard: "Weekly review", weekly_review: "Check progress and choose next week's focus." },
