@@ -95,21 +95,7 @@ func onboardingWelcomeText(user userState) string {
 			copy.ChooseLearnLang
 	}
 
-	var builder strings.Builder
-	builder.WriteString("Poliglot AI\n\n")
-	builder.WriteString("Choose the bot language first. Then I will ask for your time zone and learning language.\n\n")
-	for _, language := range interfaceLanguages() {
-		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})
-		builder.WriteString(language.InterfaceName)
-		builder.WriteString(": ")
-		builder.WriteString(copy.ChooseBotLang)
-		builder.WriteString(" -> ")
-		builder.WriteString(copy.ChooseTimezone)
-		builder.WriteString(" -> ")
-		builder.WriteString(copy.ChooseLearnLang)
-		builder.WriteString("\n")
-	}
-	return strings.TrimSpace(builder.String())
+	return "Poliglot AI\n\nChoose the bot language first. Then I will ask for your time zone and learning language."
 }
 
 var botRuntimeTexts = map[string]map[string]string{

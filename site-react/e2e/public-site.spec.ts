@@ -222,6 +222,41 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(footerTermsLink).toHaveAttribute("href", /terms\.html(\?.*)?$/);
 });
 
+test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => localStorage.removeItem("poliglot-cookie-consent"));
+  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+
+  await page.locator(".nav-burger").click();
+  const drawer = page.locator(".nav-drawer");
+  await expect(drawer.locator('a[href*="agreement.html"]')).toHaveText("Пользовательское соглашение");
+  await expect(drawer.locator('a[href*="consent.html"]')).toHaveText("Согласие на обработку персональных данных");
+
+  const footerDocuments = page.locator(".site-footer nav").filter({ hasText: "Документы" });
+  await expect(footerDocuments).toBeVisible();
+  await expect(footerDocuments.locator('a[href*="agreement.html"]')).toHaveText("Пользовательское соглашение");
+  await expect(footerDocuments.locator('a[href*="consent.html"]')).toHaveText("Согласие на обработку персональных данных");
+
+  const banner = page.locator(".cookie-consent-banner");
+  await expect(banner).toBeVisible();
+  const bannerBox = await banner.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left,
+      right: rect.right,
+      width: rect.width,
+      viewportWidth: window.innerWidth,
+      computedLeft: getComputedStyle(node).left,
+    };
+  });
+
+  const center = bannerBox.left + bannerBox.width / 2;
+  expect(Math.abs(center - bannerBox.viewportWidth / 2)).toBeLessThanOrEqual(2);
+  expect(bannerBox.right).toBeLessThanOrEqual(bannerBox.viewportWidth - 14);
+  expect(bannerBox.computedLeft).not.toBe("auto");
+});
+
 test("landing light theme keeps the approved layout readable", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("poliglot-site-theme", "light");

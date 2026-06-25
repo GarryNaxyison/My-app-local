@@ -30,8 +30,8 @@ const nav = {
   home: "Poliglot AI",
   privacy: "Политика",
   terms: "Условия",
-  agreement: "Соглашение",
-  consent: "Согласие на ПДн",
+  agreement: "Пользовательское соглашение",
+  consent: "Согласие на обработку персональных данных",
 };
 
 const cookie = {
@@ -321,8 +321,8 @@ const englishNav = {
   home: "Poliglot AI",
   privacy: "Privacy",
   terms: "Terms",
-  agreement: "Agreement",
-  consent: "Personal data consent",
+  agreement: "User Agreement",
+  consent: "Personal data processing consent",
 };
 
 const englishCookie = {
@@ -897,11 +897,12 @@ function rendererSource(payload) {
       document.querySelectorAll("[data-legal-title]").forEach((node) => { node.textContent = doc?.title || node.textContent; });
       document.querySelectorAll("[data-legal-badge]").forEach((node) => { node.textContent = doc?.badge || node.textContent; });
       document.querySelectorAll("[data-legal-description]").forEach((node) => { node.textContent = doc?.description || node.textContent; });
-      document.querySelectorAll("[data-legal-nav]").forEach((node) => {
-        const key = node.getAttribute("data-legal-nav");
-        node.textContent = pack.nav[key] || node.textContent;
-      });
     }
+
+    document.querySelectorAll("[data-legal-nav]").forEach((node) => {
+      const key = node.getAttribute("data-legal-nav");
+      node.textContent = pack.nav[key] || node.textContent;
+    });
 
     document.querySelectorAll("[data-legal-cookie]").forEach((node) => {
       const key = node.getAttribute("data-legal-cookie");

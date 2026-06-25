@@ -746,7 +746,8 @@ html[data-site-theme="dark"] .public-nav select option {
 
 .cookie-consent-banner {
   position: fixed;
-  right: clamp(14px, 3vw, 28px);
+  left: 50%;
+  right: auto;
   bottom: clamp(14px, 3vw, 28px);
   z-index: 80;
   display: grid;
@@ -760,6 +761,7 @@ html[data-site-theme="dark"] .public-nav select option {
   padding: 18px;
   color: var(--ink);
   backdrop-filter: blur(22px);
+  transform: translateX(-50%);
 }
 
 .cookie-consent-banner strong {
@@ -939,6 +941,10 @@ html[data-site-theme="dark"] .public-nav select option {
 
   .cookie-consent-banner {
     grid-template-columns: 1fr;
+    left: 14px;
+    right: 14px;
+    width: auto;
+    transform: none;
   }
 
   .cookie-consent-banner__actions {

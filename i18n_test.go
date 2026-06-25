@@ -107,12 +107,29 @@ func TestCJKInterfaceLanguagesHaveLocalizedCopies(t *testing.T) {
 	}
 }
 
-func TestOnboardingWelcomeContainsEveryInterfaceLanguage(t *testing.T) {
-	text := onboardingWelcomeText(userState{})
-	for _, language := range interfaceLanguages() {
-		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})
-		if !strings.Contains(text, language.InterfaceName) || !strings.Contains(text, copy.ChooseBotLang) || !strings.Contains(text, copy.ChooseTimezone) {
-			t.Fatalf("onboarding welcome is missing localized setup text for %s: %q", language.Code, text)
+func TestOnboardingWelcomeStaysShortAndLocalized(t *testing.T) {
+	t.Run("unselected is short", func(t *testing.T) {
+		text := onboardingWelcomeText(userState{})
+		if strings.Contains(text, "->") {
+			t.Fatalf("unselected onboarding welcome should not enumerate every interface language: %q", text)
 		}
-	}
+		if len(strings.Split(strings.TrimSpace(text), "\n")) > 4 {
+			t.Fatalf("unselected onboarding welcome should stay short: %q", text)
+		}
+	})
+
+	t.Run("selected uses localized copy only", func(t *testing.T) {
+		user := userState{InterfaceLanguage: "ru", InterfaceSelected: true}
+		copy := ui(user)
+		want := "Poliglot AI\n\n" + copy.ChooseBotLang + "\n" + copy.ChooseTimezone + "\n" + copy.ChooseLearnLang
+		text := onboardingWelcomeText(user)
+		if text != want {
+			t.Fatalf("selected onboarding welcome = %q, want %q", text, want)
+		}
+		for _, language := range interfaceLanguages() {
+			if strings.Contains(text, language.InterfaceName) && language.Code != user.InterfaceLanguage {
+				t.Fatalf("selected onboarding welcome should not mention other interface languages: %q", text)
+			}
+		}
+	})
 }

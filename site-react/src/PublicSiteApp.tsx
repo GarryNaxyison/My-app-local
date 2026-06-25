@@ -424,16 +424,16 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
             Reviews
           </a>
           <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" onClick={() => setIsOpen(false)}>
-            Privacy
+            <span data-legal-nav="privacy">Privacy</span>
           </a>
           <a className={page === "terms" ? "is-active" : undefined} href="/terms.html" onClick={() => setIsOpen(false)}>
-            Terms
+            <span data-legal-nav="terms">Terms</span>
           </a>
           <a className={page === "agreement" ? "is-active" : undefined} href="/agreement.html" onClick={() => setIsOpen(false)}>
-            Agreement
+            <span data-legal-nav="agreement">User Agreement</span>
           </a>
           <a className={page === "consent" ? "is-active" : undefined} href="/consent.html" onClick={() => setIsOpen(false)}>
-            Consent
+            <span data-legal-nav="consent">Personal data processing consent</span>
           </a>
         </nav>
         <div className="nav-drawer__actions">
@@ -1029,10 +1029,10 @@ function LegalPageV2({ page }: { page: LegalPageId }) {
             <FileText size={16} /> <span data-legal-nav="terms">Условия</span>
           </a>
           <a href="/agreement.html" className={page === "agreement" ? "is-active" : undefined}>
-            <FileText size={16} /> <span data-legal-nav="agreement">Соглашение</span>
+            <FileText size={16} /> <span data-legal-nav="agreement">Пользовательское соглашение</span>
           </a>
           <a href="/consent.html" className={page === "consent" ? "is-active" : undefined}>
-            <ShieldCheck size={16} /> <span data-legal-nav="consent">Согласие на ПДн</span>
+            <ShieldCheck size={16} /> <span data-legal-nav="consent">Согласие на обработку персональных данных</span>
           </a>
         </aside>
         <article className="legal-document-shell" dangerouslySetInnerHTML={{ __html: html }} />
@@ -1143,10 +1143,10 @@ function SiteFooterEnglish() {
       </nav>
       <nav>
         <strong>Documents</strong>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/terms.html">Terms</a>
-        <a href="/agreement.html">Agreement</a>
-        <a href="/consent.html">Consent</a>
+        <a href="/privacy.html"><span data-legal-nav="privacy">Privacy</span></a>
+        <a href="/terms.html"><span data-legal-nav="terms">Terms</span></a>
+        <a href="/agreement.html"><span data-legal-nav="agreement">User Agreement</span></a>
+        <a href="/consent.html"><span data-legal-nav="consent">Personal data processing consent</span></a>
       </nav>
       <address>
         <strong>Contacts</strong>

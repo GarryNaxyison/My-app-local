@@ -3539,7 +3539,7 @@ test("regression: auth language menu is layered above privacy and captcha blocks
   await expect(page.locator(".auth-privacy-v2 a[href*='agreement.html']")).toBeVisible();
 });
 
-test("web app shows cookie consent banner until a choice is saved", async ({ page }) => {
+test("web app shows cookie consent banner until a choice is saved", async ({ page, isMobile }) => {
   test.setTimeout(60_000);
 
   await mockAnonymousAuth(page);
@@ -3550,6 +3550,22 @@ test("web app shows cookie consent banner until a choice is saved", async ({ pag
   await expect(banner).toBeVisible();
   await expect(banner.locator("a[href*='privacy.html']")).toBeVisible();
   await expect(banner.locator("a[href*='consent.html']")).toBeVisible();
+  if (!isMobile) {
+    const bannerBox = await banner.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        width: rect.width,
+        viewportWidth: window.innerWidth,
+        computedLeft: getComputedStyle(node).left,
+      };
+    });
+    const center = bannerBox.left + bannerBox.width / 2;
+    expect(Math.abs(center - bannerBox.viewportWidth / 2)).toBeLessThanOrEqual(2);
+    expect(bannerBox.right).toBeLessThanOrEqual(bannerBox.viewportWidth - 12);
+    expect(bannerBox.computedLeft).not.toBe("auto");
+  }
   await banner.getByRole("button", { name: /Accept|Принять/ }).click();
   await expect(banner).toHaveCount(0);
   await page.goto("/app/login", { waitUntil: "domcontentloaded" });

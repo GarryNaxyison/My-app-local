@@ -4098,7 +4098,8 @@ select {
 
 .app-cookie-consent-banner {
   position: fixed;
-  right: clamp(12px, 3vw, 24px);
+  left: 50%;
+  right: auto;
   bottom: clamp(12px, 3vw, 24px);
   z-index: 90;
   display: grid;
@@ -4112,6 +4113,7 @@ select {
   padding: 16px;
   color: var(--text);
   backdrop-filter: blur(24px) saturate(1.1);
+  transform: translateX(-50%);
 }
 
 .app-cookie-consent-banner strong {
@@ -4170,8 +4172,6 @@ select {
 }
 
 .sign-in-page-v2 + .app-cookie-consent-banner {
-  right: auto;
-  left: clamp(12px, 3vw, 24px);
   width: min(380px, calc(100vw - 24px));
   grid-template-columns: 1fr;
 }
@@ -4224,6 +4224,10 @@ select {
 @media (max-width: 760px) {
   .app-cookie-consent-banner {
     grid-template-columns: 1fr;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    transform: none;
   }
 
   .sign-in-page-v2 + .app-cookie-consent-banner {
