@@ -60,6 +60,28 @@ func TestTotalLeaderboardScoreUsesOnlyLanguageActivity(t *testing.T) {
 	}
 }
 
+func TestWebLeaderboardDTOKeepsXPSeparateFromRatingScore(t *testing.T) {
+	got := webLeaderboardDTO([]leaderboardEntry{{
+		FirstName: "Maria",
+		Score:     33,
+		XP:        2007,
+		Words:     2,
+		Mistakes:  1,
+		Level:     5,
+		Title:     "Explorer",
+	}})
+	if len(got) != 1 {
+		t.Fatalf("expected one leaderboard DTO entry, got %#v", got)
+	}
+	entry := got[0]
+	if entry["score"] != 33 || entry["rating_points"] != 33 {
+		t.Fatalf("expected rating score fields to be 33, got %#v", entry)
+	}
+	if entry["xp"] != 2007 {
+		t.Fatalf("expected raw XP to stay separate from rating score, got %#v", entry)
+	}
+}
+
 func TestLeaderboardLanguagesIncludesCurrentAndStudiedLanguages(t *testing.T) {
 	user := userState{
 		LearningLanguage: "fr",

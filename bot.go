@@ -238,6 +238,8 @@ type bot struct {
 	aiTutor               *aiTutorEngine
 	yookassa              *yooKassaClient
 	webYooKassa           *yooKassaClient
+	rollyPayBot           *rollyPayClient
+	rollyPayWeb           *rollyPayClient
 	cryptoRates           *cryptoRateProvider
 	activationKeys        *activationKeyStore
 	webAuth               *webAuthBroker
@@ -965,6 +967,10 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.sendYooKassaPayment(ctx, chatID, user, platinumMonthlyProduct)
 	case "buy_yookassa_platinum_year":
 		return b.sendYooKassaPayment(ctx, chatID, user, platinumYearlyProduct)
+	case "buy_rollypay_month":
+		return b.sendRollyPayPayment(ctx, chatID, user, premiumMonthlyProduct)
+	case "buy_rollypay_year":
+		return b.sendRollyPayPayment(ctx, chatID, user, premiumYearlyProduct)
 	case "buy_crypto_month":
 		return b.sendCryptoPayment(ctx, chatID, user, premiumMonthlyProduct, cryptoMethodTON)
 	case "buy_crypto_year":
@@ -1060,6 +1066,10 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		if strings.HasPrefix(query.Data, "buy_yookassa|") {
 			product := strings.TrimPrefix(query.Data, "buy_yookassa|")
 			return b.sendYooKassaPayment(ctx, chatID, user, product)
+		}
+		if strings.HasPrefix(query.Data, "buy_rollypay|") {
+			product := strings.TrimPrefix(query.Data, "buy_rollypay|")
+			return b.sendRollyPayPayment(ctx, chatID, user, product)
 		}
 		if strings.HasPrefix(query.Data, "buy_crypto|") {
 			parts := strings.Split(query.Data, "|")
@@ -3354,6 +3364,25 @@ func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userSt
 	return b.telegram.sendInlineMessage(ctx, chatID, text, yookassaPaymentKeyboard(payment.Confirmation.ConfirmationURL, user))
 }
 
+func (b *bot) sendRollyPayPayment(ctx context.Context, chatID int64, user userState, product string) error {
+	if b.rollyPayBot == nil || !b.cfg.rollyPayBotEnabled() {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, "RollyPay payment is not configured yet.", ui(user))
+	}
+	plan, ok := b.premiumPlan(product)
+	if !ok {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
+	}
+	plan = localizedPremiumPlan(user, plan)
+	returnURL := b.cfg.rollyPayBotReturnURL()
+	payment, err := b.rollyPayBot.createPremiumPayment(ctx, user, plan, rollyPayChannelTelegram, returnURL, returnURL, time.Now())
+	if err != nil {
+		log.Printf("failed to create rollypay payment for %d: %v", user.TelegramID, err)
+		return b.telegram.sendMessageWithCopy(ctx, chatID, "Could not create a RollyPay payment. Try again a little later.", ui(user))
+	}
+	text := fmt.Sprintf("%s\n\nPrice: %d RUB\nPayment method: RollyPay\n\nAfter payment, Premium will turn on automatically.", plan.Title, plan.RubPrice)
+	return b.telegram.sendInlineMessage(ctx, chatID, text, yookassaPaymentKeyboard(payment.URL, user))
+}
+
 func (b *bot) sendCryptoPayment(ctx context.Context, chatID int64, user userState, product string, methodID string) error {
 	if !b.cryptoPaymentsReady() {
 		return b.telegram.sendMessageWithCopy(ctx, chatID, "Direct crypto payments are not configured yet.", ui(user))
@@ -3514,7 +3543,7 @@ func (b *bot) sendPremiumPaymentOptions(ctx context.Context, chatID int64, user 
 	if b.cryptoPaymentsReady() {
 		methods = b.cfg.cryptoPaymentMethodsForProduct(product)
 	}
-	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), methods, plan, user))
+	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), b.cfg.rollyPayBotEnabled(), methods, plan, user))
 }
 
 func premiumPaymentOptionsText(user userState, plan premiumPlan) string {
@@ -3727,7 +3756,7 @@ func (b *bot) sendProgress(ctx context.Context, chatID int64, user userState) er
 	copy := ui(user)
 	return b.telegram.sendMarkdownMessageWithCopy(ctx, chatID,
 		"*"+escapeMarkdownV2(copy.Progress)+"* 📊\n"+
-			escapeMarkdownV2(copy.Premium)+": "+escapeMarkdownV2(planName(user))+"\n"+
+			escapeMarkdownV2(copy.Premium)+": "+escapeMarkdownV2(planStatusLabel(user))+"\n"+
 			escapeMarkdownV2(copy.LearningLanguage)+": *"+escapeMarkdownV2(language.InterfaceName)+"*\n"+
 			"XP level: *"+itoa(level)+"/20* \\- "+escapeMarkdownV2(levelName)+"\n"+
 			"XP: *"+itoa(user.XP)+"* \\("+itoa(currentXP)+"/"+itoa(neededXP)+"\\)\n"+
@@ -3765,7 +3794,7 @@ func (b *bot) sendLeaderboard(ctx context.Context, chatID int64, users ...userSt
 		}
 		builder.WriteString(place + " ")
 		builder.WriteString("*" + escapeMarkdownV2(entry.FirstName) + "*")
-		builder.WriteString(" \\- " + itoa(entry.Score) + " XP\n")
+		builder.WriteString(" \\- " + itoa(entry.Score) + " points\n")
 		if len(entry.Languages) > 0 {
 			builder.WriteString("   " + escapeMarkdownV2(copy.LearningLanguage) + ": *" + escapeMarkdownV2(strings.Join(entry.Languages, ", ")) + "*\n")
 		}
@@ -3805,7 +3834,7 @@ func (b *bot) sendLanguageLeaderboard(ctx context.Context, chatID int64, languag
 		}
 		builder.WriteString(place + " ")
 		builder.WriteString("*" + escapeMarkdownV2(entry.FirstName) + "*")
-		builder.WriteString(" \\- " + itoa(entry.Score) + " XP\n")
+		builder.WriteString(" \\- " + itoa(entry.Score) + " points\n")
 		builder.WriteString("   " + escapeMarkdownV2(copy.LevelTest) + " `" + escapeMarkdownV2(entry.Level) + "` · " + escapeMarkdownV2(copy.Words) + ": *" + itoa(entry.Words) + "* · " + escapeMarkdownV2(copy.Mistakes) + ": *" + itoa(entry.Mistakes) + "*\n\n")
 	}
 	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, builder.String(), leaderboardMenuKeyboard(copy))
@@ -3847,7 +3876,14 @@ func (b *bot) premiumText(user userState) string {
 	freeLanding := premiumPlanLandingCopy(user, "free")
 	premiumLanding := premiumPlanLandingCopy(user, "premium")
 	platinumLanding := premiumPlanLandingCopy(user, "platinum")
+	statusLine := ""
+	if user.PremiumUntil.IsZero() {
+		statusLine = "*Current plan*: " + escapeMarkdownV2(planName(user))
+	} else {
+		statusLine = "*Current plan*: " + escapeMarkdownV2(planName(user)) + "\n*Premium until*: " + escapeMarkdownV2(user.PremiumUntil.Format("2006-01-02"))
+	}
 	return "*Free*\n" +
+		statusLine + "\n\n" +
 		premiumLandingMarkdownWithLimits(freeLanding, []string{
 			fmt.Sprintf(copy.LessonsPerDay, freeLessonLimit),
 			fmt.Sprintf(copy.PracticeMessagesPerDay, freePracticeLimit),
@@ -3948,12 +3984,19 @@ func paidPlanLimits(tier string) (lessons int, practice int, voices int) {
 
 func planName(user userState) string {
 	if user.isPlatinum(time.Now()) {
-		return "Platinum " + user.PremiumUntil.Format("2006-01-02")
+		return "Platinum"
 	}
 	if user.isPremium(time.Now()) {
-		return "Premium " + user.PremiumUntil.Format("2006-01-02")
+		return "Premium"
 	}
 	return "Free"
+}
+
+func planStatusLabel(user userState) string {
+	if user.isPremium(time.Now()) && !user.PremiumUntil.IsZero() {
+		return planName(user) + " " + user.PremiumUntil.Format("2006-01-02")
+	}
+	return planName(user)
 }
 
 func parseReferralPayload(payload string) (int64, error) {

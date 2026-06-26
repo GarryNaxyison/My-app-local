@@ -17,7 +17,7 @@ poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
 		reverse_proxy localhost:8080
 	}
 
-	@botcallbacks path /payment/success /payment/success* /tonapi/webhook /tonapi/webhook/* /yookassa/webhook /yookassa/webhook/*
+	@botcallbacks path /payment/success /payment/success* /tonapi/webhook /tonapi/webhook/* /yookassa/webhook /yookassa/webhook/* /rollypay/webhook/site /rollypay/webhook/bot
 	handle @botcallbacks {
 		reverse_proxy localhost:8080
 	}

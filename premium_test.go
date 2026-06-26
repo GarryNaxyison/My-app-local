@@ -1,7 +1,14 @@
 package main
 
 import (
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -114,6 +121,21 @@ func TestPremiumTextUsesInterfaceLanguage(t *testing.T) {
 		!strings.Contains(rows[1][0]["text"].(string), "año") ||
 		rows[len(rows)-3][0]["text"].(string) != "Invitar a un amigo" {
 		t.Fatalf("expected Spanish premium keyboard, got %#v", rows)
+	}
+}
+
+func TestPremiumTextShowsCurrentPlanStatus(t *testing.T) {
+	b := &bot{cfg: config{MaxVoiceSeconds: 30, PremiumRubPrice: 300, PremiumStarsPrice: 150, PremiumYearRubPrice: 3000, PremiumYearStarsPrice: 1500, PlatinumRubPrice: 590, PlatinumStarsPrice: 300, PlatinumYearRubPrice: 5900, PlatinumYearStarsPrice: 3000}}
+	user := userState{
+		InterfaceLanguage: "en",
+		Plan:              "platinum",
+		PremiumUntil:      time.Date(2026, 7, 12, 10, 0, 0, 0, time.UTC),
+	}
+	text := plainTextFromMarkdownV2(b.premiumText(user))
+	for _, want := range []string{"Current plan", "Platinum", "Premium until", "2026-07-12"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("premium text missing %q:\n%s", want, text)
+		}
 	}
 }
 
@@ -239,10 +261,11 @@ func TestPremiumPaymentOptionsKeyboardShowsMethodsForSelectedPlan(t *testing.T) 
 		RubPrice:   3000,
 		StarsPrice: 1500,
 	}
-	keyboard := premiumPaymentOptionsKeyboard(true, []cryptoPaymentMethod{{ID: cryptoMethodTON, Label: "TON"}}, plan, user)
+	keyboard := premiumPaymentOptionsKeyboard(true, true, []cryptoPaymentMethod{{ID: cryptoMethodTON, Label: "TON"}}, plan, user)
 	callbacks := collectCallbackData(t, keyboard)
 	for _, want := range []string{
 		"buy_stars|" + premiumYearlyProduct,
+		"buy_rollypay|" + premiumYearlyProduct,
 		"buy_yookassa|" + premiumYearlyProduct,
 		"buy_crypto|" + premiumYearlyProduct + "|" + cryptoMethodTON,
 		"menu_premium",
@@ -276,6 +299,242 @@ func TestPremiumPaymentPayloadCarriesUserAndTimestamp(t *testing.T) {
 			t.Fatalf("expected invalid payload %q", bad)
 		}
 	}
+}
+
+func TestRollyPayConfigRequiresSeparateCashboxes(t *testing.T) {
+	cfg := config{
+		RollyPayBotCashboxID: "bot-cashbox",
+		RollyPayBotAPIKey:    "bot-key",
+		RollyPayWebCashboxID: "web-cashbox",
+		RollyPayWebAPIKey:    "web-key",
+	}
+	if !cfg.rollyPayBotEnabled() {
+		t.Fatal("expected Telegram RollyPay to be enabled")
+	}
+	if !cfg.rollyPayWebEnabled() {
+		t.Fatal("expected web RollyPay to be enabled")
+	}
+	cfg.RollyPayWebAPIKey = ""
+	if cfg.rollyPayWebEnabled() {
+		t.Fatal("web RollyPay must require web API key")
+	}
+	cfg = config{YooKassaReturnURL: "https://poliglotai.ru/payment/success"}
+	if got := cfg.rollyPayWebReturnURL(); got != "https://poliglotai.online/app?payment=success&provider=rollypay" {
+		t.Fatalf("RollyPay web return URL = %q, want RollyPay app success URL", got)
+	}
+	cfg.WebPaymentReturnURL = "https://poliglotai.ru/app?payment=success"
+	if got := cfg.rollyPayWebReturnURL(); got != cfg.WebPaymentReturnURL {
+		t.Fatalf("RollyPay web return URL should honor WEB_PAYMENT_RETURN_URL: got %q", got)
+	}
+}
+
+func TestRollyPayClientUsesDocumentedPaymentContract(t *testing.T) {
+	var gotPath string
+	var gotAPIKey string
+	var gotNonce string
+	var gotPayload map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		gotAPIKey = r.Header.Get("X-API-Key")
+		gotNonce = r.Header.Get("X-Nonce")
+		if r.Header.Get("Authorization") != "" {
+			t.Fatalf("unexpected Authorization header %q", r.Header.Get("Authorization"))
+		}
+		if err := json.NewDecoder(r.Body).Decode(&gotPayload); err != nil {
+			t.Fatal(err)
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"id":      "pay_123",
+			"pay_url": "https://pay.rollypay.io/pay/tok_123",
+			"status":  "created",
+		})
+	}))
+	defer server.Close()
+
+	client := newRollyPayClient("terminal-123", "api-key-123", server.URL, "", server.Client())
+	payment, err := client.createPremiumPayment(context.Background(), userState{TelegramID: 42, FirstName: "Ada", InterfaceLanguage: "en"}, premiumPlan{
+		Product:  premiumMonthlyProduct,
+		Title:    "Premium",
+		RubPrice: 300,
+	}, rollyPayChannelTelegram, "https://example.test/success", "https://example.test/fail", time.Unix(1700000000, 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if gotPath != "/api/v1/payments" {
+		t.Fatalf("path = %q, want /api/v1/payments", gotPath)
+	}
+	if gotAPIKey != "api-key-123" {
+		t.Fatalf("X-API-Key = %q", gotAPIKey)
+	}
+	if gotNonce == "" {
+		t.Fatal("expected X-Nonce header")
+	}
+	for key, want := range map[string]any{
+		"amount":               "300.00",
+		"payment_currency":     "RUB",
+		"payment_method":       "sbp",
+		"order_id":             "premium_30d_42_1700000000",
+		"terminal_id":          "terminal-123",
+		"customer_id":          "42",
+		"success_redirect_url": "https://example.test/success",
+		"fail_redirect_url":    "https://example.test/fail",
+	} {
+		if gotPayload[key] != want {
+			t.Fatalf("payload[%s] = %#v, want %#v; full=%#v", key, gotPayload[key], want, gotPayload)
+		}
+	}
+	if _, ok := gotPayload["cashbox_id"]; ok {
+		t.Fatalf("unexpected cashbox_id in payload: %#v", gotPayload)
+	}
+	if payment.ID != "pay_123" || payment.URL != "https://pay.rollypay.io/pay/tok_123" || payment.Status != "created" {
+		t.Fatalf("unexpected payment: %+v", payment)
+	}
+}
+
+func TestRollyPayClientAvoidsDuplicateAPIPrefix(t *testing.T) {
+	var gotPath string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		writeJSON(w, http.StatusOK, map[string]any{
+			"payment_id": "pay_123",
+			"pay_url":    "https://pay.rollypay.io/pay/tok_123",
+		})
+	}))
+	defer server.Close()
+
+	client := newRollyPayClient("terminal-123", "api-key-123", server.URL+"/api/v1", "", server.Client())
+	if _, err := client.createPremiumPayment(context.Background(), userState{TelegramID: 42}, premiumPlan{
+		Product:  premiumMonthlyProduct,
+		Title:    "Premium",
+		RubPrice: 300,
+	}, rollyPayChannelWeb, "", "", time.Unix(1700000000, 0)); err != nil {
+		t.Fatal(err)
+	}
+	if gotPath != "/api/v1/payments" {
+		t.Fatalf("path = %q, want /api/v1/payments without duplicate prefix", gotPath)
+	}
+}
+
+func TestRollyPayWebhookRequiresValidSignatureWhenSecretConfigured(t *testing.T) {
+	body := []byte(`{"status":"paid","order_id":"premium_30d_123_1700000000","payment_id":"rp_123","amount":"300.00","currency":"RUB"}`)
+	timestamp := "1700000100"
+	signature := rollyPaySignature(body, timestamp, "signing-secret")
+
+	req := httptest.NewRequest(http.MethodPost, "/rollypay/webhook/bot", strings.NewReader(string(body)))
+	req.Header.Set("X-Timestamp", timestamp)
+	req.Header.Set("X-Signature", signature)
+	if !rollyPayWebhookSignatureAllowed(req, body, "signing-secret") {
+		t.Fatal("expected valid signature")
+	}
+	req.Header.Set("X-Signature", "bad")
+	if rollyPayWebhookSignatureAllowed(req, body, "signing-secret") {
+		t.Fatal("expected invalid signature to be rejected")
+	}
+}
+
+func TestRollyPayWebhookActivatesPremiumFromOrderID(t *testing.T) {
+	store, err := newJSONStore(filepath.Join(t.TempDir(), "users.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	user, err := store.getOrCreateUser(123, "Test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := &bot{
+		cfg: config{
+			MaxVoiceSeconds:        30,
+			PremiumRubPrice:        300,
+			PremiumStarsPrice:      150,
+			PremiumYearRubPrice:    3000,
+			PremiumYearStarsPrice:  1500,
+			PlatinumRubPrice:       590,
+			PlatinumStarsPrice:     300,
+			PlatinumYearRubPrice:   5900,
+			PlatinumYearStarsPrice: 3000,
+			RollyPayWebhookSecret:  "secret",
+		},
+		store: store,
+	}
+	orderID := rollyPayOrderID(premiumMonthlyProduct, user.TelegramID, time.Unix(1700000000, 0))
+	body := []byte(`{"status":"paid","order_id":"` + orderID + `","payment_id":"rp_123","amount":"300.00","currency":"RUB"}`)
+	timestamp := "1700000100"
+	req := httptest.NewRequest(http.MethodPost, "/rollypay/webhook/bot", strings.NewReader(string(body)))
+	req.Header.Set("X-Timestamp", timestamp)
+	req.Header.Set("X-Signature", rollyPaySignature(body, timestamp, "secret"))
+	rec := httptest.NewRecorder()
+
+	b.handleRollyPayWebhook(rec, req, rollyPayChannelTelegram)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body=%s", rec.Code, rec.Body.String())
+	}
+	refreshed, err := store.getOrCreateUser(user.TelegramID, user.FirstName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !refreshed.isPremium(time.Now()) || refreshed.Plan != "premium" {
+		t.Fatalf("premium not activated: %+v", refreshed)
+	}
+	if refreshed.LastPaymentChargeID != "rollypay:rp_123" {
+		t.Fatalf("charge id = %q", refreshed.LastPaymentChargeID)
+	}
+}
+
+func TestRollyPayWebhookActivatesPremiumFromMetadataWhenOrderIDMissing(t *testing.T) {
+	store, err := newJSONStore(filepath.Join(t.TempDir(), "users.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	user, err := store.getOrCreateUser(123, "Test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := &bot{
+		cfg: config{
+			MaxVoiceSeconds:        30,
+			PremiumRubPrice:        300,
+			PremiumStarsPrice:      150,
+			PremiumYearRubPrice:    3000,
+			PremiumYearStarsPrice:  1500,
+			PlatinumRubPrice:       590,
+			PlatinumStarsPrice:     300,
+			PlatinumYearRubPrice:   5900,
+			PlatinumYearStarsPrice: 3000,
+			RollyPayWebhookSecret:  "secret",
+		},
+		store: store,
+	}
+	body := []byte(`{"status":"paid","payment_id":"rp_meta","amount":"300.00","metadata":{"telegram_id":"123","product":"premium_30d","channel":"site"}}`)
+	timestamp := "1700000100"
+	req := httptest.NewRequest(http.MethodPost, "/rollypay/webhook/site", strings.NewReader(string(body)))
+	req.Header.Set("X-Timestamp", timestamp)
+	req.Header.Set("X-Signature", rollyPaySignature(body, timestamp, "secret"))
+	rec := httptest.NewRecorder()
+
+	b.handleRollyPayWebhook(rec, req, rollyPayChannelWeb)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body=%s", rec.Code, rec.Body.String())
+	}
+	refreshed, err := store.getOrCreateUser(user.TelegramID, user.FirstName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !refreshed.isPremium(time.Now()) || refreshed.Plan != "premium" {
+		t.Fatalf("premium not activated from metadata: %+v", refreshed)
+	}
+	if refreshed.LastPaymentChargeID != "rollypay:rp_meta" {
+		t.Fatalf("charge id = %q", refreshed.LastPaymentChargeID)
+	}
+}
+
+func rollyPaySignature(body []byte, timestamp string, secret string) string {
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(timestamp))
+	mac.Write([]byte("."))
+	mac.Write(body)
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 func TestPremiumStarsStartPayloadBuildsTelegramDeepLink(t *testing.T) {

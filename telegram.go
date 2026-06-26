@@ -1072,12 +1072,15 @@ func premiumPlanChoiceButtonText(plan premiumPlan, yooKassaEnabled bool, cryptoM
 	return text + " / " + strings.Join(methodLabels, ", ")
 }
 
-func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, cryptoMethods []cryptoPaymentMethod, plan premiumPlan, user userState) map[string]any {
+func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, rollyPayEnabled bool, cryptoMethods []cryptoPaymentMethod, plan premiumPlan, user userState) map[string]any {
 	copy := ui(user)
 	premiumCopy := premiumUI(user)
 	rows := [][]map[string]any{}
 	if plan.StarsPrice > 0 {
 		rows = append(rows, []map[string]any{{"text": fmt.Sprintf(premiumCopy.PayStarsButton, plan.StarsPrice), "callback_data": "buy_stars|" + plan.Product}})
+	}
+	if rollyPayEnabled && plan.RubPrice > 0 {
+		rows = append(rows, []map[string]any{{"text": "RollyPay", "callback_data": "buy_rollypay|" + plan.Product}})
 	}
 	if yooKassaEnabled && plan.RubPrice > 0 {
 		rows = append(rows, []map[string]any{{"text": premiumCopy.PaySBPButton, "callback_data": "buy_yookassa|" + plan.Product}})

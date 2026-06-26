@@ -92,6 +92,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
       setLoading(false);
     }
   };
+  const visibleLabel = error ? "Audio unavailable" : loading ? "Loading..." : label;
 
   return (
     <button
@@ -100,12 +101,14 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
       onClick={() => void play()}
       disabled={loading || (!wordId && !text.trim())}
       aria-busy={loading}
+      title={error || label}
     >
       <span className="audio-wave-button-v2__icon">
         {loading ? <Loader2 className="audio-wave-button-v2__loader" size={compact ? 22 : 30} /> : playing ? <PauseCircle size={compact ? 24 : 32} fill="currentColor" /> : <PlayCircle size={compact ? 24 : 32} fill="currentColor" />}
       </span>
       <span className="audio-wave-button-v2__meta">
-        <small><Volume2 size={12} />{error || (loading ? "Loading..." : label)}</small>
+        <small><Volume2 size={12} />{visibleLabel}</small>
+        {error ? <em className="audio-wave-button-v2__error">{error}</em> : null}
         <span className="audio-wave-button-v2__waves" aria-hidden="true">
           {variants.map((variant, index) => (
             <motion.i

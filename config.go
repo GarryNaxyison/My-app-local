@@ -44,6 +44,13 @@ type config struct {
 	WebYooKassaSecretKey              string
 	YooKassaReturnURL                 string
 	YooKassaWebhookKey                string
+	RollyPayBotCashboxID              string
+	RollyPayBotAPIKey                 string
+	RollyPayWebCashboxID              string
+	RollyPayWebAPIKey                 string
+	RollyPayAPIBaseURL                string
+	RollyPayCreatePaymentPath         string
+	RollyPayWebhookSecret             string
 	WebhookListenAddr                 string
 	WebAPISessionSecret               string
 	WebCORSOrigins                    []string
@@ -122,6 +129,13 @@ func configFromEnv() (config, error) {
 		WebYooKassaSecretKey:              strings.TrimSpace(os.Getenv("WEB_YOOKASSA_SECRET_KEY")),
 		YooKassaReturnURL:                 strings.TrimSpace(os.Getenv("YOOKASSA_RETURN_URL")),
 		YooKassaWebhookKey:                strings.TrimSpace(os.Getenv("YOOKASSA_WEBHOOK_KEY")),
+		RollyPayBotCashboxID:              strings.TrimSpace(os.Getenv("ROLLYPAY_BOT_CASHBOX_ID")),
+		RollyPayBotAPIKey:                 strings.TrimSpace(os.Getenv("ROLLYPAY_BOT_API_KEY")),
+		RollyPayWebCashboxID:              strings.TrimSpace(os.Getenv("ROLLYPAY_WEB_CASHBOX_ID")),
+		RollyPayWebAPIKey:                 strings.TrimSpace(os.Getenv("ROLLYPAY_WEB_API_KEY")),
+		RollyPayAPIBaseURL:                envOrDefault("ROLLYPAY_API_BASE_URL", "https://rollypay.io"),
+		RollyPayCreatePaymentPath:         envOrDefault("ROLLYPAY_CREATE_PAYMENT_PATH", "/api/v1/payments"),
+		RollyPayWebhookSecret:             strings.TrimSpace(os.Getenv("ROLLYPAY_WEBHOOK_SECRET")),
 		WebhookListenAddr:                 envOrDefault("WEBHOOK_LISTEN_ADDR", ":8080"),
 		WebAPISessionSecret:               strings.TrimSpace(os.Getenv("WEB_API_SESSION_SECRET")),
 		WebCORSOrigins:                    envListOrDefault("WEB_CORS_ORIGINS", []string{"https://poliglot.ai", "https://www.poliglot.ai", "https://poliglotai.ru", "https://www.poliglotai.ru", "https://poliglotai.online", "https://www.poliglotai.online"}),
@@ -268,6 +282,28 @@ func (cfg config) webPaymentReturnURL() string {
 
 func (cfg config) webYooKassaEnabled() bool {
 	return cfg.webYooKassaShopID() != "" && cfg.webYooKassaSecretKey() != "" && cfg.webPaymentReturnURL() != ""
+}
+
+func (cfg config) rollyPayBotEnabled() bool {
+	return strings.TrimSpace(cfg.RollyPayBotCashboxID) != "" && strings.TrimSpace(cfg.RollyPayBotAPIKey) != ""
+}
+
+func (cfg config) rollyPayWebEnabled() bool {
+	return strings.TrimSpace(cfg.RollyPayWebCashboxID) != "" && strings.TrimSpace(cfg.RollyPayWebAPIKey) != ""
+}
+
+func (cfg config) rollyPayBotReturnURL() string {
+	if cfg.WebAppURL != "" {
+		return cfg.WebAppURL
+	}
+	return "https://poliglotai.online/app"
+}
+
+func (cfg config) rollyPayWebReturnURL() string {
+	if cfg.WebPaymentReturnURL != "" {
+		return cfg.WebPaymentReturnURL
+	}
+	return "https://poliglotai.online/app?payment=success&provider=rollypay"
 }
 
 func envOrDefault(name string, fallback string) string {

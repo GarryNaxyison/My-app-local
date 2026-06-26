@@ -162,6 +162,28 @@ func TestReactFrontendKeepsGoAPIContracts(t *testing.T) {
 	}
 }
 
+func TestReactFrontendLegalLinksFollowCurrentDomain(t *testing.T) {
+	appSource, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(appSource)
+	for _, want := range []string{
+		`function legalDocumentOrigin`,
+		`window.location.hostname`,
+		`poliglotai.ru`,
+		`poliglotai.online`,
+		`legalDocumentOrigin()`,
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("React legal link domain helper is missing %q", want)
+		}
+	}
+	if strings.Contains(source, "`https://poliglotai.online/${path}?lang=${encodeURIComponent(languageCode(language || \"ru\"))}`") {
+		t.Fatal("React legal links still hardcode poliglotai.online for every domain")
+	}
+}
+
 func TestReactFrontendPremiumAndTutorCopyRegressions(t *testing.T) {
 	page, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
 	if err != nil {

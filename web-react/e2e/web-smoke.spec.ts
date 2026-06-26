@@ -54,7 +54,9 @@ const roleplayScenarioIds = [
 
 const leaderboardItems = Array.from({ length: 12 }, (_, index) => ({
   name: index === 0 ? "Irina" : `Learner ${index + 1}`,
-  xp: 520 - index * 23,
+  score: 520 - index * 23,
+  rating_points: 520 - index * 23,
+  xp: 1200 - index * 35,
   words: 42 - index,
   mistakes: index % 3,
   level: index % 2 === 0 ? "B1" : "A2",
@@ -1714,30 +1716,45 @@ test("standalone listening hides the target text and leaves only audio playback"
 
 test("standalone listening reveals the heard phrase after the answer is checked", async ({ page }) => {
   usePremiumSession();
+  const phrases = ["Would you like to bring me some water now?", "Can I help you with your medicine later today?"];
+  let phraseIndex = 0;
+  await page.unroute("**/api/shadowing/start").catch(() => undefined);
+  await page.route("**/api/shadowing/start", (route) => {
+    const phrase = phrases[Math.min(phraseIndex, phrases.length - 1)];
+    phraseIndex += 1;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ phrase, target: phrase }),
+    });
+  });
   await page.unroute("**/api/shadowing/answer").catch(() => undefined);
   await page.route("**/api/shadowing/answer", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        feedback: "Почти верно: проверь запятую и please.",
-        transcript: "Could you repeat that please",
-        target: "Could you repeat that, please?",
-        correction_audio_text: "Could you repeat that, please?",
+        feedback: "Оценка: 25/100. Балл ограничен: сверяю распознанный текст с образцом.",
+        transcript: "Would you like to bring me some water now",
+        target: phrases[1],
+        correction_audio_text: phrases[1],
       }),
     }),
   );
   await page.goto("/app/?view=shadowing");
   const listeningPanel = page.locator(".chat-workspace--shadowing .task-box-v2");
   await expect(listeningPanel.locator(".audio-wave-button-v2")).toBeVisible();
-  await expect(listeningPanel).not.toContainText("Could you repeat that, please?");
+  await expect(listeningPanel).not.toContainText(phrases[0]);
 
-  await page.locator(".composer-panel-v2 textarea").fill("Could you repeat that please");
+  await page.locator(".composer-panel-v2 textarea").fill("Would you like to bring me some water now");
   await page.locator(".composer-panel-v2").getByRole("button", { name: /Send|Отправить|Надіслати/ }).click();
 
   const feedback = page.locator(".chat-workspace--shadowing .chat-interface");
-  await expect(feedback).toContainText("Почти верно");
-  await expect(feedback).toContainText("Could you repeat that, please?");
+  await expect(feedback).toContainText("Оценка: 25/100");
+  await expect(feedback).toContainText(phrases[0]);
+  await expect(feedback).not.toContainText(phrases[1]);
+  await expect.poll(() => phraseIndex).toBeGreaterThan(1);
+  await expect(listeningPanel).not.toContainText(phrases[1]);
 });
 
 test("pronunciation shows the text-to-pronounce block before the pronunciation summary", async ({ page }) => {
@@ -3454,8 +3471,8 @@ test("regression: paid Platinum subscription is marked as the current plan", asy
   const platinumCard = page.locator(".plan-card-v2").filter({ hasText: /Platinum 30/ }).first();
   await expect(freeCard).toBeVisible();
   await expect(platinumCard).toBeVisible();
-  await expect(freeCard.getByRole("button", { name: /Текущий план|Current plan/ })).toHaveCount(0);
-  await expect(platinumCard.getByRole("button", { name: /Текущий план|Current plan/ })).toBeVisible();
+  await expect(freeCard.locator(".plan-current-badge-v2")).toHaveCount(0);
+  await expect(platinumCard.locator(".plan-current-badge-v2")).toContainText(/Текущий план|Current plan/);
 });
 
 test("regression: phrasebook note field can add a manual note without a phrase", async ({ page }) => {
@@ -3724,6 +3741,8 @@ test("regression: mobile cards expand to fit text in leaderboard notes and offli
   await expect(page.locator(".context-display--leaderboard")).toBeVisible();
   await expect(page.locator(".context-display--leaderboard h2")).toContainText("Общий");
   await expect(page.locator(".leaderboard-select-v2")).toContainText("Общий");
+  await expect(page.locator(".leaderboard-row-v2").first()).toContainText("баллов");
+  await expect(page.locator(".leaderboard-row-v2").first()).not.toContainText("XP");
   await expectNoCardOverflow(".leaderboard-row-v2");
   const leaderboardClippedText = await page.locator(".leaderboard-row-v2").evaluateAll((nodes) =>
     nodes.flatMap((node, rowIndex) => {

@@ -188,6 +188,7 @@ export type SessionData = {
   learning_languages?: LanguageOption[];
   premium_plans?: PremiumPlan[];
   yookassa_enabled?: boolean;
+  rollypay_enabled?: boolean;
   crypto_enabled?: boolean;
   telegram_login_bot?: string;
   web_app_url?: string;
@@ -322,6 +323,7 @@ export type MistakeItem = {
 export type LeaderboardEntry = {
   name?: string;
   score?: number;
+  rating_points?: number;
   xp?: number;
   words?: number;
   mistakes?: number;

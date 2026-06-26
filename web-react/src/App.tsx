@@ -1260,6 +1260,13 @@ function formatPronunciationPlain(record: ApiRecord, copy: (key: string, fallbac
   return lines.join("\n");
 }
 
+function pronunciationHistoryText(report: PronunciationAssessment, copy: (key: string, fallback: string) => string) {
+  const feedback = cleanAppText(report.feedback || "");
+  const scorePattern = /^(?:Оценка|Score|Pronunciation|Произношение):\s*\d{1,3}\s*\/\s*100\.?\s*/i;
+  const cleaned = feedback.replace(scorePattern, "").trim();
+  return cleaned || cleanAppText(report.expected) || copy("pronunciation_history_empty", "Нет текстового комментария.");
+}
+
 type LearningRecordFormatOptions = {
   includeContext?: boolean;
   includeExample?: boolean;
@@ -2502,24 +2509,34 @@ export function App() {
   const submitShadowing = async () => {
     if (!requirePremiumFeature("premium_audio_required", "Listening is available with Premium.")) return;
     const text = draft.trim();
+    const submittedTarget = cleanAppText(shadowingTarget);
     if (!text && !voiceFile) {
       setStatus({ kind: "error", text: copy("add_input_first", "Add text, voice, or a practice photo first.") });
       return;
     }
-    const payload = await runAction("shadowing", () => apiForm<ApiRecord>("/api/shadowing/answer", buildShadowingForm(text, voiceFile, shadowingTarget)));
+    const payload = await runAction("shadowing", () => apiForm<ApiRecord>("/api/shadowing/answer", buildShadowingForm(text, voiceFile, submittedTarget)));
     if (!payload) return;
     const record = getRecord(payload);
-    const heardPhrase = cleanAppText(recordField(record, ["target", "phrase", "correction_audio_text", "correction"]) || shadowingTarget);
+    const heardPhrase = submittedTarget || cleanAppText(recordField(record, ["target", "phrase", "correction_audio_text", "correction"]));
+    const displayRecord = heardPhrase
+      ? { ...record, target: heardPhrase, phrase: heardPhrase, correction_audio_text: heardPhrase }
+      : record;
     let responseText = formatLearningRecord(record, copy, copy("answer_checked", "Answer checked."));
     if (heardPhrase && !responseText.includes(heardPhrase)) {
       responseText = [responseText, `${copy("listening_heard_phrase", "Heard phrase")}: ${heardPhrase}`].filter(Boolean).join("\n\n");
     }
     const transcript = asText(record.transcript || text || (voiceFile ? copy("voice_message", "Voice message") : ""), "");
-    const nextMessages = [panelMessage(responseText, "success", copy("listening_feedback", "Listening feedback"), record, "shadowing")];
+    const nextMessages = [panelMessage(responseText, "success", copy("listening_feedback", "Listening feedback"), displayRecord, "shadowing")];
     if (transcript) nextMessages.push({ id: `${Date.now()}-shadowing-user`, role: "user", title: copy("you", "You"), body: transcript, meta: "shadowing" });
     setMessages((current) => [...nextMessages, ...current].slice(0, 12));
     setDraft("");
     setVoiceFile(null);
+    const nextPayload = await runAction("shadowing-next", () => api<ApiRecord>("/api/shadowing/start", { method: "POST", body: { previous: heardPhrase } }), copy("phrase_ready", "Phrase is ready."));
+    if (nextPayload) {
+      const nextRecord = getRecord(nextPayload);
+      const nextTarget = cleanAppText(nextRecord.target || nextRecord.phrase || nextRecord.text || nextRecord.message);
+      if (nextTarget) setShadowingTarget(nextTarget);
+    }
   };
 
   const startPronunciation = async () => {
@@ -2897,13 +2914,15 @@ export function App() {
     setView("premium");
   };
 
-  const startPremiumPayment = async (plan: PremiumPlan, method: "card" | "stars" | "crypto", cryptoMethod?: string) => {
+  const startPremiumPayment = async (plan: PremiumPlan, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string) => {
     const endpoint =
       method === "card"
         ? "/api/premium/payment"
-        : method === "stars"
-          ? "/api/premium/stars"
-          : "/api/premium/crypto/payment";
+        : method === "rollypay"
+          ? "/api/premium/rollypay"
+          : method === "stars"
+            ? "/api/premium/stars"
+            : "/api/premium/crypto/payment";
     const payload = await runAction(`premium-${method}`, () =>
       api<ApiRecord>(endpoint, { method: "POST", body: method === "crypto" ? { product: plan.product, method: cryptoMethod || "ton" } : { product: plan.product } }),
     );
@@ -3368,6 +3387,7 @@ export function App() {
         {payment ? (
           <PaymentModal
             payment={payment}
+            rollypayEnabled={session?.rollypay_enabled ?? false}
             copy={copy}
             busy={busy}
             onClose={() => setPayment(null)}
@@ -3753,8 +3773,21 @@ function languageCode(code?: string) {
   return (code || "en").split("-")[0].toLowerCase();
 }
 
+function legalDocumentOrigin() {
+  const fallback = "https://poliglotai.online";
+  if (typeof window === "undefined") return fallback;
+  const hostname = window.location.hostname.toLowerCase();
+  if (hostname === "poliglotai.ru" || hostname === "www.poliglotai.ru") {
+    return "https://poliglotai.ru";
+  }
+  if (hostname === "poliglotai.online" || hostname === "www.poliglotai.online") {
+    return "https://poliglotai.online";
+  }
+  return fallback;
+}
+
 function legalDocumentURL(path: "privacy.html" | "consent.html" | "agreement.html" | "terms.html", language: string) {
-  return `https://poliglotai.online/${path}?lang=${encodeURIComponent(languageCode(language || "ru"))}`;
+  return `${legalDocumentOrigin()}/${path}?lang=${encodeURIComponent(languageCode(language || "ru"))}`;
 }
 
 function AppCookieConsentBanner({ language }: { language: string }) {
@@ -5118,6 +5151,7 @@ function OnboardingDialog({
 
 function PaymentModal({
   payment,
+  rollypayEnabled,
   copy,
   busy,
   onClose,
@@ -5125,10 +5159,11 @@ function PaymentModal({
   onCheckPayment,
 }: {
   payment: PaymentState;
+  rollypayEnabled: boolean;
   copy: (key: string, fallback: string) => string;
   busy: string | null;
   onClose: () => void;
-  onPay: (method: "card" | "stars" | "crypto", cryptoMethod?: string) => void;
+  onPay: (method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string) => void;
   onCheckPayment: (paymentID: string) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState("");
@@ -5166,7 +5201,7 @@ function PaymentModal({
     return "";
   })();
   const isConfirmed = /paid|confirmed|success|succeed|complete/i.test(status);
-  const chooseMethod = (key: string, method: "card" | "stars" | "crypto", cryptoMethod?: string) => {
+  const chooseMethod = (key: string, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string) => {
     setSelectedMethod(key);
     onPay(method, cryptoMethod);
   };
@@ -5207,6 +5242,16 @@ function PaymentModal({
             onClick={() => chooseMethod("card", "card")}
             className={cn("payment-method-button-v2", selectedMethod === "card" && "is-selected")}
           />
+          {rollypayEnabled ? (
+            <MorphButton
+              text="RollyPay"
+              icon={<CircleDollarSign size={18} />}
+              variant="secondary"
+              isLoading={selectedMethod === "rollypay" && !isConfirmed}
+              onClick={() => chooseMethod("rollypay", "rollypay")}
+              className={cn("payment-method-button-v2", selectedMethod === "rollypay" && "is-selected")}
+            />
+          ) : null}
           <MorphButton
             text={copy("pay_stars", "Telegram Stars")}
             icon={<Star size={18} />}
@@ -6430,7 +6475,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   const reports = mergePronunciationHistory(liveReports, storedReports);
   const latest = reports[0];
   const score = normalizedPronunciationScore(latest);
-  const defaultTarget = cleanAppText(pronunciationTarget || latest?.expected || shadowingTarget || pronunciationPracticeFallback(user, copy));
+  const defaultTarget = cleanAppText(pronunciationTarget || pronunciationPracticeFallback(user, copy));
   const problemWords = uniquePronunciationProblems(reports.flatMap((report) => report.problem_words || []));
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
   const tokens = compactPronunciationMap(uniquePronunciationProblems(problemWords.length ? problemWords : fallbackWords), user, copy);
@@ -6440,6 +6485,10 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
     if (!pronunciationTarget && !busy) void startPronunciation();
   }, [Boolean(pronunciationTarget), Boolean(busy)]);
   const activeTarget = cleanAppText(pronunciationTarget || defaultTarget);
+  useEffect(() => {
+    setPracticeResult(null);
+    setVoiceFile(null);
+  }, [pronunciationTarget]);
   const checkPronunciation = async () => {
     const record = await submitPronunciation(activeTarget);
     const result = pronunciationFrom(record || {});
@@ -6527,7 +6576,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
             <div key={index}>
               <span>{copy("attempt", "Попытка")} {index + 1}</span>
               <strong>{normalizedPronunciationScore(report)}/100</strong>
-              <small>{report.feedback || report.expected || ""}</small>
+              <small>{pronunciationHistoryText(report, copy)}</small>
             </div>
           ))}
           {!reports.length ? <p>{copy("no_pronunciation_history", "История появится после голосовых ответов.")}</p> : null}
@@ -7776,11 +7825,11 @@ function LeaderboardView({ leaderboard, leaderboardMeta, leaderboardLanguage, se
         </div>
       </div>
       <div className="leaderboard-v2">
-        {(leaderboard.length ? leaderboard : [{ name: copy("load_leaderboard", "Load leaderboard"), xp: 0 }]).slice(0, 10).map((entry, index) => (
+        {(leaderboard.length ? leaderboard : [{ name: copy("load_leaderboard", "Load leaderboard"), score: 0 }]).slice(0, 10).map((entry, index) => (
           <div className="leaderboard-row-v2" key={`${entry.name || index}-${index}`}>
             <span>{index + 1}</span>
             <strong>{entry.name || entry.title || copy("learner", "Learner")}<small>{entry.level || ""}</small></strong>
-            <em>{compactNumber(entry.xp || entry.score || 0)} XP - {compactNumber(entry.words || 0)} {copy("words_count", "words")} - {compactNumber(entry.mistakes || 0)} {copy("mistakes", "Mistakes")}</em>
+            <em>{compactNumber(entry.rating_points || entry.score || 0)} {copy("rating_points", "баллов")} - {compactNumber(entry.words || 0)} {copy("words_count", "words")} - {compactNumber(entry.mistakes || 0)} {copy("mistakes", "Mistakes")}</em>
             {leaderboardLanguage === "global" ? <small className="leaderboard-languages-v2">{leaderboardLanguages(entry, languages, copy)}</small> : null}
           </div>
         ))}
@@ -7794,8 +7843,26 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
     void loadPremiumPlans();
   }, [user.interface_language]);
   const plans = premiumPlanCatalog(premiumPlans, copy);
+  const premiumUntil = asText(user.premium_until, "");
+  const currentPlan = asText(user.plan, "");
+  const displayPlan = currentPlan || copy("base_plan", "Basic");
+  const isPremiumActive = Boolean(user.premium);
   return (
     <div className="premium-grid-v2">
+      <section className="v2-panel premium-status-v2">
+        <span className="eyebrow">{copy("current_plan", "Current plan")}</span>
+        <h2>{isPremiumActive ? copy("premium", "Premium") : copy("base_plan", "Basic")}</h2>
+        <div className="premium-status-v2__meta">
+          <p>
+            <span>{copy("tariff", "Tariff")}</span>
+            <strong>{displayPlan}</strong>
+          </p>
+          <p>
+            <span>{copy("premium_until", "Premium until")}</span>
+            <strong>{premiumUntil ? prettyDate(premiumUntil) : copy("not_active", "Not active")}</strong>
+          </p>
+        </div>
+      </section>
       {plans.map((plan) => {
         const isFree = premiumPlanIsFree(plan);
         const isCurrent = premiumPlanIsCurrent(plan, user);
@@ -7805,6 +7872,12 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
         <section className={cn("v2-panel plan-card-v2", isFree && "is-free", isCurrent && "is-current", premiumPlanIsPlatinum(plan) && "is-platinum")} key={plan.product} aria-current={isCurrent ? "true" : undefined}>
           <span>{premiumPlanLabel(plan, copy)}</span>
           <h2>{premiumPlanTitle(plan, copy)}</h2>
+          {isCurrent ? (
+            <span className="plan-current-badge-v2">
+              <CheckCircle size={14} />
+              {copy("current_plan", "Current plan")}
+            </span>
+          ) : null}
           <strong>{isFree ? copy("free_plan_price", "Included") : plan.rub_price ? `${plan.rub_price} RUB` : plan.usdt_price ? `${plan.usdt_price} USDT` : copy("available", "Available")}</strong>
           <p>{premiumPlanBody(plan, copy)}</p>
           <ul className="plan-features-v2">

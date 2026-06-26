@@ -218,6 +218,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/progress", api.handleProgress)
 	mux.HandleFunc("/api/premium/plans", api.handlePremiumPlans)
 	mux.HandleFunc("/api/premium/payment", api.handlePremiumPayment)
+	mux.HandleFunc("/api/premium/rollypay", api.handlePremiumRollyPayPayment)
 	mux.HandleFunc("/api/premium/stars", api.handlePremiumStarsPayment)
 	mux.HandleFunc("/api/premium/crypto/payment", api.handleCryptoPremiumPayment)
 	mux.HandleFunc("/api/premium/crypto/check", api.handleCryptoPremiumCheck)
@@ -239,6 +240,10 @@ func (api *webAPI) webYooKassaClient() *yooKassaClient {
 
 func (api *webAPI) webYooKassaReady() bool {
 	return api.webYooKassaClient() != nil && api.cfg.webYooKassaEnabled()
+}
+
+func (api *webAPI) webRollyPayReady() bool {
+	return api != nil && api.bot != nil && api.bot.rollyPayWeb != nil && api.cfg.rollyPayWebEnabled()
 }
 
 func (api *webAPI) withCORS(next http.Handler) http.Handler {
@@ -4014,9 +4019,10 @@ func (api *webAPI) handlePremiumPlans(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"enabled":        api.webYooKassaReady(),
-		"crypto_enabled": api.bot.cryptoPaymentsReady(),
-		"plans":          api.premiumPlansDTO(user),
+		"enabled":          api.webYooKassaReady(),
+		"rollypay_enabled": api.webRollyPayReady(),
+		"crypto_enabled":   api.bot.cryptoPaymentsReady(),
+		"plans":            api.premiumPlansDTO(user),
 	})
 }
 
@@ -4055,6 +4061,45 @@ func (api *webAPI) handlePremiumPayment(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"payment_id":       payment.ID,
 		"confirmation_url": payment.Confirmation.ConfirmationURL,
+	})
+}
+
+func (api *webAPI) handlePremiumRollyPayPayment(w http.ResponseWriter, r *http.Request) {
+	if !allowMethod(w, r, http.MethodPost) {
+		return
+	}
+	user, err := api.currentUser(w, r)
+	if err != nil {
+		api.writeCurrentUserError(w, err)
+		return
+	}
+	if !api.webRollyPayReady() {
+		writeAPIError(w, http.StatusServiceUnavailable, "RollyPay payment is not configured yet.")
+		return
+	}
+	var req struct {
+		Product string `json:"product"`
+	}
+	if !decodeJSONRequest(w, r, &req) {
+		return
+	}
+	plan, ok := api.bot.premiumPlan(req.Product)
+	if !ok {
+		writeAPIError(w, http.StatusBadRequest, "unknown product")
+		return
+	}
+	plan = localizedPremiumPlan(user, plan)
+	returnURL := api.cfg.rollyPayWebReturnURL()
+	payment, err := api.bot.rollyPayWeb.createPremiumPayment(r.Context(), user, plan, rollyPayChannelWeb, returnURL, returnURL, time.Now())
+	if err != nil {
+		writeAPIError(w, http.StatusBadGateway, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"payment_id":       payment.ID,
+		"confirmation_url": payment.URL,
+		"provider":         "rollypay",
+		"status":           payment.Status,
 	})
 }
 
@@ -4424,6 +4469,7 @@ func (api *webAPI) sessionPayload(user userState) map[string]any {
 		"learning_languages":  webLanguageDTOs(learningLanguages),
 		"premium_plans":       api.premiumPlansDTO(user),
 		"yookassa_enabled":    api.webYooKassaReady(),
+		"rollypay_enabled":    api.webRollyPayReady(),
 		"crypto_enabled":      api.bot.cryptoPaymentsReady(),
 		"captcha":             api.webCaptchaDTO(),
 		"telegram_login_bot":  api.cfg.WebTelegramLoginBot,
@@ -4529,14 +4575,15 @@ func webLeaderboardDTO(entries []leaderboardEntry) []map[string]any {
 	result := make([]map[string]any, 0, len(entries))
 	for _, entry := range entries {
 		result = append(result, map[string]any{
-			"name":      entry.FirstName,
-			"score":     entry.Score,
-			"xp":        entry.Score,
-			"words":     entry.Words,
-			"mistakes":  entry.Mistakes,
-			"level":     entry.Level,
-			"title":     entry.Title,
-			"languages": entry.Languages,
+			"name":          entry.FirstName,
+			"score":         entry.Score,
+			"rating_points": entry.Score,
+			"xp":            entry.XP,
+			"words":         entry.Words,
+			"mistakes":      entry.Mistakes,
+			"level":         entry.Level,
+			"title":         entry.Title,
+			"languages":     entry.Languages,
 		})
 	}
 	return result
@@ -4560,11 +4607,12 @@ func webLanguageLeaderboardDTO(entries []languageLeaderboardEntry) []map[string]
 	result := make([]map[string]any, 0, len(entries))
 	for _, entry := range entries {
 		result = append(result, map[string]any{
-			"name":     entry.FirstName,
-			"score":    entry.Score,
-			"words":    entry.Words,
-			"mistakes": entry.Mistakes,
-			"level":    entry.Level,
+			"name":          entry.FirstName,
+			"score":         entry.Score,
+			"rating_points": entry.Score,
+			"words":         entry.Words,
+			"mistakes":      entry.Mistakes,
+			"level":         entry.Level,
 		})
 	}
 	return result
