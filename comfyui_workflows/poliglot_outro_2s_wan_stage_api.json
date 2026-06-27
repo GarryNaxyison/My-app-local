@@ -1,0 +1,225 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "poliglot_outro_reference_1080x1920.png"
+    }
+  },
+  "2": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ],
+      "upscale_method": "lanczos",
+      "width": 480,
+      "height": 832,
+      "crop": "center"
+    }
+  },
+  "17": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+      "type": "wan",
+      "device": "default"
+    }
+  },
+  "18": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "wan_2.1_vae.safetensors"
+    }
+  },
+  "19": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "wan2.1_i2v_480p_14B_fp8_scaled.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "20": {
+    "class_type": "ModelSamplingSD3",
+    "inputs": {
+      "model": [
+        "19",
+        0
+      ],
+      "shift": 5.0
+    }
+  },
+  "21": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "17",
+        0
+      ],
+      "text": "2-second vertical TikTok/Reels/Shorts outro for Poliglot AI, starting from the supplied branded end-card.\nMotion: quick premium logo pop-in feel, subtle push-in, sapphire gem glint, mint orbit ribbon gently waves, soft light sweep passes behind the URL, tiny particle sparkle around the logo, smooth energetic finish.\nKeep the exact logo and the exact visible text \"poliglotAI.online\" stable and readable. No new captions, no extra words, no people, no UI screens, no watermark."
+    }
+  },
+  "22": {
+    "class_type": "CLIPTextEncode",
+    "inputs": {
+      "clip": [
+        "17",
+        0
+      ],
+      "text": "misspelled URL, wrong text, extra text, subtitles, captions, watermark, duplicated logo, distorted logo, deformed letters, fake letters, unreadable text, random words, people, hands, faces, flags, app screenshots, low quality, jpeg artifacts, blur, flicker, noisy text, overexposed, bad composition, black frames"
+    }
+  },
+  "23": {
+    "class_type": "CLIPVisionLoader",
+    "inputs": {
+      "clip_name": "clip_vision_h.safetensors"
+    }
+  },
+  "24": {
+    "class_type": "CLIPVisionEncode",
+    "inputs": {
+      "clip_vision": [
+        "23",
+        0
+      ],
+      "image": [
+        "2",
+        0
+      ],
+      "crop": "center"
+    }
+  },
+  "25": {
+    "class_type": "WanImageToVideo",
+    "inputs": {
+      "positive": [
+        "21",
+        0
+      ],
+      "negative": [
+        "22",
+        0
+      ],
+      "vae": [
+        "18",
+        0
+      ],
+      "clip_vision_output": [
+        "24",
+        0
+      ],
+      "start_image": [
+        "2",
+        0
+      ],
+      "width": 480,
+      "height": 832,
+      "length": 33,
+      "batch_size": 1
+    }
+  },
+  "26": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": [
+        "20",
+        0
+      ],
+      "positive": [
+        "25",
+        0
+      ],
+      "negative": [
+        "25",
+        1
+      ],
+      "latent_image": [
+        "25",
+        2
+      ],
+      "seed": 624042101,
+      "steps": 12,
+      "cfg": 5.2,
+      "sampler_name": "uni_pc",
+      "scheduler": "simple",
+      "denoise": 1.0
+    }
+  },
+  "27": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": [
+        "26",
+        0
+      ],
+      "vae": [
+        "18",
+        0
+      ]
+    }
+  },
+  "28": {
+    "class_type": "FrameInterpolationModelLoader",
+    "inputs": {
+      "model_name": "rife_v4.26.safetensors"
+    }
+  },
+  "29": {
+    "class_type": "FrameInterpolate",
+    "inputs": {
+      "interp_model": [
+        "28",
+        0
+      ],
+      "images": [
+        "27",
+        0
+      ],
+      "multiplier": 2
+    }
+  },
+  "30": {
+    "class_type": "EmptyAudio",
+    "inputs": {
+      "duration": 2.062,
+      "sample_rate": 44100,
+      "channels": 2
+    }
+  },
+  "31": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": [
+        "29",
+        0
+      ],
+      "fps": 32,
+      "audio": [
+        "30",
+        0
+      ]
+    }
+  },
+  "32": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": [
+        "31",
+        0
+      ],
+      "filename_prefix": "outro/poliglot_outro_2s_api",
+      "format": "mp4",
+      "codec": "auto"
+    }
+  },
+  "33": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": [
+        "2",
+        0
+      ],
+      "filename_prefix": "outro/poliglot_outro_2s_reference"
+    }
+  }
+}

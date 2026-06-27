@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 2026-06-27
+
+- Added a dedicated Poliglot AI 2-second TikTok/Reels/Shorts outro pack for ComfyUI: FLUX.2 keyframe prompt, Wan 2.1 I2V prompt, native ComfyUI workflow, API prompt, exact `poliglotAI.online` reference card, silent audio placeholder, and an API runner script.
+- Copied the outro workflow and input reference files into the local ComfyUI workspace so the insert can be opened in ComfyUI Desktop or queued through the API without downloading new models.
+
 ## 2026-05-30
 
 - Fixed auth/register system errors so backend responses include stable auth error codes, the React login page translates those errors through the V2 localization layer, and invalid login messages no longer fall back to generic `Р Р°Р·РґРµР»`/`Section` labels. Added regression coverage proving `friend.name` is valid while `.friend` returns a clear coded error.

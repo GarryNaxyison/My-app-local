@@ -11,6 +11,12 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `test_variants/` - ComfyUI workflow variants for the first two tests.
 - `run_two_test_ads.mjs` - queues the first two visual test clips through a running ComfyUI API server.
 - `build_ad_shorts_workflow.py` - regenerates the workflow and placeholder ComfyUI input files.
+- `build_poliglot_outro_workflow.py` - builds the 2-second Poliglot AI outro workflow, exact URL reference card, and silent audio placeholder.
+- `poliglot_outro_2s_prompt.md` - final FLUX.2/Wan prompts for the Shorts/Reels/TikTok end insert.
+- `poliglot_outro_2s_native.json` - native ComfyUI Desktop workflow for the 2-second end insert.
+- `poliglot_outro_2s_wan_stage_api.json` - API prompt for queueing the same 2-second outro through a running ComfyUI server.
+- `poliglot_outro_reference_1080x1920.png` - exact brand/logo/URL start card copied into ComfyUI input.
+- `run_poliglot_outro_2s.mjs` - queues the outro API prompt and writes the generated MP4 path to `tmp/comfy-outro`.
 - `install_ad_short_models.ps1` - downloads only missing compact video/interpolation models.
 - `model_manifest.json` - model inventory and disk budget.
 
@@ -42,6 +48,28 @@ The first two tests intentionally cover both interface styles:
 
 - desktop web app on a laptop with presenter;
 - mobile web voice/pronunciation screen on a smartphone with presenter.
+
+## 2s Outro
+
+Regenerate the outro workflow and input files:
+
+```powershell
+python .\comfyui_workflows\build_poliglot_outro_workflow.py
+```
+
+Open this workflow in ComfyUI Desktop:
+
+```text
+C:\Users\Admin\Documents\ComfyUI\user\default\workflows\poliglot_outro_2s_native.json
+```
+
+Or queue it through a running ComfyUI API server:
+
+```powershell
+node .\comfyui_workflows\run_poliglot_outro_2s.mjs
+```
+
+The outro uses `poliglot_outro_reference_1080x1920.png` as the exact logo and `poliglotAI.online` text lock. Keep motion subtle; if the generated video bends the URL, use the generated MP4 as the moving background and overlay the exact reference logo/text in the editor.
 
 ## Chain
 
