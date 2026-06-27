@@ -75,7 +75,6 @@ func (c *rollyPayClient) createPremiumPayment(ctx context.Context, user userStat
 	payload := map[string]any{
 		"amount":           fmt.Sprintf("%.2f", float64(plan.RubPrice)),
 		"payment_currency": "RUB",
-		"payment_method":   "sbp",
 		"order_id":         orderID,
 		"terminal_id":      c.cashboxID,
 		"description":      plan.Title + " - POLIGLOT AI",

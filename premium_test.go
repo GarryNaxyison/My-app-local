@@ -372,7 +372,6 @@ func TestRollyPayClientUsesDocumentedPaymentContract(t *testing.T) {
 	for key, want := range map[string]any{
 		"amount":               "300.00",
 		"payment_currency":     "RUB",
-		"payment_method":       "sbp",
 		"order_id":             "premium_30d_42_1700000000",
 		"terminal_id":          "terminal-123",
 		"customer_id":          "42",
@@ -385,6 +384,9 @@ func TestRollyPayClientUsesDocumentedPaymentContract(t *testing.T) {
 	}
 	if _, ok := gotPayload["cashbox_id"]; ok {
 		t.Fatalf("unexpected cashbox_id in payload: %#v", gotPayload)
+	}
+	if _, ok := gotPayload["payment_method"]; ok {
+		t.Fatalf("unexpected fixed payment_method in payload: %#v", gotPayload)
 	}
 	if payment.ID != "pay_123" || payment.URL != "https://pay.rollypay.io/pay/tok_123" || payment.Status != "created" {
 		t.Fatalf("unexpected payment: %+v", payment)
