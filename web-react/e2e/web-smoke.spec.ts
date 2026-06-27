@@ -3590,7 +3590,7 @@ test("regression: auth language menu is layered above privacy and captcha blocks
   await expect(page.locator(".auth-privacy-v2 a[href*='agreement.html']")).toBeVisible();
 });
 
-test("web app always shows cookie consent banner and saves choices", async ({ page, isMobile }) => {
+test("web app hides cookie consent banner after saving choices", async ({ page, isMobile }) => {
   test.setTimeout(60_000);
 
   await mockAnonymousAuth(page);
@@ -3620,12 +3620,13 @@ test("web app always shows cookie consent banner and saves choices", async ({ pa
     expect(bannerBox.right).toBeLessThanOrEqual(bannerBox.viewportWidth - 12);
     expect(bannerBox.computedLeft).not.toBe("auto");
   }
+  await expect(banner.locator("[data-app-cookie='settings']")).toBeVisible();
   await banner.getByRole("button", { name: /Accept|Принять/ }).click();
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("poliglot-app-cookie-consent"))).toBe("accepted");
-  await expect(banner).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("poliglot-app-cookie-consent"))).toContain("analyticsMarketing");
+  await expect(banner).toBeHidden();
   await page.evaluate(() => localStorage.removeItem("poliglot-test-show-cookie-banner"));
   await page.goto("/app/login", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".app-cookie-consent-banner")).toBeVisible();
+  await expect(page.locator(".app-cookie-consent-banner")).toBeHidden();
 });
 
 test("main mobile and desktop views have scrollable output without mojibake", async ({ page, isMobile }) => {

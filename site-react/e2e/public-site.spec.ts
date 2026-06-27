@@ -318,7 +318,7 @@ test("cookie banner lets users configure optional cookies", async ({ page }) => 
   await expect(optionalSwitch).toHaveAttribute("aria-checked", "true");
 
   await banner.getByRole("button", { name: "Сохранить выбор" }).click();
-  await expect(banner).toBeVisible();
+  await expect(banner).toBeHidden();
 
   const storedConsent = await page.evaluate(() => localStorage.getItem("poliglot-cookie-consent"));
   expect(JSON.parse(storedConsent || "{}")).toEqual({
@@ -328,15 +328,15 @@ test("cookie banner lets users configure optional cookies", async ({ page }) => 
   });
 
   await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".cookie-consent-banner")).toBeVisible();
+  await expect(page.locator(".cookie-consent-banner")).toBeHidden();
 });
 
-test("cookie banner remains visible with legacy saved consent values", async ({ page }) => {
+test("cookie banner stays hidden with legacy saved consent values", async ({ page }) => {
   for (const legacyValue of ["necessary", "accepted"]) {
     await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
     await page.evaluate((value) => localStorage.setItem("poliglot-cookie-consent", value), legacyValue);
     await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
-    await expect(page.locator(".cookie-consent-banner")).toBeVisible();
+    await expect(page.locator(".cookie-consent-banner")).toBeHidden();
   }
 });
 
@@ -805,9 +805,9 @@ test("legal document package exposes operator details and cookie opt-in", async 
   await expect(banner.getByRole("button", { name: "Только необходимые" })).toBeVisible();
   await expect(banner.getByRole("button", { name: "Принять все cookie" })).toBeVisible();
   await banner.getByRole("button", { name: "Принять все cookie" }).click();
-  await expect(banner).toBeVisible();
+  await expect(banner).toBeHidden();
   await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".cookie-consent-banner")).toBeVisible();
+  await expect(page.locator(".cookie-consent-banner")).toBeHidden();
 });
 
 test("production public-site output keeps all image and localization assets for deploy", async ({ page, request }) => {

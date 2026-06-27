@@ -55,6 +55,13 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    ym?: (...args: unknown[]) => void;
+  }
+}
 import { ApiError, api, apiForm, loadSession, logout } from "./lib/api";
 import type {
   AiTutorResponse,
@@ -3796,18 +3803,109 @@ function legalDocumentURL(path: "privacy.html" | "consent.html" | "agreement.htm
   return `${legalDocumentOrigin()}/${path}?lang=${encodeURIComponent(languageCode(language || "ru"))}`;
 }
 
+type AppCookieConsentChoice = {
+  version: 1;
+  necessary: true;
+  analyticsMarketing: boolean;
+};
+
+type MetrikaFunction = ((...args: unknown[]) => void) & {
+  a?: unknown[][];
+  l?: number;
+};
+
+const appCookieConsentStorageKey = "poliglot-app-cookie-consent";
+const appYandexMetrikaId = 109326597;
+
+function serializeAppCookieConsent(analyticsMarketing: boolean) {
+  const choice: AppCookieConsentChoice = {
+    version: 1,
+    necessary: true,
+    analyticsMarketing,
+  };
+
+  return JSON.stringify(choice);
+}
+
+function parseCookieConsent(value: string | null): { saved: boolean; analyticsMarketing: boolean } {
+  if (!value) return { saved: false, analyticsMarketing: false };
+  if (value === "accepted") return { saved: true, analyticsMarketing: true };
+  if (value === "necessary") return { saved: true, analyticsMarketing: false };
+
+  try {
+    const parsed = JSON.parse(value) as Partial<AppCookieConsentChoice>;
+    if (parsed.version === 1 && parsed.necessary === true) {
+      return { saved: true, analyticsMarketing: parsed.analyticsMarketing === true };
+    }
+  } catch {
+    return { saved: false, analyticsMarketing: false };
+  }
+
+  return { saved: false, analyticsMarketing: false };
+}
+
+function loadYandexMetrika(counterId: number) {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const existing = document.querySelector(`script[data-yandex-metrika-id="${counterId}"]`);
+  if (existing) return;
+
+  window.dataLayer = window.dataLayer || [];
+  const metrika = window as Window & { ym?: MetrikaFunction };
+  metrika.ym =
+    metrika.ym ||
+    function ymStub(...args: unknown[]) {
+      const queue = (metrika.ym as MetrikaFunction);
+      queue.a = queue.a || [];
+      queue.a.push(args);
+    };
+  metrika.ym.l = Date.now();
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://mc.yandex.ru/metrika/tag.js?id=${counterId}`;
+  script.dataset.yandexMetrikaId = String(counterId);
+  document.head.appendChild(script);
+
+  metrika.ym(counterId, "init", {
+    ssr: true,
+    webvisor: true,
+    clickmap: true,
+    ecommerce: "dataLayer",
+    referrer: document.referrer,
+    url: location.href,
+    accurateTrackBounce: true,
+    trackLinks: true,
+  });
+}
+
 function AppCookieConsentBanner({ language }: { language: string }) {
   const copy = useCallback((key: string, fallback: string) => appCopy(language, key, fallback), [language]);
   const privacyURL = legalDocumentURL("privacy.html", language);
   const consentURL = legalDocumentURL("consent.html", language);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [analyticsMarketing, setAnalyticsMarketing] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !parseCookieConsent(localStorage.getItem(appCookieConsentStorageKey)).saved;
+  });
 
-  const saveChoice = (value: string) => {
+  useEffect(() => {
+    const consent = parseCookieConsent(localStorage.getItem(appCookieConsentStorageKey));
+    setVisible(!consent.saved);
+    if (consent.analyticsMarketing) loadYandexMetrika(appYandexMetrikaId);
+  }, []);
+
+  const saveChoice = (value: string, allowAnalytics: boolean) => {
     try {
-      localStorage.setItem("poliglot-app-cookie-consent", value);
+      localStorage.setItem(appCookieConsentStorageKey, value);
     } catch {
       // The banner stays available even when storage is unavailable.
     }
+    setVisible(false);
+    if (allowAnalytics) loadYandexMetrika(appYandexMetrikaId);
   };
+
+  if (!visible) return null;
 
   return (
     <section className="app-cookie-consent-banner" aria-label={copy("cookie_consent_title", "Cookie consent")}>
@@ -3818,10 +3916,39 @@ function AppCookieConsentBanner({ language }: { language: string }) {
           <a href={privacyURL} target="_blank" rel="noreferrer">{copy("auth_privacy_policy", "Privacy policy")}</a>
           <a href={consentURL} target="_blank" rel="noreferrer">{copy("auth_personal_data_consent", "Personal data consent")}</a>
         </nav>
+        {settingsOpen && (
+          <div className="app-cookie-consent-banner__settings" aria-label={copy("cookie_settings", "Cookie settings")}>
+            <div className="app-cookie-consent-banner__setting-row">
+              <div>
+                <strong>{copy("cookie_necessary_title", "Necessary")}</strong>
+                <span>{copy("cookie_necessary_body", "Always active for login, security, language, and saved consents.")}</span>
+              </div>
+              <span>{copy("cookie_always_active", "Always active")}</span>
+            </div>
+            <div className="app-cookie-consent-banner__setting-row">
+              <div>
+                <strong>{copy("cookie_analytics_title", "Analytics and marketing")}</strong>
+                <span>{copy("cookie_analytics_body", "Yandex Metrika and similar tools help measure visits and improve the app after consent.")}</span>
+              </div>
+              <button
+                type="button"
+                className="app-cookie-consent-banner__switch"
+                role="switch"
+                aria-checked={analyticsMarketing}
+                aria-label={copy("cookie_analytics_title", "Analytics and marketing")}
+                onClick={() => setAnalyticsMarketing((value) => !value)}
+              >
+                <span />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="app-cookie-consent-banner__actions">
-        <button type="button" onClick={() => saveChoice("necessary")}>{copy("cookie_necessary", "Necessary only")}</button>
-        <button type="button" onClick={() => saveChoice("accepted")}>{copy("cookie_accept", "Accept all cookies")}</button>
+        <button type="button" onClick={() => saveChoice(serializeAppCookieConsent(false), false)}>{copy("cookie_necessary", "Necessary only")}</button>
+        <button type="button" data-app-cookie="settings" onClick={() => setSettingsOpen((value) => !value)}>{copy("cookie_settings", "Settings")}</button>
+        {settingsOpen && <button type="button" onClick={() => saveChoice(serializeAppCookieConsent(analyticsMarketing), analyticsMarketing)}>{copy("cookie_save_selected", "Save choice")}</button>}
+        <button type="button" onClick={() => saveChoice(serializeAppCookieConsent(true), true)}>{copy("cookie_accept", "Accept all cookies")}</button>
       </div>
     </section>
   );

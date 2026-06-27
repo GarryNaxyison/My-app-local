@@ -43,6 +43,8 @@ type LegalPageId = Exclude<PageId, "landing">;
 
 declare global {
   interface Window {
+    dataLayer?: unknown[];
+    ym?: (...args: unknown[]) => void;
     poliglotSiteI18n?: {
       apply: () => void;
       currentLanguage: () => string;
@@ -1053,7 +1055,13 @@ type CookieConsentChoice = {
   analyticsMarketing: boolean;
 };
 
+type MetrikaFunction = ((...args: unknown[]) => void) & {
+  a?: unknown[][];
+  l?: number;
+};
+
 const cookieConsentStorageKey = "poliglot-cookie-consent";
+const siteYandexMetrikaId = 109242081;
 
 function serializeCookieConsent(analyticsMarketing: boolean) {
   const choice: CookieConsentChoice = {
@@ -1065,21 +1073,86 @@ function serializeCookieConsent(analyticsMarketing: boolean) {
   return JSON.stringify(choice);
 }
 
+function parseCookieConsent(value: string | null): { saved: boolean; analyticsMarketing: boolean } {
+  if (!value) return { saved: false, analyticsMarketing: false };
+  if (value === "accepted") return { saved: true, analyticsMarketing: true };
+  if (value === "necessary") return { saved: true, analyticsMarketing: false };
+
+  try {
+    const parsed = JSON.parse(value) as Partial<CookieConsentChoice>;
+    if (parsed.version === 1 && parsed.necessary === true) {
+      return { saved: true, analyticsMarketing: parsed.analyticsMarketing === true };
+    }
+  } catch {
+    return { saved: false, analyticsMarketing: false };
+  }
+
+  return { saved: false, analyticsMarketing: false };
+}
+
+function loadYandexMetrika(counterId: number) {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const existing = document.querySelector(`script[data-yandex-metrika-id="${counterId}"]`);
+  if (existing) return;
+
+  window.dataLayer = window.dataLayer || [];
+  const metrika = window as Window & { ym?: MetrikaFunction };
+  metrika.ym =
+    metrika.ym ||
+    function ymStub(...args: unknown[]) {
+      const queue = (metrika.ym as MetrikaFunction);
+      queue.a = queue.a || [];
+      queue.a.push(args);
+    };
+  metrika.ym.l = Date.now();
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = `https://mc.yandex.ru/metrika/tag.js?id=${counterId}`;
+  script.dataset.yandexMetrikaId = String(counterId);
+  document.head.appendChild(script);
+
+  metrika.ym(counterId, "init", {
+    ssr: true,
+    webvisor: true,
+    clickmap: true,
+    ecommerce: "dataLayer",
+    referrer: document.referrer,
+    url: location.href,
+    accurateTrackBounce: true,
+    trackLinks: true,
+  });
+}
+
 function CookieConsentBanner() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analyticsMarketing, setAnalyticsMarketing] = useState(false);
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !parseCookieConsent(localStorage.getItem(cookieConsentStorageKey)).saved;
+  });
 
-  const saveChoice = (value: string) => {
+  useEffect(() => {
+    const consent = parseCookieConsent(localStorage.getItem(cookieConsentStorageKey));
+    setVisible(!consent.saved);
+    if (consent.analyticsMarketing) loadYandexMetrika(siteYandexMetrikaId);
+  }, []);
+
+  const saveChoice = (value: string, allowAnalytics: boolean) => {
     try {
       localStorage.setItem(cookieConsentStorageKey, value);
     } catch {
       // Ignore storage failures; the banner stays available for reading the legal links.
     }
+    setVisible(false);
+    if (allowAnalytics) loadYandexMetrika(siteYandexMetrikaId);
   };
 
-  const saveNecessary = () => saveChoice("necessary");
-  const saveAccepted = () => saveChoice(serializeCookieConsent(true));
-  const saveSelected = () => saveChoice(serializeCookieConsent(analyticsMarketing));
+  const saveNecessary = () => saveChoice(serializeCookieConsent(false), false);
+  const saveAccepted = () => saveChoice(serializeCookieConsent(true), true);
+  const saveSelected = () => saveChoice(serializeCookieConsent(analyticsMarketing), analyticsMarketing);
+
+  if (!visible) return null;
 
   return (
     <section className="cookie-consent-banner" aria-label="Cookie consent">
