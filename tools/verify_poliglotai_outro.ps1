@@ -5,13 +5,15 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$ScriptRoot = $PSScriptRoot
+$RepoRoot = Split-Path -Parent $ScriptRoot
 
 function Resolve-RepoPath {
   param([string]$Path)
   if ([System.IO.Path]::IsPathRooted($Path)) {
     return $Path
   }
-  return Join-Path (Get-Location) $Path
+  return Join-Path $RepoRoot $Path
 }
 
 function Assert-True {
@@ -38,8 +40,8 @@ function Assert-Equal {
 $videoFullPath = Resolve-RepoPath $VideoPath
 $previewFullPath = Resolve-RepoPath $PreviewPath
 
-Assert-True (Test-Path $videoFullPath) "Missing outro MP4: $videoFullPath"
-Assert-True (Test-Path $previewFullPath) "Missing outro preview PNG: $previewFullPath"
+Assert-True (Test-Path -Path $videoFullPath -PathType Leaf) "Missing outro MP4: $videoFullPath"
+Assert-True (Test-Path -Path $previewFullPath -PathType Leaf) "Missing outro preview PNG: $previewFullPath"
 
 $ffprobe = Get-Command ffprobe -ErrorAction SilentlyContinue
 Assert-True ($null -ne $ffprobe) "ffprobe is not available in PATH."
@@ -47,7 +49,15 @@ Assert-True ($null -ne $ffprobe) "ffprobe is not available in PATH."
 $probeRaw = & $ffprobe.Source -v error -print_format json -show_streams -show_format $videoFullPath
 Assert-True ($LASTEXITCODE -eq 0) "ffprobe failed for $videoFullPath"
 
-$probe = $probeRaw | ConvertFrom-Json
+$probe = $null
+try {
+  $probe = $probeRaw | ConvertFrom-Json
+} catch {
+  throw "ffprobe returned invalid JSON for $videoFullPath"
+}
+
+Assert-True ($null -ne $probe.format) "ffprobe output is missing format data for $videoFullPath"
+Assert-True ($null -ne $probe.format.duration -and [string]$probe.format.duration -ne "") "ffprobe output is missing format.duration for $videoFullPath"
 $videoStreams = @($probe.streams | Where-Object { $_.codec_type -eq "video" })
 $audioStreams = @($probe.streams | Where-Object { $_.codec_type -eq "audio" })
 Assert-Equal $videoStreams.Count 1 "MP4 must contain exactly one video stream."
@@ -61,9 +71,16 @@ Assert-Equal ([string]$video.codec_name) "h264" "Video codec mismatch."
 $duration = [double]::Parse([string]$probe.format.duration, [System.Globalization.CultureInfo]::InvariantCulture)
 Assert-True ($duration -ge 2.15 -and $duration -le 2.35) "Duration must be between 2.15 and 2.35 seconds. Actual: $duration"
 
-$frameRateParts = ([string]$video.avg_frame_rate).Split("/")
+$avgFrameRate = [string]$video.avg_frame_rate
+Assert-True (-not [string]::IsNullOrWhiteSpace($avgFrameRate)) "ffprobe output is missing avg_frame_rate for $videoFullPath"
+$frameRateParts = $avgFrameRate.Split("/")
 Assert-Equal $frameRateParts.Count 2 "Unexpected avg_frame_rate format."
-$frameRate = [double]::Parse($frameRateParts[0], [System.Globalization.CultureInfo]::InvariantCulture) / [double]::Parse($frameRateParts[1], [System.Globalization.CultureInfo]::InvariantCulture)
+$numerator = [string]$frameRateParts[0]
+$denominator = [string]$frameRateParts[1]
+Assert-True (-not [string]::IsNullOrWhiteSpace($numerator) -and -not [string]::IsNullOrWhiteSpace($denominator)) "Unexpected avg_frame_rate value for $videoFullPath"
+$denominatorValue = [double]::Parse($denominator, [System.Globalization.CultureInfo]::InvariantCulture)
+Assert-True ($denominatorValue -ne 0) "avg_frame_rate denominator must not be zero for $videoFullPath"
+$frameRate = [double]::Parse($numerator, [System.Globalization.CultureInfo]::InvariantCulture) / $denominatorValue
 Assert-True ([Math]::Abs($frameRate - 30.0) -lt 0.01) "Frame rate must be 30 fps. Actual: $frameRate"
 
 Add-Type -AssemblyName System.Drawing
