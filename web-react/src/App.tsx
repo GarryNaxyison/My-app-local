@@ -84,7 +84,7 @@ import { appCopy, appNavDescription, cleanAppText, translateViewDetails } from "
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
-import { TelegramIcon } from "./components/BrandIcons";
+import { InstagramIcon, TelegramIcon, TikTokIcon, YouTubeIcon } from "./components/BrandIcons";
 import { VoiceInput } from "./components/ui/voice-input";
 import { AudioWaveButton } from "./components/ui/audio-wave-button";
 import { AnimatedThemeToggle } from "./components/ui/animated-theme-toggle";
@@ -118,6 +118,12 @@ type ToolMode = "translator" | "voice" | "image";
 type TrainerTone = "success" | "warning" | "info";
 
 const aiRouterTelegramURL = "https://t.me/AiRouterRu_bot";
+
+const poliglotSocialLinks = [
+  { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
+  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
+  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+] as const;
 
 const dailyQuestTarget = {
   lesson: 2,
@@ -8131,6 +8137,19 @@ function SettingsView({
               setTelegramRequest(null);
             }}
           />
+        </section>
+        <section className="v2-panel settings-card-v2 settings-social-card-v2">
+          <span className="eyebrow">{copy("social_channels", "Social channels")}</span>
+          <h2>{copy("poliglot_social_title", "Follow Poliglot AI")}</h2>
+          <p>{copy("poliglot_social_body", "Short lessons, updates, and product tips.")}</p>
+          <div className="settings-social-links-v2" aria-label={copy("poliglot_social_title", "Follow Poliglot AI")}>
+            {poliglotSocialLinks.map(({ name, href, label, Icon }) => (
+              <a key={name} className={`settings-social-link-v2 settings-social-link-v2--${name.toLowerCase()}`} href={href} aria-label={label} target="_blank" rel="noreferrer">
+                <Icon />
+                <span>{name}</span>
+              </a>
+            ))}
+          </div>
         </section>
         <form className="v2-panel settings-card-v2" onSubmit={activateKey}>
           <span className="eyebrow">{copy("activation", "Activation")}</span>

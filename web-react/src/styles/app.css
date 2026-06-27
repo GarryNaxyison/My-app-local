@@ -3347,9 +3347,65 @@ select {
 .settings-side-stack-v2 {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
+  grid-auto-rows: auto;
   align-content: start;
   gap: 14px;
+}
+
+.settings-social-card-v2 p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.settings-social-links-v2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-social-link-v2 {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.settings-social-link-v2 svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
+.settings-social-link-v2:hover,
+.settings-social-link-v2:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 44%, var(--line));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-strong));
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.settings-social-link-v2--youtube svg {
+  color: #ff0000;
+}
+
+.settings-social-link-v2--instagram svg {
+  color: #ff0069;
+}
+
+.settings-social-link-v2--tiktok svg {
+  color: var(--text);
+  filter: drop-shadow(1px 0 #25f4ee) drop-shadow(-1px 0 #fe2c55);
 }
 
 .telegram-link-v2 {

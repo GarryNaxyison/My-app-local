@@ -115,6 +115,18 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
   await expect(page.locator(".hero-proof")).toContainText("35 languages");
   await expect(page.locator(".hero-proof")).toContainText("A1-C2");
+  const heroSocialLinks = page.locator(".landing-social-proof a");
+  await expect(page.locator(".landing-social-proof")).toContainText("Follow Poliglot AI");
+  await expect(page.locator(".landing-social-proof")).toContainText("Short lessons, product updates, and learning tips.");
+  await expect(heroSocialLinks).toHaveCount(3);
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("href", "https://www.youtube.com/@PoliglotAI");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("target", "_blank");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("rel", "noreferrer");
+  await expect(heroSocialLinks.nth(1)).toHaveAttribute("href", "https://www.instagram.com/poliglotai.online/");
+  await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
+  await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://www.tiktok.com/@poliglotai");
+  await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
 
   const heroCtas = page.locator(".landing-hero .entry-cta");
   await expect(heroCtas).toHaveCount(2);
@@ -220,6 +232,26 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(footerPrivacyLink).toHaveAttribute("href", /privacy\.html(\?.*)?$/);
   await expect(footerTermsLink).toBeVisible();
   await expect(footerTermsLink).toHaveAttribute("href", /terms\.html(\?.*)?$/);
+});
+
+test("public footer exposes Poliglot AI social channels", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=en");
+
+  const footerSocial = page.locator(".site-footer .site-footer-social");
+  await expect(footerSocial).toBeVisible();
+  await expect(footerSocial).toContainText("Social");
+  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
+  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
+  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(footerSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
+  await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+
+  await page.goto("/poliglot-ai.html?lang=ru");
+  const ruFooterSocial = page.locator(".site-footer .site-footer-social");
+  await expect(ruFooterSocial).toContainText("Соцсети");
+  await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toBeVisible();
 });
 
 test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {
@@ -382,7 +414,7 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
       .filter(Boolean)
       .filter((item) => item!.color === item!.background);
     const overflowX = Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    const overflowing = Array.from(document.querySelectorAll("h1,h2,h3,p,a,button,.plan-card,.review-card,.module-card,.entry-panel"))
+    const overflowing = Array.from(document.querySelectorAll("h1,h2,h3,p,a,button,.landing-social-proof,.social-icon-links,.site-footer-social,.plan-card,.review-card,.module-card,.entry-panel"))
       .map((node) => {
         const element = node as HTMLElement;
         return { text: (element.textContent || "").trim().slice(0, 80), sw: element.scrollWidth, cw: element.clientWidth, width: element.getBoundingClientRect().width };
@@ -567,7 +599,7 @@ test("English spark landing stays readable on mobile", async ({ page }) => {
     const documentOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 2 || document.body.scrollWidth > document.body.clientWidth + 2;
     const nodes = Array.from(
       document.querySelectorAll(
-        ".public-nav, .nav-drawer, [data-site-language-select], h1, h2, h3, p, a, button, .hero-proof span, .daily-step, .module-card, .memory-node, .entry-panel, .plan-card, .review-card",
+        ".public-nav, .nav-drawer, [data-site-language-select], h1, h2, h3, p, a, button, .hero-proof span, .landing-social-proof, .social-icon-links, .site-footer-social, .daily-step, .module-card, .memory-node, .entry-panel, .plan-card, .review-card",
       ),
     );
     const elementOverflow = nodes

@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
+import { LandingSocialProof } from "./components/SocialLinks";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/poliglot_ai_bot";
@@ -341,6 +342,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
                 start without payment
               </span>
             </div>
+            <LandingSocialProof />
           </motion.div>
 
           <motion.div initial={{ opacity: 0, x: 38 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.72, delay: 0.08 }} className="hero-demo">

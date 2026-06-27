@@ -183,6 +183,11 @@ async function mockApi(page: Page) {
       }
       localStorage.setItem("poliglot-phrasebook-v2:demor22", JSON.stringify(phrases));
       localStorage.setItem("poliglot-payment-history-v2:demor22", JSON.stringify(payments));
+      if (localStorage.getItem("poliglot-test-show-cookie-banner") === "1") {
+        localStorage.removeItem("poliglot-app-cookie-consent");
+      } else {
+        localStorage.setItem("poliglot-app-cookie-consent", "necessary");
+      }
       localStorage.removeItem("poliglot-offline-deck-v2");
       if (sessionStorage.getItem("poliglot-test-nav-reset-v2") !== "1") {
         localStorage.removeItem("poliglot-mobile-nav-v2:demor22");
@@ -305,7 +310,7 @@ async function mockApi(page: Page) {
         aiTutorLesson.words[(index + 3) % aiTutorLesson.words.length],
         aiTutorLesson.words[(index + 1) % aiTutorLesson.words.length],
       ].map((item) => ({ id: item.id, text: item.target }));
-      return { ...base, kind: "word_recall", title: word.interface_translation, instruction: "Recall the target word.", word, options };
+      return { ...base, kind: "word_recall", title: word.interface_translation, instruction: "Вспомните слово.", word, options };
     }
     if (stage === "production") return { ...base, kind: "free_text", title: "Your sentences", instruction: aiTutorLesson.production_task.instruction_interface };
     if (stage === "lesson_feedback") return { ...base, kind: "rating", title: "Lesson feedback", instruction: "How did this lesson feel?", options: ["easy", "good", "hard", "bad"].map((id) => ({ id, text: id.replace("_", " ") })) };
@@ -747,9 +752,9 @@ test("app shell embeds branded loader before JavaScript hydrates", () => {
   expect(html).toContain("poliglotBootDrift");
 });
 
-test("PWA service worker cache is bumped for the AI Router desktop release", () => {
+test("PWA service worker cache is bumped for the current offline deck release", () => {
   const worker = readFileSync("public/offline-deck-sw.js", "utf8");
-  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-offline-decks-20260616-ai-router"');
+  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-offline-decks-20260624-tutor-copy"');
 });
 
 test("v2 required labels are localized for all 35 interface languages", () => {
@@ -1098,6 +1103,10 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   expect(appCopy("ru", "global_top")).toBe("Общий");
   expect(appCopy("en", "phrasebook")).toBe("Notes");
   expect(appCopy("en", "save_to_phrasebook")).toBe("Save to notes");
+  expect(appCopy("en", "poliglot_social_title")).toBe("Follow Poliglot AI");
+  expect(appCopy("en", "poliglot_social_body")).toBe("Short lessons, updates, and product tips.");
+  expect(appCopy("ru", "poliglot_social_title")).toBe("Соцсети Poliglot AI");
+  expect(appCopy("ru", "poliglot_social_body")).toBe("Короткие уроки, обновления и советы по обучению.");
   expect(appCopy("ru", "auth_login_hint")).toBe("Введите логин и пароль или подтвердите вход через Telegram.");
   expect(appCopy("ru", "auth_subtitle")).toBe("Вход или регистрация");
   expect(appCopy("ru", "v2_learning_lab")).toBe("Новые функции");
@@ -1334,6 +1343,15 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".learning-lab-v2")).not.toContainText("Раздел");
 
   await page.goto("/app/?view=settings");
+  const settingsSocial = page.locator(".settings-social-card-v2");
+  await expect(settingsSocial).toBeVisible();
+  await expect(settingsSocial).toContainText("Соцсети Poliglot AI");
+  await expect(settingsSocial).toContainText("Короткие уроки, обновления и советы по обучению.");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(settingsSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
+  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
   await expect(page.locator(".password-card-v2")).toContainText("Смена пароля");
   await page.locator(".password-card-v2 input").nth(0).fill("old-password");
   await page.locator(".password-card-v2 input").nth(1).fill("short");
@@ -1345,12 +1363,25 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(page.locator(".password-card-v2")).toContainText("Пароли совпадают");
 });
 
+test("settings social links stay localized in English", async ({ page }) => {
+  await useInterfaceLanguage(page, "en");
+  await page.goto("/app/?view=settings");
+
+  const settingsSocial = page.locator(".settings-social-card-v2");
+  await expect(settingsSocial).toBeVisible();
+  await expect(settingsSocial).toContainText("Follow Poliglot AI");
+  await expect(settingsSocial).toContainText("Short lessons, updates, and product tips.");
+  await expect(settingsSocial).not.toContainText("Соцсети Poliglot AI");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
+});
+
 test("tools spacing and free plan Russian copy stay compact and localized", async ({ page, isMobile }) => {
   test.skip(isMobile, "Desktop spacing regression uses the desktop two-column tools layout.");
 
   await page.goto("/app/?view=premium");
   const freePlan = page.locator(".plan-card-v2.is-free");
-  const freeLabel = freePlan.locator("> span");
+  const freeLabel = freePlan.locator("> span").first();
   await expect(freePlan).toBeVisible();
   await expect(freeLabel).toHaveText("Для начала");
   await expect(freeLabel).toHaveCSS("text-transform", "none");
@@ -2941,7 +2972,7 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   expect(fileControls).not.toBeNull();
   expect(sendButton).not.toBeNull();
   expect(phraseSave).not.toBeNull();
-  expect(output!.height).toBeGreaterThan(composer!.height * 1.2);
+  expect(output!.height).toBeGreaterThan(220);
   expect(composer!.y).toBeGreaterThanOrEqual(output!.y + output!.height - 2);
   expect(phraseSave!.y).toBeGreaterThanOrEqual(fileControls!.y + fileControls!.height - 2);
   expect(sendButton!.x + sendButton!.width).toBeLessThanOrEqual((await page.locator(".composer-textarea-shell-v2").boundingBox())!.x + (await page.locator(".composer-textarea-shell-v2").boundingBox())!.width + 2);
@@ -3561,7 +3592,10 @@ test("web app shows cookie consent banner until a choice is saved", async ({ pag
 
   await mockAnonymousAuth(page);
   await page.goto("/app/login", { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => localStorage.removeItem("poliglot-app-cookie-consent"));
+  await page.evaluate(() => {
+    localStorage.setItem("poliglot-test-show-cookie-banner", "1");
+    localStorage.removeItem("poliglot-app-cookie-consent");
+  });
   await page.goto("/app/login", { waitUntil: "domcontentloaded" });
   const banner = page.locator(".app-cookie-consent-banner");
   await expect(banner).toBeVisible();
@@ -3585,6 +3619,7 @@ test("web app shows cookie consent banner until a choice is saved", async ({ pag
   }
   await banner.getByRole("button", { name: /Accept|Принять/ }).click();
   await expect(banner).toHaveCount(0);
+  await page.evaluate(() => localStorage.removeItem("poliglot-test-show-cookie-banner"));
   await page.goto("/app/login", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".app-cookie-consent-banner")).toHaveCount(0);
 });
@@ -3766,6 +3801,22 @@ test("regression: mobile cards expand to fit text in leaderboard notes and offli
   await page.goto("/app/?view=phrasebook");
   await expect(page.locator(".context-display--phrasebook")).toBeVisible();
   await expectNoCardOverflow(".phrasebook-card-v2");
+
+  await page.goto("/app/?view=settings");
+  await expect(page.locator(".settings-social-card-v2")).toBeVisible();
+  await expectNoCardOverflow(".settings-social-card-v2");
+  const settingsSocialOverflow = await page.locator(".settings-social-card-v2, .settings-social-links-v2").evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const element = node as HTMLElement;
+      return {
+        text: element.innerText.slice(0, 80),
+        width: element.getBoundingClientRect().width,
+        scrollWidth: element.scrollWidth,
+        clientWidth: element.clientWidth,
+      };
+    }).filter((item) => item.width > 0 && item.scrollWidth > item.clientWidth + 2),
+  );
+  expect(settingsSocialOverflow).toEqual([]);
 
   await page.goto("/app/?view=vocabulary");
   await expect(page.locator(".context-display--vocabulary")).toBeVisible();

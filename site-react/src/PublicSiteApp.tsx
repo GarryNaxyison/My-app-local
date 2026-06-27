@@ -35,6 +35,7 @@ import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { personalDataConsentDocumentHtml, privacyDocumentHtml, termsDocumentHtml, userAgreementDocumentHtml } from "./legacyLegalContent";
 import { EnglishSparkLanding } from "./EnglishSparkLanding";
+import { SiteFooterSocial } from "./components/SocialLinks";
 
 type PageId = "landing" | "privacy" | "terms" | "agreement" | "consent";
 type SiteTheme = "light" | "dark";
@@ -348,6 +349,11 @@ function getPage(): PageId {
   if (raw === "agreement" || location.pathname.includes("agreement")) return "agreement";
   if (raw === "consent" || location.pathname.includes("consent")) return "consent";
   return "landing";
+}
+
+function getInitialSiteLanguage() {
+  const requested = new URLSearchParams(location.search).get("lang");
+  return requested || localStorage.getItem("poliglot_site_language") || document.documentElement.lang || "ru";
 }
 
 function useLegacySiteI18n(page: PageId, theme: SiteTheme) {
@@ -1194,6 +1200,7 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
 }
 
 function SiteFooterEnglish() {
+  const isRussian = getInitialSiteLanguage() === "ru";
   return (
     <footer className="site-footer">
       <div>
@@ -1208,6 +1215,7 @@ function SiteFooterEnglish() {
         <a href="/poliglot-ai.html#reviews">Reviews</a>
         <a href="/app/">Web app</a>
       </nav>
+      <SiteFooterSocial title={isRussian ? "Соцсети" : "Social"} />
       <nav>
         <strong>Documents</strong>
         <a href="/privacy.html"><span data-legal-nav="privacy">Privacy</span></a>
@@ -1241,6 +1249,7 @@ function SiteFooter() {
         <a href="/poliglot-ai.html#reviews">Отзывы</a>
         <a href="/app/">Приложение</a>
       </nav>
+      <SiteFooterSocial title="Соцсети" />
       <nav>
         <strong>Документы</strong>
         <a href="/privacy.html">Политика обработки данных</a>

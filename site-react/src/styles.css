@@ -719,7 +719,7 @@ html[data-site-theme="dark"] .public-nav select option {
 
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(160px, 0.5fr));
+  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(150px, 0.5fr));
   gap: 24px;
   padding: 46px clamp(20px, 5vw, 72px);
   color: white;
@@ -742,6 +742,100 @@ html[data-site-theme="dark"] .public-nav select option {
 
 .site-footer strong {
   color: white;
+}
+
+.landing-social-proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: 660px;
+  margin-top: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 12px;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.landing-social-proof > div:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: min(260px, 100%);
+}
+
+.landing-social-proof strong {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.landing-social-proof span {
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.social-icon-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.social-icon-link {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px;
+  color: white;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.social-icon-link svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+.social-icon-link span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.social-icon-link:hover,
+.social-icon-link:focus-visible {
+  border-color: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.social-icon-link--youtube {
+  color: #ff0000;
+}
+
+.social-icon-link--instagram {
+  color: #ff0069;
+}
+
+.social-icon-link--tiktok {
+  color: #ffffff;
+  text-shadow: 1px 0 #25f4ee, -1px 0 #fe2c55;
+}
+
+.site-footer-social .social-icon-links {
+  margin-top: 2px;
 }
 
 .cookie-consent-banner {
