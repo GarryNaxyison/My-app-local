@@ -1055,18 +1055,6 @@ type CookieConsentChoice = {
 
 const cookieConsentStorageKey = "poliglot-cookie-consent";
 
-function hasSavedCookieConsent(value: string | null) {
-  if (!value) return false;
-  if (value === "necessary" || value === "accepted") return true;
-
-  try {
-    const parsed = JSON.parse(value) as Partial<CookieConsentChoice>;
-    return parsed.version === 1 && parsed.necessary === true && typeof parsed.analyticsMarketing === "boolean";
-  } catch {
-    return false;
-  }
-}
-
 function serializeCookieConsent(analyticsMarketing: boolean) {
   const choice: CookieConsentChoice = {
     version: 1,
@@ -1078,13 +1066,6 @@ function serializeCookieConsent(analyticsMarketing: boolean) {
 }
 
 function CookieConsentBanner() {
-  const [choice, setChoice] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(cookieConsentStorageKey);
-    } catch {
-      return null;
-    }
-  });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analyticsMarketing, setAnalyticsMarketing] = useState(false);
 
@@ -1092,16 +1073,13 @@ function CookieConsentBanner() {
     try {
       localStorage.setItem(cookieConsentStorageKey, value);
     } catch {
-      // Ignore storage failures; the banner can still close for this session.
+      // Ignore storage failures; the banner stays available for reading the legal links.
     }
-    setChoice(value);
   };
 
   const saveNecessary = () => saveChoice("necessary");
   const saveAccepted = () => saveChoice(serializeCookieConsent(true));
   const saveSelected = () => saveChoice(serializeCookieConsent(analyticsMarketing));
-
-  if (hasSavedCookieConsent(choice)) return null;
 
   return (
     <section className="cookie-consent-banner" aria-label="Cookie consent">

@@ -122,7 +122,7 @@ const aiRouterTelegramURL = "https://t.me/AiRouterRu_bot";
 const poliglotSocialLinks = [
   { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
   { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai.online", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
 ] as const;
 
 const dailyQuestTarget = {
@@ -3797,13 +3797,6 @@ function legalDocumentURL(path: "privacy.html" | "consent.html" | "agreement.htm
 }
 
 function AppCookieConsentBanner({ language }: { language: string }) {
-  const [choice, setChoice] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem("poliglot-app-cookie-consent");
-    } catch {
-      return null;
-    }
-  });
   const copy = useCallback((key: string, fallback: string) => appCopy(language, key, fallback), [language]);
   const privacyURL = legalDocumentURL("privacy.html", language);
   const consentURL = legalDocumentURL("consent.html", language);
@@ -3812,12 +3805,9 @@ function AppCookieConsentBanner({ language }: { language: string }) {
     try {
       localStorage.setItem("poliglot-app-cookie-consent", value);
     } catch {
-      // The banner can still close for this session when storage is unavailable.
+      // The banner stays available even when storage is unavailable.
     }
-    setChoice(value);
   };
-
-  if (choice) return null;
 
   return (
     <section className="app-cookie-consent-banner" aria-label={copy("cookie_consent_title", "Cookie consent")}>

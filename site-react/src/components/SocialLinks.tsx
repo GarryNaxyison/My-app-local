@@ -32,16 +32,15 @@ const TikTokIcon = ({ className }: SocialIconProps) => (
 export const socialLinks: SocialLink[] = [
   { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
   { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai.online", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
 ];
 
 export function SocialIconLinks({ className = "" }: { className?: string }) {
   return (
     <div className={`social-icon-links ${className}`.trim()} aria-label="Poliglot AI social channels">
       {socialLinks.map(({ name, href, label, Icon }) => (
-        <a key={name} className={`social-icon-link social-icon-link--${name.toLowerCase()}`} href={href} aria-label={label} target="_blank" rel="noreferrer">
+        <a key={name} className={`social-icon-link social-icon-link--${name.toLowerCase()}`} href={href} aria-label={label} title={label} target="_blank" rel="noreferrer">
           <Icon />
-          <span>{name}</span>
         </a>
       ))}
     </div>

@@ -8,7 +8,7 @@ Add YouTube, Instagram, and TikTok links so the landing page shows Poliglot AI a
 
 - YouTube: https://www.youtube.com/@PoliglotAI
 - Instagram: https://www.instagram.com/poliglotai.online/
-- TikTok: https://www.tiktok.com/@poliglotai
+- TikTok: https://www.tiktok.com/@poliglotai.online
 
 ## Placement
 

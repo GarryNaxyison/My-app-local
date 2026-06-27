@@ -3086,6 +3086,48 @@ function applyDerivedUiCopy(code: AppLocaleCode) {
 
 appLocaleCodes.forEach((code) => applyDerivedUiCopy(code));
 
+const explicitSocialCopy: Record<AppLocaleCode, Record<string, string>> = {
+  ru: { social_channels: "Соцсети", poliglot_social_title: "Соцсети Poliglot AI", poliglot_social_body: "Короткие уроки, обновления и советы по обучению." },
+  en: { social_channels: "Social channels", poliglot_social_title: "Follow Poliglot AI", poliglot_social_body: "Short lessons, updates, and product tips." },
+  es: { social_channels: "Redes sociales", poliglot_social_title: "Sigue a Poliglot AI", poliglot_social_body: "Lecciones breves, novedades y consejos de aprendizaje." },
+  de: { social_channels: "Soziale Kanäle", poliglot_social_title: "Folge Poliglot AI", poliglot_social_body: "Kurze Lektionen, Updates und Lerntipps." },
+  fr: { social_channels: "Réseaux sociaux", poliglot_social_title: "Suivre Poliglot AI", poliglot_social_body: "Courtes leçons, nouveautés et conseils d’apprentissage." },
+  it: { social_channels: "Canali social", poliglot_social_title: "Segui Poliglot AI", poliglot_social_body: "Lezioni brevi, aggiornamenti e consigli di studio." },
+  zh: { social_channels: "社交频道", poliglot_social_title: "关注 Poliglot AI", poliglot_social_body: "短课、更新和学习技巧。" },
+  ja: { social_channels: "SNSチャンネル", poliglot_social_title: "Poliglot AI をフォロー", poliglot_social_body: "短いレッスン、更新、学習のヒント。" },
+  ko: { social_channels: "소셜 채널", poliglot_social_title: "Poliglot AI 팔로우", poliglot_social_body: "짧은 레슨, 업데이트, 학습 팁." },
+  tg: { social_channels: "Шабакаҳои иҷтимоӣ", poliglot_social_title: "Poliglot AI-ро пайгирӣ кунед", poliglot_social_body: "Дарсҳои кӯтоҳ, навигариҳо ва маслиҳатҳои омӯзишӣ." },
+  uz: { social_channels: "Ijtimoiy tarmoqlar", poliglot_social_title: "Poliglot AI-ni kuzating", poliglot_social_body: "Qisqa darslar, yangiliklar va o‘rganish maslahatlari." },
+  tt: { social_channels: "Социаль челтәрләр", poliglot_social_title: "Poliglot AI-ны күзәтегез", poliglot_social_body: "Кыска дәресләр, яңалыклар һәм уку киңәшләре." },
+  hy: { social_channels: "Սոցիալական ալիքներ", poliglot_social_title: "Հետևեք Poliglot AI-ին", poliglot_social_body: "Կարճ դասեր, թարմացումներ և ուսուցման խորհուրդներ։" },
+  kk: { social_channels: "Әлеуметтік желілер", poliglot_social_title: "Poliglot AI-ға жазылыңыз", poliglot_social_body: "Қысқа сабақтар, жаңалықтар және оқу кеңестері." },
+  ky: { social_channels: "Социалдык тармактар", poliglot_social_title: "Poliglot AI'га жазылыңыз", poliglot_social_body: "Кыска сабактар, жаңылыктар жана окуу кеңештери." },
+  ka: { social_channels: "სოციალური არხები", poliglot_social_title: "გამოიწერეთ Poliglot AI", poliglot_social_body: "მოკლე გაკვეთილები, განახლებები და სწავლის რჩევები." },
+  uk: { social_channels: "Соцмережі", poliglot_social_title: "Стежте за Poliglot AI", poliglot_social_body: "Короткі уроки, оновлення й поради для навчання." },
+  pl: { social_channels: "Kanały społecznościowe", poliglot_social_title: "Obserwuj Poliglot AI", poliglot_social_body: "Krótkie lekcje, aktualizacje i wskazówki do nauki." },
+  ro: { social_channels: "Rețele sociale", poliglot_social_title: "Urmărește Poliglot AI", poliglot_social_body: "Lecții scurte, actualizări și sfaturi de învățare." },
+  pt: { social_channels: "Redes sociais", poliglot_social_title: "Segue o Poliglot AI", poliglot_social_body: "Lições curtas, novidades e dicas de aprendizagem." },
+  ar: { social_channels: "القنوات الاجتماعية", poliglot_social_title: "تابع Poliglot AI", poliglot_social_body: "دروس قصيرة وتحديثات ونصائح للتعلم." },
+  bn: { social_channels: "সামাজিক চ্যানেল", poliglot_social_title: "Poliglot AI অনুসরণ করুন", poliglot_social_body: "ছোট পাঠ, আপডেট এবং শেখার টিপস।" },
+  cs: { social_channels: "Sociální sítě", poliglot_social_title: "Sledujte Poliglot AI", poliglot_social_body: "Krátké lekce, novinky a tipy k učení." },
+  el: { social_channels: "Κοινωνικά κανάλια", poliglot_social_title: "Ακολουθήστε το Poliglot AI", poliglot_social_body: "Σύντομα μαθήματα, ενημερώσεις και συμβουλές μάθησης." },
+  hi: { social_channels: "सोशल चैनल", poliglot_social_title: "Poliglot AI को फ़ॉलो करें", poliglot_social_body: "छोटे पाठ, अपडेट और सीखने की सलाह।" },
+  hu: { social_channels: "Közösségi csatornák", poliglot_social_title: "Kövesd a Poliglot AI-t", poliglot_social_body: "Rövid leckék, frissítések és tanulási tippek." },
+  id: { social_channels: "Kanal sosial", poliglot_social_title: "Ikuti Poliglot AI", poliglot_social_body: "Pelajaran singkat, pembaruan, dan tips belajar." },
+  nl: { social_channels: "Sociale kanalen", poliglot_social_title: "Volg Poliglot AI", poliglot_social_body: "Korte lessen, updates en leertips." },
+  sv: { social_channels: "Sociala kanaler", poliglot_social_title: "Följ Poliglot AI", poliglot_social_body: "Korta lektioner, uppdateringar och lärandetips." },
+  ta: { social_channels: "சமூக சேனல்கள்", poliglot_social_title: "Poliglot AI-ஐ பின்தொடருங்கள்", poliglot_social_body: "குறுகிய பாடங்கள், புதுப்பிப்புகள், கற்றல் குறிப்புகள்." },
+  te: { social_channels: "సామాజిక ఛానెల్లు", poliglot_social_title: "Poliglot AIని అనుసరించండి", poliglot_social_body: "చిన్న పాఠాలు, నవీకరణలు, నేర్చుకునే చిట్కాలు." },
+  th: { social_channels: "ช่องทางโซเชียล", poliglot_social_title: "ติดตาม Poliglot AI", poliglot_social_body: "บทเรียนสั้น อัปเดต และเคล็ดลับการเรียน." },
+  tl: { social_channels: "Mga social channel", poliglot_social_title: "Sundan ang Poliglot AI", poliglot_social_body: "Maiikling aralin, update, at tips sa pag-aaral." },
+  tr: { social_channels: "Sosyal kanallar", poliglot_social_title: "Poliglot AI'ı takip et", poliglot_social_body: "Kısa dersler, güncellemeler ve öğrenme ipuçları." },
+  vi: { social_channels: "Kênh mạng xã hội", poliglot_social_title: "Theo dõi Poliglot AI", poliglot_social_body: "Bài học ngắn, cập nhật và mẹo học tập." },
+};
+
+appLocaleCodes.forEach((code) => {
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...explicitSocialCopy[code] };
+});
+
 appLocaleCodes.forEach((code) => {
   localeOverrides[code] = { ...en, ...(localeOverrides[code] || {}) };
 });

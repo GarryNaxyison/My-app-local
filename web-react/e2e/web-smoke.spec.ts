@@ -957,6 +957,9 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "tutor_final_assessment_instruction",
     "tutor_final_assessment_review",
     "tutor_final_assessment_empty",
+    "social_channels",
+    "poliglot_social_title",
+    "poliglot_social_body",
   ];
   expect(appLocaleCodes).toHaveLength(35);
   for (const code of appLocaleCodes) {
@@ -1351,7 +1354,7 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
   await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
   await expect(settingsSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
   await expect(page.locator(".password-card-v2")).toContainText("Смена пароля");
   await page.locator(".password-card-v2 input").nth(0).fill("old-password");
   await page.locator(".password-card-v2 input").nth(1).fill("short");
@@ -3587,7 +3590,7 @@ test("regression: auth language menu is layered above privacy and captcha blocks
   await expect(page.locator(".auth-privacy-v2 a[href*='agreement.html']")).toBeVisible();
 });
 
-test("web app shows cookie consent banner until a choice is saved", async ({ page, isMobile }) => {
+test("web app always shows cookie consent banner and saves choices", async ({ page, isMobile }) => {
   test.setTimeout(60_000);
 
   await mockAnonymousAuth(page);
@@ -3618,10 +3621,11 @@ test("web app shows cookie consent banner until a choice is saved", async ({ pag
     expect(bannerBox.computedLeft).not.toBe("auto");
   }
   await banner.getByRole("button", { name: /Accept|Принять/ }).click();
-  await expect(banner).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("poliglot-app-cookie-consent"))).toBe("accepted");
+  await expect(banner).toBeVisible();
   await page.evaluate(() => localStorage.removeItem("poliglot-test-show-cookie-banner"));
   await page.goto("/app/login", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".app-cookie-consent-banner")).toHaveCount(0);
+  await expect(page.locator(".app-cookie-consent-banner")).toBeVisible();
 });
 
 test("main mobile and desktop views have scrollable output without mojibake", async ({ page, isMobile }) => {

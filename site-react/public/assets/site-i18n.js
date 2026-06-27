@@ -405,6 +405,243 @@
         return values;
     }
 
+    const englishSparkLiveCopy = {
+        ru: {
+            follow: "Соцсети Poliglot AI", socialBody: "Короткие уроки, обновления продукта и советы по обучению.", socialChannels: "Соцсети Poliglot AI",
+            openYouTube: "Открыть Poliglot AI на YouTube", openInstagram: "Открыть Poliglot AI в Instagram", openTikTok: "Открыть Poliglot AI в TikTok",
+            today: "Сегодня", cockpit: "Пульт AI-репетитора", featureDemo: "Демо функций", lesson: "Урок", dialogue: "Диалог", voice: "Голос", photo: "Фото",
+            photoIntro: "Сфотографируйте меню, вывеску или задание и превратите это в учебный сценарий.", noPeanuts: "Без арахиса, пожалуйста. Насколько острое это блюдо?", photoHint: "Фото превращается в перевод, заметку и практическую подсказку.",
+        },
+        es: {
+            follow: "Sigue a Poliglot AI", socialBody: "Lecciones breves, novedades del producto y consejos de aprendizaje.", socialChannels: "Redes sociales de Poliglot AI",
+            openYouTube: "Abrir Poliglot AI en YouTube", openInstagram: "Abrir Poliglot AI en Instagram", openTikTok: "Abrir Poliglot AI en TikTok",
+            today: "Hoy", cockpit: "Panel del tutor IA", featureDemo: "Demo de funciones", lesson: "Lección", dialogue: "Diálogo", voice: "Voz", photo: "Foto",
+            photoIntro: "Fotografía un menú, cartel o tarea y conviértelo en un escenario de aprendizaje.", noPeanuts: "Sin cacahuetes, por favor. ¿Qué tan picante es este plato?", photoHint: "La foto se convierte en traducción, nota y práctica.",
+        },
+        de: {
+            follow: "Folge Poliglot AI", socialBody: "Kurze Lektionen, Produktupdates und Lerntipps.", socialChannels: "Social Media von Poliglot AI",
+            openYouTube: "Poliglot AI auf YouTube öffnen", openInstagram: "Poliglot AI auf Instagram öffnen", openTikTok: "Poliglot AI auf TikTok öffnen",
+            today: "Heute", cockpit: "KI-Tutor-Cockpit", featureDemo: "Funktionsdemo", lesson: "Lektion", dialogue: "Dialog", voice: "Stimme", photo: "Foto",
+            photoIntro: "Fotografiere ein Menü, Schild oder eine Aufgabe und mache daraus ein Lernszenario.", noPeanuts: "Bitte ohne Erdnüsse. Wie scharf ist dieses Gericht?", photoHint: "Das Foto wird zu Übersetzung, Notiz und Übungsimpuls.",
+        },
+        fr: {
+            follow: "Suivre Poliglot AI", socialBody: "Courtes leçons, nouveautés produit et conseils d’apprentissage.", socialChannels: "Réseaux sociaux de Poliglot AI",
+            openYouTube: "Ouvrir Poliglot AI sur YouTube", openInstagram: "Ouvrir Poliglot AI sur Instagram", openTikTok: "Ouvrir Poliglot AI sur TikTok",
+            today: "Aujourd’hui", cockpit: "Poste du tuteur IA", featureDemo: "Démo des fonctions", lesson: "Leçon", dialogue: "Dialogue", voice: "Voix", photo: "Photo",
+            photoIntro: "Photographiez un menu, un panneau ou une tâche et transformez-le en scénario d’apprentissage.", noPeanuts: "Sans cacahuètes, s’il vous plaît. Ce plat est-il très épicé ?", photoHint: "La photo devient une traduction, une note et une consigne de pratique.",
+        },
+        it: {
+            follow: "Segui Poliglot AI", socialBody: "Lezioni brevi, aggiornamenti prodotto e consigli di studio.", socialChannels: "Social di Poliglot AI",
+            openYouTube: "Apri Poliglot AI su YouTube", openInstagram: "Apri Poliglot AI su Instagram", openTikTok: "Apri Poliglot AI su TikTok",
+            today: "Oggi", cockpit: "Console tutor IA", featureDemo: "Demo funzioni", lesson: "Lezione", dialogue: "Dialogo", voice: "Voce", photo: "Foto",
+            photoIntro: "Fotografa un menu, un cartello o un compito e trasformalo in uno scenario di apprendimento.", noPeanuts: "Senza arachidi, per favore. Quanto è piccante questo piatto?", photoHint: "La foto diventa traduzione, nota e prompt di pratica.",
+        },
+        zh: {
+            follow: "关注 Poliglot AI", socialBody: "短课、产品更新和学习技巧。", socialChannels: "Poliglot AI 社交媒体",
+            openYouTube: "在 YouTube 打开 Poliglot AI", openInstagram: "在 Instagram 打开 Poliglot AI", openTikTok: "在 TikTok 打开 Poliglot AI",
+            today: "今天", cockpit: "AI 导师驾驶舱", featureDemo: "功能演示", lesson: "课程", dialogue: "对话", voice: "语音", photo: "照片",
+            photoIntro: "拍下菜单、标牌或任务，把它变成学习场景。", noPeanuts: "请不要花生。这道菜有多辣？", photoHint: "照片会变成翻译、笔记和练习提示。",
+        },
+        ja: {
+            follow: "Poliglot AI をフォロー", socialBody: "短いレッスン、製品アップデート、学習のヒント。", socialChannels: "Poliglot AI のSNS",
+            openYouTube: "YouTubeで Poliglot AI を開く", openInstagram: "Instagramで Poliglot AI を開く", openTikTok: "TikTokで Poliglot AI を開く",
+            today: "今日", cockpit: "AIチューター操作画面", featureDemo: "機能デモ", lesson: "レッスン", dialogue: "会話", voice: "音声", photo: "写真",
+            photoIntro: "メニュー、標識、課題を撮影して学習シナリオに変えます。", noPeanuts: "ピーナッツ抜きでお願いします。この料理はどのくらい辛いですか？", photoHint: "写真は翻訳、メモ、練習プロンプトになります。",
+        },
+        ko: {
+            follow: "Poliglot AI 팔로우", socialBody: "짧은 레슨, 제품 업데이트, 학습 팁.", socialChannels: "Poliglot AI 소셜 채널",
+            openYouTube: "YouTube에서 Poliglot AI 열기", openInstagram: "Instagram에서 Poliglot AI 열기", openTikTok: "TikTok에서 Poliglot AI 열기",
+            today: "오늘", cockpit: "AI 튜터 조종석", featureDemo: "기능 데모", lesson: "레슨", dialogue: "대화", voice: "음성", photo: "사진",
+            photoIntro: "메뉴, 표지판 또는 과제를 촬영해 학습 시나리오로 바꾸세요.", noPeanuts: "땅콩은 빼 주세요. 이 요리는 얼마나 매운가요?", photoHint: "사진은 번역, 메모, 연습 프롬프트가 됩니다.",
+        },
+        tg: {
+            follow: "Poliglot AI-ро пайгирӣ кунед", socialBody: "Дарсҳои кӯтоҳ, навигариҳои маҳсулот ва маслиҳатҳои омӯзишӣ.", socialChannels: "Шабакаҳои иҷтимоии Poliglot AI",
+            openYouTube: "Poliglot AI-ро дар YouTube кушоед", openInstagram: "Poliglot AI-ро дар Instagram кушоед", openTikTok: "Poliglot AI-ро дар TikTok кушоед",
+            today: "Имрӯз", cockpit: "Панели AI-омӯзгор", featureDemo: "Намоиши функсияҳо", lesson: "Дарс", dialogue: "Муколама", voice: "Овоз", photo: "Акс",
+            photoIntro: "Меню, лавҳа ё вазифаро акс гиред ва онро ба сенарияи омӯзишӣ табдил диҳед.", noPeanuts: "Лутфан, бе чормағзи заминӣ. Ин таом чӣ қадар тез аст?", photoHint: "Акс ба тарҷума, ёддошт ва супориши машқ табдил меёбад.",
+        },
+        uz: {
+            follow: "Poliglot AI-ni kuzating", socialBody: "Qisqa darslar, mahsulot yangiliklari va o‘rganish maslahatlari.", socialChannels: "Poliglot AI ijtimoiy tarmoqlari",
+            openYouTube: "Poliglot AI-ni YouTube’da ochish", openInstagram: "Poliglot AI-ni Instagram’da ochish", openTikTok: "Poliglot AI-ni TikTok’da ochish",
+            today: "Bugun", cockpit: "AI repetitor paneli", featureDemo: "Funksiyalar demosı", lesson: "Dars", dialogue: "Dialog", voice: "Ovoz", photo: "Foto",
+            photoIntro: "Menyu, belgi yoki topshiriqni suratga oling va uni o‘quv ssenariysiga aylantiring.", noPeanuts: "Yong‘oqsiz, iltimos. Bu taom qanchalik achchiq?", photoHint: "Foto tarjima, eslatma va mashq topshirig‘iga aylanadi.",
+        },
+        tt: {
+            follow: "Poliglot AI-ны күзәтегез", socialBody: "Кыска дәресләр, продукт яңалыклары һәм уку киңәшләре.", socialChannels: "Poliglot AI социаль челтәрләре",
+            openYouTube: "Poliglot AI-ны YouTube-та ачу", openInstagram: "Poliglot AI-ны Instagram-да ачу", openTikTok: "Poliglot AI-ны TikTok-та ачу",
+            today: "Бүген", cockpit: "AI укытучы панели", featureDemo: "Функцияләр демосы", lesson: "Дәрес", dialogue: "Диалог", voice: "Тавыш", photo: "Фото",
+            photoIntro: "Менюны, билгене яки биремне фотога төшереп, аны уку сценарие итегез.", noPeanuts: "Арахиссыз, зинһар. Бу ризык никадәр әче?", photoHint: "Фото тәрҗемәгә, язмага һәм күнегү биременә әйләнә.",
+        },
+        hy: {
+            follow: "Հետևեք Poliglot AI-ին", socialBody: "Կարճ դասեր, արտադրանքի թարմացումներ և ուսուցման խորհուրդներ։", socialChannels: "Poliglot AI-ի սոցիալական ալիքները",
+            openYouTube: "Բացել Poliglot AI-ը YouTube-ում", openInstagram: "Բացել Poliglot AI-ը Instagram-ում", openTikTok: "Բացել Poliglot AI-ը TikTok-ում",
+            today: "Այսօր", cockpit: "AI ուսուցչի վահանակ", featureDemo: "Գործառույթների ցուցադրում", lesson: "Դաս", dialogue: "Երկխոսություն", voice: "Ձայն", photo: "Լուսանկար",
+            photoIntro: "Լուսանկարեք մենյուն, ցուցանակը կամ առաջադրանքը և դարձրեք ուսումնական սցենար։", noPeanuts: "Առանց գետնանուշի, խնդրում եմ։ Այս ուտեստը որքան կծու է՞։", photoHint: "Լուսանկարը դառնում է թարգմանություն, նշում և վարժության հուշում։",
+        },
+        kk: {
+            follow: "Poliglot AI-ға жазылыңыз", socialBody: "Қысқа сабақтар, өнім жаңалықтары және оқу кеңестері.", socialChannels: "Poliglot AI әлеуметтік желілері",
+            openYouTube: "Poliglot AI-ды YouTube-та ашу", openInstagram: "Poliglot AI-ды Instagram-да ашу", openTikTok: "Poliglot AI-ды TikTok-та ашу",
+            today: "Бүгін", cockpit: "AI тәлімгер панелі", featureDemo: "Функциялар демосы", lesson: "Сабақ", dialogue: "Диалог", voice: "Дауыс", photo: "Фото",
+            photoIntro: "Мәзірді, белгіні немесе тапсырманы суретке түсіріп, оны оқу сценарийіне айналдырыңыз.", noPeanuts: "Жержаңғақсыз, өтінемін. Бұл тағам қаншалықты ащы?", photoHint: "Фото аудармаға, жазбаға және практика нұсқауына айналады.",
+        },
+        ky: {
+            follow: "Poliglot AI'га жазылыңыз", socialBody: "Кыска сабактар, продукт жаңылыктары жана окуу кеңештери.", socialChannels: "Poliglot AI социалдык тармактары",
+            openYouTube: "Poliglot AI'ды YouTube'та ачуу", openInstagram: "Poliglot AI'ды Instagram'да ачуу", openTikTok: "Poliglot AI'ды TikTok'та ачуу",
+            today: "Бүгүн", cockpit: "AI мугалим панели", featureDemo: "Функциялар демосу", lesson: "Сабак", dialogue: "Диалог", voice: "Үн", photo: "Сүрөт",
+            photoIntro: "Менюну, белгини же тапшырманы сүрөткө тартып, аны окуу сценарийине айлантыңыз.", noPeanuts: "Жер жаңгаксыз, сураныч. Бул тамак канчалык ачуу?", photoHint: "Сүрөт котормого, жазууга жана машыгуу тапшырмасына айланат.",
+        },
+        ka: {
+            follow: "გამოიწერეთ Poliglot AI", socialBody: "მოკლე გაკვეთილები, პროდუქტის განახლებები და სწავლის რჩევები.", socialChannels: "Poliglot AI-ის სოციალური არხები",
+            openYouTube: "Poliglot AI-ის გახსნა YouTube-ზე", openInstagram: "Poliglot AI-ის გახსნა Instagram-ზე", openTikTok: "Poliglot AI-ის გახსნა TikTok-ზე",
+            today: "დღეს", cockpit: "AI მასწავლებლის პანელი", featureDemo: "ფუნქციების დემო", lesson: "გაკვეთილი", dialogue: "დიალოგი", voice: "ხმა", photo: "ფოტო",
+            photoIntro: "გადაუღეთ ფოტო მენიუს, ნიშანს ან დავალებას და აქციეთ სასწავლო სცენარად.", noPeanuts: "არაქისის გარეშე, გთხოვთ. რამდენად ცხარეა ეს კერძი?", photoHint: "ფოტო გადაიქცევა თარგმანად, ჩანაწერად და სავარჯიშო მინიშნებად.",
+        },
+        uk: {
+            follow: "Стежте за Poliglot AI", socialBody: "Короткі уроки, оновлення продукту й поради для навчання.", socialChannels: "Соцмережі Poliglot AI",
+            openYouTube: "Відкрити Poliglot AI на YouTube", openInstagram: "Відкрити Poliglot AI в Instagram", openTikTok: "Відкрити Poliglot AI у TikTok",
+            today: "Сьогодні", cockpit: "Панель AI-репетитора", featureDemo: "Демо функцій", lesson: "Урок", dialogue: "Діалог", voice: "Голос", photo: "Фото",
+            photoIntro: "Сфотографуйте меню, вивіску або завдання й перетворіть це на навчальний сценарій.", noPeanuts: "Без арахісу, будь ласка. Наскільки гостра ця страва?", photoHint: "Фото стає перекладом, нотаткою та підказкою для практики.",
+        },
+        pl: {
+            follow: "Obserwuj Poliglot AI", socialBody: "Krótkie lekcje, aktualizacje produktu i wskazówki do nauki.", socialChannels: "Kanały społecznościowe Poliglot AI",
+            openYouTube: "Otwórz Poliglot AI na YouTube", openInstagram: "Otwórz Poliglot AI na Instagramie", openTikTok: "Otwórz Poliglot AI na TikToku",
+            today: "Dziś", cockpit: "Panel tutora AI", featureDemo: "Demo funkcji", lesson: "Lekcja", dialogue: "Dialog", voice: "Głos", photo: "Zdjęcie",
+            photoIntro: "Zrób zdjęcie menu, znaku lub zadania i zamień je w scenariusz nauki.", noPeanuts: "Bez orzeszków ziemnych, proszę. Jak ostre jest to danie?", photoHint: "Zdjęcie staje się tłumaczeniem, notatką i zadaniem do ćwiczenia.",
+        },
+        ro: {
+            follow: "Urmărește Poliglot AI", socialBody: "Lecții scurte, actualizări de produs și sfaturi de învățare.", socialChannels: "Rețelele sociale Poliglot AI",
+            openYouTube: "Deschide Poliglot AI pe YouTube", openInstagram: "Deschide Poliglot AI pe Instagram", openTikTok: "Deschide Poliglot AI pe TikTok",
+            today: "Astăzi", cockpit: "Panou tutore AI", featureDemo: "Demo funcții", lesson: "Lecție", dialogue: "Dialog", voice: "Voce", photo: "Foto",
+            photoIntro: "Fotografiază un meniu, indicator sau exercițiu și transformă-l într-un scenariu de învățare.", noPeanuts: "Fără arahide, vă rog. Cât de picant este acest fel?", photoHint: "Fotografia devine traducere, notă și prompt de practică.",
+        },
+        pt: {
+            follow: "Segue o Poliglot AI", socialBody: "Lições curtas, novidades do produto e dicas de aprendizagem.", socialChannels: "Redes sociais do Poliglot AI",
+            openYouTube: "Abrir o Poliglot AI no YouTube", openInstagram: "Abrir o Poliglot AI no Instagram", openTikTok: "Abrir o Poliglot AI no TikTok",
+            today: "Hoje", cockpit: "Painel do tutor IA", featureDemo: "Demonstração de funções", lesson: "Lição", dialogue: "Diálogo", voice: "Voz", photo: "Foto",
+            photoIntro: "Fotografa um menu, placa ou tarefa e transforma isso num cenário de aprendizagem.", noPeanuts: "Sem amendoins, por favor. Quão picante é este prato?", photoHint: "A foto vira tradução, nota e prompt de prática.",
+        },
+        ar: {
+            follow: "تابع Poliglot AI", socialBody: "دروس قصيرة وتحديثات المنتج ونصائح للتعلم.", socialChannels: "قنوات Poliglot AI الاجتماعية",
+            openYouTube: "فتح Poliglot AI على YouTube", openInstagram: "فتح Poliglot AI على Instagram", openTikTok: "فتح Poliglot AI على TikTok",
+            today: "اليوم", cockpit: "لوحة المدرّس الذكي", featureDemo: "عرض الميزات", lesson: "درس", dialogue: "حوار", voice: "صوت", photo: "صورة",
+            photoIntro: "صوّر قائمة أو لافتة أو مهمة وحوّلها إلى سيناريو تعلم.", noPeanuts: "بدون فول سوداني من فضلك. ما مدى حرارة هذا الطبق؟", photoHint: "تتحول الصورة إلى ترجمة وملاحظة ومهمة تدريب.",
+        },
+        bn: {
+            follow: "Poliglot AI অনুসরণ করুন", socialBody: "ছোট পাঠ, পণ্যের আপডেট এবং শেখার টিপস।", socialChannels: "Poliglot AI সামাজিক চ্যানেল",
+            openYouTube: "YouTube-এ Poliglot AI খুলুন", openInstagram: "Instagram-এ Poliglot AI খুলুন", openTikTok: "TikTok-এ Poliglot AI খুলুন",
+            today: "আজ", cockpit: "AI টিউটর প্যানেল", featureDemo: "ফিচার ডেমো", lesson: "পাঠ", dialogue: "সংলাপ", voice: "ভয়েস", photo: "ছবি",
+            photoIntro: "মেনু, সাইন বা কাজের ছবি তুলে সেটিকে শেখার দৃশ্যে বদলে দিন।", noPeanuts: "বাদাম ছাড়া, দয়া করে। এই খাবারটি কতটা ঝাল?", photoHint: "ছবিটি অনুবাদ, নোট এবং অনুশীলন প্রম্পটে বদলে যায়।",
+        },
+        cs: {
+            follow: "Sledujte Poliglot AI", socialBody: "Krátké lekce, novinky produktu a tipy k učení.", socialChannels: "Sociální sítě Poliglot AI",
+            openYouTube: "Otevřít Poliglot AI na YouTube", openInstagram: "Otevřít Poliglot AI na Instagramu", openTikTok: "Otevřít Poliglot AI na TikToku",
+            today: "Dnes", cockpit: "Panel AI tutora", featureDemo: "Ukázka funkcí", lesson: "Lekce", dialogue: "Dialog", voice: "Hlas", photo: "Foto",
+            photoIntro: "Vyfoťte menu, ceduli nebo úkol a proměňte je ve výukový scénář.", noPeanuts: "Bez arašídů, prosím. Jak pálivé je toto jídlo?", photoHint: "Fotka se změní v překlad, poznámku a cvičný úkol.",
+        },
+        el: {
+            follow: "Ακολουθήστε το Poliglot AI", socialBody: "Σύντομα μαθήματα, ενημερώσεις προϊόντος και συμβουλές μάθησης.", socialChannels: "Κοινωνικά κανάλια Poliglot AI",
+            openYouTube: "Άνοιγμα Poliglot AI στο YouTube", openInstagram: "Άνοιγμα Poliglot AI στο Instagram", openTikTok: "Άνοιγμα Poliglot AI στο TikTok",
+            today: "Σήμερα", cockpit: "Πίνακας AI δασκάλου", featureDemo: "Επίδειξη λειτουργιών", lesson: "Μάθημα", dialogue: "Διάλογος", voice: "Φωνή", photo: "Φωτογραφία",
+            photoIntro: "Φωτογραφίστε μενού, πινακίδα ή εργασία και μετατρέψτε το σε σενάριο μάθησης.", noPeanuts: "Χωρίς φιστίκια, παρακαλώ. Πόσο καυτερό είναι αυτό το πιάτο;", photoHint: "Η φωτογραφία γίνεται μετάφραση, σημείωση και άσκηση.",
+        },
+        hi: {
+            follow: "Poliglot AI को फ़ॉलो करें", socialBody: "छोटे पाठ, उत्पाद अपडेट और सीखने की सलाह।", socialChannels: "Poliglot AI सोशल चैनल",
+            openYouTube: "YouTube पर Poliglot AI खोलें", openInstagram: "Instagram पर Poliglot AI खोलें", openTikTok: "TikTok पर Poliglot AI खोलें",
+            today: "आज", cockpit: "AI ट्यूटर पैनल", featureDemo: "फ़ीचर डेमो", lesson: "पाठ", dialogue: "संवाद", voice: "आवाज़", photo: "फ़ोटो",
+            photoIntro: "मेन्यू, संकेत या कार्य की फोटो लें और उसे सीखने के परिदृश्य में बदलें।", noPeanuts: "कृपया मूंगफली नहीं। यह डिश कितनी तीखी है?", photoHint: "फ़ोटो अनुवाद, नोट और अभ्यास संकेत बन जाती है।",
+        },
+        hu: {
+            follow: "Kövesd a Poliglot AI-t", socialBody: "Rövid leckék, termékfrissítések és tanulási tippek.", socialChannels: "Poliglot AI közösségi csatornák",
+            openYouTube: "Poliglot AI megnyitása YouTube-on", openInstagram: "Poliglot AI megnyitása Instagramon", openTikTok: "Poliglot AI megnyitása TikTokon",
+            today: "Ma", cockpit: "AI tutor vezérlőpult", featureDemo: "Funkcióbemutató", lesson: "Lecke", dialogue: "Párbeszéd", voice: "Hang", photo: "Fotó",
+            photoIntro: "Fotózz le egy menüt, táblát vagy feladatot, és alakítsd tanulási helyzetté.", noPeanuts: "Mogyoró nélkül kérem. Mennyire csípős ez az étel?", photoHint: "A fotóból fordítás, jegyzet és gyakorló feladat lesz.",
+        },
+        id: {
+            follow: "Ikuti Poliglot AI", socialBody: "Pelajaran singkat, pembaruan produk, dan tips belajar.", socialChannels: "Kanal sosial Poliglot AI",
+            openYouTube: "Buka Poliglot AI di YouTube", openInstagram: "Buka Poliglot AI di Instagram", openTikTok: "Buka Poliglot AI di TikTok",
+            today: "Hari ini", cockpit: "Panel tutor AI", featureDemo: "Demo fitur", lesson: "Pelajaran", dialogue: "Dialog", voice: "Suara", photo: "Foto",
+            photoIntro: "Foto menu, tanda, atau tugas lalu ubah menjadi skenario belajar.", noPeanuts: "Tanpa kacang, ya. Seberapa pedas hidangan ini?", photoHint: "Foto menjadi terjemahan, catatan, dan latihan.",
+        },
+        nl: {
+            follow: "Volg Poliglot AI", socialBody: "Korte lessen, productupdates en leertips.", socialChannels: "Sociale kanalen van Poliglot AI",
+            openYouTube: "Poliglot AI openen op YouTube", openInstagram: "Poliglot AI openen op Instagram", openTikTok: "Poliglot AI openen op TikTok",
+            today: "Vandaag", cockpit: "AI-tutor cockpit", featureDemo: "Functiedemo", lesson: "Les", dialogue: "Dialoog", voice: "Stem", photo: "Foto",
+            photoIntro: "Fotografeer een menu, bord of taak en maak er een leerscenario van.", noPeanuts: "Geen pinda's, alstublieft. Hoe pittig is dit gerecht?", photoHint: "De foto wordt een vertaling, notitie en oefenprompt.",
+        },
+        sv: {
+            follow: "Följ Poliglot AI", socialBody: "Korta lektioner, produktnyheter och lärandetips.", socialChannels: "Poliglot AI i sociala medier",
+            openYouTube: "Öppna Poliglot AI på YouTube", openInstagram: "Öppna Poliglot AI på Instagram", openTikTok: "Öppna Poliglot AI på TikTok",
+            today: "I dag", cockpit: "AI-lärarens panel", featureDemo: "Funktionsdemo", lesson: "Lektion", dialogue: "Dialog", voice: "Röst", photo: "Foto",
+            photoIntro: "Fotografera en meny, skylt eller uppgift och gör den till ett lärscenario.", noPeanuts: "Inga jordnötter, tack. Hur stark är den här rätten?", photoHint: "Fotot blir en översättning, anteckning och övningsprompt.",
+        },
+        ta: {
+            follow: "Poliglot AI-ஐ பின்தொடருங்கள்", socialBody: "குறுகிய பாடங்கள், தயாரிப்பு புதுப்பிப்புகள், கற்றல் குறிப்புகள்.", socialChannels: "Poliglot AI சமூக சேனல்கள்",
+            openYouTube: "YouTube-ல் Poliglot AI-ஐ திறக்கவும்", openInstagram: "Instagram-ல் Poliglot AI-ஐ திறக்கவும்", openTikTok: "TikTok-ல் Poliglot AI-ஐ திறக்கவும்",
+            today: "இன்று", cockpit: "AI ஆசிரியர் பலகை", featureDemo: "அம்ச விளக்கம்", lesson: "பாடம்", dialogue: "உரையாடல்", voice: "குரல்", photo: "புகைப்படம்",
+            photoIntro: "மெனு, பலகை அல்லது பணியைப் புகைப்படம் எடுத்து அதை கற்றல் சூழலாக மாற்றுங்கள்.", noPeanuts: "வேர்க்கடலை வேண்டாம். இந்த உணவு எவ்வளவு காரம்?", photoHint: "புகைப்படம் மொழிபெயர்ப்பு, குறிப்பு, பயிற்சி தூண்டுதலாக மாறும்.",
+        },
+        te: {
+            follow: "Poliglot AIని అనుసరించండి", socialBody: "చిన్న పాఠాలు, ఉత్పత్తి నవీకరణలు, నేర్చుకునే చిట్కాలు.", socialChannels: "Poliglot AI సామాజిక ఛానెల్లు",
+            openYouTube: "YouTubeలో Poliglot AI తెరవండి", openInstagram: "Instagramలో Poliglot AI తెరవండి", openTikTok: "TikTokలో Poliglot AI తెరవండి",
+            today: "ఈ రోజు", cockpit: "AI ట్యూటర్ ప్యానెల్", featureDemo: "ఫీచర్ డెమో", lesson: "పాఠం", dialogue: "సంభాషణ", voice: "వాయిస్", photo: "ఫోటో",
+            photoIntro: "మెనూ, బోర్డు లేదా పనిని ఫోటో తీసి దాన్ని నేర్చుకునే సన్నివేశంగా మార్చండి.", noPeanuts: "పల్లీలు వద్దు, దయచేసి. ఈ వంటకం ఎంత కారం?", photoHint: "ఫోటో అనువాదం, గమనిక, సాధన సూచనగా మారుతుంది.",
+        },
+        th: {
+            follow: "ติดตาม Poliglot AI", socialBody: "บทเรียนสั้น อัปเดตผลิตภัณฑ์ และเคล็ดลับการเรียน.", socialChannels: "ช่องทางโซเชียลของ Poliglot AI",
+            openYouTube: "เปิด Poliglot AI บน YouTube", openInstagram: "เปิด Poliglot AI บน Instagram", openTikTok: "เปิด Poliglot AI บน TikTok",
+            today: "วันนี้", cockpit: "แผงติวเตอร์ AI", featureDemo: "เดโมฟีเจอร์", lesson: "บทเรียน", dialogue: "บทสนทนา", voice: "เสียง", photo: "รูปภาพ",
+            photoIntro: "ถ่ายรูปเมนู ป้าย หรืองาน แล้วเปลี่ยนเป็นสถานการณ์การเรียนรู้.", noPeanuts: "ไม่ใส่ถั่วลิสงครับ/ค่ะ จานนี้เผ็ดแค่ไหน?", photoHint: "รูปภาพจะกลายเป็นคำแปล โน้ต และโจทย์ฝึก.",
+        },
+        tl: {
+            follow: "Sundan ang Poliglot AI", socialBody: "Maiikling aralin, update ng produkto, at tips sa pag-aaral.", socialChannels: "Mga social channel ng Poliglot AI",
+            openYouTube: "Buksan ang Poliglot AI sa YouTube", openInstagram: "Buksan ang Poliglot AI sa Instagram", openTikTok: "Buksan ang Poliglot AI sa TikTok",
+            today: "Ngayon", cockpit: "Panel ng AI tutor", featureDemo: "Demo ng mga feature", lesson: "Aralin", dialogue: "Dayalogo", voice: "Boses", photo: "Larawan",
+            photoIntro: "Kunan ng larawan ang menu, karatula, o gawain at gawing senaryo sa pag-aaral.", noPeanuts: "Walang mani, pakiusap. Gaano kaanghang ang pagkaing ito?", photoHint: "Ang larawan ay nagiging salin, tala, at prompt sa pagsasanay.",
+        },
+        tr: {
+            follow: "Poliglot AI'ı takip et", socialBody: "Kısa dersler, ürün güncellemeleri ve öğrenme ipuçları.", socialChannels: "Poliglot AI sosyal kanalları",
+            openYouTube: "Poliglot AI'ı YouTube'da aç", openInstagram: "Poliglot AI'ı Instagram'da aç", openTikTok: "Poliglot AI'ı TikTok'ta aç",
+            today: "Bugün", cockpit: "AI öğretmen paneli", featureDemo: "Özellik demosu", lesson: "Ders", dialogue: "Diyalog", voice: "Ses", photo: "Fotoğraf",
+            photoIntro: "Bir menüyü, tabelayı veya görevi fotoğraflayıp öğrenme senaryosuna dönüştür.", noPeanuts: "Fıstık olmasın lütfen. Bu yemek ne kadar acı?", photoHint: "Fotoğraf çeviri, not ve pratik istemine dönüşür.",
+        },
+        vi: {
+            follow: "Theo dõi Poliglot AI", socialBody: "Bài học ngắn, cập nhật sản phẩm và mẹo học tập.", socialChannels: "Kênh mạng xã hội của Poliglot AI",
+            openYouTube: "Mở Poliglot AI trên YouTube", openInstagram: "Mở Poliglot AI trên Instagram", openTikTok: "Mở Poliglot AI trên TikTok",
+            today: "Hôm nay", cockpit: "Bảng điều khiển gia sư AI", featureDemo: "Demo tính năng", lesson: "Bài học", dialogue: "Đối thoại", voice: "Giọng nói", photo: "Ảnh",
+            photoIntro: "Chụp thực đơn, biển báo hoặc bài tập và biến nó thành tình huống học.", noPeanuts: "Không đậu phộng, làm ơn. Món này cay thế nào?", photoHint: "Ảnh trở thành bản dịch, ghi chú và gợi ý luyện tập.",
+        },
+    };
+
+    function addEnglishSparkPhrase(source, key) {
+        const values = { en: source };
+        Object.entries(englishSparkLiveCopy).forEach(([code, phrases]) => {
+            values[code] = phrases[key] || source;
+        });
+        const normalized = normalizePhrase(source);
+        phraseTranslations[normalized] = { ...(phraseTranslations[normalized] || {}), ...values };
+    }
+
+    [
+        ["Follow Poliglot AI", "follow"],
+        ["Short lessons, product updates, and learning tips.", "socialBody"],
+        ["Poliglot AI social channels", "socialChannels"],
+        ["Open Poliglot AI on YouTube", "openYouTube"],
+        ["Open Poliglot AI on Instagram", "openInstagram"],
+        ["Open Poliglot AI on TikTok", "openTikTok"],
+        ["Social", "socialChannels"],
+        ["Соцсети", "socialChannels"],
+        ["Today", "today"],
+        ["AI Tutor Cockpit", "cockpit"],
+        ["Feature demo", "featureDemo"],
+        ["Lesson", "lesson"],
+        ["Dialogue", "dialogue"],
+        ["Voice", "voice"],
+        ["Photo", "photo"],
+        ["Photograph a menu, sign, or task and turn it into a learning scenario.", "photoIntro"],
+        ["No peanuts, please. How spicy is this dish?", "noPeanuts"],
+        ["The photo becomes translation, a note, and a practice prompt.", "photoHint"],
+    ].forEach(([source, key]) => addEnglishSparkPhrase(source, key));
+
     const legalPhraseTranslations = {
         "4. Free, Premium и Platinum": legalTranslations("4. Free, Premium and Platinum", {
             es: "4. Free, Premium y Platinum", de: "4. Free, Premium und Platinum", fr: "4. Free, Premium et Platinum",

@@ -67,6 +67,12 @@ const englishLandingCopyThatMustLocalize = [
   "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.",
   "Pronunciation",
   "Voice practice shows which words sound weak and gives a better sentence to repeat right away.",
+  "Follow Poliglot AI",
+  "Short lessons, product updates, and learning tips.",
+  "AI Tutor Cockpit",
+  "Photograph a menu, sign, or task and turn it into a learning scenario.",
+  "No peanuts, please. How spicy is this dish?",
+  "The photo becomes translation, a note, and a practice prompt.",
 ] as const;
 
 const curatedRussianLandingCopy = [
@@ -125,7 +131,7 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("rel", "noreferrer");
   await expect(heroSocialLinks.nth(1)).toHaveAttribute("href", "https://www.instagram.com/poliglotai.online/");
   await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://www.tiktok.com/@poliglotai");
+  await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://www.tiktok.com/@poliglotai.online");
   await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
 
   const heroCtas = page.locator(".landing-hero .entry-cta");
@@ -244,14 +250,14 @@ test("public footer exposes Poliglot AI social channels", async ({ page }) => {
   await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
   await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
   await expect(footerSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
 
   await page.goto("/poliglot-ai.html?lang=ru");
   const ruFooterSocial = page.locator(".site-footer .site-footer-social");
   await expect(ruFooterSocial).toContainText("Соцсети");
   await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toBeVisible();
-  await expect(ruFooterSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toBeVisible();
 });
 
 test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {
@@ -312,7 +318,7 @@ test("cookie banner lets users configure optional cookies", async ({ page }) => 
   await expect(optionalSwitch).toHaveAttribute("aria-checked", "true");
 
   await banner.getByRole("button", { name: "Сохранить выбор" }).click();
-  await expect(banner).toHaveCount(0);
+  await expect(banner).toBeVisible();
 
   const storedConsent = await page.evaluate(() => localStorage.getItem("poliglot-cookie-consent"));
   expect(JSON.parse(storedConsent || "{}")).toEqual({
@@ -322,15 +328,15 @@ test("cookie banner lets users configure optional cookies", async ({ page }) => 
   });
 
   await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".cookie-consent-banner")).toHaveCount(0);
+  await expect(page.locator(".cookie-consent-banner")).toBeVisible();
 });
 
-test("cookie banner respects legacy saved consent values", async ({ page }) => {
+test("cookie banner remains visible with legacy saved consent values", async ({ page }) => {
   for (const legacyValue of ["necessary", "accepted"]) {
     await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
     await page.evaluate((value) => localStorage.setItem("poliglot-cookie-consent", value), legacyValue);
     await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
-    await expect(page.locator(".cookie-consent-banner")).toHaveCount(0);
+    await expect(page.locator(".cookie-consent-banner")).toBeVisible();
   }
 });
 
@@ -390,6 +396,9 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   await expect(page.locator(".plan-label").first()).toHaveCSS("color", "rgb(45, 91, 255)");
   await expect(page.locator(".course-card span").first()).toHaveCSS("color", "rgb(45, 91, 255)");
   await expect(page.locator(".scenario-modules span").first()).toHaveCSS("color", "rgb(45, 91, 255)");
+  await expect(page.locator(".landing-social-proof strong")).toHaveCSS("color", "rgb(7, 17, 31)");
+  await expect(page.locator(".landing-social-proof span")).toHaveCSS("color", "rgba(7, 17, 31, 0.68)");
+  await expect(page.locator(".landing-social-proof .social-icon-link--tiktok")).toHaveCSS("color", "rgb(7, 17, 31)");
 
   const issues = await page.evaluate(() => {
     const selectors = [
@@ -648,7 +657,7 @@ test("public site language selector exposes all interface locales", async ({ pag
 });
 
 test("landing localizes core product copy across all 35 interface locales", async ({ page }) => {
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
   await page.goto("/poliglot-ai.html?lang=en");
   const select = page.locator("[data-site-language-select]");
   await expect(select).toBeVisible();
@@ -671,6 +680,7 @@ test("landing localizes core product copy across all 35 interface locales", asyn
       expect(landingText).not.toContain("Practice speaking before the moment matters");
       expect(landingText).not.toContain("Real situations where the language has to work today");
       expect(landingText).not.toContain("Start free");
+      await expect(page.locator(".landing-social-proof")).not.toContainText("Follow Poliglot AI");
       for (const englishCopy of englishLandingCopyThatMustLocalize) {
         expect(landingText).not.toContain(englishCopy);
       }
@@ -795,9 +805,9 @@ test("legal document package exposes operator details and cookie opt-in", async 
   await expect(banner.getByRole("button", { name: "Только необходимые" })).toBeVisible();
   await expect(banner.getByRole("button", { name: "Принять все cookie" })).toBeVisible();
   await banner.getByRole("button", { name: "Принять все cookie" }).click();
-  await expect(banner).toHaveCount(0);
+  await expect(banner).toBeVisible();
   await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".cookie-consent-banner")).toHaveCount(0);
+  await expect(page.locator(".cookie-consent-banner")).toBeVisible();
 });
 
 test("production public-site output keeps all image and localization assets for deploy", async ({ page, request }) => {
