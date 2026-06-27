@@ -5,6 +5,7 @@
 - Every reusable TikTok/Reels/Shorts outro should be a 2-second vertical brand insert with only the Poliglot AI logo and exact URL `poliglotAI.online` visible.
 - Use the local FLUX.2 + Wan 2.1 + RIFE ComfyUI chain already configured in `comfyui_workflows`; avoid downloading new large models unless the installed set cannot produce the requested quality.
 - Keep the URL exact and readable. If the video model distorts text, use the generated motion as background and overlay the exact logo/URL from the reference card in the editor.
+- Prefer the more kinetic first generated background for the final outro style, but do not trust model-rendered typography. The URL should appear after the logo with an After Effects-style float/reveal, light sweep, and clean deterministic overlay.
 
 This file is the recurring UI checklist for Poliglot AI. Check it before changing the web app, public site, generated assets, or mobile layout.
 

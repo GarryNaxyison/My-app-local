@@ -1,5 +1,10 @@
 ﻿# Changelog
 
+## 2026-06-28
+
+- Added a polished After Effects-style Poliglot AI outro render pass that reuses the more kinetic first ComfyUI motion background, masks distorted model text, and overlays the exact logo plus `poliglotAI.online` with a floating reveal, light sweep, and underline.
+- Rendered the 2-second vertical MP4 at `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_ae_reveal_v2.mp4` and saved preview frames under `tmp/comfy-outro`.
+
 ## 2026-06-27
 
 - Added a dedicated Poliglot AI 2-second TikTok/Reels/Shorts outro pack for ComfyUI: FLUX.2 keyframe prompt, Wan 2.1 I2V prompt, native ComfyUI workflow, API prompt, exact `poliglotAI.online` reference card, silent audio placeholder, and an API runner script.
