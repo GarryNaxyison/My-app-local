@@ -53,7 +53,7 @@ func newYooKassaClient(shopID string, secretKey string, httpClient *http.Client)
 	}
 }
 
-func (c *yooKassaClient) createPremiumPayment(ctx context.Context, telegramID int64, firstName string, interfaceLanguage string, plan premiumPlan, returnURL string, channel string) (yooKassaPayment, error) {
+func (c *yooKassaClient) createPremiumPayment(ctx context.Context, telegramID int64, firstName string, interfaceLanguage string, plan premiumPlan, returnURL string, channel string, idempotencyKeys ...string) (yooKassaPayment, error) {
 	channel = strings.TrimSpace(channel)
 	if channel == "" {
 		channel = "telegram"
@@ -82,7 +82,11 @@ func (c *yooKassaClient) createPremiumPayment(ctx context.Context, telegramID in
 	}
 
 	var payment yooKassaPayment
-	if err := c.do(ctx, http.MethodPost, "https://api.yookassa.ru/v3/payments", payload, &payment); err != nil {
+	idempotenceKey := ""
+	if len(idempotencyKeys) > 0 {
+		idempotenceKey = paymentIdempotencyToken("yookassa", telegramID, plan.Product, channel, idempotencyKeys[0])
+	}
+	if err := c.do(ctx, http.MethodPost, "https://api.yookassa.ru/v3/payments", payload, &payment, idempotenceKey); err != nil {
 		return yooKassaPayment{}, err
 	}
 	if payment.Confirmation.ConfirmationURL == "" {
@@ -97,7 +101,7 @@ func (c *yooKassaClient) getPayment(ctx context.Context, paymentID string) (yooK
 	return payment, err
 }
 
-func (c *yooKassaClient) do(ctx context.Context, method string, url string, payload any, target any) error {
+func (c *yooKassaClient) do(ctx context.Context, method string, url string, payload any, target any, idempotenceKeys ...string) error {
 	var body io.Reader
 	if payload != nil {
 		bytesBody, err := json.Marshal(payload)
@@ -114,7 +118,14 @@ func (c *yooKassaClient) do(ctx context.Context, method string, url string, payl
 	req.SetBasicAuth(c.shopID, c.secretKey)
 	req.Header.Set("Content-Type", "application/json")
 	if method == http.MethodPost {
-		req.Header.Set("Idempotence-Key", fmt.Sprintf("premium-%d", time.Now().UnixNano()))
+		idempotenceKey := ""
+		if len(idempotenceKeys) > 0 {
+			idempotenceKey = strings.TrimSpace(idempotenceKeys[0])
+		}
+		if idempotenceKey == "" {
+			idempotenceKey = fmt.Sprintf("premium-%d", time.Now().UnixNano())
+		}
+		req.Header.Set("Idempotence-Key", idempotenceKey)
 	}
 
 	resp, err := c.http.Do(req)

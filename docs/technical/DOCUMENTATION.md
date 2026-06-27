@@ -384,6 +384,16 @@ WEB_TURNSTILE_SECRET_KEY=your_secret_key
 
 When both values are set, the web app renders the Turnstile challenge and sends its token with auth requests. The server verifies the token before creating sessions or accounts. The API also has a global per-IP/per-session limiter for `/api/*`, plus stricter auth-specific limits, so logged-in users cannot spam buttons into unlimited server work.
 
+`X-Forwarded-For` and `X-Real-IP` are trusted only when the TCP peer is loopback or matches `TRUSTED_PROXY_CIDRS`:
+
+```env
+TRUSTED_PROXY_CIDRS=127.0.0.1/32,::1/128,10.0.0.0/8
+```
+
+Payment creation endpoints accept `Idempotency-Key`. Repeating the same payment-create request with the same user, product, channel, and key reuses the provider-side idempotence/order token; direct crypto returns the existing pending invoice instead of creating another row.
+
+Application rate limits are not volumetric DDoS protection. Production must keep an upstream edge layer in front of Caddy/backend, such as provider firewall rules, Cloudflare/WAF rules, or a verified Caddy build with rate-limit support.
+
 ## Direct Crypto Payments
 
 The project supports direct crypto payments without Cryptomus, NOWPayments, or another payment processor. The same Go HTTP server that serves `/app` also exposes authenticated web endpoints:

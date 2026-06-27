@@ -1,4 +1,7 @@
 poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+	# Production DDoS/edge throttling must be enforced before Caddy
+	# (provider firewall, Cloudflare/WAF, or a Caddy build with a verified rate-limit plugin).
+	# The Go backend also applies /api/* application rate limits, but it cannot absorb volumetric floods.
 	@deployUpload path /__codex_deploy_upload/*
 	handle @deployUpload {
 		request_body {

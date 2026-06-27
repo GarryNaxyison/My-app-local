@@ -324,6 +324,10 @@ func (b *bot) createDirectTONPayment(ctx context.Context, product string, user u
 }
 
 func (b *bot) createDirectCryptoPayment(ctx context.Context, product string, user userState, methodID string) (cryptoPayment, string, error) {
+	return b.createDirectCryptoPaymentWithID(ctx, product, user, methodID, "")
+}
+
+func (b *bot) createDirectCryptoPaymentWithID(ctx context.Context, product string, user userState, methodID string, paymentID string) (cryptoPayment, string, error) {
 	plan, ok := b.premiumPlan(product)
 	if !ok {
 		return cryptoPayment{}, "", errors.New("unknown product")
@@ -332,9 +336,13 @@ func (b *bot) createDirectCryptoPayment(ctx context.Context, product string, use
 	if !ok {
 		return cryptoPayment{}, "", errors.New("selected crypto payment method is not configured")
 	}
-	id, err := newCryptoPaymentID(method.ID)
-	if err != nil {
-		return cryptoPayment{}, "", err
+	id := strings.TrimSpace(paymentID)
+	if id == "" {
+		var err error
+		id, err = newCryptoPaymentID(method.ID)
+		if err != nil {
+			return cryptoPayment{}, "", err
+		}
 	}
 	amountUnits := method.AmountUnits
 	if method.UniqueAmount {
@@ -363,6 +371,53 @@ func (b *bot) createDirectCryptoPayment(ctx context.Context, product string, use
 		UpdatedAt:  now,
 	}
 	return payment, b.cryptoPaymentURL(payment), nil
+}
+
+func (b *bot) createOrReuseDirectCryptoPayment(ctx context.Context, product string, user userState, methodID string, idempotencyKey string) (cryptoPayment, string, error) {
+	idempotencyKey = normalizeIdempotencyKey(idempotencyKey)
+	if idempotencyKey == "" {
+		payment, invoiceURL, err := b.createDirectCryptoPayment(ctx, product, user, methodID)
+		if err != nil {
+			return cryptoPayment{}, "", err
+		}
+		if err := b.saveDirectCryptoPayment(payment); err != nil {
+			return cryptoPayment{}, "", err
+		}
+		return payment, invoiceURL, nil
+	}
+	method, ok := b.cryptoPaymentMethodForProduct(ctx, product, methodID)
+	if !ok {
+		return cryptoPayment{}, "", errors.New("selected crypto payment method is not configured")
+	}
+	stableID := cryptoPaymentIDFromIdempotencyKey(method.ID, user.TelegramID, product, idempotencyKey)
+	store, ok := b.store.(cryptoPaymentStore)
+	if !ok {
+		return cryptoPayment{}, "", errors.New("direct crypto payments require sqlite storage")
+	}
+	if existing, ok, err := store.getCryptoPayment(stableID); err != nil {
+		return cryptoPayment{}, "", err
+	} else if ok {
+		if existing.TelegramID != user.TelegramID {
+			return cryptoPayment{}, "", errors.New("payment belongs to another user")
+		}
+		return existing, b.cryptoPaymentURL(existing), nil
+	}
+	payment, invoiceURL, err := b.createDirectCryptoPaymentWithID(ctx, product, user, method.ID, stableID)
+	if err != nil {
+		return cryptoPayment{}, "", err
+	}
+	if err := store.createCryptoPayment(payment); err != nil {
+		lower := strings.ToLower(err.Error())
+		if strings.Contains(lower, "unique") || strings.Contains(lower, "constraint") {
+			if existing, ok, lookupErr := store.getCryptoPayment(stableID); lookupErr != nil {
+				return cryptoPayment{}, "", lookupErr
+			} else if ok && existing.TelegramID == user.TelegramID {
+				return existing, b.cryptoPaymentURL(existing), nil
+			}
+		}
+		return cryptoPayment{}, "", err
+	}
+	return payment, invoiceURL, nil
 }
 
 func (b *bot) saveDirectTONPayment(payment cryptoPayment) error {

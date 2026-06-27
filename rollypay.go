@@ -63,7 +63,7 @@ func newRollyPayClient(cashboxID string, apiKey string, baseURL string, path str
 	}
 }
 
-func (c *rollyPayClient) createPremiumPayment(ctx context.Context, user userState, plan premiumPlan, channel string, successURL string, failURL string, now time.Time) (rollyPayPayment, error) {
+func (c *rollyPayClient) createPremiumPayment(ctx context.Context, user userState, plan premiumPlan, channel string, successURL string, failURL string, now time.Time, idempotencyKeys ...string) (rollyPayPayment, error) {
 	if c == nil || c.cashboxID == "" || c.apiKey == "" {
 		return rollyPayPayment{}, fmt.Errorf("RollyPay is not configured")
 	}
@@ -72,6 +72,11 @@ func (c *rollyPayClient) createPremiumPayment(ctx context.Context, user userStat
 		return rollyPayPayment{}, err
 	}
 	orderID := rollyPayOrderID(plan.Product, user.TelegramID, now)
+	if len(idempotencyKeys) > 0 {
+		if stableOrderID := paymentIdempotencyToken("rollypay", user.TelegramID, plan.Product, channel, idempotencyKeys[0]); stableOrderID != "" {
+			orderID = stableOrderID
+		}
+	}
 	payload := map[string]any{
 		"amount":           fmt.Sprintf("%.2f", float64(plan.RubPrice)),
 		"payment_currency": "RUB",

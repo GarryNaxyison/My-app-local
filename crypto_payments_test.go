@@ -195,6 +195,52 @@ func TestSQLiteCryptoPaymentLifecycle(t *testing.T) {
 	}
 }
 
+func TestDirectCryptoPaymentIdempotencyReusesPendingPayment(t *testing.T) {
+	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = store.db.Close() })
+	user, err := store.getOrCreateUser(-42, "Ada")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := &bot{
+		cfg: config{
+			PremiumRubPrice:         300,
+			PremiumYearRubPrice:     3000,
+			PlatinumRubPrice:        590,
+			PlatinumYearRubPrice:    5900,
+			CryptoTONWallet:         "EQ_TEST",
+			CryptoTONMonthAmount:    "1.25",
+			CryptoPaymentTTLMinutes: 60,
+		},
+		store: store,
+	}
+
+	first, firstURL, err := b.createOrReuseDirectCryptoPayment(context.Background(), premiumMonthlyProduct, user, cryptoMethodTON, "checkout-retry-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, secondURL, err := b.createOrReuseDirectCryptoPayment(context.Background(), premiumMonthlyProduct, user, cryptoMethodTON, "checkout-retry-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.ID == "" || first.ID != second.ID {
+		t.Fatalf("payment IDs = %q and %q, want same non-empty ID", first.ID, second.ID)
+	}
+	if firstURL != secondURL {
+		t.Fatalf("invoice URLs differ: %q vs %q", firstURL, secondURL)
+	}
+	var count int
+	if err := store.db.QueryRow(`SELECT COUNT(*) FROM crypto_payments`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("crypto_payments count = %d, want 1", count)
+	}
+}
+
 func TestDirectTONCheckFallsBackToTonAPIWhenTonCenterRejectsKey(t *testing.T) {
 	now := time.Now().UTC()
 	payment := cryptoPayment{

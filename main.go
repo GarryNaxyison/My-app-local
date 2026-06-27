@@ -73,10 +73,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	server := &http.Server{
-		Addr:    cfg.WebhookListenAddr,
-		Handler: yookassaWebhookMux(cfg.YooKassaWebhookKey, bot),
-	}
+	server := newWebhookHTTPServer(cfg, bot)
 	go func() {
 		log.Printf("HTTP server listening on %s", cfg.WebhookListenAddr)
 		if bot.yookassa == nil {
@@ -155,6 +152,18 @@ func yookassaWebhookMux(webhookKey string, bot *bot) http.Handler {
 	mux.HandleFunc("/tonapi/webhook", tonAPIWebhook)
 	mux.HandleFunc("/tonapi/webhook/", tonAPIWebhook)
 	return web.withCORS(mux)
+}
+
+func newWebhookHTTPServer(cfg config, bot *bot) *http.Server {
+	return &http.Server{
+		Addr:              cfg.WebhookListenAddr,
+		Handler:           yookassaWebhookMux(cfg.YooKassaWebhookKey, bot),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20,
+	}
 }
 
 func paymentSuccessHandler(w http.ResponseWriter, r *http.Request) {

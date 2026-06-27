@@ -63,6 +63,7 @@ type webAPI struct {
 	allowAnyOrigin     bool
 	rateMu             sync.Mutex
 	rateBuckets        map[string]webRateBucket
+	trustedProxyNets   []net.IPNet
 	pronunciationMu    sync.Mutex
 	pronunciationCache map[string][]byte
 }
@@ -126,6 +127,7 @@ func newWebAPI(cfg config, bot *bot) *webAPI {
 		sessionSecret:      []byte(secret),
 		allowedOrigins:     map[string]bool{},
 		rateBuckets:        map[string]webRateBucket{},
+		trustedProxyNets:   trustedProxyNets(cfg.TrustedProxyCIDRs),
 		pronunciationCache: map[string][]byte{},
 	}
 	for _, origin := range cfg.WebCORSOrigins {
@@ -4053,7 +4055,7 @@ func (api *webAPI) handlePremiumPayment(w http.ResponseWriter, r *http.Request) 
 	}
 	plan = localizedPremiumPlan(user, plan)
 	returnURL := api.cfg.webPaymentReturnURL()
-	payment, err := client.createPremiumPayment(r.Context(), user.TelegramID, user.FirstName, user.InterfaceLanguage, plan, returnURL, "web")
+	payment, err := client.createPremiumPayment(r.Context(), user.TelegramID, user.FirstName, user.InterfaceLanguage, plan, returnURL, "web", requestIdempotencyKey(r))
 	if err != nil {
 		writeAPIError(w, http.StatusBadGateway, premiumUI(user).YooKassaCreateFailed)
 		return
@@ -4090,7 +4092,7 @@ func (api *webAPI) handlePremiumRollyPayPayment(w http.ResponseWriter, r *http.R
 	}
 	plan = localizedPremiumPlan(user, plan)
 	returnURL := api.cfg.rollyPayWebReturnURL()
-	payment, err := api.bot.rollyPayWeb.createPremiumPayment(r.Context(), user, plan, rollyPayChannelWeb, returnURL, returnURL, time.Now())
+	payment, err := api.bot.rollyPayWeb.createPremiumPayment(r.Context(), user, plan, rollyPayChannelWeb, returnURL, returnURL, time.Now(), requestIdempotencyKey(r))
 	if err != nil {
 		writeAPIError(w, http.StatusBadGateway, err.Error())
 		return
@@ -4225,7 +4227,7 @@ func (api *webAPI) handleCryptoPremiumPayment(w http.ResponseWriter, r *http.Req
 	if !decodeJSONRequest(w, r, &req) {
 		return
 	}
-	payment, invoiceURL, err := api.bot.createDirectCryptoPayment(r.Context(), req.Product, user, req.Method)
+	payment, invoiceURL, err := api.bot.createOrReuseDirectCryptoPayment(r.Context(), req.Product, user, req.Method, requestIdempotencyKey(r))
 	if err != nil {
 		writeAPIError(w, http.StatusBadRequest, err.Error())
 		return
@@ -4301,7 +4303,7 @@ func (api *webAPI) allowRate(r *http.Request, scope string, limit int, window ti
 	if limit <= 0 || window <= 0 {
 		return true
 	}
-	key := clientRateKey(r) + "|" + scope
+	key := api.clientRateKey(r) + "|" + scope
 	now := time.Now()
 	api.rateMu.Lock()
 	defer api.rateMu.Unlock()
@@ -4325,21 +4327,65 @@ func (api *webAPI) allowRate(r *http.Request, scope string, limit int, window ti
 	return true
 }
 
-func clientRateKey(r *http.Request) string {
-	if forwarded := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); forwarded != "" {
-		first, _, _ := strings.Cut(forwarded, ",")
-		if ip := net.ParseIP(strings.TrimSpace(first)); ip != nil {
-			return ip.String()
+func (api *webAPI) clientRateKey(r *http.Request) string {
+	remoteIP := requestRemoteIP(r)
+	if remoteIP != nil && api.remoteAddrTrusted(remoteIP) {
+		if forwarded := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); forwarded != "" {
+			first, _, _ := strings.Cut(forwarded, ",")
+			if ip := net.ParseIP(strings.TrimSpace(first)); ip != nil {
+				return ip.String()
+			}
+		}
+		if realIP := net.ParseIP(strings.TrimSpace(r.Header.Get("X-Real-IP"))); realIP != nil {
+			return realIP.String()
 		}
 	}
-	if realIP := net.ParseIP(strings.TrimSpace(r.Header.Get("X-Real-IP"))); realIP != nil {
-		return realIP.String()
-	}
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err == nil && host != "" {
-		return host
+	if remoteIP != nil {
+		return remoteIP.String()
 	}
 	return strings.TrimSpace(r.RemoteAddr)
+}
+
+func (api *webAPI) remoteAddrTrusted(ip net.IP) bool {
+	for _, network := range api.trustedProxyNets {
+		if network.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+func requestRemoteIP(r *http.Request) net.IP {
+	host, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr))
+	if err != nil {
+		host = strings.TrimSpace(r.RemoteAddr)
+	}
+	return net.ParseIP(host)
+}
+
+func trustedProxyNets(configured []string) []net.IPNet {
+	cidrs := []string{"127.0.0.1/32", "::1/128"}
+	cidrs = append(cidrs, configured...)
+	networks := make([]net.IPNet, 0, len(cidrs))
+	for _, cidr := range cidrs {
+		cidr = strings.TrimSpace(cidr)
+		if cidr == "" {
+			continue
+		}
+		if ip := net.ParseIP(cidr); ip != nil {
+			if ip4 := ip.To4(); ip4 != nil {
+				networks = append(networks, net.IPNet{IP: ip4, Mask: net.CIDRMask(32, 32)})
+			} else {
+				networks = append(networks, net.IPNet{IP: ip, Mask: net.CIDRMask(128, 128)})
+			}
+			continue
+		}
+		_, network, err := net.ParseCIDR(cidr)
+		if err == nil && network != nil {
+			networks = append(networks, *network)
+		}
+	}
+	return networks
 }
 
 func (api *webAPI) webAccountStore() (webAccountStore, error) {

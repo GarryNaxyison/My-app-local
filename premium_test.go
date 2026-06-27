@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -390,6 +391,61 @@ func TestRollyPayClientUsesDocumentedPaymentContract(t *testing.T) {
 	}
 	if payment.ID != "pay_123" || payment.URL != "https://pay.rollypay.io/pay/tok_123" || payment.Status != "created" {
 		t.Fatalf("unexpected payment: %+v", payment)
+	}
+}
+
+func TestYooKassaClientUsesStableIdempotenceKeyForRetry(t *testing.T) {
+	var gotKeys []string
+	client := newYooKassaClient("shop", "secret", &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		gotKeys = append(gotKeys, req.Header.Get("Idempotence-Key"))
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"id":"pay_123","confirmation":{"confirmation_url":"https://pay.example/123"}}`)),
+		}, nil
+	})})
+	plan := premiumPlan{Product: premiumMonthlyProduct, Title: "Premium", RubPrice: 300}
+
+	for i := 0; i < 2; i++ {
+		if _, err := client.createPremiumPayment(context.Background(), 42, "Ada", "en", plan, "https://example.test/success", "web", "checkout-retry-1"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(gotKeys) != 2 {
+		t.Fatalf("captured %d idempotence keys, want 2", len(gotKeys))
+	}
+	if gotKeys[0] == "" || gotKeys[0] != gotKeys[1] {
+		t.Fatalf("Idempotence-Key values = %#v, want stable non-empty key", gotKeys)
+	}
+}
+
+func TestRollyPayClientUsesStableOrderIDForRetry(t *testing.T) {
+	var orderIDs []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatal(err)
+		}
+		orderIDs = append(orderIDs, firstString(payload, "order_id"))
+		writeJSON(w, http.StatusOK, map[string]any{
+			"id":      "pay_123",
+			"pay_url": "https://pay.rollypay.io/pay/tok_123",
+		})
+	}))
+	defer server.Close()
+	client := newRollyPayClient("terminal-123", "api-key-123", server.URL, "", server.Client())
+	plan := premiumPlan{Product: premiumMonthlyProduct, Title: "Premium", RubPrice: 300}
+
+	for _, now := range []time.Time{time.Unix(1700000000, 0), time.Unix(1700000030, 0)} {
+		if _, err := client.createPremiumPayment(context.Background(), userState{TelegramID: 42, FirstName: "Ada"}, plan, rollyPayChannelWeb, "https://example.test/success", "https://example.test/fail", now, "checkout-retry-1"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(orderIDs) != 2 {
+		t.Fatalf("captured %d order IDs, want 2", len(orderIDs))
+	}
+	if orderIDs[0] == "" || orderIDs[0] != orderIDs[1] {
+		t.Fatalf("order IDs = %#v, want stable non-empty order ID", orderIDs)
 	}
 }
 

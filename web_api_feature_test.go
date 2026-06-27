@@ -58,6 +58,50 @@ func TestWebGeneratedVisualAssets(t *testing.T) {
 	}
 }
 
+func TestClientRateKeyIgnoresForwardedForFromUntrustedRemote(t *testing.T) {
+	api := newWebAPI(config{WebAPISessionSecret: "test-session-secret"}, nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/session", nil)
+	request.RemoteAddr = "203.0.113.10:43124"
+	request.Header.Set("X-Forwarded-For", "198.51.100.99")
+	request.Header.Set("X-Real-IP", "198.51.100.100")
+
+	if got := api.clientRateKey(request); got != "203.0.113.10" {
+		t.Fatalf("clientRateKey = %q, want remote address", got)
+	}
+}
+
+func TestClientRateKeyUsesForwardedForFromTrustedProxy(t *testing.T) {
+	api := newWebAPI(config{
+		WebAPISessionSecret: "test-session-secret",
+		TrustedProxyCIDRs:   []string{"10.0.0.0/8"},
+	}, nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/session", nil)
+	request.RemoteAddr = "10.20.30.40:43124"
+	request.Header.Set("X-Forwarded-For", "198.51.100.99, 10.20.30.40")
+
+	if got := api.clientRateKey(request); got != "198.51.100.99" {
+		t.Fatalf("clientRateKey = %q, want forwarded client IP", got)
+	}
+}
+
+func TestWebhookHTTPServerTimeouts(t *testing.T) {
+	cfg := config{WebhookListenAddr: ":0", WebAPISessionSecret: "test-session-secret"}
+	server := newWebhookHTTPServer(cfg, &bot{cfg: cfg})
+
+	if server.ReadHeaderTimeout <= 0 {
+		t.Fatal("ReadHeaderTimeout must be configured")
+	}
+	if server.ReadTimeout <= 0 {
+		t.Fatal("ReadTimeout must be configured")
+	}
+	if server.WriteTimeout <= 0 {
+		t.Fatal("WriteTimeout must be configured")
+	}
+	if server.IdleTimeout <= 0 {
+		t.Fatal("IdleTimeout must be configured")
+	}
+}
+
 func TestWebAppShellAndPWAEntrypointsAreNoCache(t *testing.T) {
 	api := newWebAPI(config{WebAPISessionSecret: "test-session-secret"}, nil)
 	mux := http.NewServeMux()

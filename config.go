@@ -62,6 +62,7 @@ type config struct {
 	WebPaymentReturnURL               string
 	WebTurnstileSiteKey               string
 	WebTurnstileSecretKey             string
+	TrustedProxyCIDRs                 []string
 	CryptoTONWallet                   string
 	CryptoTONMonthAmount              string
 	CryptoTONYearAmount               string
@@ -147,6 +148,7 @@ func configFromEnv() (config, error) {
 		WebPaymentReturnURL:               strings.TrimSpace(os.Getenv("WEB_PAYMENT_RETURN_URL")),
 		WebTurnstileSiteKey:               strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SITE_KEY")),
 		WebTurnstileSecretKey:             strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SECRET_KEY")),
+		TrustedProxyCIDRs:                 envListOrDefault("TRUSTED_PROXY_CIDRS", nil),
 		CryptoTONWallet:                   strings.TrimSpace(os.Getenv("CRYPTO_TON_WALLET")),
 		CryptoTONMonthAmount:              strings.TrimSpace(os.Getenv("CRYPTO_TON_MONTH_AMOUNT")),
 		CryptoTONYearAmount:               strings.TrimSpace(os.Getenv("CRYPTO_TON_YEAR_AMOUNT")),
