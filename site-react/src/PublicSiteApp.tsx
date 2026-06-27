@@ -1041,39 +1041,106 @@ function LegalPageV2({ page }: { page: LegalPageId }) {
   );
 }
 
+type CookieConsentChoice = {
+  version: 1;
+  necessary: true;
+  analyticsMarketing: boolean;
+};
+
+const cookieConsentStorageKey = "poliglot-cookie-consent";
+
+function hasSavedCookieConsent(value: string | null) {
+  if (!value) return false;
+  if (value === "necessary" || value === "accepted") return true;
+
+  try {
+    const parsed = JSON.parse(value) as Partial<CookieConsentChoice>;
+    return parsed.version === 1 && parsed.necessary === true && typeof parsed.analyticsMarketing === "boolean";
+  } catch {
+    return false;
+  }
+}
+
+function serializeCookieConsent(analyticsMarketing: boolean) {
+  const choice: CookieConsentChoice = {
+    version: 1,
+    necessary: true,
+    analyticsMarketing,
+  };
+
+  return JSON.stringify(choice);
+}
+
 function CookieConsentBanner() {
   const [choice, setChoice] = useState<string | null>(() => {
     try {
-      return localStorage.getItem("poliglot-cookie-consent");
+      return localStorage.getItem(cookieConsentStorageKey);
     } catch {
       return null;
     }
   });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [analyticsMarketing, setAnalyticsMarketing] = useState(false);
 
   const saveChoice = (value: string) => {
     try {
-      localStorage.setItem("poliglot-cookie-consent", value);
+      localStorage.setItem(cookieConsentStorageKey, value);
     } catch {
       // Ignore storage failures; the banner can still close for this session.
     }
     setChoice(value);
   };
 
-  if (choice) return null;
+  const saveNecessary = () => saveChoice("necessary");
+  const saveAccepted = () => saveChoice(serializeCookieConsent(true));
+  const saveSelected = () => saveChoice(serializeCookieConsent(analyticsMarketing));
+
+  if (hasSavedCookieConsent(choice)) return null;
 
   return (
     <section className="cookie-consent-banner" aria-label="Cookie consent">
-      <div>
+      <div className="cookie-consent-banner__copy">
         <strong data-legal-cookie="title">Cookie и технические данные</strong>
         <p data-legal-cookie="body">Мы используем необходимые cookie и локальное хранилище для входа, языка, темы, безопасности, сохранения согласий и корректной работы сайта. Необязательные cookie применяются только после согласия.</p>
         <nav>
           <a href="/privacy.html" data-legal-cookie="privacy">Политика</a>
           <a href="/consent.html" data-legal-cookie="consent">Согласие</a>
         </nav>
+
+        {settingsOpen && (
+          <div className="cookie-consent-banner__settings" aria-label="Настройки cookie">
+            <div className="cookie-consent-banner__setting-row">
+              <div>
+                <strong>Необходимые</strong>
+                <span>Всегда активны для входа, безопасности, языка и сохранения согласий.</span>
+              </div>
+              <span className="cookie-consent-banner__required">Всегда активны</span>
+            </div>
+
+            <div className="cookie-consent-banner__setting-row">
+              <div>
+                <strong>Аналитические/маркетинговые</strong>
+                <span>Помогают понимать работу сайта и улучшать продвижение, если такие инструменты включены.</span>
+              </div>
+              <button
+                type="button"
+                className="cookie-consent-banner__switch"
+                role="switch"
+                aria-checked={analyticsMarketing}
+                aria-label="Аналитические/маркетинговые"
+                onClick={() => setAnalyticsMarketing((value) => !value)}
+              >
+                <span />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="cookie-consent-banner__actions">
-        <button type="button" onClick={() => saveChoice("necessary")} data-legal-cookie="necessary">Только необходимые</button>
-        <button type="button" onClick={() => saveChoice("accepted")} data-legal-cookie="accept">Принять все cookie</button>
+        <button type="button" onClick={saveNecessary} data-legal-cookie="necessary">Только необходимые</button>
+        <button type="button" onClick={() => setSettingsOpen((value) => !value)} data-legal-cookie="settings">Настроить</button>
+        {settingsOpen && <button type="button" onClick={saveSelected} data-legal-cookie="save-selected">Сохранить выбор</button>}
+        <button type="button" onClick={saveAccepted} data-legal-cookie="accept">Принять все cookie</button>
       </div>
     </section>
   );
