@@ -4241,9 +4241,12 @@ select {
   bottom: clamp(12px, 3vw, 24px);
   z-index: 90;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
-  width: min(700px, calc(100vw - 24px));
+  grid-template-columns: minmax(0, 1fr) minmax(164px, max-content);
+  align-items: start;
+  gap: 14px;
+  width: min(760px, calc(100vw - 24px));
+  max-height: min(80dvh, calc(100dvh - 24px));
+  overflow-y: auto;
   border: 1px solid color-mix(in srgb, var(--primary) 26%, var(--line));
   border-radius: 18px;
   background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
@@ -4252,6 +4255,10 @@ select {
   color: var(--text);
   backdrop-filter: blur(24px) saturate(1.1);
   transform: translateX(-50%);
+}
+
+.app-cookie-consent-banner > div:first-child {
+  min-width: 0;
 }
 
 .app-cookie-consent-banner strong {
@@ -4296,6 +4303,10 @@ select {
   background: rgba(15, 23, 42, 0.52);
 }
 
+.app-cookie-consent-banner__setting-row > div {
+  min-width: 0;
+}
+
 .app-cookie-consent-banner__setting-row span {
   display: block;
   color: rgba(226, 232, 240, 0.74);
@@ -4308,7 +4319,10 @@ select {
   min-width: 46px;
   height: 26px;
   padding: 3px;
+  border: 0;
   border-radius: 999px;
+  background: rgba(148, 163, 184, 0.42);
+  cursor: pointer;
 }
 
 .app-cookie-consent-banner__switch span {
@@ -4318,6 +4332,10 @@ select {
   border-radius: 999px;
   background: #fff;
   transition: transform 180ms ease;
+}
+
+.app-cookie-consent-banner__switch[aria-checked="true"] {
+  background: var(--teal);
 }
 
 .app-cookie-consent-banner__switch[aria-checked="true"] span {
@@ -4333,11 +4351,15 @@ select {
 }
 
 .app-cookie-consent-banner__actions {
-  align-items: stretch;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr);
+  align-content: start;
+  align-self: start;
+  justify-content: stretch;
+  width: min(188px, 32vw);
 }
 
-.app-cookie-consent-banner button {
+.app-cookie-consent-banner__actions > button {
   min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -4346,21 +4368,14 @@ select {
   background: color-mix(in srgb, var(--surface) 86%, transparent);
   cursor: pointer;
   font-weight: 900;
+  line-height: 1.15;
+  text-align: center;
 }
 
-.app-cookie-consent-banner button:last-child {
+.app-cookie-consent-banner__actions > button:last-child {
   border-color: transparent;
   color: #06111f;
   background: linear-gradient(135deg, var(--gold), #8ff1d0);
-}
-
-.sign-in-page-v2 + .app-cookie-consent-banner {
-  width: min(380px, calc(100vw - 24px));
-  grid-template-columns: 1fr;
-}
-
-.sign-in-page-v2 + .app-cookie-consent-banner .app-cookie-consent-banner__actions {
-  justify-content: flex-start;
 }
 
 .settings-error-v2 {
@@ -4407,28 +4422,33 @@ select {
 @media (max-width: 760px) {
   .app-cookie-consent-banner {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
     left: 12px;
     right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
     width: auto;
+    max-height: min(520px, 62dvh, calc(100dvh - 24px));
+    overflow: hidden;
     transform: none;
   }
 
-  .sign-in-page-v2 + .app-cookie-consent-banner {
-    top: 8px;
-    right: 8px;
-    bottom: auto;
-    left: 8px;
-    width: auto;
-    max-height: 36vh;
-    overflow: auto;
+  .app-cookie-consent-banner > div:first-child {
+    overflow-y: auto;
+    padding-right: 2px;
   }
 
   .app-cookie-consent-banner__actions {
-    justify-content: stretch;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
   }
 
-  .app-cookie-consent-banner button {
-    flex: 1 1 160px;
+  .app-cookie-consent-banner__actions > button {
+    min-width: 0;
+    padding: 0 10px;
+  }
+
+  .app-cookie-consent-banner__actions > button:last-child {
+    grid-column: 1 / -1;
   }
 
   .v2-shell {

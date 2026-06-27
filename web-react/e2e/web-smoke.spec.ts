@@ -3629,6 +3629,54 @@ test("web app hides cookie consent banner after saving choices", async ({ page, 
   await expect(page.locator(".app-cookie-consent-banner")).toBeHidden();
 });
 
+test("web app cookie settings stay compact on the login page", async ({ page, isMobile }) => {
+  await mockAnonymousAuth(page);
+  await page.goto("/app/login", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => {
+    localStorage.setItem("poliglot-test-show-cookie-banner", "1");
+    localStorage.removeItem("poliglot-app-cookie-consent");
+  });
+  await page.goto("/app/login", { waitUntil: "domcontentloaded" });
+
+  const banner = page.locator(".app-cookie-consent-banner");
+  await expect(page.locator(".cookie-consent-banner")).toHaveCount(0);
+  await expect(banner).toBeVisible();
+  await banner.getByRole("button", { name: /Settings|Настроить/ }).click();
+  await expect(banner.locator(".app-cookie-consent-banner__settings")).toBeVisible();
+
+  const metrics = await banner.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    const buttons = Array.from(node.querySelectorAll(".app-cookie-consent-banner__actions > button")).map((button) => button.getBoundingClientRect());
+    return {
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      documentWidth: document.documentElement.scrollWidth,
+      maxButtonHeight: Math.max(...buttons.map((button) => button.height)),
+      minButtonWidth: Math.min(...buttons.map((button) => button.width)),
+    };
+  });
+
+  expect(metrics.left).toBeGreaterThanOrEqual(8);
+  expect(metrics.right).toBeLessThanOrEqual(metrics.viewportWidth - 8);
+  expect(metrics.bottom).toBeLessThanOrEqual(metrics.viewportHeight - 8);
+  expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.height).toBeLessThanOrEqual(isMobile ? Math.min(540, metrics.viewportHeight - 24) : 360);
+  expect(metrics.maxButtonHeight).toBeLessThanOrEqual(64);
+  expect(metrics.minButtonWidth).toBeGreaterThanOrEqual(isMobile ? 120 : 132);
+
+  if (isMobile) {
+    expect(metrics.top).toBeGreaterThan(metrics.viewportHeight * 0.28);
+  } else {
+    expect(metrics.width).toBeGreaterThanOrEqual(Math.min(620, metrics.viewportWidth - 24));
+  }
+});
+
 test("main mobile and desktop views have scrollable output without mojibake", async ({ page, isMobile }) => {
   const views = isMobile ? ["home", "offline", "referral", "settings", "tools"] : ["home", "offline", "premium", "referral", "settings"];
   for (const view of views) {
