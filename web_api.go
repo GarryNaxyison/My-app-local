@@ -4608,6 +4608,7 @@ func (api *webAPI) writeAnonymousSession(w http.ResponseWriter) {
 func (api *webAPI) userDTO(user userState) map[string]any {
 	level, title, currentXP, neededXP := knowledgeLevel(user.XP)
 	lessonLimit, practiceLimit := limitsFor(user)
+	rate := api.currentUSDTRubRate().USDTRub
 	var referralInvitees []referralInviteeEntry
 	if api != nil && api.bot != nil && api.bot.store != nil {
 		var err error
@@ -4652,9 +4653,10 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"referral_count":              user.ReferralCount,
 		"referral_balance_kopecks":    user.ReferralBalanceKopecks,
 		"referral_balance":            formatRubKopecks(user.ReferralBalanceKopecks),
-		"referral_balance_usdt":       formatUSDTFromKopecks(user.ReferralBalanceKopecks),
+		"referral_balance_usdt":       formatUSDTFromKopecksAtRate(user.ReferralBalanceKopecks, rate),
 		"referral_withdraw_min":       formatRubKopecks(referralWithdrawalMinKopecks),
-		"referral_withdraw_min_usdt":  formatUSDTFromKopecks(referralWithdrawalMinKopecks),
+		"referral_withdraw_min_usdt":  formatUSDTFromKopecksAtRate(referralWithdrawalMinKopecks, rate),
+		"usdt_rub_rate":               formatUSDTRubRateValue(rate),
 		"referral_invitees":           referralInvitees,
 		"invited_by":                  user.InvitedBy,
 		"xp":                          user.XP,
@@ -4781,7 +4783,8 @@ func (api *webAPI) premiumPlansDTO(user userState) []map[string]any {
 }
 
 func (api *webAPI) usdtPriceLabel(product string) string {
-	amount, err := api.cfg.cryptoUSDTAmountForProduct(product)
+	rate := api.currentUSDTRubRate()
+	amount, err := api.cfg.cryptoUSDTAmountForProductAtRate(product, rate.USDTRub)
 	if err != nil || amount <= 0 {
 		return ""
 	}
@@ -4789,7 +4792,8 @@ func (api *webAPI) usdtPriceLabel(product string) string {
 }
 
 func (api *webAPI) cryptoPaymentMethodsDTO(product string) []map[string]any {
-	methods := api.cfg.cryptoPaymentMethodsForProduct(product)
+	rate := api.currentUSDTRubRate()
+	methods := api.cfg.cryptoPaymentMethodsForProductAtRate(product, rate.USDTRub)
 	result := make([]map[string]any, 0, len(methods))
 	for _, method := range methods {
 		result = append(result, map[string]any{
@@ -4800,6 +4804,16 @@ func (api *webAPI) cryptoPaymentMethodsDTO(product string) []map[string]any {
 		})
 	}
 	return result
+}
+
+func (api *webAPI) currentUSDTRubRate() cryptoRateSnapshot {
+	if api == nil {
+		return fallbackCryptoRateSnapshot(config{})
+	}
+	if api.bot != nil {
+		return api.bot.currentUSDTRubRate(context.Background())
+	}
+	return fallbackCryptoRateSnapshot(api.cfg)
 }
 
 func webPremiumStarsMessage(user userState, key string) string {

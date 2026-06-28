@@ -107,9 +107,12 @@ func formatUSDTFromKopecksAtRate(kopecks int64, usdtRubRate float64) string {
 }
 
 func formatUSDTRubRate(usdtRubRate float64) string {
+	return formatUSDTRubRateValue(usdtRubRate) + " ₽"
+}
+
+func formatUSDTRubRateValue(usdtRubRate float64) string {
 	if usdtRubRate <= 0 {
 		usdtRubRate = float64(defaultUSDTExchangeRateRubles)
 	}
-	value := strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.2f", usdtRubRate), "0"), ".")
-	return value + " ₽"
+	return strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.2f", usdtRubRate), "0"), ".")
 }

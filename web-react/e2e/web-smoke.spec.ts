@@ -923,14 +923,34 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "app_guide_page_label",
     "app_guide_step_1_title",
     "app_guide_step_1_body",
+    "app_guide_step_1_detail_1",
+    "app_guide_step_1_detail_2",
+    "app_guide_step_1_detail_3",
+    "app_guide_step_1_result",
     "app_guide_step_2_title",
     "app_guide_step_2_body",
+    "app_guide_step_2_detail_1",
+    "app_guide_step_2_detail_2",
+    "app_guide_step_2_detail_3",
+    "app_guide_step_2_result",
     "app_guide_step_3_title",
     "app_guide_step_3_body",
+    "app_guide_step_3_detail_1",
+    "app_guide_step_3_detail_2",
+    "app_guide_step_3_detail_3",
+    "app_guide_step_3_result",
     "app_guide_step_4_title",
     "app_guide_step_4_body",
+    "app_guide_step_4_detail_1",
+    "app_guide_step_4_detail_2",
+    "app_guide_step_4_detail_3",
+    "app_guide_step_4_result",
     "app_guide_step_5_title",
     "app_guide_step_5_body",
+    "app_guide_step_5_detail_1",
+    "app_guide_step_5_detail_2",
+    "app_guide_step_5_detail_3",
+    "app_guide_step_5_result",
     "xp_gained_label",
     "tutor_reward_saved",
     "tutor_completed_lessons",
@@ -980,6 +1000,15 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   expect(appCopy("ka", "roleplay_scenario_restaurant")).toBe("რესტორანი");
   expect(appCopy("es", "app_guide_page_label")).toBe("Página");
   expect(appCopy("de", "app_guide_page_label")).toBe("Seite");
+  for (const code of appLocaleCodes.filter((locale) => locale !== "ru" && locale !== "en")) {
+    const guideBody = appCopy(code, "app_guide_body");
+    const oldPlaceholder = `${appCopy(code, "today")}: ${appCopy(code, "learn_words")}, ${appCopy(code, "progress")}.`;
+    const minimumDescriptiveLength = ["zh", "ja", "ko", "th"].includes(code) ? 20 : 60;
+    expect(guideBody, `${code}.app_guide_body must be full guide copy`).not.toBe(oldPlaceholder);
+    expect(guideBody.length, `${code}.app_guide_body must be descriptive`).toBeGreaterThan(minimumDescriptiveLength);
+    expect(appCopy(code, "app_guide_step_1_detail_1"), `${code}.app_guide_step_1_detail_1 must be localized`).not.toBe(appCopy("en", "app_guide_step_1_detail_1"));
+    expect(appCopy(code, "app_guide_step_5_result"), `${code}.app_guide_step_5_result must be localized`).not.toBe(appCopy("en", "app_guide_step_5_result"));
+  }
   for (const code of ["vi", "ka"] as const) {
     const visibleCritical = [
       "logout",
@@ -1655,7 +1684,8 @@ test("guide button opens localized quick start guide and mobile home shows level
   await expect(guide).toBeVisible();
   await expect(guide.locator(".app-guide-step-v2")).toHaveCount(1);
   await expect(guide.locator(".app-guide-page-v2")).toContainText("1/5");
-  await expect(guide).toContainText("Как начать");
+  await expect(guide.locator("[data-slot='dialog-title']", { hasText: "Как начать" })).toBeHidden();
+  await expect(guide.locator("[data-slot='dialog-description']", { hasText: "Пять страниц про главные сценарии" })).toBeHidden();
   await expect(guide).toContainText("AI Tutor и бот");
   await guide.locator(".app-guide-next-v2").click();
   await expect(guide.locator(".app-guide-page-v2")).toContainText("2/5");

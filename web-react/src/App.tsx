@@ -5205,8 +5205,8 @@ function AppGuideDialog({
               {copy("app_guide_page_label", "Page")} {safeStep + 1}/{totalSteps}
             </span>
           </div>
-          <DialogTitle>{copy("app_guide_title", "Quick start guide")}</DialogTitle>
-          <DialogDescription>{copy("app_guide_body", "Five pages for the main app flows: lessons, plans, theme, vocabulary, notes, audio, and reports.")}</DialogDescription>
+          <DialogTitle className="app-visually-hidden-v2">{copy("app_guide_title", "Quick start guide")}</DialogTitle>
+          <DialogDescription className="app-visually-hidden-v2">{copy("app_guide_body", "Five pages for the main app flows: lessons, plans, theme, vocabulary, notes, audio, and reports.")}</DialogDescription>
           <div className="app-guide-steps-v2">
             <article className="app-guide-step-v2" key={step.title}>
               <strong>{safeStep + 1}</strong>
@@ -8463,7 +8463,7 @@ function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, f
         <div className="metric-grid-v2">
           <Metric label={copy("invites", "Invites")} value={user.referral_count || 0} />
           <Metric label={copy("balance", "Balance")} value={user.referral_balance_usdt || user.referral_balance || "0"} />
-          <Metric label={copy("usdt_rub_rate", "USDT/RUB")} value={user.usdt_rub_rate ? `${user.usdt_rub_rate} RUB` : "72 RUB"} />
+          <Metric label={copy("usdt_rub_rate", "USDT/RUB")} value={user.usdt_rub_rate ? `${user.usdt_rub_rate} RUB` : "—"} />
         </div>
         <div className="referral-actions-v2">
           <Button variant="outline" disabled={!link} onClick={() => link && navigator.clipboard?.writeText(shareText)}>{copy("copy_invite", "Copy invite")}</Button>

@@ -4785,6 +4785,423 @@ const guidePageLabelCopy: Record<AppLocaleCode, string> = {
   vi: "Trang",
 };
 
+type AppGuideCopy = Record<
+  | "guide"
+  | "app_guide_title"
+  | "app_guide_body"
+  | "app_guide_step_1_title"
+  | "app_guide_step_1_body"
+  | "app_guide_step_1_detail_1"
+  | "app_guide_step_1_detail_2"
+  | "app_guide_step_1_detail_3"
+  | "app_guide_step_1_result"
+  | "app_guide_step_2_title"
+  | "app_guide_step_2_body"
+  | "app_guide_step_2_detail_1"
+  | "app_guide_step_2_detail_2"
+  | "app_guide_step_2_detail_3"
+  | "app_guide_step_2_result"
+  | "app_guide_step_3_title"
+  | "app_guide_step_3_body"
+  | "app_guide_step_3_detail_1"
+  | "app_guide_step_3_detail_2"
+  | "app_guide_step_3_detail_3"
+  | "app_guide_step_3_result"
+  | "app_guide_step_4_title"
+  | "app_guide_step_4_body"
+  | "app_guide_step_4_detail_1"
+  | "app_guide_step_4_detail_2"
+  | "app_guide_step_4_detail_3"
+  | "app_guide_step_4_result"
+  | "app_guide_step_5_title"
+  | "app_guide_step_5_body"
+  | "app_guide_step_5_detail_1"
+  | "app_guide_step_5_detail_2"
+  | "app_guide_step_5_detail_3"
+  | "app_guide_step_5_result",
+  string
+>;
+
+type LocalizedGuideCode = Exclude<AppLocaleCode, "ru" | "en">;
+
+const localizedGuideCopy: Partial<Record<LocalizedGuideCode, AppGuideCopy>> = {
+  es: {
+    guide: "Guía",
+    app_guide_title: "Cómo empezar",
+    app_guide_body: "Cinco páginas sobre los flujos principales: lecciones, planes, tema, vocabulario, notas, audio e informes.",
+    app_guide_step_1_title: "AI Tutor y bot",
+    app_guide_step_1_body: "La web y Telegram funcionan como un solo perfil de aprendizaje. AI Tutor guía una lección completa: historia, palabras, revisión de respuestas, escritura, escucha, pronunciación, diálogo, control final de palabras y repaso.",
+    app_guide_step_1_detail_1: "Empieza en Hoy si quieres una ruta lista, o abre AI Tutor para una lección completa.",
+    app_guide_step_1_detail_2: "Envía texto, voz o una foto de práctica donde el modo lo permita; el bot y la web mantienen el mismo progreso.",
+    app_guide_step_1_detail_3: "Las lecciones completadas quedan en el historial para volver al tema, nivel, resumen y repaso.",
+    app_guide_step_1_result: "Primera sesión recomendada: Hoy -> AI Tutor -> reparar un punto débil.",
+    app_guide_step_2_title: "Diferencias entre planes",
+    app_guide_step_2_body: "Free mantiene el ciclo inicial: práctica de texto, entrenador de palabras, notas, audio de frases y progreso. Premium abre AI Tutor, Listening, puntuación de pronunciación, revisión de voz, herramientas de imagen y límites diarios mayores. Platinum sirve para estudio intensivo.",
+    app_guide_step_2_detail_1: "Free basta para probar la ruta y crear un hábito pequeño.",
+    app_guide_step_2_detail_2: "Premium es el modo diario normal cuando necesitas lecciones guiadas, voz, escucha y feedback de pronunciación.",
+    app_guide_step_2_detail_3: "Platinum ayuda antes de viajes, trabajo, exámenes o periodos de práctica fuerte.",
+    app_guide_step_2_result: "Abre Premium para comparar precios, métodos de pago, claves de activación y estado activo.",
+    app_guide_step_3_title: "Tema global y ajustes",
+    app_guide_step_3_body: "El interruptor de tema cambia toda la interfaz web: fondo, iconos, paneles, diálogos, pantalla de acceso y contraste. El brillo ajusta la superficie sin tocar tus datos de aprendizaje.",
+    app_guide_step_3_detail_1: "Usa el control de sol/luna en la barra superior o en los controles móviles para cambiar tema claro u oscuro.",
+    app_guide_step_3_detail_2: "Los ajustes también controlan idioma de interfaz, idioma de estudio, nivel y foco global.",
+    app_guide_step_3_detail_3: "El foco global orienta nuevas lecciones y prácticas para que la app no salte entre temas aleatorios.",
+    app_guide_step_3_result: "El tema es visual; idioma, nivel y foco cambian el contenido futuro.",
+    app_guide_step_4_title: "Cómo entran las palabras al vocabulario",
+    app_guide_step_4_body: "Una palabra no se aprende con un solo clic. Primero va a repaso y Spelling; entra en vocabulario aprendido tras suficientes respuestas correctas, incluida la regla de 10 aciertos del bot.",
+    app_guide_step_4_detail_1: "Usa Learn words para tarjetas nuevas, Review game para elegir y Spelling para escribir de memoria.",
+    app_guide_step_4_detail_2: "Si una palabra o traducción está mal, repórtala desde AI Tutor para que la corrección llegue al repaso.",
+    app_guide_step_4_detail_3: "Los errores se agrupan por gramática, orden de palabras, vocabulario, cortesía y ortografía.",
+    app_guide_step_4_result: "No persigas una lista enorme. Repite menos palabras hasta que sean estables.",
+    app_guide_step_5_title: "Notas, audio e informes",
+    app_guide_step_5_body: "Después de lecciones y práctica, guarda respuestas útiles, correcciones y traducciones en Notas. Los botones de audio permiten volver a escuchar mensajes y ejemplos; Listening y pronunciación comparan lo que oíste o dijiste.",
+    app_guide_step_5_detail_1: "Guarda en Notas las frases de lección que sí volverás a usar.",
+    app_guide_step_5_detail_2: "En Listening escucha primero, repite y luego revisa las palabras débiles.",
+    app_guide_step_5_detail_3: "Usa informes de errores para la interfaz e informes de palabras para vocabulario, traducciones o palabras de lección incorrectas.",
+    app_guide_step_5_result: "Buen ciclo: escuchar, responder, guardar la mejor frase, reportar datos malos y repetir el punto débil.",
+  },
+  de: {
+    guide: "Leitfaden",
+    app_guide_title: "Erste Schritte",
+    app_guide_body: "Fünf Seiten zu den wichtigsten Abläufen: Lektionen, Pläne, Design, Wortschatz, Notizen, Audio und Berichte.",
+    app_guide_step_1_title: "AI Tutor und Bot",
+    app_guide_step_1_body: "Website und Telegram arbeiten als ein Lernprofil. AI Tutor führt durch eine komplette Lektion: Geschichte, Wörter, Antwortprüfung, Schreiben, Hören, Aussprache, Dialog, finaler Wortcheck und Wiederholung.",
+    app_guide_step_1_detail_1: "Starte mit Heute, wenn du eine fertige Route möchtest, oder öffne AI Tutor für eine komplette Lektion.",
+    app_guide_step_1_detail_2: "Sende Text, Stimme oder ein Übungsfoto, wenn der Modus es unterstützt; Bot und Web-App behalten denselben Fortschritt.",
+    app_guide_step_1_detail_3: "Abgeschlossene Lektionen bleiben im Verlauf, damit du Thema, Niveau, Zusammenfassung und Wiederholung erneut öffnen kannst.",
+    app_guide_step_1_result: "Beste erste Sitzung: Heute -> AI Tutor -> eine Schwachstelle reparieren.",
+    app_guide_step_2_title: "Unterschiede der Pläne",
+    app_guide_step_2_body: "Free enthält den Einstiegskreis: Textübung, Worttrainer, Notizen, Phrasenaudio und Fortschritt. Premium öffnet AI Tutor, Listening, Aussprachebewertung, Stimmprüfung, Bildwerkzeuge und höhere Tageslimits. Platinum ist für intensives Lernen.",
+    app_guide_step_2_detail_1: "Free reicht, um die Route zu testen und eine kleine tägliche Gewohnheit aufzubauen.",
+    app_guide_step_2_detail_2: "Premium ist der normale Tagesmodus für geführte Lektionen, Stimme, Hören und Aussprachefeedback.",
+    app_guide_step_2_detail_3: "Platinum hilft vor Reisen, Arbeit, Prüfungen oder in Phasen mit viel täglicher Praxis.",
+    app_guide_step_2_result: "Öffne Premium, um Preise, Zahlungsarten, Aktivierungsschlüssel und Status zu vergleichen.",
+    app_guide_step_3_title: "Globales Design und Einstellungen",
+    app_guide_step_3_body: "Der Design-Schalter ändert die gesamte Weboberfläche: Hintergrund, Menüicons, Panels, Dialoge, Login und Kontrast. Helligkeit verändert nur die Oberfläche, nicht deine Lerndaten.",
+    app_guide_step_3_detail_1: "Nutze Sonne/Mond oben oder die mobilen Schnellsteuerungen für helles und dunkles Design.",
+    app_guide_step_3_detail_2: "In den Einstellungen steuerst du auch Interface-Sprache, Lernsprache, Niveau und globalen Lernfokus.",
+    app_guide_step_3_detail_3: "Der globale Fokus lenkt neue Lektionen und Übungen, damit die App nicht zwischen zufälligen Themen springt.",
+    app_guide_step_3_result: "Das Design ist visuell; Sprache, Niveau und Fokus ändern künftige Inhalte.",
+    app_guide_step_4_title: "Wie Wörter in den Wortschatz kommen",
+    app_guide_step_4_body: "Ein Wort gilt nicht nach einem Klick als gelernt. Neue Wörter gehen zuerst in Wiederholung und Spelling; gelernt sind sie nach genug richtigen Antworten, inklusive der 10-Treffer-Regel des Bots.",
+    app_guide_step_4_detail_1: "Nutze Learn words für neue Karten, Review game für Auswahlfragen und Spelling für Schreiben aus dem Gedächtnis.",
+    app_guide_step_4_detail_2: "Wenn Wort oder Übersetzung falsch sind, melde es in AI Tutor, damit die Korrektur in den Wiederholungsfluss kommt.",
+    app_guide_step_4_detail_3: "Fehler werden nach Grammatik, Wortstellung, Wortschatz, Höflichkeit und Rechtschreibung gruppiert.",
+    app_guide_step_4_result: "Jage keiner riesigen Liste nach. Wiederhole weniger Wörter, bis sie stabil sitzen.",
+    app_guide_step_5_title: "Notizen, Audio und Berichte",
+    app_guide_step_5_body: "Nach Lektionen und Übungen speicherst du nützliche Antworten, Korrekturen und Übersetzungen in Notizen. Audiobuttons spielen Nachrichten und Beispiele erneut ab; Listening und Aussprache vergleichen, was du gehört oder gesagt hast.",
+    app_guide_step_5_detail_1: "Speichere nur Sätze, die du wirklich wiederverwenden wirst.",
+    app_guide_step_5_detail_2: "Höre in Listening zuerst zu, wiederhole und prüfe danach die schwachen Wörter.",
+    app_guide_step_5_detail_3: "Nutze Fehlerberichte für die Oberfläche und Wortberichte für falsche Wörter, Übersetzungen oder Lektionswörter.",
+    app_guide_step_5_result: "Starker Kreis: hören, antworten, beste Phrase speichern, schlechte Daten melden, Schwachstelle wiederholen.",
+  },
+  fr: {
+    guide: "Guide",
+    app_guide_title: "Bien commencer",
+    app_guide_body: "Cinq pages sur les flux principaux : leçons, offres, thème, vocabulaire, notes, audio et rapports.",
+    app_guide_step_1_title: "AI Tutor et bot",
+    app_guide_step_1_body: "Le site et Telegram partagent un seul profil d'apprentissage. AI Tutor mène une leçon complète : histoire, mots, correction, écriture, écoute, prononciation, dialogue, test final des mots et révision.",
+    app_guide_step_1_detail_1: "Commence par Aujourd'hui si tu veux un parcours prêt, ou ouvre AI Tutor pour une leçon complète.",
+    app_guide_step_1_detail_2: "Envoie texte, voix ou photo d'entraînement quand le mode le permet ; le bot et le web gardent le même progrès.",
+    app_guide_step_1_detail_3: "Les leçons terminées restent dans l'historique pour revoir le sujet, le niveau, le résumé et la révision.",
+    app_guide_step_1_result: "Bonne première session : Aujourd'hui -> AI Tutor -> réparer un point faible.",
+    app_guide_step_2_title: "Différences entre les offres",
+    app_guide_step_2_body: "Free garde la boucle de départ : pratique texte, mots, notes, audio des phrases et progression. Premium ouvre AI Tutor, Listening, score de prononciation, revue vocale, outils image et limites plus hautes. Platinum sert au travail intensif.",
+    app_guide_step_2_detail_1: "Free suffit pour tester le parcours et garder une petite habitude quotidienne.",
+    app_guide_step_2_detail_2: "Premium est le mode quotidien pour les leçons guidées, la voix, l'écoute et le retour de prononciation.",
+    app_guide_step_2_detail_3: "Platinum aide avant un voyage, le travail, un examen ou une période de pratique dense.",
+    app_guide_step_2_result: "Ouvre Premium pour comparer prix, paiements, clés d'activation et statut.",
+    app_guide_step_3_title: "Thème global et réglages",
+    app_guide_step_3_body: "Le changement de thème modifie toute l'interface web : fond, icônes, panneaux, dialogues, connexion et contraste. La luminosité ajuste la surface sans changer les données d'apprentissage.",
+    app_guide_step_3_detail_1: "Utilise le bouton soleil/lune en haut ou les contrôles mobiles pour passer du clair au sombre.",
+    app_guide_step_3_detail_2: "Les réglages contrôlent aussi la langue d'interface, la langue étudiée, le niveau et le focus global.",
+    app_guide_step_3_detail_3: "Le focus global oriente les nouvelles leçons et pratiques pour éviter les thèmes aléatoires.",
+    app_guide_step_3_result: "Le thème est visuel ; langue, niveau et focus changent le contenu futur.",
+    app_guide_step_4_title: "Entrée des mots dans le vocabulaire",
+    app_guide_step_4_body: "Un mot n'est pas acquis après un clic. Il passe d'abord en révision et Spelling ; il devient appris après assez de bonnes réponses, dont la règle des 10 réponses du bot.",
+    app_guide_step_4_detail_1: "Utilise Learn words pour les nouvelles cartes, Review game pour choisir et Spelling pour écrire de mémoire.",
+    app_guide_step_4_detail_2: "Si un mot ou une traduction est faux, signale-le dans AI Tutor pour intégrer la correction au flux de révision.",
+    app_guide_step_4_detail_3: "Les erreurs sont séparées par grammaire, ordre des mots, vocabulaire, politesse et orthographe.",
+    app_guide_step_4_result: "Ne poursuis pas une liste énorme. Répète moins de mots jusqu'à ce qu'ils soient solides.",
+    app_guide_step_5_title: "Notes, audio et rapports",
+    app_guide_step_5_body: "Après les leçons et la pratique, garde les réponses utiles, corrections et traductions dans Notes. Les boutons audio rejouent messages et exemples ; Listening et prononciation comparent ce que tu as entendu ou dit.",
+    app_guide_step_5_detail_1: "Sauvegarde les phrases que tu réutiliseras vraiment.",
+    app_guide_step_5_detail_2: "Dans Listening, écoute d'abord, répète, puis vérifie les mots faibles.",
+    app_guide_step_5_detail_3: "Utilise les rapports de bugs pour l'interface et les rapports de mots pour le vocabulaire ou les traductions incorrects.",
+    app_guide_step_5_result: "Bonne boucle : écouter, répondre, garder la meilleure phrase, signaler les mauvaises données et répéter le point faible.",
+  },
+  it: {
+    guide: "Guida",
+    app_guide_title: "Come iniziare",
+    app_guide_body: "Cinque pagine sui flussi principali: lezioni, piani, tema, vocabolario, note, audio e report.",
+    app_guide_step_1_title: "AI Tutor e bot",
+    app_guide_step_1_body: "Sito e Telegram lavorano come un unico profilo di studio. AI Tutor guida una lezione completa: storia, parole, controllo risposte, scrittura, ascolto, pronuncia, dialogo, verifica finale e ripasso.",
+    app_guide_step_1_detail_1: "Parti da Oggi se vuoi un percorso pronto, oppure apri AI Tutor per una lezione completa.",
+    app_guide_step_1_detail_2: "Invia testo, voce o foto di pratica quando il modo lo consente; bot e web app mantengono lo stesso progresso.",
+    app_guide_step_1_detail_3: "Le lezioni completate restano nella cronologia per rivedere tema, livello, riepilogo e ripasso.",
+    app_guide_step_1_result: "Prima sessione ideale: Oggi -> AI Tutor -> ripara un punto debole.",
+    app_guide_step_2_title: "Differenze tra i piani",
+    app_guide_step_2_body: "Free mantiene il ciclo iniziale: pratica testuale, parole, note, audio delle frasi e progresso. Premium apre AI Tutor, Listening, punteggio di pronuncia, revisione vocale, strumenti immagine e limiti più alti. Platinum è per studio intenso.",
+    app_guide_step_2_detail_1: "Free basta per provare il percorso e mantenere una piccola abitudine quotidiana.",
+    app_guide_step_2_detail_2: "Premium è il modo quotidiano quando servono lezioni guidate, voce, ascolto e feedback di pronuncia.",
+    app_guide_step_2_detail_3: "Platinum aiuta prima di viaggi, lavoro, esami o periodi di pratica molto intensa.",
+    app_guide_step_2_result: "Apri Premium per confrontare prezzi, pagamenti, chiavi di attivazione e stato.",
+    app_guide_step_3_title: "Tema globale e impostazioni",
+    app_guide_step_3_body: "Il cambio tema modifica tutta l'interfaccia web: sfondo, icone, pannelli, dialoghi, login e contrasto. La luminosità regola la superficie senza cambiare i dati di studio.",
+    app_guide_step_3_detail_1: "Usa sole/luna nella barra alta o i controlli mobili per passare tra chiaro e scuro.",
+    app_guide_step_3_detail_2: "Le impostazioni controllano anche lingua interfaccia, lingua di studio, livello e focus globale.",
+    app_guide_step_3_detail_3: "Il focus globale orienta nuove lezioni e pratiche, evitando temi casuali.",
+    app_guide_step_3_result: "Il tema è visivo; lingua, livello e focus cambiano i contenuti futuri.",
+    app_guide_step_4_title: "Come le parole entrano nel vocabolario",
+    app_guide_step_4_body: "Una parola non è imparata dopo un clic. Prima passa a ripasso e Spelling; entra nel vocabolario appreso dopo abbastanza risposte corrette, inclusa la regola delle 10 risposte del bot.",
+    app_guide_step_4_detail_1: "Usa Learn words per nuove schede, Review game per le scelte e Spelling per scrivere a memoria.",
+    app_guide_step_4_detail_2: "Se una parola o traduzione è sbagliata, segnalala da AI Tutor perché la correzione entri nel ripasso.",
+    app_guide_step_4_detail_3: "Gli errori sono raggruppati per grammatica, ordine parole, vocabolario, cortesia e ortografia.",
+    app_guide_step_4_result: "Non inseguire liste enormi. Ripeti meno parole finché diventano stabili.",
+    app_guide_step_5_title: "Note, audio e report",
+    app_guide_step_5_body: "Dopo lezioni e pratica, salva risposte utili, correzioni e traduzioni in Note. I pulsanti audio fanno riascoltare messaggi ed esempi; Listening e pronuncia confrontano ciò che hai sentito o detto.",
+    app_guide_step_5_detail_1: "Salva in Note solo le frasi che userai davvero.",
+    app_guide_step_5_detail_2: "In Listening ascolta prima, ripeti, poi controlla le parole deboli.",
+    app_guide_step_5_detail_3: "Usa i report bug per l'interfaccia e i report parole per vocaboli, traduzioni o parole lezione sbagliate.",
+    app_guide_step_5_result: "Ciclo forte: ascolta, rispondi, salva la frase migliore, segnala dati errati e ripeti il punto debole.",
+  },
+  zh: {
+    guide: "指南",
+    app_guide_title: "如何开始",
+    app_guide_body: "五页介绍主要流程：课程、套餐、主题、词汇、笔记、音频和报告。",
+    app_guide_step_1_title: "AI Tutor 和机器人",
+    app_guide_step_1_body: "网站和 Telegram 使用同一个学习档案。AI Tutor 会带你完成完整课程：故事、单词、答案检查、写作、听力、发音、对话、最终词汇检查和复习。",
+    app_guide_step_1_detail_1: "想要现成路线时从“今天”开始，或打开 AI Tutor 进入完整课程。",
+    app_guide_step_1_detail_2: "模式支持时可以发送文本、语音或练习照片；机器人和网页会保持同一进度。",
+    app_guide_step_1_detail_3: "已完成课程会保留在历史中，方便回看主题、级别、总结和复习。",
+    app_guide_step_1_result: "推荐第一轮：今天 -> AI Tutor -> 修复一个薄弱点。",
+    app_guide_step_2_title: "套餐有什么不同",
+    app_guide_step_2_body: "Free 保留入门学习循环：文字练习、单词训练、笔记、短语音频和进度。Premium 开放 AI Tutor、Listening、发音评分、语音复查、图片工具和更高每日限制。Platinum 适合高强度学习。",
+    app_guide_step_2_detail_1: "Free 足够用来试路线并建立小的每日习惯。",
+    app_guide_step_2_detail_2: "需要引导课程、语音、听力和发音反馈时，Premium 是日常模式。",
+    app_guide_step_2_detail_3: "旅行、工作、考试或每天大量练习前，Platinum 更合适。",
+    app_guide_step_2_result: "打开 Premium 可比较当前价格、付款方式、激活码和状态。",
+    app_guide_step_3_title: "全局主题和设置",
+    app_guide_step_3_body: "主题开关会改变整个网页界面：背景、菜单图标、面板、对话框、登录画面和对比度。亮度只调整界面表面，不改变学习数据。",
+    app_guide_step_3_detail_1: "使用顶部的太阳/月亮按钮或移动端快捷控制切换明暗主题。",
+    app_guide_step_3_detail_2: "设置还控制界面语言、学习语言、级别和全局学习重点。",
+    app_guide_step_3_detail_3: "全局重点会引导新课程和练习，避免应用随机跳主题。",
+    app_guide_step_3_result: "主题影响外观；语言、级别和学习重点影响之后的内容。",
+    app_guide_step_4_title: "单词如何进入词汇库",
+    app_guide_step_4_body: "单词不会点一次就算学会。新词先进入复习和 Spelling；在足够多次答对后才进入已学词汇，包括机器人使用的 10 次正确规则。",
+    app_guide_step_4_detail_1: "用 Learn words 学新卡片，用 Review game 做选择，用 Spelling 练记忆拼写。",
+    app_guide_step_4_detail_2: "如果单词或翻译错误，请在 AI Tutor 里报告，让修正进入复习流程。",
+    app_guide_step_4_detail_3: "错误会按语法、词序、词汇、礼貌程度和拼写分组训练。",
+    app_guide_step_4_result: "不要追求很长列表。少量单词反复答对，直到稳定。",
+    app_guide_step_5_title: "笔记、音频和报告",
+    app_guide_step_5_body: "课程和练习后，把有用答案、修正和翻译保存到笔记。音频按钮可重听消息和例句；Listening 和发音模式会对比你听到或说出的内容。",
+    app_guide_step_5_detail_1: "只把真正会再次使用的课程短语保存到笔记。",
+    app_guide_step_5_detail_2: "在 Listening 中先听、再重复，然后检查薄弱单词。",
+    app_guide_step_5_detail_3: "界面问题用错误报告，错误词汇、翻译或课程单词用单词报告。",
+    app_guide_step_5_result: "有效循环：听、回答、保存最佳短语、报告错误数据、重复薄弱点。",
+  },
+  ja: {
+    guide: "ガイド",
+    app_guide_title: "始め方",
+    app_guide_body: "主要な流れを5ページで説明します：レッスン、プラン、テーマ、語彙、メモ、音声、レポート。",
+    app_guide_step_1_title: "AI Tutor とボット",
+    app_guide_step_1_body: "Web と Telegram は1つの学習プロフィールとして動きます。AI Tutor は物語、単語、回答チェック、作文、リスニング、発音、対話、最後の単語確認、復習まで案内します。",
+    app_guide_step_1_detail_1: "すぐ始めたいときは「今日」から、完整なレッスンなら AI Tutor を開きます。",
+    app_guide_step_1_detail_2: "対応するモードではテキスト、音声、練習写真を送れます。ボットとWebは同じ進捗を使います。",
+    app_guide_step_1_detail_3: "完了したレッスンは履歴に残り、テーマ、レベル、要約、復習に戻れます。",
+    app_guide_step_1_result: "最初のおすすめ：今日 -> AI Tutor -> 弱点を1つ直す。",
+    app_guide_step_2_title: "プランの違い",
+    app_guide_step_2_body: "Free は基本の学習ループです：テキスト練習、単語トレーニング、メモ、フレーズ音声、進捗。Premium は AI Tutor、Listening、発音スコア、音声レビュー、画像ツール、高い日次上限を開きます。Platinum は集中的な学習向けです。",
+    app_guide_step_2_detail_1: "Free は流れを試し、小さな毎日の習慣を作るのに十分です。",
+    app_guide_step_2_detail_2: "ガイド付きレッスン、音声、リスニング、発音フィードバックが必要なら Premium が日常モードです。",
+    app_guide_step_2_detail_3: "旅行、仕事、試験、または毎日多く練習する期間には Platinum が役立ちます。",
+    app_guide_step_2_result: "Premium で価格、支払い方法、アクティベーションキー、状態を確認できます。",
+    app_guide_step_3_title: "全体テーマと設定",
+    app_guide_step_3_body: "テーマ切替はWeb全体の背景、メニューアイコン、パネル、ダイアログ、ログイン画面、コントラストを変えます。明るさは学習データを変えずに見た目だけ調整します。",
+    app_guide_step_3_detail_1: "上部の太陽/月ボタンやモバイルのクイック操作でライト/ダークを切り替えます。",
+    app_guide_step_3_detail_2: "設定ではインターフェース言語、学習言語、レベル、全体の学習フォーカスも管理します。",
+    app_guide_step_3_detail_3: "全体フォーカスは新しいレッスンや練習を導き、ランダムなテーマ移動を減らします。",
+    app_guide_step_3_result: "テーマは見た目用です。言語、レベル、フォーカスは今後の内容に影響します。",
+    app_guide_step_4_title: "単語が語彙に入る仕組み",
+    app_guide_step_4_body: "単語は1クリックでは習得になりません。まず復習と Spelling に入り、十分な正解後に学習済み語彙になります。ボットの10回正解ルールも含まれます。",
+    app_guide_step_4_detail_1: "Learn words で新しいカード、Review game で選択、Spelling で記憶から入力します。",
+    app_guide_step_4_detail_2: "単語や翻訳が間違っている場合は AI Tutor から報告し、修正を復習に反映します。",
+    app_guide_step_4_detail_3: "間違いは文法、語順、語彙、丁寧さ、スペルに分けて練習します。",
+    app_guide_step_4_result: "大きなリストを追わず、少ない単語を安定するまで繰り返します。",
+    app_guide_step_5_title: "メモ、音声、レポート",
+    app_guide_step_5_body: "レッスンや練習後、有用な回答、修正、翻訳をメモに保存します。音声ボタンでメッセージや例を聞き直せます。Listening と発音は聞いた内容や話した内容を比較します。",
+    app_guide_step_5_detail_1: "実際に再利用するフレーズだけをメモに保存します。",
+    app_guide_step_5_detail_2: "Listening では先に聞き、繰り返してから弱い単語を確認します。",
+    app_guide_step_5_detail_3: "UI問題はバグ報告、誤った語彙や翻訳やレッスン単語は単語報告を使います。",
+    app_guide_step_5_result: "良い流れ：聞く、答える、最良のフレーズを保存、悪いデータを報告、弱点を繰り返す。",
+  },
+  ko: {
+    guide: "가이드",
+    app_guide_title: "시작하기",
+    app_guide_body: "주요 흐름 5페이지: 레슨, 요금제, 테마, 단어장, 노트, 오디오, 리포트.",
+    app_guide_step_1_title: "AI Tutor와 봇",
+    app_guide_step_1_body: "웹사이트와 Telegram은 하나의 학습 프로필로 작동합니다. AI Tutor는 이야기, 단어, 답변 확인, 쓰기, 듣기, 발음, 대화, 마지막 단어 확인, 복습까지 안내합니다.",
+    app_guide_step_1_detail_1: "준비된 경로가 필요하면 오늘에서 시작하고,完整한 레슨은 AI Tutor를 엽니다.",
+    app_guide_step_1_detail_2: "지원되는 모드에서는 텍스트, 음성, 연습 사진을 보낼 수 있으며 봇과 웹앱의 진행 상황은 같습니다.",
+    app_guide_step_1_detail_3: "완료한 레슨은 기록에 남아 주제, 레벨, 요약, 복습을 다시 볼 수 있습니다.",
+    app_guide_step_1_result: "첫 세션 추천: 오늘 -> AI Tutor -> 약점 하나 보완.",
+    app_guide_step_2_title: "요금제 차이",
+    app_guide_step_2_body: "Free는 텍스트 연습, 단어 훈련, 노트, 구문 오디오, 진행 상황의 기본 루프를 제공합니다. Premium은 AI Tutor, Listening, 발음 점수, 음성 리뷰, 이미지 도구, 더 높은 일일 한도를 엽니다. Platinum은 집중 학습용입니다.",
+    app_guide_step_2_detail_1: "Free는 경로를 시험하고 작은 매일 습관을 만들기에 충분합니다.",
+    app_guide_step_2_detail_2: "가이드 레슨, 음성, 듣기, 발음 피드백이 필요하면 Premium이 기본 일일 모드입니다.",
+    app_guide_step_2_detail_3: "여행, 업무, 시험 또는 매일 많이 연습하는 기간에는 Platinum이 유용합니다.",
+    app_guide_step_2_result: "Premium에서 가격, 결제 방법, 활성화 키, 현재 상태를 비교하세요.",
+    app_guide_step_3_title: "전역 테마와 설정",
+    app_guide_step_3_body: "테마 토글은 웹 인터페이스 전체의 배경, 메뉴 아이콘, 패널, 대화상자, 로그인 화면, 대비를 바꿉니다. 밝기는 학습 데이터 없이 화면 밀도만 조정합니다.",
+    app_guide_step_3_detail_1: "상단의 해/달 버튼이나 모바일 빠른 컨트롤로 밝은/어두운 테마를 전환합니다.",
+    app_guide_step_3_detail_2: "설정에서는 인터페이스 언어, 학습 언어, 레벨, 전역 학습 초점도 관리합니다.",
+    app_guide_step_3_detail_3: "전역 초점은 새 레슨과 연습 주제를 이끌어 무작위 주제 이동을 줄입니다.",
+    app_guide_step_3_result: "테마는 시각 요소이고, 언어와 레벨과 초점은 앞으로의 콘텐츠를 바꿉니다.",
+    app_guide_step_4_title: "단어가 단어장에 들어가는 방식",
+    app_guide_step_4_body: "단어는 한 번 클릭했다고 학습 완료가 아닙니다. 먼저 복습과 Spelling에 들어가며, 충분한 정답 후에 학습 단어장이 됩니다. 봇의 10회 정답 규칙도 포함됩니다.",
+    app_guide_step_4_detail_1: "Learn words로 새 카드, Review game으로 선택 연습, Spelling으로 기억해서 쓰기를 합니다.",
+    app_guide_step_4_detail_2: "단어나 번역이 틀리면 AI Tutor에서 신고해 수정이 복습 흐름에 들어가게 합니다.",
+    app_guide_step_4_detail_3: "오류는 문법, 어순, 어휘, 공손함, 철자로 나뉘어 훈련됩니다.",
+    app_guide_step_4_result: "큰 목록을 쫓지 말고, 적은 단어를 안정될 때까지 반복하세요.",
+    app_guide_step_5_title: "노트, 오디오, 리포트",
+    app_guide_step_5_body: "레슨과 연습 후 유용한 답변, 수정, 번역을 노트에 저장하세요. 오디오 버튼은 메시지와 예문을 다시 들려주고, Listening과 발음은 들은 것과 말한 것을 비교합니다.",
+    app_guide_step_5_detail_1: "실제로 다시 쓸 문장만 노트에 저장하세요.",
+    app_guide_step_5_detail_2: "Listening에서는 먼저 듣고, 반복한 뒤 약한 단어를 확인하세요.",
+    app_guide_step_5_detail_3: "인터페이스 문제는 버그 리포트, 잘못된 단어와 번역과 레슨 단어는 단어 리포트를 사용하세요.",
+    app_guide_step_5_result: "좋은 루프: 듣기, 답하기, 최고의 문장 저장, 나쁜 데이터 신고, 약점 반복.",
+  },
+  tg: {
+    guide: "Роҳнамо",
+    app_guide_title: "Аз куҷо сар кардан",
+    app_guide_body: "Панҷ саҳифа дар бораи ҷараёнҳои асосӣ: дарсҳо, нақшаҳо, мавзӯъ, луғат, қайдҳо, аудио ва гузоришҳо.",
+    app_guide_step_1_title: "AI Tutor ва бот",
+    app_guide_step_1_body: "Сайт ва Telegram як профили омӯзишӣ доранд. AI Tutor дарси пурраро мебарад: ҳикоя, калимаҳо, санҷиши ҷавоб, навиштан, шунидан, талаффуз, муколама, санҷиши ниҳоии калимаҳо ва такрор.",
+    app_guide_step_1_detail_1: "Барои масири тайёр аз Имрӯз оғоз кунед ё AI Tutor-ро барои дарси пурра кушоед.",
+    app_guide_step_1_detail_2: "Дар режимҳои мувофиқ матн, овоз ё акси машқ фиристед; бот ва web app пешрафти якхела доранд.",
+    app_guide_step_1_detail_3: "Дарсҳои анҷомшуда дар таърих мемонанд, то ба мавзӯъ, сатҳ, хулоса ва такрор баргардед.",
+    app_guide_step_1_result: "Сеанси аввал: Имрӯз -> AI Tutor -> ислоҳи як нуқтаи суст.",
+    app_guide_step_2_title: "Фарқи нақшаҳо",
+    app_guide_step_2_body: "Free даври оғозро нигоҳ медорад: машқи матн, омӯзиши калима, қайдҳо, аудиои ибора ва пешрафт. Premium AI Tutor, Listening, баҳодиҳии талаффуз, санҷиши овоз, абзорҳои тасвир ва лимитҳои бештарро мекушояд. Platinum барои омӯзиши зич аст.",
+    app_guide_step_2_detail_1: "Free барои санҷидани масир ва одати хурди ҳаррӯза кофист.",
+    app_guide_step_2_detail_2: "Premium режими асосии рӯзона аст, вақте дарсҳои роҳнамо, овоз, шунидан ва feedback-и талаффуз лозиманд.",
+    app_guide_step_2_detail_3: "Platinum пеш аз сафар, кор, имтиҳон ё давраи машқи зиёд муфид аст.",
+    app_guide_step_2_result: "Premium-ро кушоед, то нархҳо, пардохтҳо, калидҳои фаъолсозӣ ва ҳолатро бинед.",
+    app_guide_step_3_title: "Мавзӯъ ва танзимоти умумӣ",
+    app_guide_step_3_body: "Ивазкунандаи мавзӯъ тамоми web-интерфейсро дигар мекунад: фон, нишонаҳо, панелҳо, равзанаҳо, воридшавӣ ва контраст. Равшанӣ танҳо намуди сатҳро бе тағйири маълумоти омӯзишӣ иваз мекунад.",
+    app_guide_step_3_detail_1: "Бо тугмаи офтоб/моҳ дар боло ё назоратҳои мобилӣ мавзӯи равшан ва торикро иваз кунед.",
+    app_guide_step_3_detail_2: "Танзимот инчунин забони интерфейс, забони омӯзиш, сатҳ ва фокуси умумиро идора мекунад.",
+    app_guide_step_3_detail_3: "Фокуси умумӣ дарсҳо ва машқҳои навро роҳнамоӣ мекунад, то барнома ба мавзӯъҳои тасодуфӣ напарад.",
+    app_guide_step_3_result: "Мавзӯъ визуалӣ аст; забон, сатҳ ва фокус мундариҷаи ояндаро тағйир медиҳанд.",
+    app_guide_step_4_title: "Чӣ гуна калимаҳо ба луғат медароянд",
+    app_guide_step_4_body: "Калима баъд аз як клик омӯхташуда намешавад. Аввал ба такрор ва Spelling меравад; баъд аз ҷавобҳои дурусти кофӣ, аз ҷумла қоидаи 10 ҷавоби бот, ба луғати омӯхташуда медарояд.",
+    app_guide_step_4_detail_1: "Learn words барои кортҳои нав, Review game барои интихоб ва Spelling барои навиштан аз хотира истифода баред.",
+    app_guide_step_4_detail_2: "Агар калима ё тарҷума нодуруст бошад, онро аз AI Tutor гузориш диҳед, то ислоҳ ба такрор расад.",
+    app_guide_step_4_detail_3: "Хатоҳо аз рӯи грамматика, тартиби калима, луғат, адаб ва имло гурӯҳбандӣ мешаванд.",
+    app_guide_step_4_result: "Рӯйхати калонро таъқиб накунед. Камтар калимаро то устувор шудан такрор кунед.",
+    app_guide_step_5_title: "Қайдҳо, аудио ва гузоришҳо",
+    app_guide_step_5_body: "Пас аз дарс ва машқ ҷавобҳои муфид, ислоҳҳо ва тарҷумаҳоро дар Қайдҳо нигоҳ доред. Тугмаҳои аудио паёмҳо ва мисолҳоро дубора мешунавонанд; Listening ва талаффуз чизи шунида ё гуфтаатонро муқоиса мекунанд.",
+    app_guide_step_5_detail_1: "Ибораҳоеро нигоҳ доред, ки воқеан дубора истифода мекунед.",
+    app_guide_step_5_detail_2: "Дар Listening аввал гӯш кунед, такрор кунед, баъд калимаҳои сустро санҷед.",
+    app_guide_step_5_detail_3: "Барои интерфейс bug report ва барои калимаҳо ё тарҷумаҳои нодуруст word report истифода баред.",
+    app_guide_step_5_result: "Даври хуб: шунидан, ҷавоб додан, беҳтарин ибораро нигоҳ доштан, маълумоти бадро гузориш додан ва нуқтаи сустро такрор кардан.",
+  },
+  uz: {
+    guide: "Qo'llanma",
+    app_guide_title: "Qanday boshlash",
+    app_guide_body: "Asosiy oqimlar bo'yicha besh sahifa: darslar, rejalar, mavzu, lug'at, qaydlar, audio va hisobotlar.",
+    app_guide_step_1_title: "AI Tutor va bot",
+    app_guide_step_1_body: "Sayt va Telegram bitta o'quv profili sifatida ishlaydi. AI Tutor to'liq darsni olib boradi: hikoya, so'zlar, javob tekshiruvi, yozish, tinglash, talaffuz, dialog, yakuniy so'z tekshiruvi va takror.",
+    app_guide_step_1_detail_1: "Tayyor yo'nalish kerak bo'lsa Bugun bo'limidan boshlang yoki to'liq dars uchun AI Tutor-ni oching.",
+    app_guide_step_1_detail_2: "Mos rejimlarda matn, ovoz yoki mashq fotosini yuboring; bot va web app bir xil progressni saqlaydi.",
+    app_guide_step_1_detail_3: "Tugallangan darslar tarixda qoladi, shuning uchun mavzu, daraja, xulosa va takrorga qaytasiz.",
+    app_guide_step_1_result: "Eng yaxshi birinchi sessiya: Bugun -> AI Tutor -> bitta zaif joyni tuzatish.",
+    app_guide_step_2_title: "Rejalar farqi",
+    app_guide_step_2_body: "Free boshlang'ich aylanishni beradi: matn mashqi, so'z treneri, qaydlar, ibora audiosi va progress. Premium AI Tutor, Listening, talaffuz bahosi, ovoz tekshiruvi, rasm asboblari va yuqori kundalik limitlarni ochadi. Platinum zich o'qish uchun.",
+    app_guide_step_2_detail_1: "Free yo'nalishni sinash va kichik kundalik odat yaratish uchun yetarli.",
+    app_guide_step_2_detail_2: "Premium yo'naltirilgan darslar, ovoz, tinglash va talaffuz feedback kerak bo'lganda asosiy kundalik rejim.",
+    app_guide_step_2_detail_3: "Platinum safar, ish, imtihon yoki ko'p mashq qilinadigan davr oldidan foydali.",
+    app_guide_step_2_result: "Premium bo'limida narxlar, to'lov usullari, aktivatsiya kalitlari va faol holatni solishtiring.",
+    app_guide_step_3_title: "Umumiy mavzu va sozlamalar",
+    app_guide_step_3_body: "Mavzu tugmasi butun web-interfeysni o'zgartiradi: fon, menyu ikonlari, panellar, dialoglar, login va kontrast. Yorqinlik o'quv ma'lumotlarini o'zgartirmasdan sirtni sozlaydi.",
+    app_guide_step_3_detail_1: "Yuqoridagi quyosh/oy tugmasi yoki mobil tez boshqaruvlar bilan yorug' va qorong'i mavzuni almashtiring.",
+    app_guide_step_3_detail_2: "Sozlamalar interfeys tili, o'quv tili, daraja va umumiy o'quv fokusini ham boshqaradi.",
+    app_guide_step_3_detail_3: "Umumiy fokus yangi dars va mashqlarga yo'nalish beradi, mavzular tasodifiy sakramaydi.",
+    app_guide_step_3_result: "Mavzu ko'rinishga ta'sir qiladi; til, daraja va fokus kelajak kontentini o'zgartiradi.",
+    app_guide_step_4_title: "So'zlar lug'atga qanday kiradi",
+    app_guide_step_4_body: "So'z bir marta bosilgach o'rganilgan bo'lmaydi. Avval takror va Spelling-ga kiradi; yetarli to'g'ri javoblardan, jumladan botning 10 javob qoidasidan keyin o'rganilgan lug'atga o'tadi.",
+    app_guide_step_4_detail_1: "Learn words yangi kartalar uchun, Review game tanlash uchun, Spelling esa xotiradan yozish uchun.",
+    app_guide_step_4_detail_2: "So'z yoki tarjima noto'g'ri bo'lsa, AI Tutor ichidan xabar bering, tuzatish takror oqimiga kiradi.",
+    app_guide_step_4_detail_3: "Xatolar grammatika, so'z tartibi, lug'at, muloyimlik va imlo bo'yicha guruhlanadi.",
+    app_guide_step_4_result: "Katta ro'yxat quvmang. Kamroq so'zni barqaror bo'lguncha takrorlang.",
+    app_guide_step_5_title: "Qaydlar, audio va hisobotlar",
+    app_guide_step_5_body: "Dars va mashqlardan keyin foydali javoblar, tuzatishlar va tarjimalarni Qaydlarga saqlang. Audio tugmalar xabar va misollarni qayta eshittiradi; Listening va talaffuz eshitgan yoki aytganingizni solishtiradi.",
+    app_guide_step_5_detail_1: "Haqiqatan qayta ishlatadigan iboralarni Qaydlarga saqlang.",
+    app_guide_step_5_detail_2: "Listening-da avval eshiting, takrorlang, keyin zaif so'zlarni tekshiring.",
+    app_guide_step_5_detail_3: "Interfeys muammolari uchun bug report, noto'g'ri so'zlar yoki tarjimalar uchun word report ishlating.",
+    app_guide_step_5_result: "Kuchli aylanish: eshitish, javob berish, eng yaxshi iborani saqlash, yomon ma'lumotni xabar qilish va zaif joyni takrorlash.",
+  },
+};
+
+function buildDerivedGuideCopy(target: Record<string, string>, terms: Record<string, string>): AppGuideCopy {
+  const ready = terms.ready || "Ready";
+  const learn = target.learning_group || terms.learn || "Learning";
+  const today = target.today || terms.daily || "Today";
+  const words = target.learn_words || target.tutor_words || terms.words || "Words";
+  const progress = target.progress || terms.growth || "Progress";
+  const settings = target.settings || "Settings";
+  const premium = target.premium || "Premium";
+  const phrasebook = target.phrasebook || target.save_to_phrasebook || "Notes";
+  const audio = target.listen || target.listening_phrase || target.shadowing || "Audio";
+  const aiTutor = target.ai_tutor || "AI Tutor";
+  const mistakes = target.mistakes || target.choose_mistake || progress;
+  const pronunciation = target.pronunciation || "Pronunciation";
+  const spelling = target.spelling || "Spelling";
+  const level = target.level_label || "Level";
+  const theme = target.toggle_theme || target.theme || settings;
+  const interfaceLanguage = target.interface_language || settings;
+  const learningLanguage = target.learning_language || learn;
+  const learningFocus = target.learning_focus || learn;
+  const completedLessons = target.tutor_completed_lessons || target.lessons_completed || progress;
+  const review = target.tutor_review || target.review || words;
+  const report = target.report_bug || mistakes;
+
+  return {
+    guide: target.guide && target.guide !== en.guide && target.guide !== terms.section ? target.guide : learn,
+    app_guide_title: `${learn}: ${ready}`,
+    app_guide_body: `${learn}: ${today}; ${premium}; ${theme}; ${words}; ${phrasebook}; ${audio}; ${progress}; ${aiTutor}; Telegram.`,
+    app_guide_step_1_title: `${aiTutor} + Telegram`,
+    app_guide_step_1_body: target.view_tutor_subtitle || target.tutor_short_hint || `${aiTutor}: ${words}; ${audio}; ${progress}; Telegram.`,
+    app_guide_step_1_detail_1: `${today}: ${aiTutor}; ${ready}.`,
+    app_guide_step_1_detail_2: `Telegram / Web: ${learn}; ${audio}; ${words}; ${progress}.`,
+    app_guide_step_1_detail_3: `${completedLessons}: ${level}; ${review}; ${progress}.`,
+    app_guide_step_1_result: `${today} -> ${aiTutor} -> ${mistakes}.`,
+    app_guide_step_2_title: `${premium} / Platinum`,
+    app_guide_step_2_body: `${target.free_plan_body || `Free: ${words}; ${phrasebook}; ${progress}.`} ${target.premium_month_body || `${premium}: ${aiTutor}; ${audio}; ${pronunciation}.`} ${target.platinum_month_body || `Platinum: ${progress}; ${ready}.`}`,
+    app_guide_step_2_detail_1: `Free: ${target.free_feature_daily || words}.`,
+    app_guide_step_2_detail_2: `${premium}: ${aiTutor}; ${audio}; ${pronunciation}; ${words}.`,
+    app_guide_step_2_detail_3: `Platinum: ${progress}; ${learn}; ${ready}.`,
+    app_guide_step_2_result: `${premium}: ${target.price || premium}; ${target.payment_method || premium}; ${target.activation_key || premium}; ${progress}.`,
+    app_guide_step_3_title: `${settings} + ${theme}`,
+    app_guide_step_3_body: `${theme}: ${settings}. ${settings}: ${interfaceLanguage}; ${learningLanguage}; ${level}; ${learningFocus}.`,
+    app_guide_step_3_detail_1: `${theme}: ${settings}; ${ready}.`,
+    app_guide_step_3_detail_2: `${settings}: ${interfaceLanguage}; ${learningLanguage}; ${level}.`,
+    app_guide_step_3_detail_3: `${learningFocus}: ${learn}; ${words}; ${progress}.`,
+    app_guide_step_3_result: `${theme}: ${settings}. ${level}: ${learn}; ${progress}.`,
+    app_guide_step_4_title: `${words} + ${spelling}`,
+    app_guide_step_4_body: `${words}: ${review}; ${spelling}; ${progress}. ${aiTutor}: ${mistakes}.`,
+    app_guide_step_4_detail_1: `${words}: ${learn}; ${review}; ${spelling}.`,
+    app_guide_step_4_detail_2: `${aiTutor}: ${report}; ${words}; ${review}.`,
+    app_guide_step_4_detail_3: `${mistakes}: ${words}; ${spelling}; ${pronunciation}; ${progress}.`,
+    app_guide_step_4_result: `${review}: ${words}; ${ready}; ${progress}.`,
+    app_guide_step_5_title: `${phrasebook}, ${audio}, ${report}`,
+    app_guide_step_5_body: `${phrasebook}: ${words}; ${learn}. ${audio}: Listening; ${pronunciation}; ${progress}.`,
+    app_guide_step_5_detail_1: `${phrasebook}: ${learn}; ${words}; ${ready}.`,
+    app_guide_step_5_detail_2: `Listening: ${audio}; ${words}; ${review}.`,
+    app_guide_step_5_detail_3: `${report}: ${settings}; ${words}; ${mistakes}.`,
+    app_guide_step_5_result: `${audio}; ${phrasebook}; ${report}; ${review}; ${progress}.`,
+  };
+}
+
 appLocaleCodes.forEach((code) => {
   const target = localeOverrides[code] || {};
   const terms = derivedUiTerms[code] || {
@@ -4801,24 +5218,14 @@ appLocaleCodes.forEach((code) => {
   const mistakes = target.mistakes || target.choose_mistake || terms.growth;
   const progress = target.progress || terms.growth;
   const completedLessons = target.lessons_completed || target.tutor_completed_lessons || progress;
-  const guideValues: Record<string, string> = code === "ru"
+  const guideValues: Record<string, string> = code === "ru" || code === "en"
+    ? {}
+    : localizedGuideCopy[code as LocalizedGuideCode] || buildDerivedGuideCopy(target, terms);
+  const tutorValues: Record<string, string> = code === "ru"
     ? {}
     : code === "en"
       ? {}
       : {
-          guide: `${terms.open}: ${learn}`,
-          app_guide_title: `${learn}: ${terms.ready}`,
-          app_guide_body: `${today}: ${words}, ${progress}.`,
-          app_guide_step_1_title: today,
-          app_guide_step_1_body: `${words}: ${today}.`,
-          app_guide_step_2_title: target.ai_tutor || learn,
-          app_guide_step_2_body: target.tutor_short_hint || learn,
-          app_guide_step_3_title: target.phrasebook || target.save_to_phrasebook || learn,
-          app_guide_step_3_body: target.phrasebook_note_placeholder || target.save_to_phrasebook || learn,
-          app_guide_step_4_title: mistakes,
-          app_guide_step_4_body: `${mistakes}: ${target.pronunciation || target.spelling || progress}.`,
-          app_guide_step_5_title: progress,
-          app_guide_step_5_body: `${progress}: XP, ${target.level_label || progress}.`,
           xp_gained_label: "XP",
           tutor_reward_saved: `${target.ai_tutor || learn}: ${target.done || terms.ready}`,
           tutor_completed_lessons: completedLessons,
@@ -4826,7 +5233,7 @@ appLocaleCodes.forEach((code) => {
           tutor_completed_lessons_empty: `${completedLessons}: ${target.done || terms.ready}.`,
           tutor_completed_restart_unavailable: target.unavailable || terms.unavailable,
         };
-  localeOverrides[code] = { ...target, app_guide_page_label: guidePageLabelCopy[code], ...guideValues };
+  localeOverrides[code] = { ...target, app_guide_page_label: guidePageLabelCopy[code], ...guideValues, ...tutorValues };
 });
 
 const roleplayScenarioCopy: Record<AppLocaleCode, {
@@ -5613,39 +6020,7 @@ function mojibakeScore(value: string) {
 
 const fallbackLeakAllowedKeys = new Set([
   "ai_router",
-  "app_guide_body",
   "app_guide_page_label",
-  "app_guide_step_1_body",
-  "app_guide_step_1_detail_1",
-  "app_guide_step_1_detail_2",
-  "app_guide_step_1_detail_3",
-  "app_guide_step_1_result",
-  "app_guide_step_1_title",
-  "app_guide_step_2_body",
-  "app_guide_step_2_detail_1",
-  "app_guide_step_2_detail_2",
-  "app_guide_step_2_detail_3",
-  "app_guide_step_2_result",
-  "app_guide_step_2_title",
-  "app_guide_step_3_body",
-  "app_guide_step_3_detail_1",
-  "app_guide_step_3_detail_2",
-  "app_guide_step_3_detail_3",
-  "app_guide_step_3_result",
-  "app_guide_step_3_title",
-  "app_guide_step_4_body",
-  "app_guide_step_4_detail_1",
-  "app_guide_step_4_detail_2",
-  "app_guide_step_4_detail_3",
-  "app_guide_step_4_result",
-  "app_guide_step_4_title",
-  "app_guide_step_5_body",
-  "app_guide_step_5_detail_1",
-  "app_guide_step_5_detail_2",
-  "app_guide_step_5_detail_3",
-  "app_guide_step_5_result",
-  "app_guide_step_5_title",
-  "app_guide_title",
   "guide",
   "pay_stars",
   "tutor_completed_lessons_body",
@@ -5655,6 +6030,7 @@ const fallbackLeakAllowedKeys = new Set([
 
 function isLikelyFallbackLeak(locale: AppLocaleCode, key: string, value: string, fallback?: string) {
   if (locale === "en") return false;
+  if (key.startsWith("app_guide_")) return false;
   if (fallbackLeakAllowedKeys.has(key)) return false;
   if (key === "sample_phrase") return false;
   if (key === "skip") return false;

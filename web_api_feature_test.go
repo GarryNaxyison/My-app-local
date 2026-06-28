@@ -1619,6 +1619,72 @@ func TestPremiumPlansDTOIncludesLandingPricingCopy(t *testing.T) {
 	}
 }
 
+func TestPremiumPlansDTOUsesLiveTonAPIRateForUSDTPrices(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/rates" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+		_, _ = w.Write([]byte(`{"rates":{"USDT_MASTER":{"prices":{"RUB":75}}}}`))
+	}))
+	defer server.Close()
+
+	cfg := config{
+		PremiumRubPrice:           300,
+		PremiumStarsPrice:         150,
+		CryptoUSDTRubRate:         72,
+		CryptoTONAPIBaseURL:       server.URL,
+		CryptoUSDTTONJettonMaster: "USDT_MASTER",
+		CryptoUSDTTONWallet:       "EQ_USDT",
+	}
+	bot := &bot{cfg: cfg, cryptoRates: newCryptoRateProvider(cfg, server.Client())}
+	api := newWebAPI(cfg, bot)
+
+	plans := api.premiumPlansDTO(userState{InterfaceLanguage: "en"})
+	if len(plans) < 2 {
+		t.Fatalf("plans len = %d, want paid plans: %#v", len(plans), plans)
+	}
+	premium := plans[1]
+	if premium["usdt_price"] != "4 USDT" {
+		t.Fatalf("premium usdt_price = %#v, want live 75 RUB/USDT conversion", premium["usdt_price"])
+	}
+	methods, ok := premium["crypto_methods"].([]map[string]any)
+	if !ok || len(methods) == 0 {
+		t.Fatalf("premium crypto_methods missing: %#v", premium["crypto_methods"])
+	}
+	if methods[0]["currency"] != cryptoCurrencyUSDT || methods[0]["network"] != cryptoNetworkTON {
+		t.Fatalf("unexpected crypto method: %#v", methods[0])
+	}
+}
+
+func TestWebUserDTOUsesLiveTonAPIRateForReferralUSDT(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/rates" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+		_, _ = w.Write([]byte(`{"rates":{"USDT_MASTER":{"prices":{"RUB":75}}}}`))
+	}))
+	defer server.Close()
+
+	cfg := config{
+		CryptoUSDTRubRate:         72,
+		CryptoTONAPIBaseURL:       server.URL,
+		CryptoUSDTTONJettonMaster: "USDT_MASTER",
+	}
+	bot := &bot{cfg: cfg, cryptoRates: newCryptoRateProvider(cfg, server.Client())}
+	api := newWebAPI(cfg, bot)
+
+	dto := api.userDTO(userState{ReferralBalanceKopecks: 7500 * 100})
+	if dto["usdt_rub_rate"] != "75" {
+		t.Fatalf("usdt_rub_rate = %#v, want live rate", dto["usdt_rub_rate"])
+	}
+	if dto["referral_balance_usdt"] != "100.00 USDT" {
+		t.Fatalf("referral_balance_usdt = %#v, want live 75 RUB/USDT conversion", dto["referral_balance_usdt"])
+	}
+	if dto["referral_withdraw_min_usdt"] != "13.33 USDT" {
+		t.Fatalf("referral_withdraw_min_usdt = %#v, want live 75 RUB/USDT conversion", dto["referral_withdraw_min_usdt"])
+	}
+}
+
 func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
 	if err != nil {

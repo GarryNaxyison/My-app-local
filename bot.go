@@ -3554,7 +3554,7 @@ func (b *bot) sendPremiumMenu(ctx context.Context, chatID int64, user userState)
 	cryptoProducts := map[string][]cryptoPaymentMethod{}
 	if b.cryptoPaymentsReady() {
 		for _, plan := range b.premiumPlanList() {
-			cryptoProducts[plan.Product] = b.cfg.cryptoPaymentMethodsForProduct(plan.Product)
+			cryptoProducts[plan.Product] = b.cryptoPaymentMethodsForProduct(ctx, plan.Product)
 		}
 	}
 	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, b.premiumText(user), premiumInlineKeyboard(b.cfg.yooKassaEnabled(), cryptoProducts, localizedPremiumPlans(user, b.premiumPlanList()), user))
@@ -3568,7 +3568,7 @@ func (b *bot) sendPremiumPaymentOptions(ctx context.Context, chatID int64, user 
 	plan = localizedPremiumPlan(user, plan)
 	methods := []cryptoPaymentMethod{}
 	if b.cryptoPaymentsReady() {
-		methods = b.cfg.cryptoPaymentMethodsForProduct(product)
+		methods = b.cryptoPaymentMethodsForProduct(ctx, product)
 	}
 	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), b.cfg.rollyPayBotEnabled(), methods, plan, user))
 }

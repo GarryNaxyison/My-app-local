@@ -1003,6 +1003,10 @@ select {
   width: min(560px, calc(100vw - 28px));
 }
 
+.app-visually-hidden-v2 {
+  display: none;
+}
+
 .app-guide-dialog-v2 {
   width: min(680px, calc(100vw - 28px));
   max-height: min(760px, calc(100dvh - 28px));
@@ -1020,8 +1024,8 @@ select {
 .app-guide-dialog-v2__body {
   display: grid;
   justify-items: center;
-  gap: 14px;
-  padding: 28px 24px 16px;
+  gap: 10px;
+  padding: 16px 24px 16px;
   text-align: center;
 }
 
@@ -1441,7 +1445,7 @@ select {
 
   .tutor-completed-lessons-dialog-v2__body,
   .app-guide-dialog-v2__body {
-    padding: 22px 16px 14px;
+    padding: 14px 16px 14px;
   }
 
   .app-guide-dialog-v2__head {
