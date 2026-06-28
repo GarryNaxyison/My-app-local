@@ -7,6 +7,7 @@
 - The logo should assemble, pulse, or travel as part of the motion instead of simply sitting on top of the background.
 - The `poliglotAI.online` URL can arrive as a light object/comet/data streak, but the final domain must be exact, stable, and readable.
 - Use the new v11 tech-warp direction as the preferred baseline over the rejected v10 space-comet look unless a future reference says otherwise.
+- Do not leave model-rendered text stripes, vertical URL fragments, or ghost typography from the Wan source in the center of the outro. Mask them and rebuild the final URL with a clean comet/particle assembly pass.
 
 ## 2026-06-27 Social Video Outro
 
