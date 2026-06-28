@@ -98,7 +98,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
       <section className="sign-in-page-v2__form-section flex items-center justify-center">
         <div className="sign-in-page-v2__form-card w-full max-w-md">
           <div className="flex flex-col gap-6">
-            <h1 className="animate-element animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">{title}</h1>
+            <h1 className="sign-in-page-v2__title animate-element animate-delay-100 font-semibold">{title}</h1>
             <p className="animate-element animate-delay-200 text-[color:var(--muted)]">{description}</p>
             {status ? <div className="animate-element animate-delay-200 auth-status-v2">{status}</div> : null}
 

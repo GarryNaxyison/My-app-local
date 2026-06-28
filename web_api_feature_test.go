@@ -536,6 +536,165 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 	assertXPDelta("mistake", before, 8, mistake)
 }
 
+func TestWebWordGameNextAutoTranslatesMissingPrompt(t *testing.T) {
+	configureWebMissingPromptVocabularyForTest(t)
+	seedVocabularyRandomForTest(t, 1)
+	api, store, cookie := newTestWebAPI(t)
+	configureWebVocabularyOpenRouterForTest(t, api, "вращающийся в две стороны", nil)
+	addLearnedTestWord(t, store, -42, "en:birotate")
+
+	body := requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/next", map[string]any{})
+	if body["prompt"] != "вращающийся в две стороны" {
+		t.Fatalf("expected OpenRouter translation prompt, got %#v", body)
+	}
+	if body["message"] == ui(userState{InterfaceLanguage: "ru"}).LearnWords {
+		t.Fatalf("word-game prompt leaked empty-state copy: %#v", body)
+	}
+	if stored, ok, err := sqliteVocabularyAITranslationGet("en:birotate", "ru"); err != nil || !ok || stored != "вращающийся в две стороны" {
+		t.Fatalf("stored AI translation = %q ok=%v err=%v", stored, ok, err)
+	}
+}
+
+func TestWebReviewAndSpellingUsePersistedAITranslationPrompts(t *testing.T) {
+	configureWebMissingPromptVocabularyForTest(t)
+	seedVocabularyRandomForTest(t, 1)
+	api, store, cookie := newTestWebAPI(t)
+	openRouterCalls := 0
+	configureWebVocabularyOpenRouterForTest(t, api, "вращающийся в две стороны", &openRouterCalls)
+	addLearnedTestWord(t, store, -42, "en:birotate")
+
+	next := requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/next", map[string]any{})
+	if next["prompt"] != "вращающийся в две стороны" {
+		t.Fatalf("word-game next prompt = %#v", next)
+	}
+	wrongReview := requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/answer", map[string]any{"answer_id": "en:not-the-answer"})
+	if wrongReview["prompt"] != "вращающийся в две стороны" {
+		t.Fatalf("word-game wrong prompt = %#v", wrongReview)
+	}
+	spelling := requestJSON(t, api, cookie, http.MethodPost, "/api/spelling/start", map[string]any{})
+	if spelling["prompt"] != "вращающийся в две стороны" {
+		t.Fatalf("spelling start prompt = %#v", spelling)
+	}
+	wrongSpelling := requestJSON(t, api, cookie, http.MethodPost, "/api/spelling/answer", map[string]any{"text": "wrong"})
+	if wrongSpelling["prompt"] != "вращающийся в две стороны" {
+		t.Fatalf("spelling wrong prompt = %#v", wrongSpelling)
+	}
+	giveUpSpelling := requestJSON(t, api, cookie, http.MethodPost, "/api/spelling/answer", map[string]any{"give_up": true})
+	if giveUpSpelling["translation"] != "вращающийся в две стороны" {
+		t.Fatalf("spelling give-up translation = %#v", giveUpSpelling)
+	}
+	if openRouterCalls != 1 {
+		t.Fatalf("OpenRouter calls = %d, want one persisted translation reused by follow-up paths", openRouterCalls)
+	}
+}
+
+func TestWebWordGameNextFailsWhenAITranslationCannotPersist(t *testing.T) {
+	configureWebMissingPromptVocabularyForTest(t)
+	api, store, cookie := newTestWebAPI(t)
+	openRouterCalls := 0
+	configureWebVocabularyOpenRouterForTest(t, api, "вращающийся в две стороны", &openRouterCalls)
+	addLearnedTestWord(t, store, -42, "en:birotate")
+	db := currentSQLiteVocabularyDB()
+	if db == nil {
+		t.Fatal("expected configured SQLite vocabulary DB")
+	}
+	db.SetMaxOpenConns(1)
+	if _, err := db.Exec(`PRAGMA query_only = ON`); err != nil {
+		t.Fatal(err)
+	}
+
+	status, body := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/word-game/next", map[string]any{})
+	if status != http.StatusInternalServerError {
+		t.Fatalf("word-game next status = %d body=%#v, want 500", status, body)
+	}
+	if openRouterCalls != 1 {
+		t.Fatalf("OpenRouter calls = %d, want attempted translation before persistence failure", openRouterCalls)
+	}
+	if stored, ok, err := sqliteVocabularyAITranslationGet("en:birotate", "ru"); err != nil || ok || stored != "" {
+		t.Fatalf("AI translation should not be partially persisted: value=%q ok=%v err=%v", stored, ok, err)
+	}
+}
+
+func configureWebMissingPromptVocabularyForTest(t *testing.T) {
+	t.Helper()
+	configureSQLiteVocabularyForTest(t, []vocabWord{
+		{
+			ID:            "en:birotate",
+			Language:      "en",
+			English:       "birotate",
+			Russian:       "birotate",
+			Translations:  map[string]string{"en": "birotate"},
+			Level:         "A1",
+			FrequencyRank: 1,
+		},
+		{
+			ID:            "en:user",
+			Language:      "en",
+			English:       "user",
+			Russian:       "пользователь",
+			Translations:  map[string]string{"ru": "пользователь"},
+			Level:         "A1",
+			FrequencyRank: 2,
+		},
+		{
+			ID:            "en:birthday",
+			Language:      "en",
+			English:       "birthday",
+			Russian:       "день рождения",
+			Translations:  map[string]string{"ru": "день рождения"},
+			Level:         "A1",
+			FrequencyRank: 3,
+		},
+		{
+			ID:            "en:women's",
+			Language:      "en",
+			English:       "women's",
+			Russian:       "женский",
+			Translations:  map[string]string{"ru": "женский"},
+			Level:         "A1",
+			FrequencyRank: 4,
+		},
+	})
+}
+
+func configureWebVocabularyOpenRouterForTest(t *testing.T, api *webAPI, translation string, calls *int) {
+	t.Helper()
+	api.cfg.OpenRouterVocabularyModel = "vocab-test-model"
+	api.bot.cfg.OpenRouterVocabularyModel = "vocab-test-model"
+	api.bot.openrouter = newOpenRouterClient("test-key", "fallback-model", "http://localhost", "test", &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			if req.URL.String() != "https://openrouter.ai/api/v1/chat/completions" {
+				t.Fatalf("unexpected OpenRouter URL %s", req.URL.String())
+			}
+			var payload map[string]any
+			if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+				t.Fatalf("decode OpenRouter payload: %v", err)
+			}
+			if payload["model"] != "vocab-test-model" {
+				t.Fatalf("unexpected vocabulary model %#v", payload["model"])
+			}
+			if calls != nil && openRouterPayloadIsVocabularyTranslation(payload) {
+				(*calls)++
+			}
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(`{"choices":[{"message":{"content":` + strconv.Quote(translation) + `}}]}`)),
+			}, nil
+		}),
+	})
+}
+
+func openRouterPayloadIsVocabularyTranslation(payload map[string]any) bool {
+	switch value := payload["max_tokens"].(type) {
+	case float64:
+		return int(value) == 160
+	case int:
+		return value == 160
+	}
+	return false
+}
+
 func TestWebLessonAnswerCompletesActiveLessonAndRejectsReplay(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	responses := []string{

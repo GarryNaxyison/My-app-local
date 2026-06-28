@@ -1,7 +1,7 @@
 ﻿---
 project: Poliglot AI
 status: active
-updated: 2026-05-30
+updated: 2026-06-28
 tags:
   - poliglot-ai
   - redesign
@@ -115,6 +115,9 @@ tags:
 - [x] Add targeted Playwright and Go regression tests for the latest mobile UI failures, current asset URLs, persisted pronunciation history, More reordering, Tools mobile flow, and varied Learn Words distractors.
 - [x] Deploy the V2 mobile/Learn Words fix to `/opt/aibot`, restart `aibot.service`, and verify public `/healthz`, `/app`, `/app/v2`, `/app/v1`, current JS/CSS, FLUX.2 icons, and manifest.
 - [x] Fix installed mobile PWA update behavior with network-first service-worker caching, no-store app-shell/manifest/service-worker headers, regression coverage, and deploy through the permanent upload service without server backups.
+- [x] Fix Russian auth login heading wrapping so the short preposition stays attached to the following word.
+- [x] Route web word-game and spelling prompts through the OpenRouter-backed vocabulary translation cache when local translations are missing, and fail loudly if AI translations cannot be persisted.
+- [x] Deploy the auth/word-game fix to `/opt/aibot`, restart `aibot.service`, and verify production health plus fresh web assets.
 
 ### In Progress
 
@@ -239,6 +242,7 @@ tags:
 | 2026-06-27 | `/opt/aibot/web` and `/var/www/poliglotai` on `root@186.246.45.123` | Deployed Poliglot AI social links for the public landing/footer and web app settings; backup saved at `/opt/aibot/deploy-backups/20260627-223337-social-links`; enabled persistent 1G `/swapfile` after OOM report, confirmed no `fold` processes, `aibot.service` and `caddy` active, public `/healthz` returns `ok`, production HTML references `index-CZPGvZ6d.js`, `index-DtwfRzt2.css`, `main-DMRCusAl.js`, and `main-CCIuuDnV.css`, and production JS contains YouTube, Instagram, and TikTok links. |
 | 2026-06-27 | `/opt/aibot/web` and `/var/www/poliglotai` on `root@186.246.45.123` | Deployed social/cookie localization follow-up; backup saved at `/opt/aibot/deploy-backups/20260627-233225-social-i18n`; production HTML references `index-C3O7Lq7c.js`, `index-DtwfRzt2.css`, `main-DcJ36_sh.js`, and `main-C1gzSw4z.css`; stale hashed assets removed; `/healthz` returns `ok`; browser checks confirmed light-theme social proof contrast, TikTok `@poliglotai.online`, and cookie banners remain visible after saved consent on both landing and web app. |
 | 2026-06-28 | `/opt/aibot/aibot` on `root@186.246.45.123` | Deployed API security hardening for trusted proxy IP rate keys, webhook HTTP timeouts, and payment create idempotency for YooKassa, RollyPay, and direct crypto payments; backup saved at `/opt/aibot/deploy-backups/20260628-0215-security-hardening/aibot`; verified targeted Go security tests, Linux/amd64 build, public `/healthz`, `/api/health`, `/app/`, `aibot.service`, `caddy`, and post-restart logs. |
+| 2026-06-28 | `/opt/aibot/aibot`, `/opt/aibot/web`, `app_prompts.json`, and vocabulary JSON on `root@186.246.45.123` | Deployed the auth heading wrap fix and OpenRouter-backed web vocabulary prompt fallback; backup saved at `/opt/aibot/deploy-backups/20260628T002340Z-auth-wordgame`; verified targeted Go prompt/cache tests, React build, Playwright auth regression, Linux/amd64 build, public `/healthz`, `/api/health`, `/app/`, `index-C2w2lZfu.js`, `index-4Rannp3W.css`, `aibot.service`, `caddy`, root-owned web assets, and post-restart logs. |
 
 ## Server Defaults
 

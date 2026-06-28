@@ -2304,16 +2304,21 @@ func (api *webAPI) handleWordNext(w http.ResponseWriter, r *http.Request) {
 		dto = append(dto, webWordOptionDTO{ID: option.ID, Text: option.English})
 	}
 	language := userLearningLanguage(user)
+	prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "learn word")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"empty":       false,
-		"prompt":      wordTranslation(word, user.InterfaceLanguage),
+		"prompt":      prompt,
 		"context":     api.bot.vocabularyHint(r.Context(), user, word, "learn word"),
 		"direction":   learningDirectionForUI(user, language),
 		"options":     dto,
 		"instruction": ui(user).ChooseAnswer,
 		"word_id":     word.ID,
 		"word":        word.English,
-		"translation": wordTranslation(word, user.InterfaceLanguage),
+		"translation": prompt,
 		"reportable":  true,
 	})
 }
@@ -2344,10 +2349,15 @@ func (api *webAPI) handleWordAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if req.AnswerID != correctID {
+		prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "learn word")
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		writeJSON(w, http.StatusOK, map[string]any{
 			"correct": false,
 			"message": ui(user).TryAgain,
-			"prompt":  wordTranslation(word, user.InterfaceLanguage),
+			"prompt":  prompt,
 			"context": api.bot.vocabularyHint(r.Context(), user, word, "learn word"),
 		})
 		return
@@ -2364,18 +2374,37 @@ func (api *webAPI) handleWordAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "learn word")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"correct":     true,
 		"learned":     learned,
 		"total":       total,
 		"word_id":     word.ID,
 		"word":        word.English,
-		"translation": wordTranslation(word, user.InterfaceLanguage),
+		"translation": prompt,
 		"context":     api.bot.vocabularyHint(r.Context(), user, word, "learn word"),
 		"example":     api.bot.vocabularyExample(r.Context(), user, word, "learn word"),
 		"promoted_to": promotedTo,
 		"user":        api.userDTO(refreshed),
 	})
+}
+
+func (api *webAPI) webVocabularyPrompt(ctx context.Context, user userState, word vocabWord, mode string) (string, error) {
+	if api != nil && api.bot != nil {
+		prompt, err := api.bot.vocabularyPromptStrict(ctx, user, word, mode)
+		if err != nil || prompt != "" {
+			return prompt, err
+		}
+	}
+	return wordTranslation(word, user.InterfaceLanguage), nil
+}
+
+func (api *webAPI) webLearnedWordPrompt(ctx context.Context, user userState, word learnedWordEntry, mode string) (string, error) {
+	return api.webVocabularyPrompt(ctx, user, learnedEntryVocabWord(word), mode)
 }
 
 func (api *webAPI) handleWordReport(w http.ResponseWriter, r *http.Request) {
@@ -2773,9 +2802,14 @@ func (api *webAPI) handleWordGameNext(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	language := userLearningLanguage(user)
+	prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "review word")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"empty":       false,
-		"prompt":      wordTranslation(word, user.InterfaceLanguage),
+		"prompt":      prompt,
 		"context":     api.bot.vocabularyHint(r.Context(), user, word, "review word"),
 		"direction":   learningDirectionForUI(user, language),
 		"options":     webWordOptionsDTO(learnedWordOptions(word, ids)),
@@ -2810,10 +2844,15 @@ func (api *webAPI) handleWordGameAnswer(w http.ResponseWriter, r *http.Request) 
 	}
 	ids := reviewWordIDs(user)
 	if req.AnswerID != correctID {
+		prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "review word")
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		writeJSON(w, http.StatusOK, map[string]any{
 			"correct": false,
 			"message": ui(user).TryAgain,
-			"prompt":  wordTranslation(word, user.InterfaceLanguage),
+			"prompt":  prompt,
 			"context": api.bot.vocabularyHint(r.Context(), user, word, "review word"),
 			"options": webWordOptionsDTO(learnedWordOptions(word, ids)),
 		})
@@ -2831,11 +2870,16 @@ func (api *webAPI) handleWordGameAnswer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "review word")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"correct":     true,
 		"word_id":     word.ID,
 		"word":        word.English,
-		"translation": wordTranslation(word, user.InterfaceLanguage),
+		"translation": prompt,
 		"context":     api.bot.vocabularyHint(r.Context(), user, word, "review word"),
 		"example":     api.bot.vocabularyExample(r.Context(), user, word, "review word"),
 		"mastered":    masteredNow,
@@ -2912,10 +2956,15 @@ func (api *webAPI) handleSpellingStart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	language := userLearningLanguage(user)
+	prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "spelling practice")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"empty":     false,
 		"word_id":   word.ID,
-		"prompt":    wordTranslation(word, user.InterfaceLanguage),
+		"prompt":    prompt,
 		"context":   api.bot.vocabularyHint(r.Context(), user, word, "spelling practice"),
 		"direction": learningDirectionForUI(user, language),
 	})
@@ -2963,13 +3012,18 @@ func (api *webAPI) handleSpellingAnswer(w http.ResponseWriter, r *http.Request) 
 			writeAPIError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		prompt, err := api.webLearnedWordPrompt(r.Context(), user, word, "spelling practice")
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		writeJSON(w, http.StatusOK, map[string]any{
 			"correct":        false,
 			"gave_up":        true,
 			"word_id":        word.ID,
 			"word":           word.English,
 			"correct_answer": word.English,
-			"translation":    learnedWordTranslation(word, user.InterfaceLanguage),
+			"translation":    prompt,
 			"context":        learnedWordContext(word, user.InterfaceLanguage),
 			"example": api.bot.vocabularyExample(r.Context(), user, vocabWord{
 				ID:       word.ID,
@@ -2990,10 +3044,15 @@ func (api *webAPI) handleSpellingAnswer(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		language := userLearningLanguage(user)
+		prompt, err := api.webLearnedWordPrompt(r.Context(), user, word, "spelling practice")
+		if err != nil {
+			writeAPIError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		writeJSON(w, http.StatusOK, map[string]any{
 			"correct":     false,
 			"message":     ui(user).TryAgain,
-			"prompt":      learnedWordTranslation(word, user.InterfaceLanguage),
+			"prompt":      prompt,
 			"context":     learnedWordContext(word, user.InterfaceLanguage),
 			"direction":   learningDirectionForUI(user, language),
 			"hint":        spellingHint(word.English),
@@ -3021,12 +3080,17 @@ func (api *webAPI) handleSpellingAnswer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	refreshed, _ := api.bot.store.getOrCreateUser(user.TelegramID, user.FirstName)
+	prompt, err := api.webLearnedWordPrompt(r.Context(), user, word, "spelling practice")
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"correct":        true,
 		"word_id":        word.ID,
 		"word":           word.English,
 		"correct_answer": word.English,
-		"translation":    learnedWordTranslation(word, user.InterfaceLanguage),
+		"translation":    prompt,
 		"context":        learnedWordContext(word, user.InterfaceLanguage),
 		"example": api.bot.vocabularyExample(r.Context(), user, vocabWord{
 			ID:       word.ID,

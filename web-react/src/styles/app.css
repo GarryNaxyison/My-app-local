@@ -4131,6 +4131,22 @@ select {
   backdrop-filter: blur(28px) saturate(1.16);
 }
 
+.sign-in-page-v2__title {
+  max-width: 100%;
+  color: var(--text);
+  font-size: clamp(2rem, 4.6vw, 2.55rem);
+  line-height: 1.08;
+  letter-spacing: 0;
+  text-wrap: balance;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+
+.sign-in-page-v2__title > span {
+  display: inline;
+}
+
 .sign-in-page-v2__scene {
   inset: 16px;
   border-radius: 32px;

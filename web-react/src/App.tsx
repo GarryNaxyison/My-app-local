@@ -3511,6 +3511,10 @@ function localizedAuthError(error: unknown, copy: (key: string, fallback: string
   return message;
 }
 
+function keepShortAuthPrefix(text: string): string {
+  return text.replace(/^([A-Za-zА-Яа-яЁёІіЇїЄєҐґЎў])\s+(?=\S)/u, "$1\u00a0");
+}
+
 function localizedAPIError(error: unknown, copy: (key: string, fallback: string) => string): string {
   const code = apiErrorCode(error);
   if (code) {
@@ -3687,6 +3691,7 @@ function AuthStandaloneView({
   const captchaSlot = captchaEnabled ? (
     <div className="auth-turnstile-slot-v2" ref={captchaRef} data-testid="auth-captcha" aria-label={copy("captcha_required", "Confirm you are not a robot.")} />
   ) : null;
+  const authTitle = mode === "register" ? copy("auth_create_account", "Create account") : keepShortAuthPrefix(copy("auth_welcome", "Welcome back"));
 
   const extraFields = (
     <>
@@ -3725,7 +3730,7 @@ function AuthStandaloneView({
     <>
       <SignInPage
         mode={mode}
-        title={<span>{mode === "register" ? copy("auth_create_account", "Create account") : copy("auth_welcome", "Welcome back")}</span>}
+        title={<span>{authTitle}</span>}
         description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_fill_required", "Enter login and password.")}
         heroImageSrc={heroImageSrc}
         testimonials={testimonials}

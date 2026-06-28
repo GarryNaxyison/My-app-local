@@ -1668,35 +1668,62 @@ func (b *bot) vocabularyPrompt(ctx context.Context, user userState, word vocabWo
 	if targetLanguage == "" {
 		targetLanguage = "en"
 	}
-	if prompt := b.vocabularyPromptInLanguage(ctx, user, word, targetLanguage, mode); prompt != "" {
+	if prompt, err := b.vocabularyPromptInLanguageStrict(ctx, user, word, targetLanguage, mode); err == nil && prompt != "" {
 		return prompt
 	}
 	return vocabularyFallbackPrompt(word, targetLanguage)
 }
 
 func (b *bot) vocabularyPromptInLanguage(ctx context.Context, user userState, word vocabWord, targetLanguage string, mode string) string {
+	prompt, _ := b.vocabularyPromptInLanguageStrict(ctx, user, word, targetLanguage, mode)
+	return prompt
+}
+
+func (b *bot) vocabularyPromptStrict(ctx context.Context, user userState, word vocabWord, mode string) (string, error) {
+	targetLanguage := normalizeInterfaceLanguage(user.InterfaceLanguage)
+	if targetLanguage == "" {
+		targetLanguage = "en"
+	}
+	if prompt, err := b.vocabularyPromptInLanguageStrict(ctx, user, word, targetLanguage, mode); err != nil || prompt != "" {
+		return prompt, err
+	}
+	return vocabularyFallbackPrompt(word, targetLanguage), nil
+}
+
+func (b *bot) vocabularyPromptInLanguageStrict(ctx context.Context, user userState, word vocabWord, targetLanguage string, mode string) (string, error) {
 	targetLanguage = normalizeInterfaceLanguage(targetLanguage)
 	if targetLanguage == "" {
 		targetLanguage = "en"
 	}
+	var cacheErr error
 	if cached, ok, err := sqliteVocabularyAITranslationGet(word.ID, targetLanguage); err == nil && ok {
 		if value := sanitizeVocabularyTranslation(cached, word); value != "" {
-			return firstDictionaryValue(value)
+			return firstDictionaryValue(value), nil
 		}
+	} else if err != nil {
+		cacheErr = err
 	}
 	if translation := wordTranslation(word, targetLanguage); translation != "" {
-		return firstDictionaryValue(translation)
+		return firstDictionaryValue(translation), nil
+	}
+	if cacheErr != nil {
+		return "", cacheErr
 	}
 	if b != nil && b.openrouter != nil && strings.TrimSpace(b.cfg.OpenRouterVocabularyModel) != "" {
 		raw, err := b.openrouter.completeWithModel(ctx, b.cfg.OpenRouterVocabularyModel, vocabularyTranslationPrompt(word, userLearningLanguage(user), interfaceLanguageByCode(targetLanguage), mode), 0.1, 160)
 		if err == nil {
 			if value := sanitizeVocabularyTranslation(raw, word); value != "" {
-				_ = sqliteVocabularyAITranslationSet(word, targetLanguage, b.cfg.OpenRouterVocabularyModel, mode, value)
-				return firstDictionaryValue(value)
+				if currentSQLiteVocabularyDB() == nil {
+					return "", fmt.Errorf("SQLite vocabulary DB is required to persist AI translation for %s", strings.TrimSpace(word.ID))
+				}
+				if err := sqliteVocabularyAITranslationSet(word, targetLanguage, b.cfg.OpenRouterVocabularyModel, mode, value); err != nil {
+					return "", err
+				}
+				return firstDictionaryValue(value), nil
 			}
 		}
 	}
-	return ""
+	return "", nil
 }
 
 func vocabularyFallbackPrompt(word vocabWord, interfaceLanguage string) string {

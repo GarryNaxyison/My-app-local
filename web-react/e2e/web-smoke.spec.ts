@@ -1923,6 +1923,40 @@ test("auth login page uses React sign-in component, Cloudflare slot and current 
   await expect(page).toHaveURL(/\/app$/);
 });
 
+test("auth login Russian title does not leave the short preposition alone", async ({ page }) => {
+  await mockAnonymousAuth(page);
+  await page.setViewportSize({ width: 900, height: 720 });
+  await page.addInitScript(() => localStorage.setItem("poliglot-auth-language", "ru"));
+  await page.goto("/app/login");
+
+  const titleLines = await page.locator(".sign-in-page-v2 h1").evaluate((heading) => {
+    const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+    const textNode = walker.nextNode();
+    const text = textNode?.textContent || "";
+    const chars: Array<{ top: number; left: number; text: string }> = [];
+    for (let index = 0; index < text.length; index += 1) {
+      const range = document.createRange();
+      range.setStart(textNode!, index);
+      range.setEnd(textNode!, index + 1);
+      const rect = range.getBoundingClientRect();
+      range.detach();
+      if (rect.height > 0) chars.push({ top: Math.round(rect.top), left: rect.left, text: text[index] });
+    }
+    const grouped: Array<Array<{ top: number; left: number; text: string }>> = [];
+    for (const item of chars) {
+      const line = grouped.find((group) => Math.abs(group[0].top - item.top) <= 2);
+      if (line) line.push(item);
+      else grouped.push([item]);
+    }
+    return grouped
+      .sort((a, b) => a[0].top - b[0].top)
+      .map((line) => line.sort((a, b) => a.left - b.left).map((item) => item.text).join("").trim())
+      .filter(Boolean);
+  });
+
+  expect(titleLines[0]).not.toBe("С");
+});
+
 test("auth login and registration do not expose Telegram entry", async ({ page }) => {
   await mockAnonymousAuth(page);
   let telegramStartPayload: Record<string, unknown> | null = null;
