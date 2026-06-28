@@ -5122,36 +5122,131 @@ function AppGuideDialog({
   copy: (key: string, fallback: string) => string;
   onClose: () => void;
 }) {
+  const [activeStep, setActiveStep] = useState(0);
   const steps = [
-    { title: copy("app_guide_step_1_title", "Pick today's route"), body: copy("app_guide_step_1_body", "Start from Today: words, speaking, listening, and one repair.") },
-    { title: copy("app_guide_step_2_title", "Finish one AI tutor lesson"), body: copy("app_guide_step_2_body", "Move through the tutor tasks in order and complete the final review.") },
-    { title: copy("app_guide_step_3_title", "Save useful phrases"), body: copy("app_guide_step_3_body", "Add good answers and common fixes to notes for fast reuse.") },
-    { title: copy("app_guide_step_4_title", "Train weak spots"), body: copy("app_guide_step_4_body", "Open mistakes, pronunciation, and spelling to repair what blocked you.") },
-    { title: copy("app_guide_step_5_title", "Check progress"), body: copy("app_guide_step_5_body", "Use XP, level, streak, and completed lessons to choose the next session.") },
+    {
+      title: copy("app_guide_step_1_title", "AI Tutor and bot"),
+      body: copy("app_guide_step_1_body", "Use the website and Telegram as one learning profile. The AI Tutor runs a guided lesson: story, words, answer checks, writing, listening, pronunciation, dialogue, final word check, and review."),
+      details: [
+        copy("app_guide_step_1_detail_1", "Start from Today when you want a ready route, or open AI Tutor for a complete lesson."),
+        copy("app_guide_step_1_detail_2", "Send text, voice, or a practice photo where the mode supports it; the bot and web app keep the same account progress."),
+        copy("app_guide_step_1_detail_3", "Completed lessons stay in history, so you can return to the topic, level, summary, and review."),
+      ],
+      result: copy("app_guide_step_1_result", "Best first session: Today -> AI Tutor -> one weak-spot repair."),
+      icon: Bot,
+    },
+    {
+      title: copy("app_guide_step_2_title", "How plans differ"),
+      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor, listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
+      details: [
+        copy("app_guide_step_2_detail_1", "Free is enough to test the route and keep a small daily habit."),
+        copy("app_guide_step_2_detail_2", "Premium is the normal daily mode when you need guided lessons, voice, listening, and pronunciation feedback."),
+        copy("app_guide_step_2_detail_3", "Platinum is useful before travel, work, exams, or any period where you practice heavily every day."),
+      ],
+      result: copy("app_guide_step_2_result", "Open Premium to compare current prices, payment methods, activation keys, and active status."),
+      icon: CircleDollarSign,
+    },
+    {
+      title: copy("app_guide_step_3_title", "Global theme and settings"),
+      body: copy("app_guide_step_3_body", "The theme toggle changes the whole web interface: background, menu icons, panels, dialogs, login visuals, and contrast. Brightness adjusts the app surface without changing your learning data."),
+      details: [
+        copy("app_guide_step_3_detail_1", "Use the sun/moon control in the top bar or mobile quick controls to switch light and dark themes."),
+        copy("app_guide_step_3_detail_2", "Settings also control interface language, learning language, level, and global learning focus."),
+        copy("app_guide_step_3_detail_3", "Global learning focus guides new lessons and practice topics, so the app stops jumping to random themes."),
+      ],
+      result: copy("app_guide_step_3_result", "Theme is visual; language, level, and learning focus affect future content."),
+      icon: Settings,
+    },
+    {
+      title: copy("app_guide_step_4_title", "How words enter vocabulary"),
+      body: copy("app_guide_step_4_body", "A word does not become learned after one click. New words first go to review and spelling practice; they enter the learned vocabulary after enough correct answers, including the 10-correct-answer mastery rule used by the bot."),
+      details: [
+        copy("app_guide_step_4_detail_1", "Use Learn words for new cards, Review game for choices, and Spelling when you need to type from memory."),
+        copy("app_guide_step_4_detail_2", "If a word or translation is wrong, report it from the AI Tutor word report button so the correction reaches the review flow."),
+        copy("app_guide_step_4_detail_3", "Mistakes are grouped by grammar, word order, vocabulary, politeness, and spelling, then trained separately."),
+      ],
+      result: copy("app_guide_step_4_result", "Do not chase a huge list. Repeat fewer words correctly until they become stable."),
+      icon: BookOpen,
+    },
+    {
+      title: copy("app_guide_step_5_title", "Notes, audio, and reports"),
+      body: copy("app_guide_step_5_body", "After lessons and practice, save useful answers, corrections, and translations to Notes. Audio buttons let you listen to messages and examples again; pronunciation and listening modes compare what you heard or said."),
+      details: [
+        copy("app_guide_step_5_detail_1", "Save lesson answers to Notes when they are phrases you will actually reuse."),
+        copy("app_guide_step_5_detail_2", "Use Listening to hear a phrase first, repeat it, then check the weak words instead of reading the target immediately."),
+        copy("app_guide_step_5_detail_3", "Use bug reports for interface issues and word reports for wrong vocabulary, translations, or lesson words."),
+      ],
+      result: copy("app_guide_step_5_result", "A strong loop is: listen, answer, save the best phrase, report bad data, repeat the weak spot."),
+      icon: Volume2,
+    },
   ];
+  const totalSteps = steps.length;
+  const safeStep = Math.min(activeStep, totalSteps - 1);
+  const step = steps[safeStep];
+  const StepIcon = step.icon;
+  const atStart = safeStep === 0;
+  const atEnd = safeStep === totalSteps - 1;
+  const goBack = () => setActiveStep((current) => Math.max(0, current - 1));
+  const goNext = () => {
+    if (atEnd) {
+      onClose();
+      return;
+    }
+    setActiveStep((current) => Math.min(totalSteps - 1, current + 1));
+  };
+
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="v2-dialog-content app-guide-dialog-v2">
         <DialogBody className="app-guide-dialog-v2__body">
-          <CircleHelp className="app-guide-dialog-v2__icon" size={42} />
+          <div className="app-guide-dialog-v2__head">
+            <CircleHelp className="app-guide-dialog-v2__icon" size={42} />
+            <span className="app-guide-page-v2" aria-live="polite">
+              {copy("app_guide_page_label", "Page")} {safeStep + 1}/{totalSteps}
+            </span>
+          </div>
           <DialogTitle>{copy("app_guide_title", "Quick start guide")}</DialogTitle>
-          <DialogDescription>{copy("app_guide_body", "Five steps to start learning without hunting through menus.")}</DialogDescription>
+          <DialogDescription>{copy("app_guide_body", "Five pages for the main app flows: lessons, plans, theme, vocabulary, notes, audio, and reports.")}</DialogDescription>
           <div className="app-guide-steps-v2">
-            {steps.map((step, index) => (
-              <article className="app-guide-step-v2" key={step.title}>
-                <strong>{index + 1}</strong>
-                <span><b>{step.title}</b><small>{step.body}</small></span>
-              </article>
-            ))}
+            <article className="app-guide-step-v2" key={step.title}>
+              <strong>{safeStep + 1}</strong>
+              <span><b><StepIcon size={18} />{step.title}</b><small>{step.body}</small></span>
+              <ul className="app-guide-points-v2">
+                {step.details.map((detail) => (
+                  <li key={detail}><CheckCircle size={15} /><span>{detail}</span></li>
+                ))}
+              </ul>
+              <p className="app-guide-result-v2"><Target size={15} />{step.result}</p>
+            </article>
+            <div className="app-guide-dots-v2" aria-label={copy("app_guide_title", "Quick start guide")}>
+              {steps.map((item, index) => (
+                <button
+                  type="button"
+                  key={item.title}
+                  className={cn("app-guide-dot-v2", index === safeStep && "is-active")}
+                  aria-current={index === safeStep ? "step" : undefined}
+                  aria-label={`${copy("app_guide_page_label", "Page")} ${index + 1}`}
+                  onClick={() => setActiveStep(index)}
+                />
+              ))}
+            </div>
           </div>
         </DialogBody>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button className="app-guide-back-v2" type="button" variant="outline" onClick={onClose}>
+        <DialogFooter className="app-guide-footer-v2">
+          <Button className="app-guide-close-v2" type="button" variant="ghost" onClick={onClose}>
+            <X size={16} />
+            {copy("bug_report_close", "Close")}
+          </Button>
+          <div className="app-guide-footer-v2__pages">
+            <Button className="app-guide-back-v2" type="button" variant="outline" onClick={goBack} disabled={atStart}>
               <ChevronLeft size={16} />
               {copy("back", "Back")}
             </Button>
-          </DialogClose>
+            <Button className="app-guide-next-v2" type="button" onClick={goNext}>
+              {atEnd ? <Check size={16} /> : <ChevronRight size={16} />}
+              {atEnd ? copy("done", "Done.") : copy("next", "Next")}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

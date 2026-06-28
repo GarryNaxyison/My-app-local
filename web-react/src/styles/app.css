@@ -1003,6 +1003,13 @@ select {
   width: min(560px, calc(100vw - 28px));
 }
 
+.app-guide-dialog-v2 {
+  width: min(680px, calc(100vw - 28px));
+  max-height: min(760px, calc(100dvh - 28px));
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 .tutor-completed-lessons-dialog-v2 {
   max-height: min(720px, calc(100dvh - 28px));
   display: grid;
@@ -1018,14 +1025,38 @@ select {
   text-align: center;
 }
 
+.app-guide-dialog-v2__body {
+  min-height: 0;
+  overflow: auto;
+}
+
 .tutor-completed-lessons-dialog-v2__body {
   min-height: 0;
   overflow: hidden;
 }
 
+.app-guide-dialog-v2__head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .tutor-completed-lessons-dialog-v2__icon,
 .app-guide-dialog-v2__icon {
   color: var(--primary);
+}
+
+.app-guide-page-v2 {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--surface-strong) 84%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .tutor-completed-lessons-list-v2,
@@ -1173,38 +1204,146 @@ select {
 
 .app-guide-step-v2 {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 42px minmax(0, 1fr);
   align-items: start;
-  gap: 10px;
-  padding: 12px;
+  gap: 12px 14px;
+  padding: 16px;
   text-align: left;
 }
 
 .app-guide-step-v2 > strong {
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   display: inline-grid;
   place-items: center;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
   color: var(--primary);
+  font-size: 18px;
+  font-weight: 950;
 }
 
 .app-guide-step-v2 span {
   display: grid;
-  gap: 4px;
+  gap: 8px;
   min-width: 0;
 }
 
 .app-guide-step-v2 b {
-  line-height: 1.25;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+  font-size: 19px;
+}
+
+.app-guide-step-v2 b svg {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: -3px;
+  color: var(--primary);
 }
 
 .app-guide-step-v2 small {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 750;
+  line-height: 1.55;
+}
+
+.app-guide-points-v2 {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+.app-guide-points-v2 li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--surface-strong) 64%, transparent);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 780;
   line-height: 1.45;
+}
+
+.app-guide-points-v2 li svg {
+  margin-top: 2px;
+  color: var(--teal);
+}
+
+.app-guide-result-v2 {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--line));
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-strong));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.45;
+}
+
+.app-guide-result-v2 svg {
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.app-guide-dots-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.app-guide-dot-v2 {
+  width: 9px;
+  height: 9px;
+  border: 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 32%, transparent);
+  cursor: pointer;
+  transition: width 0.18s ease, background 0.18s ease;
+}
+
+.app-guide-dot-v2.is-active {
+  width: 26px;
+  background: var(--primary);
+}
+
+.app-guide-footer-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 24px 22px;
+}
+
+.app-guide-footer-v2__pages {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.app-guide-footer-v2 button {
+  min-height: 38px;
 }
 
 @keyframes tutorRevealWord {
@@ -1303,6 +1442,41 @@ select {
   .tutor-completed-lessons-dialog-v2__body,
   .app-guide-dialog-v2__body {
     padding: 22px 16px 14px;
+  }
+
+  .app-guide-dialog-v2__head {
+    align-items: flex-start;
+  }
+
+  .app-guide-step-v2 {
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding: 13px;
+  }
+
+  .app-guide-step-v2 > strong {
+    width: 38px;
+    height: 38px;
+  }
+
+  .app-guide-step-v2 b {
+    font-size: 17px;
+  }
+
+  .app-guide-footer-v2 {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    padding: 0 16px 18px;
+  }
+
+  .app-guide-footer-v2__pages {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .app-guide-footer-v2 button {
+    justify-content: center;
+    min-width: 0;
   }
 
   .tutor-completed-lessons-list-v2 {

@@ -920,6 +920,7 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "guide",
     "app_guide_title",
     "app_guide_body",
+    "app_guide_page_label",
     "app_guide_step_1_title",
     "app_guide_step_1_body",
     "app_guide_step_2_title",
@@ -977,6 +978,8 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   expect(appCopy("vi", "roleplay_title")).toBe("Kịch bản nhập vai AI");
   expect(appCopy("ka", "logout")).toBe("გასვლა");
   expect(appCopy("ka", "roleplay_scenario_restaurant")).toBe("რესტორანი");
+  expect(appCopy("es", "app_guide_page_label")).toBe("Página");
+  expect(appCopy("de", "app_guide_page_label")).toBe("Seite");
   for (const code of ["vi", "ka"] as const) {
     const visibleCritical = [
       "logout",
@@ -1158,6 +1161,7 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "guide",
     "app_guide_title",
     "app_guide_body",
+    "app_guide_page_label",
     "app_guide_step_1_title",
     "app_guide_step_1_body",
     "app_guide_step_2_title",
@@ -1649,9 +1653,20 @@ test("guide button opens localized quick start guide and mobile home shows level
   await page.locator(isMobile ? ".mobile-quick-controls-v2 .app-guide-button-v2" : ".v2-topbar .app-guide-button-v2").click();
   const guide = page.locator(".app-guide-dialog-v2");
   await expect(guide).toBeVisible();
-  await expect(guide.locator(".app-guide-step-v2")).toHaveCount(5);
+  await expect(guide.locator(".app-guide-step-v2")).toHaveCount(1);
+  await expect(guide.locator(".app-guide-page-v2")).toContainText("1/5");
   await expect(guide).toContainText("Как начать");
+  await expect(guide).toContainText("AI Tutor и бот");
+  await guide.locator(".app-guide-next-v2").click();
+  await expect(guide.locator(".app-guide-page-v2")).toContainText("2/5");
+  await expect(guide).toContainText("Чем отличаются тарифы");
+  await guide.locator(".app-guide-next-v2").click();
+  await guide.locator(".app-guide-next-v2").click();
+  await expect(guide.locator(".app-guide-page-v2")).toContainText("4/5");
+  await expect(guide).toContainText("Словарь пополняется по правилам");
   await guide.locator(".app-guide-back-v2").click();
+  await expect(guide.locator(".app-guide-page-v2")).toContainText("3/5");
+  await guide.locator(".app-guide-close-v2").click();
   await expect(guide).toHaveCount(0);
 
   await page.setViewportSize({ width: 390, height: 844 });
