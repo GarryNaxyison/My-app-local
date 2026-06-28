@@ -5,7 +5,9 @@
 - The Poliglot AI 2-second outro should feel like a real motion-design insert: kinetic, technological, premium, and animated through the whole two seconds.
 - Avoid static logo lockups and flat/primitive empty space. The background should have depth, parallax, energy, light movement, and a stronger AI/SaaS technology feel.
 - The logo should assemble, pulse, or travel as part of the motion instead of simply sitting on top of the background.
+- After materialization, the logo should keep a subtle 3D-like life: rotation, glint, or orbit movement instead of freezing as a flat static PNG.
 - The `poliglotAI.online` URL can arrive as a light object/comet/data streak, but the final domain must be exact, stable, and readable.
+- The URL should feel animated and assembled, not like a stiff block sliding into place. Prefer per-character motion, curved comet paths, sparks, and a final clean lock.
 - Use the new v11 tech-warp direction as the preferred baseline over the rejected v10 space-comet look unless a future reference says otherwise.
 - Do not leave model-rendered text stripes, vertical URL fragments, or ghost typography from the Wan source in the center of the outro. Mask them and rebuild the final URL with a clean comet/particle assembly pass.
 
