@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 2026-06-29
+
+- Added a new dynamic Poliglot AI 2-second tech-warp outro v11 after rejecting the flatter/static space direction: holographic tunnel depth, logo shard assembly, light-object URL arrival, and deterministic readable `poliglotAI.online` lockup.
+- Generated the checked 1080x1920 render pass at `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v11.mp4`, with preview frames/contact sheet under `tmp/comfy-outro`.
+- Queued the matching ComfyUI v11 Wan/RIFE API workflow and used its output as the moving source for the final composite at `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v11_comfy_composite.mp4`.
+- Added the v11 reference image, API prompt, prompt notes, and compositor script in `comfyui_workflows` so the same direction can be regenerated through the running ComfyUI API without distorting the final URL.
+
 ## 2026-06-28
 
 - Added a polished After Effects-style Poliglot AI outro render pass that reuses the more kinetic first ComfyUI motion background, masks distorted model text, keeps the generated logo animation, and overlays only the exact `poliglotAI.online` URL with a floating reveal.

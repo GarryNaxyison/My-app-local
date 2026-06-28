@@ -1,5 +1,13 @@
 # User UI Wishes
 
+## 2026-06-29 Dynamic Outro Direction
+
+- The Poliglot AI 2-second outro should feel like a real motion-design insert: kinetic, technological, premium, and animated through the whole two seconds.
+- Avoid static logo lockups and flat/primitive empty space. The background should have depth, parallax, energy, light movement, and a stronger AI/SaaS technology feel.
+- The logo should assemble, pulse, or travel as part of the motion instead of simply sitting on top of the background.
+- The `poliglotAI.online` URL can arrive as a light object/comet/data streak, but the final domain must be exact, stable, and readable.
+- Use the new v11 tech-warp direction as the preferred baseline over the rejected v10 space-comet look unless a future reference says otherwise.
+
 ## 2026-06-27 Social Video Outro
 
 - Every reusable TikTok/Reels/Shorts outro should be a 2-second vertical brand insert with only the Poliglot AI logo and exact URL `poliglotAI.online` visible.

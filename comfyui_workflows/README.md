@@ -18,6 +18,11 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `poliglot_outro_reference_1080x1920.png` - exact brand/logo/URL start card copied into ComfyUI input.
 - `run_poliglot_outro_2s.mjs` - queues the outro API prompt and writes the generated MP4 path to `tmp/comfy-outro`.
 - `render_poliglot_ae_outro.py` - deterministic 1080x1920 post-render that uses the more dynamic generated MP4 as motion background, masks model text, keeps the generated logo motion, and overlays only the exact `poliglotAI.online` URL with an After Effects-style float/reveal.
+- `render_poliglot_tech_outro_v11.py` - kinetic 2-second 1080x1920 tech-warp outro renderer; writes the final MP4, preview frames, a ComfyUI input reference, and a matching Wan/RIFE API prompt.
+- `render_poliglot_tech_outro_v11_composite.py` - final v11 compositor that uses the ComfyUI Wan output as moving source/background and overlays the exact animated logo/URL lockup.
+- `poliglot_outro_2s_tech_warp_v11_api.json` - v11 ComfyUI API prompt for the new dynamic technology direction.
+- `poliglot_outro_2s_tech_warp_v11_prompt.md` - v11 prompt notes and output paths.
+- `poliglot_outro_tech_warp_v11_reference_1080x1920.png` - v11 high-energy reference frame copied into ComfyUI input.
 - `assets/fonts/Manrope-wght.ttf` and `assets/fonts/OFL-Manrope.txt` - bundled open-source font used for the clean readable outro URL typography.
 - `install_ad_short_models.ps1` - downloads only missing compact video/interpolation models.
 - `model_manifest.json` - model inventory and disk budget.
@@ -83,6 +88,24 @@ Current polished output with the cleaner readable typography pass:
 
 ```text
 C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_ae_reveal_v9_clean.mp4
+```
+
+Render the kinetic replacement for the rejected static/flat-space direction:
+
+```powershell
+& 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_poliglot_tech_outro_v11.py
+```
+
+Queue `poliglot_outro_2s_tech_warp_v11_api.json` through ComfyUI, then render the final composite:
+
+```powershell
+& 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_poliglot_tech_outro_v11_composite.py
+```
+
+Current final output:
+
+```text
+C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v11_comfy_composite.mp4
 ```
 
 ## Chain
