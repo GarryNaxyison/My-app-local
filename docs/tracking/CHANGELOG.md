@@ -2,9 +2,10 @@
 
 ## 2026-06-28
 
-- Added a polished After Effects-style Poliglot AI outro render pass that reuses the more kinetic first ComfyUI motion background, masks distorted model text, and overlays the exact logo plus `poliglotAI.online` with a floating reveal, light sweep, and underline.
+- Added a polished After Effects-style Poliglot AI outro render pass that reuses the more kinetic first ComfyUI motion background, masks distorted model text, keeps the generated logo animation, and overlays only the exact `poliglotAI.online` URL with a floating reveal.
 - Reworked the URL typography to use bundled Manrope ExtraBold with solid white text and a mint `AI` accent for better Shorts/Reels/TikTok readability after compression.
-- Rendered the 2-second vertical MP4 at `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_ae_reveal_v8.mp4` and saved preview frames under `tmp/comfy-outro`.
+- Cleaned the final composition so the post-render no longer overlays a second logo on top of the generated logo animation and no longer draws decorative stripes or underline below the URL.
+- Rendered the 2-second vertical MP4 at `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_ae_reveal_v9_clean.mp4` and saved preview frames under `tmp/comfy-outro`.
 
 ## 2026-06-27
 
