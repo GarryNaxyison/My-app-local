@@ -15,9 +15,10 @@ SOURCE_CANDIDATES = [
     COMFY_OUTPUT / "poliglot_outro_2s_api_00001_.mp4",
     COMFY_OUTPUT / "poliglot_outro_2s_api_00002_.mp4",
 ]
-OUTPUT_VIDEO = COMFY_OUTPUT / "poliglot_outro_ae_reveal_v2.mp4"
+OUTPUT_VIDEO = COMFY_OUTPUT / "poliglot_outro_ae_reveal_v8.mp4"
 PREVIEW_DIR = PROJECT_ROOT / "tmp" / "comfy-outro"
 LOGO_PATH = PROJECT_ROOT / "web" / "assets" / "brand-logo.png"
+MANROPE_FONT_PATH = PROJECT_ROOT / "comfyui_workflows" / "assets" / "fonts" / "Manrope-wght.ttf"
 
 WIDTH = 1080
 HEIGHT = 1920
@@ -25,6 +26,8 @@ FPS = 32
 DURATION = 2.0
 TOTAL_FRAMES = int(FPS * DURATION)
 TEXT = "poliglotAI.online"
+TEXT_PREFIX = "poliglot"
+TEXT_ACCENT = "AI"
 
 
 def smoothstep(edge0: float, edge1: float, value: float) -> float:
@@ -50,11 +53,49 @@ def cover_resize(image: Image.Image, width: int, height: int) -> Image.Image:
 
 
 def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    font_name = "segoeuib.ttf" if bold else "segoeui.ttf"
-    font_path = Path("C:/Windows/Fonts") / font_name
-    if font_path.exists():
-        return ImageFont.truetype(str(font_path), size=size)
+    if MANROPE_FONT_PATH.exists():
+        font = ImageFont.truetype(str(MANROPE_FONT_PATH), size=size)
+        try:
+            font.set_variation_by_name("ExtraBold" if bold else "Medium")
+        except OSError:
+            pass
+        return font
+
+    names = ["segoeui.ttf", "corbel.ttf", "trebuc.ttf", "arial.ttf"]
+    if bold:
+        names = ["seguisb.ttf", "segoeuib.ttf", "corbelb.ttf", "trebucbd.ttf", "arialbd.ttf"]
+    for name in names:
+        font_path = Path("C:/Windows/Fonts") / name
+        if font_path.exists():
+            return ImageFont.truetype(str(font_path), size=size)
     return ImageFont.load_default(size=size)
+
+
+def draw_brand_text(
+    draw: ImageDraw.ImageDraw,
+    xy: tuple[int, int],
+    font: ImageFont.FreeTypeFont,
+    *,
+    alpha: float = 1.0,
+    stroke_width: int = 0,
+    stroke_fill: tuple[int, int, int, int] | None = None,
+    base_color: tuple[int, int, int, int] = (245, 255, 252, 255),
+    accent_color: tuple[int, int, int, int] = (112, 255, 218, 255),
+) -> None:
+    x, y = xy
+    base_fill = (base_color[0], base_color[1], base_color[2], int(base_color[3] * alpha))
+    accent_fill = (accent_color[0], accent_color[1], accent_color[2], int(accent_color[3] * alpha))
+    draw.text((x, y), TEXT, font=font, fill=base_fill, stroke_width=stroke_width, stroke_fill=stroke_fill)
+
+    accent_x = x + int(round(draw.textlength(TEXT_PREFIX, font=font)))
+    draw.text(
+        (accent_x, y),
+        TEXT_ACCENT,
+        font=font,
+        fill=accent_fill,
+        stroke_width=stroke_width,
+        stroke_fill=stroke_fill,
+    )
 
 
 def pick_source_video() -> Path:
@@ -101,10 +142,12 @@ def gradient_band() -> Image.Image:
             bottom_pixels[x, y] = (0, 6, 10, alpha)
     band.alpha_composite(bottom_feather.filter(ImageFilter.GaussianBlur(16)))
 
-    for y in range(1120, 1648, 28):
+    for y in range(1120, 1648, 34):
+        if 1272 <= y <= 1438:
+            continue
         draw.line((90, y, WIDTH - 90, y), fill=(32, 255, 214, 9), width=1)
-    draw.line((130, 1222, WIDTH - 130, 1222), fill=(105, 255, 220, 34), width=2)
-    draw.line((170, 1518, WIDTH - 170, 1518), fill=(105, 255, 220, 26), width=2)
+    draw.line((130, 1222, WIDTH - 130, 1222), fill=(105, 255, 220, 28), width=2)
+    draw.line((170, 1508, WIDTH - 170, 1508), fill=(105, 255, 220, 24), width=2)
     return band
 
 
@@ -138,21 +181,52 @@ def draw_logo(base: Image.Image, logo: Image.Image, time: float) -> None:
 def text_layer(font: ImageFont.FreeTypeFont) -> tuple[Image.Image, tuple[int, int, int, int]]:
     layer = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     draw = ImageDraw.Draw(layer)
-    bbox = draw.textbbox((0, 0), TEXT, font=font)
-    text_width = bbox[2] - bbox[0]
+    bbox = draw.textbbox((0, 0), TEXT, font=font, stroke_width=2)
+    text_width = int(math.ceil(draw.textlength(TEXT, font=font)))
     text_height = bbox[3] - bbox[1]
     x = (WIDTH - text_width) // 2
-    y = 1308
+    y = 1300
+
+    pedestal = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    pedestal_draw = ImageDraw.Draw(pedestal)
+    pedestal_draw.rounded_rectangle(
+        (x - 58, y - 18, x + text_width + 58, y + text_height + 48),
+        radius=22,
+        fill=(0, 16, 20, 132),
+        outline=(126, 255, 224, 22),
+        width=1,
+    )
+    layer.alpha_composite(pedestal.filter(ImageFilter.GaussianBlur(6)))
+
+    glow = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    draw_brand_text(glow_draw, (x, y), font, alpha=0.42, stroke_width=1, stroke_fill=(92, 255, 218, 62))
+    layer.alpha_composite(glow.filter(ImageFilter.GaussianBlur(4)))
 
     shadow = Image.new("RGBA", (WIDTH, HEIGHT), (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow)
-    shadow_draw.text((x, y), TEXT, font=font, fill=(0, 0, 0, 230))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(13))
+    draw_brand_text(
+        shadow_draw,
+        (x, y + 6),
+        font,
+        stroke_width=2,
+        stroke_fill=(0, 0, 0, 240),
+        base_color=(0, 0, 0, 246),
+        accent_color=(0, 0, 0, 246),
+    )
+    shadow = shadow.filter(ImageFilter.GaussianBlur(7))
     layer.alpha_composite(shadow)
 
     draw = ImageDraw.Draw(layer)
-    draw.text((x, y), TEXT, font=font, fill=(239, 255, 250, 255))
-    draw.text((x, y + 5), TEXT, font=font, fill=(103, 255, 214, 96))
+    draw_brand_text(
+        draw,
+        (x, y),
+        font,
+        stroke_width=1,
+        stroke_fill=(0, 24, 28, 210),
+        base_color=(250, 255, 253, 255),
+        accent_color=(97, 255, 216, 255),
+    )
     return layer, (x, y, x + text_width, y + text_height)
 
 
@@ -197,8 +271,8 @@ def draw_text_reveal(base: Image.Image, prepared_text: Image.Image, text_box: tu
         center = WIDTH // 2
         half = int((text_box[2] - text_box[0]) * 0.44 * line_progress)
         y = text_box[3] + 34 + y_offset
-        draw.line((center - half, y, center + half, y), fill=(119, 255, 216, int(155 * line_progress)), width=5)
-        draw.line((center - half, y + 10, center + half, y + 10), fill=(34, 122, 102, int(70 * line_progress)), width=2)
+        draw.line((center - half, y, center + half, y), fill=(119, 255, 216, int(135 * line_progress)), width=3)
+        draw.line((center - half, y + 8, center + half, y + 8), fill=(34, 122, 102, int(52 * line_progress)), width=1)
         base.alpha_composite(line_layer.filter(ImageFilter.GaussianBlur(0.6)))
 
 
@@ -252,7 +326,7 @@ def render() -> dict:
     source = pick_source_video()
     source_frames = decode_source_frames(source)
     logo = Image.open(LOGO_PATH).convert("RGBA")
-    font = load_font(92, bold=True)
+    font = load_font(94, bold=True)
     prepared_text, text_box = text_layer(font)
     band = gradient_band()
 
@@ -270,8 +344,8 @@ def render() -> dict:
     encode_video(rendered, OUTPUT_VIDEO)
 
     PREVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    first = PREVIEW_DIR / "outro_ae_reveal_v2_first.png"
-    last = PREVIEW_DIR / "outro_ae_reveal_v2_last.png"
+    first = PREVIEW_DIR / "outro_ae_reveal_v8_first.png"
+    last = PREVIEW_DIR / "outro_ae_reveal_v8_last.png"
     rendered[0].save(first)
     rendered[-1].save(last)
 
@@ -286,7 +360,7 @@ def render() -> dict:
         "frames": TOTAL_FRAMES,
         "duration": DURATION,
     }
-    (PREVIEW_DIR / "poliglot_outro_ae_reveal_v2_result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    (PREVIEW_DIR / "poliglot_outro_ae_reveal_v8_result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return result
 
 

@@ -18,6 +18,7 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `poliglot_outro_reference_1080x1920.png` - exact brand/logo/URL start card copied into ComfyUI input.
 - `run_poliglot_outro_2s.mjs` - queues the outro API prompt and writes the generated MP4 path to `tmp/comfy-outro`.
 - `render_poliglot_ae_outro.py` - deterministic 1080x1920 post-render that uses the more dynamic generated MP4 as motion background, masks model text, and overlays the exact logo plus `poliglotAI.online` with an After Effects-style float/reveal.
+- `assets/fonts/Manrope-wght.ttf` and `assets/fonts/OFL-Manrope.txt` - bundled open-source font used for the clean readable outro URL typography.
 - `install_ad_short_models.ps1` - downloads only missing compact video/interpolation models.
 - `model_manifest.json` - model inventory and disk budget.
 
@@ -78,10 +79,10 @@ For the more kinetic approved direction, render the AE-style reveal pass after t
 & 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_poliglot_ae_outro.py
 ```
 
-Current polished output:
+Current polished output with the cleaner readable typography pass:
 
 ```text
-C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_ae_reveal_v2.mp4
+C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_ae_reveal_v8.mp4
 ```
 
 ## Chain
