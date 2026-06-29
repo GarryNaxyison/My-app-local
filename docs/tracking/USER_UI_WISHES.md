@@ -12,6 +12,7 @@
 - Do not put a separate small panel/card/background behind the URL during the flight. Use glow, sparks, and shadow only if they feel integrated with the scene.
 - After the logo materializes, keep its motion simple and premium: one clear 360-degree coin-like spin is enough, then it should settle front-facing.
 - Keep the comet passing ahead of the URL assembly, because that part of the motion direction works well.
+- The final URL should be a deterministic clean font layer, not neural/generated text and not a final lockup assembled from individually misaligned characters.
 - Use the new v11 tech-warp direction as the preferred baseline over the rejected v10 space-comet look unless a future reference says otherwise.
 - Do not leave model-rendered text stripes, vertical URL fragments, or ghost typography from the Wan source in the center of the outro. Mask them and rebuild the final URL with a clean comet/particle assembly pass.
 
