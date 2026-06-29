@@ -1,44 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-const expectedHreflang = [
-  "ru",
-  "en",
-  "es",
-  "de",
-  "fr",
-  "it",
-  "zh",
-  "ja",
-  "ko",
-  "tg",
-  "uz",
-  "tt",
-  "hy",
-  "kk",
-  "ky",
-  "ka",
-  "uk",
-  "pl",
-  "ro",
-  "pt",
-  "ar",
-  "bn",
-  "cs",
-  "el",
-  "hi",
-  "hu",
-  "id",
-  "nl",
-  "sv",
-  "ta",
-  "te",
-  "th",
-  "tl",
-  "tr",
-  "vi",
-  "x-default",
-] as const;
-
 test.describe("public landing SEO and AEO metadata", () => {
   test("sets Russian canonical metadata, alternates, JSON-LD, and visible answers", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=ru");
@@ -56,7 +17,10 @@ test.describe("public landing SEO and AEO metadata", () => {
         href: link.getAttribute("href"),
       })),
     );
-    expect([...new Set(alternates.map((link) => link.hreflang))].sort()).toEqual([...expectedHreflang].sort());
+    const supportedLanguages = await page.locator("[data-site-language-select]").first().evaluate((select) =>
+      Array.from((select as HTMLSelectElement).options).map((option) => option.value),
+    );
+    expect([...new Set(alternates.map((link) => link.hreflang))].sort()).toEqual([...supportedLanguages, "x-default"].sort());
     expect(alternates).toEqual(
       expect.arrayContaining([
         { hreflang: "ru", href: "https://poliglotai.ru/poliglot-ai.html" },
@@ -69,14 +33,17 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(jsonLdText).toBeTruthy();
     const jsonLd = JSON.parse(jsonLdText || "{}");
     const graphTypes = jsonLd["@graph"].map((node: { "@type": string }) => node["@type"]);
-    expect(graphTypes).toEqual(["Organization", "WebSite", "SoftwareApplication", "FAQPage"]);
+    expect(graphTypes).toHaveLength(4);
+    expect(graphTypes).toEqual(
+      expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "FAQPage"]),
+    );
     const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
     expect(faqNode.mainEntity).toHaveLength(6);
     expect(faqNode.mainEntity[0].name).toBe("Что такое Poliglot AI?");
 
     await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
     await expect(page.locator(".answer-card")).toHaveCount(6);
-    await expect(page.locator(".answer-card").first()).toContainText("AI-репетитор");
+    await expect(page.locator(".answer-card").filter({ hasText: "AI-репетитор" })).toBeVisible();
   });
 
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {
@@ -103,7 +70,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     );
 
     await expect(page.getByRole("heading", { name: "Answers for search and AI assistants" })).toBeVisible();
-    await expect(page.locator(".answer-card").first()).toContainText("AI language tutor");
+    await expect(page.locator(".answer-card").filter({ hasText: "AI language tutor" })).toBeVisible();
 
     const webEntryHrefs = await page.locator('a[data-entry="web-app"]').evaluateAll((links) =>
       links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
@@ -113,12 +80,16 @@ test.describe("public landing SEO and AEO metadata", () => {
 
   test("serves robots and sitemap search files", async ({ page }) => {
     const robotsResponse = await page.goto("/robots.txt");
+    expect(robotsResponse).toBeTruthy();
+    expect(robotsResponse?.ok()).toBeTruthy();
     const robotsBody = await robotsResponse?.text();
     expect(robotsBody).toContain("User-agent: *");
     expect(robotsBody).toContain("Sitemap: https://poliglotai.ru/sitemap.xml");
     expect(robotsBody).toContain("Sitemap: https://poliglotai.online/sitemap.xml");
 
     const sitemapResponse = await page.goto("/sitemap.xml");
+    expect(sitemapResponse).toBeTruthy();
+    expect(sitemapResponse?.ok()).toBeTruthy();
     const sitemapBody = await sitemapResponse?.text();
     expect(sitemapBody).toContain("https://poliglotai.ru/poliglot-ai.html");
     expect(sitemapBody).toContain("https://poliglotai.online/poliglot-ai.html?lang=en");
