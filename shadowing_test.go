@@ -92,6 +92,71 @@ func TestTelegramListeningStartMessageHidesTargetPhrase(t *testing.T) {
 	}
 }
 
+func TestShadowingUICopiesCoverInterfaceLanguagesAndStayUTF8(t *testing.T) {
+	for _, language := range interfaceLanguages() {
+		copy, ok := shadowingUICopies[language.Code]
+		if !ok {
+			t.Fatalf("shadowing copy missing for %s", language.Code)
+		}
+		fields := map[string]string{
+			"Unavailable": copy.Unavailable,
+			"Title":       copy.Title,
+			"Start":       copy.Start,
+			"Phrase":      copy.Phrase,
+			"TextHint":    copy.TextHint,
+			"NoGaps":      copy.NoGaps,
+			"MatchGood":   copy.MatchGood,
+			"MatchWeak":   copy.MatchWeak,
+			"TipVoice":    copy.TipVoice,
+			"TipText":     copy.TipText,
+			"Repeat":      copy.Repeat,
+			"Target":      copy.Target,
+			"Heard":       copy.Heard,
+			"Accuracy":    copy.Accuracy,
+			"Bonus":       copy.Bonus,
+			"Next":        copy.Next,
+		}
+		for field, value := range fields {
+			if strings.TrimSpace(value) == "" {
+				t.Fatalf("shadowing copy %s.%s is empty", language.Code, field)
+			}
+			if strings.ContainsAny(value, "?�") || strings.Contains(value, "Ã") || strings.Contains(value, "Â") || strings.Contains(value, "â€") {
+				t.Fatalf("shadowing copy %s.%s looks misencoded: %q", language.Code, field, value)
+			}
+		}
+	}
+}
+
+func TestShadowingFallbackPhrasesCoverLearningLanguagesAndStayUTF8(t *testing.T) {
+	for _, language := range learningLanguages {
+		phrases := shadowingFallbackPhrases[language.Code]
+		if len(phrases) != 3 {
+			t.Fatalf("shadowing fallback phrases for %s = %d, want 3", language.Code, len(phrases))
+		}
+		for index, phrase := range phrases {
+			if strings.TrimSpace(phrase) == "" {
+				t.Fatalf("shadowing fallback phrase %s[%d] is empty", language.Code, index)
+			}
+			if strings.ContainsAny(phrase, "?�") || strings.Contains(phrase, "Ã") || strings.Contains(phrase, "Â") || strings.Contains(phrase, "â€") {
+				t.Fatalf("shadowing fallback phrase %s[%d] looks misencoded: %q", language.Code, index, phrase)
+			}
+		}
+	}
+}
+
+func TestRussianShadowingResultUsesReadableLabels(t *testing.T) {
+	user := userState{InterfaceLanguage: "ru"}
+	got := shadowingResultMessage(user, "Could I have a coffee with milk, please?", "Закончил тут", 1, shadowingFallbackFeedback(user, "Could I have a coffee with milk, please?", "Закончил тут", 1, "", false), 2, nil)
+	for _, want := range []string{"Фраза:", "В ответе:", "Совпадение: 1/100", "Опыт: +2 XP", "К сожалению"} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("Russian listening result misses %q:\n%s", want, got)
+		}
+	}
+	if strings.Contains(got, "??") || strings.Contains(got, "�") {
+		t.Fatalf("Russian listening result contains replacement question marks:\n%s", got)
+	}
+}
+
 func TestShadowingDeckAndTextFallback(t *testing.T) {
 	if shadowingDeckSize != len(shadowingContexts)*len(shadowingMoves)*len(shadowingDetails) {
 		t.Fatalf("shadowing deck size = %d, want generated combination count", shadowingDeckSize)
