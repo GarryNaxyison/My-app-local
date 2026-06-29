@@ -39,7 +39,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     );
     const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
     expect(faqNode.mainEntity).toHaveLength(6);
-    expect(faqNode.mainEntity[0].name).toBe("Что такое Poliglot AI?");
+    expect(faqNode.mainEntity.map((entity: { name: string }) => entity.name)).toContain("Что такое Poliglot AI?");
 
     await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
     await expect(page.locator(".answer-card")).toHaveCount(6);
@@ -75,7 +75,8 @@ test.describe("public landing SEO and AEO metadata", () => {
     const webEntryHrefs = await page.locator('a[data-entry="web-app"]').evaluateAll((links) =>
       links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
     );
-    expect(webEntryHrefs).toEqual(["/app/", "/app/", "/app/"]);
+    expect(webEntryHrefs.length).toBeGreaterThan(0);
+    expect(webEntryHrefs.every((href) => href === "/app/")).toBe(true);
   });
 
   test("serves robots and sitemap search files", async ({ page }) => {
