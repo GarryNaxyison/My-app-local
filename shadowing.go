@@ -570,6 +570,7 @@ func (b *bot) handleShadowingAnswer(ctx context.Context, chatID int64, user user
 	if !ok {
 		return b.startShadowing(ctx, chatID, user)
 	}
+	b.deletePreviousWordPronunciation(ctx, chatID)
 	if !canUsePractice(user) {
 		if err := b.store.setMode(user.TelegramID, "idle"); err != nil {
 			return err
@@ -610,6 +611,7 @@ func (b *bot) handlePronunciationAnswer(ctx context.Context, chatID int64, user 
 	if transcript == "" {
 		return b.telegram.sendMessageWithCopy(ctx, chatID, pronunciationVoiceHint(user), ui(user))
 	}
+	b.deletePreviousWordPronunciation(ctx, chatID)
 	if !canUsePractice(user) {
 		if err := b.store.setMode(user.TelegramID, "idle"); err != nil {
 			return err

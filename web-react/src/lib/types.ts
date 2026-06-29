@@ -112,7 +112,7 @@ export type PhrasebookItem = {
   phrase: string;
   translation?: string;
   note?: string;
-  source?: "lesson" | "practice" | "roleplay" | "mistake" | "manual";
+  source?: "lesson" | "practice" | "roleplay" | "mistake" | "manual" | "word" | "tool";
   language?: string;
   createdAt?: string;
   created_at?: string;

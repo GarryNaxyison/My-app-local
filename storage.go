@@ -1796,7 +1796,7 @@ func normalizePhrasebookEntries(items []phrasebookEntry, fallbackLanguage string
 
 func normalizePhrasebookSource(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "lesson", "practice", "roleplay", "mistake", "manual":
+	case "lesson", "practice", "roleplay", "mistake", "manual", "word", "tool":
 		return strings.ToLower(strings.TrimSpace(value))
 	default:
 		return "manual"

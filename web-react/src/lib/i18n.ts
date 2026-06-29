@@ -3183,6 +3183,21 @@ function readableKeyLabel(key: string) {
     .trim();
 }
 
+const navigationNextFallbacks: Partial<Record<AppLocaleCode, string>> = {
+  ru: "Дальше",
+  en: "Next",
+};
+
+function isPasswordLikeNavigationLabel(value: string | undefined) {
+  return /парол|password|passwort|contrase|mot de passe|senha|jelsz|şifre|sandi|wachtwoord|lösenord|كلمة المرور/i.test(value || "");
+}
+
+function localizedNavigationNextCopy(code: AppLocaleCode, target: Partial<Record<string, string>>, terms: Record<string, string>) {
+  const candidate = target.next;
+  if (candidate && !isPasswordLikeNavigationLabel(candidate)) return candidate;
+  return navigationNextFallbacks[code] || navigationNextFallbacks.en || terms.open;
+}
+
 function localizedFallbackForEnglishCopy(code: AppLocaleCode, key: string): string {
   const terms = derivedUiTerms[code];
   const target = localeOverrides[code] || {};
@@ -3254,7 +3269,7 @@ function localizedFallbackForEnglishCopy(code: AppLocaleCode, key: string): stri
   if (key.includes("send")) return target.send || terms.open;
   if (key.includes("start") || key.includes("open") || key.includes("load")) return terms.open;
   if (key.includes("back")) return target.back || terms.open;
-  if (key.includes("next")) return target.next || terms.open;
+  if (key.includes("next")) return localizedNavigationNextCopy(code, target, terms);
   if (key.includes("clear") || key.includes("remove")) return target.clear || terms.open;
   if (key.includes("ready") || key.includes("done") || key.includes("available")) return terms.ready;
   if (key.includes("failed") || key.includes("unavailable")) return terms.unavailable;

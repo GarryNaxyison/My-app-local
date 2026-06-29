@@ -2379,6 +2379,7 @@ select {
 
 .terminal-chat-v2 {
   min-height: 0;
+  height: 100%;
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   gap: 0;
@@ -2413,7 +2414,7 @@ select {
 
 .chat-interface__scroll::before {
   content: "";
-  margin-top: auto;
+  display: none;
 }
 
 .chat-interface__row {
@@ -2448,7 +2449,13 @@ select {
 }
 
 .chat-interface__group {
-  max-width: min(76%, 720px);
+  width: min(92%, 860px);
+  max-width: min(92%, 860px);
+}
+
+.chat-interface__row--right .chat-interface__group {
+  width: min(82%, 760px);
+  max-width: min(82%, 760px);
 }
 
 .chat-interface__row--right .chat-interface__group {
@@ -2661,6 +2668,18 @@ select {
   flex: 0 0 auto;
 }
 
+.audio-wave-button-v2__text {
+  display: -webkit-box;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .audio-wave-button-v2__error {
   position: absolute;
   width: 1px;
@@ -2744,7 +2763,7 @@ select {
 .record-details-v2 {
   display: grid;
   gap: 10px;
-  max-height: 230px;
+  max-height: min(420px, 62vh);
   overflow: auto;
 }
 
@@ -2752,6 +2771,25 @@ select {
 .trainer-result-v2 p {
   margin: 0;
   white-space: pre-wrap;
+}
+
+.record-audio-text-v2 {
+  display: grid;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--teal) 34%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--teal) 8%, transparent);
+  padding: 10px 12px;
+}
+
+.record-audio-text-v2 p {
+  display: grid;
+  gap: 3px;
+}
+
+.record-audio-text-v2 em {
+  color: var(--muted);
+  font-style: normal;
 }
 
 .trainer-correct-word-v2 {
@@ -5190,6 +5228,15 @@ select {
   font-weight: 800;
 }
 
+.phrasebook-card-v2__group {
+  justify-self: start;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--v2-border));
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary) !important;
+}
+
 .phrasebook-card-v2 strong,
 .offline-deck-grid-v2 article strong {
   color: var(--v2-text);
@@ -6241,6 +6288,27 @@ select {
   padding: 13px;
   text-align: left;
   transition: transform 240ms ease, border-color 260ms ease, background 260ms ease, box-shadow 260ms ease;
+}
+
+.pronunciation-history-v2__rows > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  align-items: start;
+}
+
+.pronunciation-history-v2__rows > div > span,
+.pronunciation-history-v2__rows > div > strong {
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.pronunciation-history-v2__rows > div > strong {
+  white-space: nowrap;
+}
+
+.pronunciation-history-v2__rows > div > small {
+  grid-column: 1 / -1;
 }
 
 .daily-quests-v2__list button,
@@ -9743,6 +9811,22 @@ select {
 
   .audio-wave-button-v2__icon {
     justify-self: center;
+  }
+
+  .chat-interface__scroll {
+    justify-content: flex-start !important;
+    padding: 2px !important;
+  }
+
+  .chat-interface__group,
+  .chat-interface__row--right .chat-interface__group {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .chat-interface__bubble {
+    padding: 15px !important;
+    font-size: 15px !important;
   }
 
   .pronunciation-dashboard-v2,

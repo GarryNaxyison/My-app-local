@@ -1266,9 +1266,14 @@ function formatPronunciationPlain(record: ApiRecord, copy: (key: string, fallbac
     `${copy("fluency", "Fluency")}: ${clampPercentScore(p.fluency, true)}/100`,
   ];
   if (p.feedback) lines.push(cleanAppText(p.feedback));
-  const firstProblem = Array.isArray(p.problem_words) ? p.problem_words[0] : null;
-  if (firstProblem?.word || firstProblem?.spoken) {
-    lines.push(`${copy("problem_words", "Weak word")}: ${cleanAppText(firstProblem.word || firstProblem.spoken)}`);
+  const problemWords = Array.isArray(p.problem_words)
+    ? p.problem_words
+      .slice(0, 3)
+      .map((item) => cleanPronunciationWord(item.word || item.spoken))
+      .filter(Boolean)
+    : [];
+  if (problemWords.length) {
+    lines.push(`${copy("problem_words", "Weak words")}: ${problemWords.join(", ")}`);
   }
   return lines.join("\n");
 }
@@ -1585,7 +1590,7 @@ function normalizePhrasebookItems(value: unknown): PhrasebookItem[] {
       phrase,
       translation: cleanAppText(asText(record.translation, "")),
       note: cleanAppText(asText(record.note, "")),
-      source: (["lesson", "practice", "roleplay", "mistake", "manual"].includes(asText(record.source, "")) ? asText(record.source, "") : "manual") as PhrasebookSource,
+      source: (["lesson", "practice", "roleplay", "mistake", "manual", "word", "tool"].includes(asText(record.source, "")) ? asText(record.source, "") : "manual") as PhrasebookSource,
       language: cleanAppText(asText(record.language, "")),
       createdAt: cleanAppText(asText(record.createdAt || record.created_at, "")) || new Date().toISOString(),
     });
@@ -1735,7 +1740,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
   for (const message of messages) {
     if (message.role === "user") continue;
     const details = getRecord(message.details);
-    const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : message.meta?.startsWith("tools:") ? "manual" : "lesson";
+    const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : message.meta?.startsWith("tools:") ? "tool" : "lesson";
     const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example"];
     for (const field of fields) {
       pushCandidate(recordField(details, [field]), source, details);
@@ -1761,6 +1766,12 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
 
 function phrasebookKey(value: string) {
   return cleanAppText(value).replace(/\s+/g, " ").trim().toLowerCase();
+}
+
+function samePhrasebookText(left: string | undefined, right: string | undefined) {
+  const a = phrasebookKey(left || "");
+  const b = phrasebookKey(right || "");
+  return Boolean(a && b && a === b);
 }
 
 function isUsefulPhraseCandidate(value: string) {
@@ -2052,11 +2063,14 @@ export function App() {
     (phrase: string, source: PhrasebookSource, details?: ApiRecord) => {
       const cleaned = cleanAppText(phrase).trim();
       if (!cleaned) return;
+      const translation = cleanAppText(recordField(details || {}, ["translation", "prompt", "message"]));
+      const rawNote = cleanAppText(recordField(details || {}, ["note", "context"]));
+      const note = samePhrasebookText(rawNote, translation) || samePhrasebookText(rawNote, cleaned) ? "" : rawNote;
       const item: PhrasebookItem = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         phrase: cleaned,
-        translation: cleanAppText(recordField(details || {}, ["translation"])),
-        note: cleanAppText(recordField(details || {}, ["note", "context"])),
+        translation: samePhrasebookText(translation, cleaned) ? "" : translation,
+        note,
         source,
         language: user.learning_language,
         createdAt: new Date().toISOString(),
@@ -3989,9 +4003,32 @@ function cleanPronunciationWord(value: unknown) {
     .trim();
 }
 
+function localizePronunciationCoachText(value: unknown, user: UserProfile, copy: (key: string, fallback: string) => string) {
+  const text = cleanAppText(asText(value, "")).trim();
+  if (!text || languageCode(user.interface_language) !== "ru") return text;
+  const word = (match: RegExpMatchArray, index: number) => cleanAppText(match[index] || "").replace(/^['"]|['"]$/g, "");
+  let match = text.match(/Your pronunciation is understandable/i);
+  if (match) return copy("pronunciation_tip_understandable_low_confidence", "Произношение понятно, но оценка уверенности низкая. Говори чуть медленнее и четче.");
+  match = text.match(/Focus on clear articulation of the word ['"]([^'"]+)['"]/i);
+  if (match) return `${copy("pronunciation_tip_articulate_word", "Четко проговори слово")}: ${word(match, 1)}.`;
+  match = text.match(/Ensure your voice volume is consistent/i);
+  if (match) return copy("pronunciation_tip_consistent_volume", "Держи ровную громкость на протяжении всей фразы.");
+  match = text.match(/Ensure the ['"]([^'"]+)['"] sound is clear and slightly elongated/i);
+  if (match) return `${copy("pronunciation_tip_clear_sound", "Сделай звук четким и немного более протяжным")}: ${word(match, 1)}.`;
+  match = text.match(/Focus on the stress:\s*(.+)$/i);
+  if (match) return `${copy("pronunciation_tip_focus_stress", "Поставь ударение по схеме")}: ${cleanAppText(match[1])}`;
+  match = text.match(/Make sure to pronounce ['"]([^'"]+)['"] clearly as a long ['"]ai['"] sound/i);
+  if (match) return `${copy("pronunciation_tip_long_ai", "Произнеси четко как долгий звук ай")}: ${word(match, 1)}.`;
+  match = text.match(/Try to speak at a steady pace/i);
+  if (match) return copy("pronunciation_tip_steady_pace", "Говори ровнее и отделяй каждое слово.");
+  match = text.match(/Pay attention to the ['"]([^'"]+)['"] sound at the end of ['"]([^'"]+)['"]/i);
+  if (match) return `${copy("pronunciation_tip_ending_sound", "Обрати внимание на звук в конце слова")}: ${word(match, 1)} / ${word(match, 2)}.`;
+  return text;
+}
+
 function pronunciationProblemText(item: PronunciationProblem, user: UserProfile, copy: (key: string, fallback: string) => string) {
   const issue = asText(item.issue, "").trim().toLowerCase();
-  const tip = cleanAppText(item.tip || "");
+  const tip = localizePronunciationCoachText(item.tip || "", user, copy);
   const ru = languageCode(user.interface_language) === "ru";
   if (tip && !/low_confidence|substituted_or_unclear|missing/i.test(tip)) return tip;
   if (issue.includes("missing")) {
@@ -4058,7 +4095,7 @@ function compactPronunciationMap(items: PronunciationProblem[], user: UserProfil
         : issue.includes("low") || issue.includes("confidence")
           ? copy("pronunciation_map_confidence", "Уверенность")
           : tip || copy("pronunciation_map_focus", "Фокус");
-    const normalized = signal.toLowerCase();
+    const normalized = `${label.toLowerCase()}|${signal.toLowerCase()}`;
     if (seenText.has(normalized)) continue;
     seenText.add(normalized);
     compact.push({ ...item, issue: signal, tip: tip && tip !== signal ? tip : "" });
@@ -7217,8 +7254,6 @@ function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]
     rightPerson: { name: copy("you", "You") },
     targetLanguage,
     messages: messages
-      .slice()
-      .reverse()
       .map((message) => ({
         id: message.id,
         sender: message.role === "user" ? "right" : "left",
@@ -7295,6 +7330,7 @@ function TutorNoteStrip({
 function RecordDetails({
   record,
   copy,
+  user,
   showContext = true,
   showExampleText = true,
   showWordAudio = true,
@@ -7303,6 +7339,7 @@ function RecordDetails({
 }: {
   record: ApiRecord;
   copy: (key: string, fallback: string) => string;
+  user?: UserProfile;
   showContext?: boolean;
   showExampleText?: boolean;
   showWordAudio?: boolean;
@@ -7312,6 +7349,8 @@ function RecordDetails({
   const p = pronunciationFrom(record);
   const mistakes = showMistakes ? recordMistakes(record.mistakes) : [];
   const example = recordField(record, ["example"]);
+  const translation = recordField(record, ["translation"]);
+  const exampleTranslation = recordField(record, ["example_translation", "exampleTranslation", "context_translation", "translation_ru"]);
   const context = showContext ? recordField(record, ["context"]) : "";
   const wordId = recordField(record, ["word_id"]);
   const word = recordField(record, ["word"]);
@@ -7326,6 +7365,9 @@ function RecordDetails({
         correctionAudio && !word ? { label: copy("correct_variant", "Correct variant"), text: correctionAudio } : null,
       ].filter(Boolean) as Array<{ label: string; text: string; wordId?: string }>)
     : [];
+  const showWordTranslation = Boolean(word && translation && !samePhrasebookText(word, translation));
+  const showExampleTranslation = Boolean(example && exampleTranslation && !samePhrasebookText(example, exampleTranslation));
+  const reportUser = user || ({ interface_language: "ru" } as UserProfile);
   if (!p && !mistakes.length && !example && !context && !promoted && !score && !audioClips.length) return null;
   return (
     <section className="record-details-v2">
@@ -7342,7 +7384,23 @@ function RecordDetails({
         </div>
       ) : null}
       {context ? <p><strong>{copy("context", "Context")}:</strong> {context}</p> : null}
-      {showExampleText && example ? <p><strong>{copy("example", "Example")}:</strong> {example}</p> : null}
+      {showWordTranslation || (showExampleText && example) ? (
+        <div className="record-audio-text-v2">
+          {showWordTranslation ? (
+            <p>
+              <strong>{copy("word", "Word")}:</strong>
+              <span>{word} — {translation}</span>
+            </p>
+          ) : null}
+          {showExampleText && example ? (
+            <p>
+              <strong>{copy("example", "Example")}:</strong>
+              <span>{example}</span>
+              {showExampleTranslation ? <em>{exampleTranslation}</em> : null}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <AudioActionRow clips={audioClips} />
       {mistakes.length ? (
         <div className="detail-list-v2">
@@ -7352,7 +7410,7 @@ function RecordDetails({
           ))}
         </div>
       ) : null}
-      {p ? <PronunciationReport pronunciation={p} user={{ interface_language: languageCode(navigator.language || "en") } as UserProfile} copy={copy} compact /> : null}
+      {p ? <PronunciationReport pronunciation={p} user={reportUser} copy={copy} compact /> : null}
     </section>
   );
 }
@@ -7378,10 +7436,10 @@ function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string;
 }
 
 function PronunciationReport({ pronunciation, user, copy, compact = false }: { pronunciation: PronunciationAssessment; user: UserProfile; copy: (key: string, fallback: string) => string; compact?: boolean }) {
-  const problems = Array.isArray(pronunciation.problem_words) ? pronunciation.problem_words.slice(0, compact ? 1 : 5) : [];
+  const problems = Array.isArray(pronunciation.problem_words) ? pronunciation.problem_words.slice(0, compact ? 3 : 5) : [];
   const phonemes = Array.isArray(pronunciation.phoneme_issues) ? pronunciation.phoneme_issues.slice(0, compact ? 2 : 5) : [];
-  const tips = recordList(pronunciation.tips).slice(0, compact ? 1 : 4);
-  const diagnostics = [pronunciation.stress, pronunciation.rhythm, pronunciation.intonation].map((item) => cleanAppText(item).trim()).filter(Boolean).slice(0, compact ? 2 : 3);
+  const tips = recordList(pronunciation.tips).map((item) => localizePronunciationCoachText(item, user, copy)).filter(Boolean).slice(0, compact ? 2 : 4);
+  const diagnostics = [pronunciation.stress, pronunciation.rhythm, pronunciation.intonation].map((item) => localizePronunciationCoachText(item, user, copy)).filter(Boolean).slice(0, compact ? 2 : 3);
   return (
     <div className={cn("pronunciation-report-v2", compact && "is-compact")}>
       <div className="pronunciation-metrics-v2">
@@ -7389,7 +7447,7 @@ function PronunciationReport({ pronunciation, user, copy, compact = false }: { p
         <Metric label={copy("accent_strength", "Accent")} value={`${clampPercentScore(pronunciation.accent_strength, true)}/100`} />
         <Metric label={copy("fluency", "Fluency")} value={`${clampPercentScore(pronunciation.fluency, true)}/100`} />
       </div>
-      {pronunciation.feedback ? <p>{cleanAppText(pronunciation.feedback)}</p> : null}
+      {pronunciation.feedback ? <p>{localizePronunciationCoachText(pronunciation.feedback, user, copy)}</p> : null}
       {diagnostics.length ? (
         <div className="pronunciation-problems-v2">
           <strong>{copy("pronunciation_diagnostics", "Stress / rhythm / intonation")}</strong>
@@ -7417,7 +7475,8 @@ function PronunciationReport({ pronunciation, user, copy, compact = false }: { p
           {phonemes.map((item, index) => {
             const sounds = [cleanAppText(item.expected_sound), cleanAppText(item.heard_sound)].filter(Boolean).join(" -> ");
             const label = [cleanAppText(item.word), sounds].filter(Boolean).join(": ");
-            return <span key={`${label}-${index}`}>{label || copy("pronunciation_sound_focus", "Sound focus")}{item.tip ? ` - ${cleanAppText(item.tip)}` : ""}</span>;
+            const tip = localizePronunciationCoachText(item.tip || "", user, copy);
+            return <span key={`${label}-${index}`}>{label || copy("pronunciation_sound_focus", "Sound focus")}{tip ? ` - ${tip}` : ""}</span>;
           })}
         </div>
       ) : null}
@@ -7431,7 +7490,7 @@ function PronunciationReport({ pronunciation, user, copy, compact = false }: { p
   );
 }
 
-function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, reportWord, savePhrase, isPhraseSaved, busy, copy }: ViewRendererProps & { mode: "words" | "word-game" }) {
+function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startWord, startWordGame, answerWord, answerWordGame, reportWord, savePhrase, isPhraseSaved, busy, copy, user }: ViewRendererProps & { mode: "words" | "word-game" }) {
   const challenge = wordChallenge;
   const [wordReportOpen, setWordReportOpen] = useState(false);
   const [wordReportWord, setWordReportWord] = useState("");
@@ -7505,7 +7564,7 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
             {copy("ai_tutor_word_report_button", "Сообщить об ошибке")}
           </Button>
         ) : null}
-        {result ? <TrainerResultBox result={result} copy={copy} onNext={() => void start()} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} /> : null}
+        {result ? <TrainerResultBox result={result} copy={copy} user={user} onNext={() => void start()} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} /> : null}
         {options.length ? (
           <div className="choice-grid-v2">
             {options.map((option) => (
@@ -7585,12 +7644,14 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
 function TrainerResultBox({
   result,
   copy,
+  user,
   onNext,
   savePhrase,
   isPhraseSaved,
 }: {
   result: TrainerResult;
   copy: (key: string, fallback: string) => string;
+  user?: UserProfile;
   onNext?: () => void;
   savePhrase?: (phrase: string, source: PhrasebookSource, details?: ApiRecord) => void;
   isPhraseSaved?: (phrase: string) => boolean;
@@ -7627,8 +7688,9 @@ function TrainerResultBox({
         <RecordDetails
           record={result.record}
           copy={copy}
+          user={user}
           showContext={!compactWordResult && !compactSpellingResult}
-          showExampleText={!compactWordResult && !compactSpellingResult}
+          showExampleText={!compactSpellingResult}
           showWordAudio={!compactSpellingResult}
           showMistakes={!hideSpellingAnswer}
           showAudio={!(compactWordResult && result.tone !== "success") && !hideSpellingAnswer}
@@ -7645,7 +7707,7 @@ function TrainerResultBox({
               className={cn(learnedWordSaved && "is-saved")}
               aria-pressed={learnedWordSaved}
               aria-label={copy("save_to_phrasebook", "Сохранить в заметки")}
-              onClick={() => savePhrase(learnedWord, "manual", { ...result.record, note: learnedTranslation, context: learnedTranslation })}
+              onClick={() => savePhrase(learnedWord, "word", { ...result.record, translation: learnedTranslation, note: "" })}
             >
               <Bookmark size={14} fill={learnedWordSaved ? "currentColor" : "none"} />
               <span>{phrasebookLabel || learnedWord}</span>
@@ -7657,7 +7719,7 @@ function TrainerResultBox({
   );
 }
 
-function SpellingView({ spellingChallenge, spellingResult, startSpelling, answerSpelling, draft, setDraft, busy, copy }: ViewRendererProps) {
+function SpellingView({ spellingChallenge, spellingResult, startSpelling, answerSpelling, draft, setDraft, busy, copy, user }: ViewRendererProps) {
   useEffect(() => {
     if (!spellingChallenge && !spellingResult && !busy) void startSpelling();
   }, [Boolean(spellingChallenge), Boolean(spellingResult), Boolean(busy)]);
@@ -7684,12 +7746,12 @@ function SpellingView({ spellingChallenge, spellingResult, startSpelling, answer
           <Spinner size="small" show={Boolean(busy || (!spellingChallenge && !spellingResult))} />
         </div>
       )}
-      {spellingResult ? <TrainerResultBox result={spellingResult} copy={copy} onNext={() => void startSpelling()} /> : null}
+      {spellingResult ? <TrainerResultBox result={spellingResult} copy={copy} user={user} onNext={() => void startSpelling()} /> : null}
     </section>
   );
 }
 
-function LevelView({ levelQuestion, levelResult, startLevel, answerLevel, busy, copy }: ViewRendererProps) {
+function LevelView({ levelQuestion, levelResult, startLevel, answerLevel, busy, copy, user }: ViewRendererProps) {
   const levelOptions = levelQuestion
     ? levelQuestion.options
       .map((option, index) => ({ option, index }))
@@ -7718,7 +7780,7 @@ function LevelView({ levelQuestion, levelResult, startLevel, answerLevel, busy, 
       ) : (
         <Button onClick={startLevel} disabled={Boolean(busy)}><Play size={18} />{copy("view_level_action", "Start test")}</Button>
       )}
-      {levelResult ? <TrainerResultBox result={levelResult} copy={copy} /> : null}
+      {levelResult ? <TrainerResultBox result={levelResult} copy={copy} user={user} /> : null}
     </section>
   );
 }
@@ -7846,8 +7908,9 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
               <article className="phrasebook-card-v2" key={item.id}>
                 <small>{copy(`phrase_source_${item.source || "manual"}`, item.source || "manual")} · {prettyDate(item.createdAt || item.created_at)}</small>
                 <strong>{item.phrase}</strong>
-                {item.translation ? <p>{item.translation}</p> : null}
-                {item.note ? <p>{item.note}</p> : null}
+                <small className="phrasebook-card-v2__group">{(item.source || "manual") === "manual" ? copy("phrasebook_group_my", languageCode(user.interface_language) === "ru" ? "Мои заметки" : "My notes") : copy("phrasebook_group_learning", languageCode(user.interface_language) === "ru" ? "Из разделов" : "From sections")}</small>
+                {item.translation && !samePhrasebookText(item.translation, item.phrase) ? <p>{item.translation}</p> : null}
+                {item.note && !samePhrasebookText(item.note, item.phrase) && !samePhrasebookText(item.note, item.translation) ? <p>{item.note}</p> : null}
                 <div className="phrasebook-card-v2__actions">
                   <AudioWaveButton label={copy("listen", "Listen")} text={item.phrase} targetLanguage={item.language || user.learning_language} compact />
                   <Button type="button" variant="outline" size="sm" onClick={() => removePhrase(item.id)}>
@@ -7866,7 +7929,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
   );
 }
 
-function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy }: ViewRendererProps) {
+function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy, user }: ViewRendererProps) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [activeCategory, setActiveCategory] = useState<MistakeCategory | "all">("all");
   const [page, setPage] = useState(0);
@@ -7950,7 +8013,7 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
             <input value={mistakeAnswer} onChange={(event) => setMistakeAnswer(event.target.value)} placeholder={copy("type_corrected_variant", "Type the corrected variant")} onKeyDown={(event) => { if (event.key === "Enter") void submitMistakeAnswer(); }} />
             <Button onClick={() => void submitMistakeAnswer()} disabled={busy === "mistake-answer"}><Check size={17} />{copy("check", "Check")}</Button>
           </div>
-        {mistakeResult ? <TrainerResultBox result={mistakeResult} copy={copy} onNext={() => void startMistakePractice()} /> : null}
+        {mistakeResult ? <TrainerResultBox result={mistakeResult} copy={copy} user={user} onNext={() => void startMistakePractice()} /> : null}
         </section>
       </div>
     );
@@ -8544,7 +8607,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
   const toolPhraseCandidates = useMemo(() => {
     const candidates = [...phraseCandidatesFromMessages(toolMessages)];
     const draftPhrase = cleanAppText(draft).replace(/\s+/g, " ").trim();
-    if (isUsefulPhraseCandidate(draftPhrase)) candidates.unshift({ phrase: draftPhrase, source: "manual" as PhrasebookSource, details: { note: copy("tools", "Tools") } });
+    if (isUsefulPhraseCandidate(draftPhrase)) candidates.unshift({ phrase: draftPhrase, source: "tool" as PhrasebookSource, details: { note: copy("tools", "Tools") } });
     const seen = new Set<string>();
     return candidates.filter((item) => {
       const key = phrasebookKey(item.phrase);

@@ -193,12 +193,22 @@ func TestTelegramPronunciationMenuStartsExactRepeatPractice(t *testing.T) {
 
 func TestTelegramPronunciationVoiceAnswerScoresExactRepeat(t *testing.T) {
 	var sentTexts []string
+	var deletedMessages []int64
 	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/getFile":
 			_, _ = w.Write([]byte(`{"ok":true,"result":{"file_id":"voice-1","file_path":"voice/test.ogg"}}`))
 		case "/voice/test.ogg":
 			_, _ = w.Write([]byte("voice-bytes"))
+		case "/deleteMessage":
+			var payload map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+				t.Fatalf("decode deleteMessage payload: %v", err)
+			}
+			if id, _ := payload["message_id"].(float64); id != 0 {
+				deletedMessages = append(deletedMessages, int64(id))
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
 		default:
 			var payload map[string]any
 			if r.Body != nil {
@@ -251,6 +261,9 @@ func TestTelegramPronunciationVoiceAnswerScoresExactRepeat(t *testing.T) {
 		store:      store,
 		telegram:   &telegramClient{baseURL: telegramServer.URL, fileBaseURL: telegramServer.URL, http: telegramServer.Client()},
 		openrouter: openrouter,
+		pronunciationMessages: map[int64][]int64{
+			user.TelegramID: {701, 702},
+		},
 	}
 
 	err := b.handleVoiceMessage(context.Background(), &telegramMessage{
@@ -271,6 +284,12 @@ func TestTelegramPronunciationVoiceAnswerScoresExactRepeat(t *testing.T) {
 	if len(refreshed.PracticeHistory) == 0 || !strings.Contains(refreshed.PracticeHistory[len(refreshed.PracticeHistory)-1], "pronunciation target: Could you say that clearly?") {
 		t.Fatalf("practice history missing pronunciation entry: %#v", refreshed.PracticeHistory)
 	}
+	if got, want := deletedMessages, []int64{701, 702}; len(got) != len(want) || got[0] != want[0] || got[1] != want[1] {
+		t.Fatalf("deleted pronunciation audio messages = %#v, want %#v", got, want)
+	}
+	if _, ok := b.pronunciationMessages[user.TelegramID]; ok {
+		t.Fatalf("pronunciation messages were not cleared: %#v", b.pronunciationMessages[user.TelegramID])
+	}
 	combined := strings.Join(sentTexts, "\n")
 	for _, want := range []string{"Оценка произношения", "/100", "Good clear repeat."} {
 		if !strings.Contains(combined, want) {
@@ -281,10 +300,18 @@ func TestTelegramPronunciationVoiceAnswerScoresExactRepeat(t *testing.T) {
 
 func TestTelegramListeningTextAnswerIsAccepted(t *testing.T) {
 	var sentTexts []string
+	var deletedMessages []int64
 	telegramServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var payload map[string]any
 		if r.Body != nil {
 			_ = json.NewDecoder(r.Body).Decode(&payload)
+		}
+		if r.URL.Path == "/deleteMessage" {
+			if id, _ := payload["message_id"].(float64); id != 0 {
+				deletedMessages = append(deletedMessages, int64(id))
+			}
+			_, _ = w.Write([]byte(`{"ok":true}`))
+			return
 		}
 		if text, _ := payload["text"].(string); text != "" {
 			sentTexts = append(sentTexts, text)
@@ -309,6 +336,9 @@ func TestTelegramListeningTextAnswerIsAccepted(t *testing.T) {
 	b := &bot{
 		store:    store,
 		telegram: &telegramClient{baseURL: telegramServer.URL, http: telegramServer.Client()},
+		pronunciationMessages: map[int64][]int64{
+			user.TelegramID: {801, 802},
+		},
 	}
 
 	err := b.handleShadowingAnswer(context.Background(), user.TelegramID, user, "So just to clarify did I understand that correctly", false, nil)
@@ -324,6 +354,12 @@ func TestTelegramListeningTextAnswerIsAccepted(t *testing.T) {
 	}
 	if len(refreshed.PracticeHistory) == 0 || !strings.Contains(refreshed.PracticeHistory[len(refreshed.PracticeHistory)-1], "shadowing target: "+target) {
 		t.Fatalf("practice history missing listening entry: %#v", refreshed.PracticeHistory)
+	}
+	if got, want := deletedMessages, []int64{801, 802}; len(got) != len(want) || got[0] != want[0] || got[1] != want[1] {
+		t.Fatalf("deleted listening audio messages = %#v, want %#v", got, want)
+	}
+	if _, ok := b.pronunciationMessages[user.TelegramID]; ok {
+		t.Fatalf("pronunciation messages were not cleared: %#v", b.pronunciationMessages[user.TelegramID])
 	}
 	combined := strings.Join(sentTexts, "\n")
 	for _, want := range []string{"\u0410\u0443\u0434\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u0435", target, "So just to clarify"} {

@@ -93,6 +93,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
     }
   };
   const visibleLabel = error ? "Audio unavailable" : loading ? "Loading..." : label;
+  const visibleText = text.trim();
 
   return (
     <button
@@ -109,6 +110,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
       <span className="audio-wave-button-v2__meta">
         <small><Volume2 size={12} />{visibleLabel}</small>
         {error ? <em className="audio-wave-button-v2__error">{error}</em> : null}
+        {visibleText ? <span className="audio-wave-button-v2__text">{visibleText}</span> : null}
         <span className="audio-wave-button-v2__waves" aria-hidden="true">
           {variants.map((variant, index) => (
             <motion.i

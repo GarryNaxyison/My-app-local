@@ -17,7 +17,7 @@ export interface ChatMessageItem {
   type?: "text" | "text-with-links";
   content: string;
   links?: Array<{ text: string }>;
-  audio?: Array<{ label: string; text: string; wordId?: string }>;
+  audio?: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string }>;
 }
 
 export interface ChatConfig {
@@ -35,7 +35,7 @@ export interface UiConfig {
 }
 
 export default function ChatComponent({ config, uiConfig = {} }: { config: ChatConfig; uiConfig?: UiConfig }) {
-  const messages = useMemo(() => config.messages.slice(-12), [config.messages]);
+  const messages = useMemo(() => config.messages.slice(0, 12), [config.messages]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export default function ChatComponent({ config, uiConfig = {} }: { config: ChatC
                           label={clip.label}
                           text={clip.text}
                           wordId={clip.wordId}
-                          targetLanguage={config.targetLanguage}
+                          targetLanguage={clip.targetLanguage || config.targetLanguage}
                           compact
                         />
                       ))}
