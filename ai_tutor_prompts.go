@@ -95,6 +95,7 @@ Recent lesson fingerprints to avoid: {{recent_lesson_fingerprints}}
 Return strict JSON only. No Markdown. No prose outside JSON.
 
 Create one complete reusable micro-lesson for a language learner.
+All learner-facing fields that are not explicitly suffixed with _target must be written in the interface language, including title, theme, lesson_goal, grammar explanations, task instructions, evaluation criteria, recommendations, feedback rules, review text, and quality self-check text.
 
 Requirements:
 1. Create a short story in the target learning language.

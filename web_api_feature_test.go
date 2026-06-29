@@ -148,6 +148,25 @@ func TestWebUserDTOIncludesTelegramAccountIdentity(t *testing.T) {
 	}
 }
 
+func TestWebUserDTOIncludesActiveLessonForReload(t *testing.T) {
+	api := newWebAPI(config{}, nil)
+	dto := api.userDTO(userState{
+		TelegramID:        123456789,
+		FirstName:         "demo_user",
+		InterfaceLanguage: "ru",
+		LearningLanguage:  "en",
+		Level:             "A2",
+		Mode:              "lesson",
+		LastLessonPrompt:  "Answer this active lesson.",
+	})
+	if dto["active_lesson_prompt"] != "Answer this active lesson." {
+		t.Fatalf("active_lesson_prompt = %#v", dto["active_lesson_prompt"])
+	}
+	if instruction, _ := dto["active_lesson_instruction"].(string); strings.TrimSpace(instruction) == "" {
+		t.Fatalf("active_lesson_instruction missing in dto: %#v", dto)
+	}
+}
+
 func TestWebSettingsSavesLearningFocus(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	focus := "business calls and meetings"
@@ -290,11 +309,11 @@ func TestWebLearningFeatureFlows(t *testing.T) {
 	}
 
 	vocabulary := requestJSON(t, api, cookie, http.MethodGet, "/api/vocabulary", nil)
-	if total, _ := vocabulary["total"].(float64); total != 1 {
-		t.Fatalf("expected one mastered vocabulary word, got %#v", vocabulary)
+	if total, _ := vocabulary["total"].(float64); total != 3 {
+		t.Fatalf("expected all learned vocabulary words, got %#v", vocabulary)
 	}
-	if items, _ := vocabulary["items"].([]any); len(items) != 1 {
-		t.Fatalf("expected one vocabulary item, got %#v", vocabulary)
+	if items, _ := vocabulary["items"].([]any); len(items) != 3 {
+		t.Fatalf("expected all learned vocabulary items, got %#v", vocabulary)
 	}
 
 	wordGame := requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/next", map[string]any{})

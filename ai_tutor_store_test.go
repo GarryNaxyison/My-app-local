@@ -22,7 +22,6 @@ func TestSQLiteAITutorLessonAndSessionRoundTrip(t *testing.T) {
 		Theme:             "daily life",
 		Status:            aiTutorStatusApproved,
 		Payload:           validAITutorLessonPayloadForTest(),
-		Fingerprint:       "fp-1",
 		PreflightScore:    92,
 	}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -55,6 +54,43 @@ func TestSQLiteAITutorLessonAndSessionRoundTrip(t *testing.T) {
 	}
 }
 
+func TestAITutorFindApprovedIgnoresOldFingerprintVersion(t *testing.T) {
+	store, err := newJSONStore(filepath.Join(t.TempDir(), "users.json"))
+	if err != nil {
+		t.Fatalf("newJSONStore() error = %v", err)
+	}
+	payload := validAITutorLessonPayloadForTest()
+	oldLesson := aiTutorLessonRecord{
+		ID:                "old-approved",
+		LearningLanguage:  "en",
+		InterfaceLanguage: "ru",
+		ExactLevel:        "A1",
+		LevelBand:         "A1-A2",
+		Theme:             "daily life",
+		Status:            aiTutorStatusApproved,
+		Payload:           payload,
+		Fingerprint:       "legacy-fingerprint",
+		PostScore:         99,
+	}
+	currentLesson := oldLesson
+	currentLesson.ID = "current-approved"
+	currentLesson.Fingerprint = ""
+	currentLesson.PostScore = 1
+	if err := store.saveAITutorLesson(oldLesson); err != nil {
+		t.Fatalf("save old lesson: %v", err)
+	}
+	if err := store.saveAITutorLesson(currentLesson); err != nil {
+		t.Fatalf("save current lesson: %v", err)
+	}
+	found, ok, err := store.findApprovedAITutorLesson("en", "ru", "A1-A2", 42)
+	if err != nil {
+		t.Fatalf("findApprovedAITutorLesson() error = %v", err)
+	}
+	if !ok || found.ID != currentLesson.ID {
+		t.Fatalf("found lesson = %#v ok=%v, want current approved lesson", found, ok)
+	}
+}
+
 func TestSQLiteAITutorQualityPromotionWritesSeparateLessonBank(t *testing.T) {
 	dir := t.TempDir()
 	bankPath := filepath.Join(dir, "ai_tutor_lessons.sqlite")
@@ -74,7 +110,6 @@ func TestSQLiteAITutorQualityPromotionWritesSeparateLessonBank(t *testing.T) {
 		Theme:             "daily life",
 		Status:            aiTutorStatusInTrial,
 		Payload:           validAITutorLessonPayloadForTest(),
-		Fingerprint:       "fp-bank-1",
 		PreflightScore:    92,
 	}
 	if err := store.saveAITutorLesson(lesson); err != nil {
@@ -122,7 +157,6 @@ func TestSQLiteAITutorFindApprovedUsesSeparateLessonBank(t *testing.T) {
 		Theme:             "daily life",
 		Status:            aiTutorStatusApproved,
 		Payload:           validAITutorLessonPayloadForTest(),
-		Fingerprint:       "fp-bank-2",
 		PreflightScore:    92,
 		PostScore:         95,
 	}

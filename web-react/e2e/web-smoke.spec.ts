@@ -1523,6 +1523,15 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Вопрос 1");
   await expect(page.locator(".tutor-message-v2.is-active")).toContainText("What time does the person wake up?");
+  const retellFeedbackOrder = await page.locator(".tutor-context-v2").evaluate((node) => {
+    const text = node.textContent || "";
+    return {
+      feedback: text.indexOf("Ответ сохранён"),
+      question: text.indexOf("What time does the person wake up?"),
+    };
+  });
+  expect(retellFeedbackOrder.feedback).toBeGreaterThanOrEqual(0);
+  expect(retellFeedbackOrder.feedback).toBeLessThan(retellFeedbackOrder.question);
   const questionCardText = await page.locator(".tutor-message-v2.is-active").innerText();
   expect((questionCardText.match(/What time does the person wake up\?/g) || []).length).toBe(1);
   expect(questionCardText).not.toContain("Question 1");
@@ -2266,7 +2275,7 @@ test("offline deck paginates by 10 and exports the full deck", async ({ page, is
   expect(content).toContain("I have a reservation under the name Ivan Petrov.");
 });
 
-test("offline notes group paginates by 10 like vocabulary", async ({ page }) => {
+test("offline deck has no grouping tabs and paginates the mixed deck by 10", async ({ page }) => {
   await page.addInitScript(() => {
     const notes = Array.from({ length: 13 }, (_, index) => ({
       id: `offline-note-${index + 1}`,
@@ -2285,16 +2294,17 @@ test("offline notes group paginates by 10 like vocabulary", async ({ page }) => 
 
   await page.goto("/app/?view=offline");
   await expect(page.locator(".context-display--offline")).toBeVisible();
-  await page.locator(".offline-group-tabs-v2 button").filter({ hasText: ru("phrasebook", "Заметки") }).click();
+  await expect(page.locator(".offline-group-tabs-v2")).toHaveCount(0);
   await expect(page.locator(".offline-deck-grid-v2 article")).toHaveCount(10);
   await expect(page.getByText(/1\/2/)).toBeVisible();
-  await expect(page.getByText("Offline note phrase 11")).toHaveCount(0);
+  await expect(page.getByText("Offline note phrase 10")).toHaveCount(0);
 
   await page.locator(".offline-pagination-v2 button").nth(1).click();
-  await expect(page.locator(".offline-deck-grid-v2 article")).toHaveCount(3);
+  await expect(page.locator(".offline-deck-grid-v2 article")).toHaveCount(5);
   await expect(page.getByText(/2\/2/)).toBeVisible();
-  await expect(page.getByText("Offline note phrase 11")).toBeVisible();
+  await expect(page.getByText("Offline note phrase 10")).toBeVisible();
   await expect(page.getByText(/^Offline note phrase 1$/)).toHaveCount(0);
+  await expect(page.locator(".offline-pagination-v2 button").nth(1)).not.toContainText(/пароль/i);
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "TXT" }).click();
@@ -2309,17 +2319,17 @@ test("offline notes group paginates by 10 like vocabulary", async ({ page }) => 
   expect(content).toContain("Offline note phrase 1");
   expect(content).toContain("перевод заметки 1");
   expect(content).toContain("Offline note phrase 13");
-  expect(content).not.toContain("Downloaded word");
-  expect(content).not.toContain("Downloaded mistake");
+  expect(content).toContain("Downloaded word");
+  expect(content).toContain("Downloaded mistake");
   expect(content).not.toMatch(mojibakePattern);
 
   await page.locator(".offline-card-delete-v2").first().click();
-  await expect(page.getByText("Offline note phrase 11")).toHaveCount(0);
+  await expect(page.getByText("Offline note phrase 10")).toHaveCount(0);
   await expect(page.locator(".offline-deck-grid-v2 article")).toHaveCount(10);
   await expect(page.getByText(/1\/2/)).toBeVisible();
   await expect
     .poll(() =>
-      page.evaluate(() => JSON.parse(localStorage.getItem("poliglot-offline-deck-v2") || "[]").some((item: { id: string }) => item.id === "offline-note-11")),
+      page.evaluate(() => JSON.parse(localStorage.getItem("poliglot-offline-deck-v2") || "[]").some((item: { id: string }) => item.id === "offline-note-10")),
     )
     .toBe(false);
 });
@@ -3083,9 +3093,11 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=roleplay");
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
-  await page.locator(".roleplay-grid-v2 button").first().click();
+  await page.locator(".context-display--roleplay").evaluate((node) => node.scrollTo(0, node.scrollHeight));
+  await page.locator(".roleplay-grid-v2 button").last().click();
   await expect(page.locator(".roleplay-view-v2--session")).toBeVisible();
   await expect(page.locator(".roleplay-view-v2--mobile-session")).toBeVisible();
+  await expect.poll(() => page.locator(".context-display--roleplay").evaluate((node) => node.scrollTop)).toBeLessThan(24);
   await expect(page.locator(".roleplay-view-v2--session .roleplay-brief-v2")).toBeHidden();
   await expect(page.getByText(/ROLEPLAY DIALOGUE|Диалоговая сцена/)).toHaveCount(0);
   await expect(page.locator(".roleplay-dialog-head-v2 button")).toBeVisible();
@@ -3348,6 +3360,7 @@ test("mobile practice and tools keep input controls visible and tools selectable
   await expect(page.locator(".context-display--practice")).toBeVisible();
   await expect(page.locator(".mobile-quick-controls-v2")).toHaveCount(0);
   await page.locator(".context-display").evaluate((node) => node.scrollTo(0, node.scrollHeight));
+  await expect(page.locator(".practice-empty-v2")).toBeVisible();
   const practiceOutput = await page.locator(".chat-workspace__output").boundingBox();
   const practiceComposer = await page.locator(".composer-panel-v2").boundingBox();
   const practiceInput = await page.locator(".composer-panel-v2 textarea").boundingBox();
@@ -3356,7 +3369,7 @@ test("mobile practice and tools keep input controls visible and tools selectable
   expect(practiceComposer).not.toBeNull();
   expect(practiceInput).not.toBeNull();
   expect(viewport).not.toBeNull();
-  expect(practiceOutput!.height).toBeGreaterThan(practiceComposer!.height * 1.2);
+  expect(practiceOutput!.height).toBeLessThan(320);
   expect(practiceInput!.y + practiceInput!.height).toBeLessThanOrEqual(viewport!.height - 64);
   await page.locator(".composer-panel-v2 textarea").fill("Can you repeat?");
   await page.locator(".composer-panel-v2 textarea").press("Enter");
@@ -3398,7 +3411,11 @@ test("regression: mobile tools translator controls stack without overlap", async
   await expect(page.locator(".context-display--tools")).toBeVisible();
   await page.locator(".tool-switch-v2 button").first().click();
   await expect(page.locator(".tools-change-v2")).toBeVisible();
+  await expect(page.locator(".tools-submit-v2")).toBeDisabled();
+  await page.locator(".tool-input-shell-v2 textarea").click();
+  await expect(page.locator(".v2-status", { hasText: /Вставьте текст|Paste text/ })).toHaveCount(0);
   await page.locator(".composer-panel-v2 textarea").fill("Hello");
+  await expect(page.locator(".tools-submit-v2")).toBeEnabled();
 
   const composer = await page.locator(".tools-work-v2 .composer-panel-v2").boundingBox();
   const textarea = await page.locator(".tool-input-shell-v2 textarea").boundingBox();
@@ -3784,6 +3801,8 @@ test("regression: desktop offline controls are folded into the deck panel on the
   expect(controlsBox!.x + controlsBox!.width).toBeLessThanOrEqual(panelBox!.x + panelBox!.width + 2);
   expect(controlsBox!.y).toBeGreaterThanOrEqual(panelBox!.y + 12);
   expect(controlsBox!.y + controlsBox!.height).toBeLessThan(panelBox!.y + panelBox!.height);
+  const actionDirection = await page.locator(".offline-hero-v2 .home-insights-v2__actions").evaluate((node) => getComputedStyle(node).flexDirection);
+  expect(actionDirection).toBe("row");
 });
 
 test("regression: dashboard training balance uses the current week and does not max every bar", async ({ page }) => {
@@ -3831,25 +3850,53 @@ test("regression: dashboard training balance uses the current week and does not 
   expect(Math.max(...barRatios)).toBeLessThan(0.95);
 });
 
-test("regression: chat messages show sender first and full-width text below it", async ({ page }) => {
+test("regression: chat messages keep the speaker marker beside the bubble", async ({ page }) => {
   await page.goto("/app/?view=lesson");
   await page.locator(".lesson-empty-v2 button").click();
   await expect(page.locator(".chat-interface__group").first()).toBeVisible();
   const metrics = await page.locator(".chat-interface__group").first().evaluate((group) => {
     const meta = group.querySelector(".chat-interface__meta") as HTMLElement | null;
     const bubble = group.querySelector(".chat-interface__bubble") as HTMLElement | null;
-    const groupBox = group.getBoundingClientRect();
     const metaBox = meta?.getBoundingClientRect();
     const bubbleBox = bubble?.getBoundingClientRect();
     return {
-      groupWidth: groupBox.width,
-      metaY: metaBox?.y || 0,
-      bubbleY: bubbleBox?.y || 0,
+      metaRight: metaBox ? metaBox.x + metaBox.width : 0,
+      bubbleX: bubbleBox?.x || 0,
+      metaCenterY: metaBox ? metaBox.y + metaBox.height / 2 : 0,
+      bubbleCenterY: bubbleBox ? bubbleBox.y + bubbleBox.height / 2 : 0,
       bubbleWidth: bubbleBox?.width || 0,
+      content: bubble?.textContent || "",
     };
   });
-  expect(metrics.bubbleY).toBeGreaterThan(metrics.metaY);
-  expect(metrics.bubbleWidth).toBeGreaterThan(metrics.groupWidth * 0.92);
+  expect(metrics.metaRight).toBeLessThanOrEqual(metrics.bubbleX - 4);
+  expect(Math.abs(metrics.metaCenterY - metrics.bubbleCenterY)).toBeLessThan(42);
+  expect(metrics.bubbleWidth).toBeGreaterThan(240);
+  expect(metrics.content).not.toMatch(/^Poliglot AI\s+/);
+});
+
+test("regression: chat user bubble does not duplicate the you label", async ({ page }) => {
+  await page.goto("/app/?view=practice");
+  await expect(page.locator(".context-display--practice")).toBeVisible();
+  await page.locator(".composer-panel-v2 textarea").fill("Hello.");
+  await page.locator(".composer-panel-v2 textarea").press("Enter");
+  const userBubble = page.locator(".chat-interface__bubble--right").first();
+  await expect(userBubble).toBeVisible();
+  await expect(userBubble).toHaveText("Hello.");
+});
+
+test("regression: classic lesson restores an active prompt from the session after reload", async ({ page }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      active_lesson_prompt: "Persisted lesson task after reload.",
+      active_lesson_instruction: "Урок",
+    },
+  };
+  await page.goto("/app/?view=lesson");
+  await expect(page.locator(".context-display--lesson")).toBeVisible();
+  await expect(page.locator(".chat-interface")).toContainText("Persisted lesson task after reload.");
+  await expect(page.locator(".lesson-empty-v2")).toHaveCount(0);
 });
 
 test("regression: mobile awards header stays compact and mistakes open as list then practice screen", async ({ page, isMobile }) => {
@@ -3981,6 +4028,14 @@ test("regression: leaderboard language selector opens above the panel", async ({
   await expect(listbox).toBeVisible();
   const zIndex = await listbox.evaluate((node) => Number(getComputedStyle(node).zIndex || 0));
   expect(zIndex).toBeGreaterThanOrEqual(40);
+});
+
+test("regression: desktop leaderboard keeps the context panel scrollable", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop scroll assertion");
+  await page.goto("/app/?view=leaderboard");
+  await expect(page.locator(".context-display--leaderboard")).toBeVisible();
+  const overflowY = await page.locator(".context-display--leaderboard").evaluate((node) => getComputedStyle(node).overflowY);
+  expect(overflowY).toMatch(/auto|scroll/);
 });
 
 test("regression: mobile leaderboard stays readable above bottom menu", async ({ page, isMobile }) => {

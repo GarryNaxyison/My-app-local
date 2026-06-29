@@ -1546,14 +1546,16 @@ func (s *sqliteStore) saveLesson(telegramID int64, prompt string) error {
 		user.Mode = "lesson"
 		user.LastLessonPrompt = prompt
 		user.LessonHistory = trimLessonHistory(append(user.LessonHistory, prompt))
-		user.LessonCount++
-		user.LessonsToday++
-		recordHabitDay(user, time.Now().UTC(), true)
 	})
 }
 
 func (s *sqliteStore) completeLesson(telegramID int64) error {
 	return s.updateUser(telegramID, func(user *userState) {
+		if strings.TrimSpace(user.LastLessonPrompt) != "" {
+			user.LessonCount++
+			user.LessonsToday++
+			recordHabitDay(user, time.Now().UTC(), true)
+		}
 		user.Mode = "idle"
 		user.LastLessonPrompt = ""
 	})
@@ -1800,7 +1802,7 @@ func (s *sqliteStore) findApprovedAITutorLesson(language string, interfaceLangua
 	row := s.db.QueryRow(
 		`SELECT `+aiTutorLessonSelectColumns+`
 		FROM ai_tutor_lessons
-		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ?
+		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ? AND fingerprint LIKE ?
 			AND NOT EXISTS (
 				SELECT 1 FROM ai_tutor_sessions
 				WHERE ai_tutor_sessions.telegram_id = ?
@@ -1812,6 +1814,7 @@ func (s *sqliteStore) findApprovedAITutorLesson(language string, interfaceLangua
 		normalizeInterfaceLanguage(interfaceLanguage),
 		aiTutorLevelBand(levelBand),
 		aiTutorStatusApproved,
+		aiTutorFingerprintPrefix+"%",
 		telegramID,
 	)
 	lesson, err = scanAITutorLessonRecord(row)
@@ -1831,12 +1834,13 @@ func (s *sqliteStore) findApprovedAITutorLessonInBank(language string, interface
 	rows, err := s.aiTutorDB.Query(
 		`SELECT `+aiTutorLessonSelectColumns+`
 		FROM ai_tutor_lessons
-		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ?
+		WHERE learning_language = ? AND interface_language = ? AND level_band = ? AND status = ? AND fingerprint LIKE ?
 		ORDER BY post_score DESC, preflight_score DESC, created_at ASC`,
 		normalizeLearningLanguage(language),
 		normalizeInterfaceLanguage(interfaceLanguage),
 		aiTutorLevelBand(levelBand),
 		aiTutorStatusApproved,
+		aiTutorFingerprintPrefix+"%",
 	)
 	if err != nil {
 		return aiTutorLessonRecord{}, false, err
@@ -1997,6 +2001,46 @@ func (s *sqliteStore) aiTutorSessionCountForContext(telegramID int64, language s
 		levelBand,
 	).Scan(&count)
 	return count, err
+}
+
+func (s *sqliteStore) activeAITutorSessionForContext(telegramID int64, language string, interfaceLanguage string, levelBand string, surface string) (aiTutorSessionRecord, aiTutorLessonRecord, bool, error) {
+	if telegramID == 0 {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, false, nil
+	}
+	row := s.db.QueryRow(
+		`SELECT
+			s.id, s.telegram_id, s.lesson_id, s.surface, s.current_stage, s.status, s.started_at, s.completed_at, s.updated_at,
+			l.id, l.learning_language, l.interface_language, l.exact_level, l.level_band, l.theme, l.status,
+			l.payload_json, l.fingerprint, l.preflight_score, l.post_score, l.completion_count, l.average_rating, l.created_at, l.updated_at
+		FROM ai_tutor_sessions s
+		JOIN ai_tutor_lessons l ON l.id = s.lesson_id
+		WHERE s.telegram_id = ?
+			AND s.status <> ?
+			AND COALESCE(NULLIF(s.completed_at, ''), '') = ''
+			AND l.learning_language = ?
+			AND l.interface_language = ?
+			AND l.level_band = ?
+			AND l.fingerprint LIKE ?
+			AND (? = '' OR s.surface = ?)
+		ORDER BY COALESCE(NULLIF(s.updated_at, ''), s.started_at) DESC
+		LIMIT 1`,
+		telegramID,
+		aiTutorSessionComplete,
+		normalizeLearningLanguage(language),
+		normalizeInterfaceLanguage(interfaceLanguage),
+		aiTutorLevelBand(levelBand),
+		aiTutorFingerprintPrefix+"%",
+		strings.TrimSpace(surface),
+		strings.TrimSpace(surface),
+	)
+	session, lesson, err := scanAITutorSessionWithLesson(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, false, nil
+	}
+	if err != nil {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, false, err
+	}
+	return session, lesson, true, nil
 }
 
 func (s *sqliteStore) completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error) {
@@ -2577,6 +2621,45 @@ func scanAITutorLessonRecord(scanner aiTutorLessonScanner) (aiTutorLessonRecord,
 		return aiTutorLessonRecord{}, err
 	}
 	return lesson, nil
+}
+
+func scanAITutorSessionWithLesson(scanner aiTutorLessonScanner) (aiTutorSessionRecord, aiTutorLessonRecord, error) {
+	var session aiTutorSessionRecord
+	var lesson aiTutorLessonRecord
+	var payload string
+	err := scanner.Scan(
+		&session.ID,
+		&session.TelegramID,
+		&session.LessonID,
+		&session.Surface,
+		&session.CurrentStage,
+		&session.Status,
+		&session.StartedAt,
+		&session.CompletedAt,
+		&session.UpdatedAt,
+		&lesson.ID,
+		&lesson.LearningLanguage,
+		&lesson.InterfaceLanguage,
+		&lesson.ExactLevel,
+		&lesson.LevelBand,
+		&lesson.Theme,
+		&lesson.Status,
+		&payload,
+		&lesson.Fingerprint,
+		&lesson.PreflightScore,
+		&lesson.PostScore,
+		&lesson.CompletionCount,
+		&lesson.AverageRating,
+		&lesson.CreatedAt,
+		&lesson.UpdatedAt,
+	)
+	if err != nil {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, err
+	}
+	if err := json.Unmarshal([]byte(payload), &lesson.Payload); err != nil {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, err
+	}
+	return session, lesson, nil
 }
 
 func scanAITutorWordReportRecord(scanner aiTutorLessonScanner) (aiTutorWordReportRecord, error) {

@@ -1911,7 +1911,19 @@ export function App() {
     let cancelled = false;
     loadSession()
       .then((data) => {
-        if (!cancelled) setSession(data);
+        if (cancelled) return;
+        setSession(data);
+        const activeLessonPrompt = cleanAppText(data.user?.active_lesson_prompt).trim();
+        if (activeLessonPrompt) {
+          const taskId = "session-active-lesson";
+          const instruction = cleanAppText(data.user?.active_lesson_instruction).trim()
+            || appCopy(data.user?.interface_language || "ru", "new_lesson_title", "New lesson");
+          setActiveLessonTaskId(taskId);
+          setMessages((current) => [
+            panelMessage(activeLessonPrompt, "default", instruction, { lesson: activeLessonPrompt, instruction, task_id: taskId }, "lesson"),
+            ...current.filter((message) => message.meta !== "lesson"),
+          ]);
+        }
       })
       .catch((error) => {
         if (!cancelled) setStatus({ kind: "error", text: error instanceof Error ? error.message : appCopy("ru", "session_failed") });
@@ -6101,11 +6113,11 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
               )}
             </div>
 
+            {feedbackMessage ? <p className={cn("tutor-feedback-v2", feedbackOK ? "is-success" : "is-error")}>{feedbackMessage}</p> : null}
             <div className="tutor-transcript-v2" aria-live="polite">
               {renderMaterial()}
             </div>
 
-            {feedbackMessage ? <p className={cn("tutor-feedback-v2", feedbackOK ? "is-success" : "is-error")}>{feedbackMessage}</p> : null}
             {isPreviewing ? (
               <div className="tutor-composer-v2 tutor-composer-v2--preview">
                 <Button type="button" variant="outline" onClick={() => setPreviewStage("")}>
@@ -6591,6 +6603,12 @@ function RoleplayView({
     ? [roleplayResult, ...roleplayMessages.filter((message) => message.id !== roleplayResult.id)].slice(0, 8)
     : roleplayMessages.slice(0, 8);
   const phraseCandidates = phraseCandidatesFromMessages(sessionMessages);
+  useEffect(() => {
+    if (!activeScenario) return;
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLElement>(".context-display--roleplay")?.scrollTo({ top: 0, behavior: "auto" });
+    });
+  }, [activeScenario?.id]);
 
   if (activeScenario) {
     return (
@@ -6893,17 +6911,16 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
       return [];
     }
   });
-  const [group, setGroup] = useState<OfflineDeckItem["source"] | "all">("all");
   const [page, setPage] = useState(0);
   const sourceDeck = deck.length ? deck : buildOfflineDeck(vocabulary, mistakes, phrasebook);
-  const visibleDeck = sourceDeck.filter((item) => group === "all" || item.source === group);
+  const visibleDeck = sourceDeck;
   const pageSize = 10;
   const totalPages = Math.max(1, Math.ceil(visibleDeck.length / pageSize));
   const safePage = Math.min(page, totalPages - 1);
   const pagedDeck = visibleDeck.slice(safePage * pageSize, safePage * pageSize + pageSize);
   useEffect(() => {
     setPage(0);
-  }, [group, deck.length]);
+  }, [deck.length]);
   const refreshDeck = async () => {
     const [nextVocabulary, nextMistakes] = await Promise.all([loadVocabulary(0, { navigate: false }), loadMistakes({ navigate: false })]);
     const next = buildOfflineDeck(nextVocabulary.length ? nextVocabulary : vocabulary, nextMistakes.length ? nextMistakes : mistakes, phrasebook);
@@ -6934,19 +6951,7 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
         <div className="offline-deck-head-v2">
           <div className="offline-deck-summary-v2">
             <span className="eyebrow">{copy("saved_offline", "Saved offline")}</span>
-            <h2>{deck.length ? `${deck.length} ${copy("cards", "cards")}` : copy("no_offline_cards", "Колода пока пустая")}</h2>
-            <div className="offline-group-tabs-v2" role="tablist" aria-label={copy("offline_grouping", "Группировка колоды")}>
-              {[
-                { id: "all", label: copy("all", "Все") },
-                { id: "vocabulary", label: copy("words", "Слова") },
-                { id: "phrasebook", label: copy("phrasebook", "Заметки") },
-                { id: "mistakes", label: copy("mistakes", "Ошибки") },
-              ].map((option) => (
-                <button key={option.id} type="button" className={group === option.id ? "is-active" : ""} onClick={() => setGroup(option.id as OfflineDeckItem["source"] | "all")}>
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            <h2>{visibleDeck.length ? `${visibleDeck.length} ${copy("cards", "cards")}` : copy("no_offline_cards", "Пока нет карточек.")}</h2>
           </div>
           <div className="offline-hero-v2">
             <span className="eyebrow"><WifiOff size={15} />{copy("offline_decks", "Offline decks")}</span>
@@ -6963,7 +6968,7 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
           <span>{copy("showing_cards_page", "Показано по 10")}: {visibleDeck.length ? `${safePage + 1}/${totalPages}` : "0/0"}</span>
           <div>
             <Button variant="outline" size="sm" disabled={safePage <= 0} onClick={() => setPage((current) => Math.max(0, current - 1))}>{copy("back", "Назад")}</Button>
-            <Button variant="outline" size="sm" disabled={safePage + 1 >= totalPages} onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}>{copy("next", "Вперёд")}</Button>
+            <Button variant="outline" size="sm" disabled={safePage + 1 >= totalPages} onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}>{copy("offline_next_page", "Вперёд")}</Button>
           </div>
         </div>
         <div className="offline-deck-grid-v2">
@@ -6985,7 +6990,7 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
               </Button>
             </article>
           ))}
-          {!visibleDeck.length ? <p className="empty-copy">{copy("no_cards_for_group", "В этой группе пока нет карточек.")}</p> : null}
+          {!visibleDeck.length ? <p className="empty-copy">{copy("no_offline_cards", "Пока нет карточек.")}</p> : null}
         </div>
       </section>
     </div>
@@ -7107,6 +7112,7 @@ function ChatWorkView({
     ? scopedMessages.filter((message) => !(message.title === shadowingTitle && cleanAppText(message.body).trim() === cleanAppText(shadowingTarget).trim()))
     : scopedMessages;
   const showOutput = !isShadowing || visibleMessages.length > 0;
+  const practiceEmpty = isPractice && !visibleMessages.length;
   const phraseCandidates = isLesson || isPractice ? phraseCandidatesFromMessages(scopedMessages) : [];
   const lessonHasActiveTask = isLesson && Boolean(activeLessonTaskId);
   const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
@@ -7125,6 +7131,12 @@ function ChatWorkView({
                 {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
                 {copy("new_lesson", "Новый урок")}
               </Button>
+            </section>
+          ) : practiceEmpty ? (
+            <section className="v2-panel practice-empty-v2">
+              <span className="eyebrow">{copy("practice", "Практика")}</span>
+              <h2>{copy("practice_empty_title", "Напишите фразу для проверки")}</h2>
+              <p>{copy("practice_empty_body", "Отправьте короткий текст, вопрос или фото, и AI предложит исправление и пример.")}</p>
             </section>
           ) : (
             <>
@@ -7211,7 +7223,7 @@ function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]
         id: message.id,
         sender: message.role === "user" ? "right" : "left",
         type: "text",
-        content: `${message.title ? `${message.title}\n` : ""}${message.body}`,
+        content: message.body,
         audio: audioClipsFrom(message.details as ApiRecord | undefined, message.body, copy).map((clip) => ({ ...clip, targetLanguage })),
       })),
   };
@@ -8555,6 +8567,12 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
     setToolMode(mode);
     setMobilePickerOpen(false);
   };
+  const toolText = cleanAppText(draft).trim();
+  const toolsBusy = Boolean(busy?.startsWith("tools-"));
+  const toolSubmitDisabled = toolsBusy
+    || (toolMode === "translator" && !toolText)
+    || (toolMode === "voice" && !toolVoiceFile)
+    || (toolMode === "image" && !toolImageFile);
   const handleToolsPaste = useCallback((event: ClipboardEvent<HTMLDivElement>) => {
     if (toolMode !== "image" || event.defaultPrevented) return;
     const pastedImage = firstClipboardImage(event);
@@ -8601,13 +8619,14 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
+                if (toolSubmitDisabled) return;
                 void submitTool();
               }
             }}
             placeholder={toolMode === "translator" ? copy("paste_text_translate", "Paste text to translate") : copy("optional_context", "Optional context for the tool")}
           />
-          <Button className="tools-submit-v2" onClick={() => void submitTool()} disabled={Boolean(busy?.startsWith("tools-"))}>
-            {busy?.startsWith("tools-") ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={18} />}
+          <Button className="tools-submit-v2" onClick={() => void submitTool()} disabled={toolSubmitDisabled}>
+            {toolsBusy ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={18} />}
             <span>{copy("send", "Send")}</span>
           </Button>
         </div>

@@ -4094,6 +4094,20 @@ func learnedWordsForLanguageCode(user userState, languageCode string) []learnedW
 	return words
 }
 
+func allLearnedWordsForLanguage(user userState) []learnedWordEntry {
+	language := normalizeLearningLanguage(user.LearningLanguage)
+	words := make([]learnedWordEntry, 0, len(user.LearnedWords))
+	for _, word := range user.LearnedWords {
+		if normalizeLearningLanguage(word.Language) == language {
+			words = append(words, word)
+		}
+	}
+	sort.SliceStable(words, func(i, j int) bool {
+		return words[i].LearnedAt.After(words[j].LearnedAt)
+	})
+	return words
+}
+
 func mistakesForLanguage(user userState) []mistakeEntry {
 	return mistakesForLanguageCode(user, user.LearningLanguage)
 }

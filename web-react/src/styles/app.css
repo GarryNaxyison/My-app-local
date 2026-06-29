@@ -2604,6 +2604,22 @@ select {
   display: block;
 }
 
+.context-display--vocabulary .audio-wave-button-v2.is-compact {
+  grid-template-columns: 40px minmax(0, 1fr);
+  min-height: 52px;
+}
+
+.context-display--vocabulary .audio-wave-button-v2.is-compact .audio-wave-button-v2__icon {
+  width: 38px;
+  height: 38px;
+  color: #ffffff;
+  background: color-mix(in srgb, var(--primary) 78%, white 8%);
+}
+
+.context-display--vocabulary .audio-wave-button-v2.is-compact .audio-wave-button-v2__meta small {
+  font-size: 13px;
+}
+
 .audio-wave-button-v2.is-loading {
   cursor: progress;
   border-color: color-mix(in srgb, var(--primary) 58%, var(--line));
@@ -5098,8 +5114,13 @@ select {
 }
 
 .offline-hero-v2 .home-insights-v2__actions {
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.offline-hero-v2 .home-insights-v2__actions .button-v2:first-child {
+  flex: 1 1 auto;
 }
 
 .offline-deck-head-v2 {
@@ -7634,6 +7655,12 @@ select {
     width: 100%;
   }
 
+  .offline-hero-v2 .home-insights-v2__actions {
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
   .v2-topbar,
   .function-ribbon-shell {
     display: none;
@@ -8269,30 +8296,48 @@ select {
 
 .chat-interface__group {
   display: grid;
-  gap: 6px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
   width: 100%;
   max-width: 100%;
+}
+
+.chat-interface__row--right .chat-interface__group {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .chat-interface__meta {
   display: inline-flex;
   align-items: center;
+  align-self: center;
   gap: 8px;
+  grid-column: 1;
+  grid-row: 1;
   color: var(--faint);
   font-size: 11px;
   font-weight: 900;
 }
 
 .chat-interface__meta--right {
+  grid-column: 2;
   justify-self: end;
 }
 
+.chat-interface__meta span,
 .chat-interface__group > span {
   display: none;
 }
 
 .chat-interface__bubble {
+  grid-column: 2;
+  grid-row: 1;
   width: 100%;
+  min-width: 0;
+}
+
+.chat-interface__row--right .chat-interface__bubble {
+  grid-column: 1;
 }
 
 .composer-textarea-shell-v2,
@@ -8521,6 +8566,23 @@ select {
   gap: 12px;
 }
 
+.practice-empty-v2 {
+  min-height: 0;
+  align-content: start;
+  gap: 10px;
+  padding: 18px;
+}
+
+.practice-empty-v2 h2,
+.practice-empty-v2 p {
+  margin: 0;
+}
+
+.practice-empty-v2 p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .lesson-new-button-v2 {
   justify-self: start;
   position: relative;
@@ -8553,6 +8615,16 @@ select {
 .context-display--mistakes,
 .context-display--phrasebook,
 .data-display {
+  overflow: visible;
+}
+
+.context-display--leaderboard {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.context-display--leaderboard .data-display {
+  min-height: max-content;
   overflow: visible;
 }
 
@@ -9498,6 +9570,8 @@ select {
   .context-display[data-mobile-controls="true"],
   .context-display--lesson,
   .context-display--tools,
+  .context-display--roleplay,
+  .context-display--practice,
   .context-display--shadowing,
   .context-display--pronunciation,
   .context-display--vocabulary,
@@ -9592,6 +9666,28 @@ select {
     height: auto !important;
     border-radius: 16px !important;
     padding: 0 14px !important;
+  }
+
+  .context-display--roleplay .composer-textarea-shell-v2 {
+    grid-template-columns: minmax(0, 1fr) 56px !important;
+    align-items: start !important;
+  }
+
+  .context-display--roleplay .roleplay-submit-v2 {
+    position: static !important;
+    justify-self: end !important;
+    align-self: start !important;
+    width: 56px !important;
+    min-width: 56px !important;
+    max-width: 56px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 0 !important;
+    border-radius: 16px !important;
+  }
+
+  .context-display--roleplay .roleplay-submit-v2 span {
+    display: none !important;
   }
 
   .tools-work-v2 {
@@ -9723,12 +9819,17 @@ select {
   }
 
   .context-display--practice .chat-workspace--practice {
-    grid-template-rows: minmax(360px, 1fr) auto !important;
-    min-height: calc(100dvh - 220px) !important;
+    grid-template-rows: auto auto !important;
+    min-height: 0 !important;
   }
 
   .context-display--practice .chat-workspace__output {
-    min-height: 360px !important;
+    min-height: 0 !important;
+  }
+
+  .context-display--practice .practice-empty-v2 {
+    min-height: 0 !important;
+    padding: 16px !important;
   }
 
   .context-display--tools .tool-input-shell-v2 {

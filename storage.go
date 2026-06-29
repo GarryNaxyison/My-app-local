@@ -205,6 +205,7 @@ type store interface {
 	getAITutorLesson(lessonID string) (aiTutorLessonRecord, bool, error)
 	findApprovedAITutorLesson(language string, interfaceLanguage string, levelBand string, telegramID int64) (aiTutorLessonRecord, bool, error)
 	aiTutorSessionCountForContext(telegramID int64, language string, interfaceLanguage string, levelBand string) (int, error)
+	activeAITutorSessionForContext(telegramID int64, language string, interfaceLanguage string, levelBand string, surface string) (aiTutorSessionRecord, aiTutorLessonRecord, bool, error)
 	createAITutorSession(session aiTutorSessionRecord) error
 	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
 	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
@@ -571,14 +572,16 @@ func (s *jsonStore) saveLesson(telegramID int64, prompt string) error {
 		user.Mode = "lesson"
 		user.LastLessonPrompt = prompt
 		user.LessonHistory = trimLessonHistory(append(user.LessonHistory, prompt))
-		user.LessonCount++
-		user.LessonsToday++
-		recordHabitDay(user, time.Now().UTC(), true)
 	})
 }
 
 func (s *jsonStore) completeLesson(telegramID int64) error {
 	return s.update(telegramID, func(user *userState) {
+		if strings.TrimSpace(user.LastLessonPrompt) != "" {
+			user.LessonCount++
+			user.LessonsToday++
+			recordHabitDay(user, time.Now().UTC(), true)
+		}
 		user.Mode = "idle"
 		user.LastLessonPrompt = ""
 	})
@@ -905,6 +908,7 @@ func (s *jsonStore) findApprovedAITutorLesson(language string, interfaceLanguage
 			continue
 		}
 		if lesson.Status == aiTutorStatusApproved &&
+			aiTutorFingerprintIsCurrent(lesson.Fingerprint) &&
 			normalizeLearningLanguage(lesson.LearningLanguage) == language &&
 			normalizeInterfaceLanguage(lesson.InterfaceLanguage) == interfaceLanguage &&
 			aiTutorLevelBand(lesson.LevelBand) == levelBand {
@@ -964,6 +968,53 @@ func (s *jsonStore) aiTutorSessionCountForContext(telegramID int64, language str
 		}
 	}
 	return count, nil
+}
+
+func (s *jsonStore) activeAITutorSessionForContext(telegramID int64, language string, interfaceLanguage string, levelBand string, surface string) (aiTutorSessionRecord, aiTutorLessonRecord, bool, error) {
+	if telegramID == 0 {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, false, nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.ensureAITutorMapsLocked()
+	language = normalizeLearningLanguage(language)
+	interfaceLanguage = normalizeInterfaceLanguage(interfaceLanguage)
+	levelBand = aiTutorLevelBand(levelBand)
+	surface = strings.TrimSpace(surface)
+
+	var bestSession aiTutorSessionRecord
+	var bestLesson aiTutorLessonRecord
+	for _, session := range s.aiTutorSessions {
+		if session.TelegramID != telegramID || aiTutorSessionIsCompleted(session) {
+			continue
+		}
+		if surface != "" && strings.TrimSpace(session.Surface) != surface {
+			continue
+		}
+		lesson, ok := s.aiTutorLessons[strings.TrimSpace(session.LessonID)]
+		if !ok {
+			continue
+		}
+		if !aiTutorFingerprintIsCurrent(lesson.Fingerprint) {
+			continue
+		}
+		if normalizeLearningLanguage(lesson.LearningLanguage) != language ||
+			normalizeInterfaceLanguage(lesson.InterfaceLanguage) != interfaceLanguage ||
+			aiTutorLevelBand(lesson.LevelBand) != levelBand {
+			continue
+		}
+		bestStamp := firstNonEmpty(bestSession.UpdatedAt, bestSession.StartedAt)
+		sessionStamp := firstNonEmpty(session.UpdatedAt, session.StartedAt)
+		if bestSession.ID == "" || sessionStamp > bestStamp {
+			bestSession = session
+			bestLesson = lesson
+		}
+	}
+	if bestSession.ID == "" {
+		return aiTutorSessionRecord{}, aiTutorLessonRecord{}, false, nil
+	}
+	return bestSession, bestLesson, true, nil
 }
 
 func (s *jsonStore) createAITutorSession(session aiTutorSessionRecord) error {

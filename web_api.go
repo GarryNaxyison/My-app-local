@@ -2011,6 +2011,14 @@ func (api *webAPI) handleLessonStart(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusTooManyRequests, api.bot.limitReachedText(systemUI(user).LessonKind, user))
 		return
 	}
+	if strings.TrimSpace(user.Mode) == "lesson" && strings.TrimSpace(user.LastLessonPrompt) != "" {
+		writeJSON(w, http.StatusOK, map[string]any{
+			"lesson":      user.LastLessonPrompt,
+			"instruction": systemUI(user).LessonAnswerInstruction,
+			"user":        api.userDTO(user),
+		})
+		return
+	}
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
 	task, err := api.bot.openrouter.complete(r.Context(), lessonPrompt(language, interfaceLanguage, user.Level, user.LearningFocus, user.LessonCount, user.LessonHistory), 0.7, 500)
@@ -2581,7 +2589,7 @@ func (api *webAPI) handleVocabulary(w http.ResponseWriter, r *http.Request) {
 	if page < 0 {
 		page = 0
 	}
-	words := learnedWordsForLanguage(user)
+	words := allLearnedWordsForLanguage(user)
 	total := len(words)
 	totalPages := (total + pageSize - 1) / pageSize
 	if totalPages == 0 {
@@ -4638,7 +4646,7 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 			"label": telegramAccountLabel(user.TelegramID, name),
 		}
 	}
-	return map[string]any{
+	dto := map[string]any{
 		"interface_language":          user.InterfaceLanguage,
 		"learning_language":           user.LearningLanguage,
 		"telegram_linked":             user.TelegramID > 0,
@@ -4681,6 +4689,11 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"habit_log":                   user.HabitLog,
 		"navigation_layout":           normalizeNavigationLayout(user.NavigationLayout),
 	}
+	if strings.TrimSpace(user.Mode) == "lesson" && strings.TrimSpace(user.LastLessonPrompt) != "" {
+		dto["active_lesson_prompt"] = user.LastLessonPrompt
+		dto["active_lesson_instruction"] = systemUI(user).LessonAnswerInstruction
+	}
+	return dto
 }
 
 func webLeaderboardDTO(entries []leaderboardEntry) []map[string]any {

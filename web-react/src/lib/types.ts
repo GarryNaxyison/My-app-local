@@ -69,6 +69,8 @@ export type UserProfile = {
   voice_limit?: number;
   daily_bonus_claims?: string[];
   daily_bonus_last_claimed_at?: string;
+  active_lesson_prompt?: string;
+  active_lesson_instruction?: string;
   habit_log?: Record<string, {
     login?: boolean;
     complete?: boolean;

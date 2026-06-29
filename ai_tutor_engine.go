@@ -75,6 +75,15 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	interfaceLanguage := normalizeInterfaceLanguage(user.InterfaceLanguage)
 	level := normalizeCEFRLevel(user.Level)
 	levelBand := aiTutorLevelBand(level)
+	if session, lesson, ok, err := e.store.activeAITutorSessionForContext(user.TelegramID, language, interfaceLanguage, levelBand, surface); err != nil {
+		return aiTutorResult{}, err
+	} else if ok {
+		return aiTutorResult{
+			Session:  session,
+			Lesson:   lesson,
+			NextStep: aiTutorBuildStep(lesson.Payload, session.CurrentStage),
+		}, nil
+	}
 	if approved, ok, err := e.store.findApprovedAITutorLesson(language, interfaceLanguage, levelBand, user.TelegramID); err != nil {
 		return aiTutorResult{}, err
 	} else if ok {

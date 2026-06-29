@@ -61,7 +61,36 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 	}
 }
 
-func TestAITutorStartUsesUnusedGeneratedSequenceForRepeatedStarts(t *testing.T) {
+func TestAITutorStartReusesActiveSessionForRepeatedStarts(t *testing.T) {
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	body, _ := json.Marshal(payload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(body),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	engine.now = func() time.Time { return time.Date(2026, 6, 10, 12, 0, 0, 0, time.UTC) }
+	user := userState{TelegramID: 81, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+
+	first, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("first Start() error = %v", err)
+	}
+	second, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("second Start() error = %v", err)
+	}
+	if first.Session.ID != second.Session.ID {
+		t.Fatalf("second start created a new active session: first=%q second=%q", first.Session.ID, second.Session.ID)
+	}
+	if first.Lesson.ID == second.Lesson.ID {
+		return
+	}
+	t.Fatalf("second start changed active lesson: first=%q second=%q", first.Lesson.ID, second.Lesson.ID)
+}
+
+func TestAITutorStartUsesUnusedGeneratedSequenceAfterCompletion(t *testing.T) {
 	store := newTestJSONStore(t)
 	firstPayload := validAITutorLessonPayloadForTest()
 	firstBody, _ := json.Marshal(firstPayload)
@@ -77,18 +106,21 @@ func TestAITutorStartUsesUnusedGeneratedSequenceForRepeatedStarts(t *testing.T) 
 	}}
 	engine := newAITutorEngine(store, ai)
 	engine.now = func() time.Time { return time.Date(2026, 6, 10, 12, 0, 0, 0, time.UTC) }
-	user := userState{TelegramID: 81, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	user := userState{TelegramID: 82, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
 
 	first, err := engine.Start(context.Background(), user, "web")
 	if err != nil {
 		t.Fatalf("first Start() error = %v", err)
+	}
+	if err := store.updateAITutorSessionStage(first.Session.ID, aiTutorStageComplete, aiTutorSessionComplete, formatDBTime(time.Date(2026, 6, 10, 12, 5, 0, 0, time.UTC))); err != nil {
+		t.Fatalf("complete first session: %v", err)
 	}
 	second, err := engine.Start(context.Background(), user, "web")
 	if err != nil {
 		t.Fatalf("second Start() error = %v", err)
 	}
 	if first.Lesson.ID == second.Lesson.ID {
-		t.Fatalf("second start reused generated lesson %q", first.Lesson.ID)
+		t.Fatalf("second start reused completed lesson %q", first.Lesson.ID)
 	}
 	if len(ai.messages) < 4 {
 		t.Fatalf("captured AI messages = %d, want two generation calls and two preflight calls", len(ai.messages))

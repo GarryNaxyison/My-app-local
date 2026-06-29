@@ -14,6 +14,9 @@ const (
 	aiTutorStatusRejected          = "rejected"
 	aiTutorStatusArchived          = "archived"
 
+	aiTutorLessonPromptVersion = "v2-interface-copy"
+	aiTutorFingerprintPrefix   = aiTutorLessonPromptVersion + ":"
+
 	aiTutorSessionActive   = "active"
 	aiTutorSessionComplete = "complete"
 
@@ -523,6 +526,7 @@ func hasAITutorReviewOptions(options []string) bool {
 
 func aiTutorFingerprint(lesson aiTutorLessonPayload) string {
 	parts := []string{
+		aiTutorLessonPromptVersion,
 		lesson.LevelBand,
 		lesson.TargetLanguage,
 		lesson.InterfaceLanguage,
@@ -534,5 +538,9 @@ func aiTutorFingerprint(lesson aiTutorLessonPayload) string {
 	}
 	seed := strings.ToLower(strings.Join(parts, "|"))
 	sum := sha256.Sum256([]byte(seed))
-	return hex.EncodeToString(sum[:])
+	return aiTutorFingerprintPrefix + hex.EncodeToString(sum[:])
+}
+
+func aiTutorFingerprintIsCurrent(fingerprint string) bool {
+	return strings.HasPrefix(strings.TrimSpace(fingerprint), aiTutorFingerprintPrefix)
 }
