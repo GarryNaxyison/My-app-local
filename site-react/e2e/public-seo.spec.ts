@@ -43,7 +43,7 @@ test.describe("public landing SEO and AEO metadata", () => {
 
     await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
     await expect(page.locator(".answer-card")).toHaveCount(6);
-    await expect(page.locator(".answer-card").filter({ hasText: "AI-репетитор" })).toBeVisible();
+    await expect(page.locator(".answer-card").filter({ hasText: "Что такое Poliglot AI?" })).toBeVisible();
   });
 
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {

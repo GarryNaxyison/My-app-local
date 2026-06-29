@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { LandingSocialProof } from "./components/SocialLinks";
+import { landingSeoCopy } from "./landingSeoContent";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/poliglot_ai_bot";
@@ -661,6 +662,22 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
           <span>YooKassa/SBP</span>
           <span>TON</span>
           <span>USDT</span>
+        </div>
+      </section>
+
+      <section className="spark-section answer-section" aria-labelledby="answer-section-heading">
+        <div className="section-copy">
+          <span className="eyebrow">{landingSeoCopy.en.sectionEyebrow}</span>
+          <h2 id="answer-section-heading">{landingSeoCopy.en.sectionTitle}</h2>
+          <p>{landingSeoCopy.en.sectionIntro}</p>
+        </div>
+        <div className="answer-grid">
+          {landingSeoCopy.en.questions.map((item) => (
+            <article className="answer-card" key={item.question}>
+              <h3>{item.question}</h3>
+              <p>{item.answer}</p>
+            </article>
+          ))}
         </div>
       </section>
 

@@ -193,6 +193,7 @@
 .pricing-section,
 .memory-loop-section,
 .final-cta-section,
+.answer-section,
 .course-strip,
 .device-flow {
   max-width: 1180px;
@@ -202,7 +203,8 @@
 .spark-section,
 .pricing-section,
 .memory-loop-section,
-.final-cta-section {
+.final-cta-section,
+.answer-section {
   padding: 104px 24px;
 }
 
@@ -253,6 +255,7 @@
 .entry-grid,
 .pricing-grid,
 .reviews-grid,
+.answer-grid,
 .memory-grid {
   display: grid;
   gap: 16px;
@@ -273,6 +276,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.answer-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .entry-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -282,6 +289,7 @@
 .entry-panel,
 .plan-card,
 .review-card,
+.answer-card,
 .memory-node {
   min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -295,7 +303,8 @@
 .module-card,
 .entry-panel,
 .plan-card,
-.review-card {
+.review-card,
+.answer-card {
   padding: 22px;
 }
 
@@ -314,6 +323,7 @@ html[data-site-theme="light"] .plan-label {
 .module-card h3,
 .entry-panel h3,
 .plan-card h3,
+.answer-card h3,
 .review-card strong,
 .course-card h3,
 .course-stats strong,
@@ -330,6 +340,7 @@ html[data-site-theme="light"] .plan-label {
 .module-card p,
 .entry-panel p,
 .plan-card p,
+.answer-card p,
 .review-card p,
 .course-card p,
 .course-stats span,
@@ -341,6 +352,16 @@ html[data-site-theme="light"] .plan-label {
 .plan-card li,
 .review-card small {
   color: rgba(236, 246, 255, 0.74);
+}
+
+.answer-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.answer-card p {
+  margin: 12px 0 0;
 }
 
 .english-spark-landing .course-strip {
@@ -666,6 +687,7 @@ html[data-site-theme="light"] .spark-section,
 html[data-site-theme="light"] .pricing-section,
 html[data-site-theme="light"] .memory-loop-section,
 html[data-site-theme="light"] .final-cta-section,
+html[data-site-theme="light"] .answer-section,
 html[data-site-theme="light"] .course-strip,
 html[data-site-theme="light"] .cockpit-section,
 html[data-site-theme="light"] .scenario-section,
@@ -698,6 +720,7 @@ html[data-site-theme="light"] .daily-step p,
 html[data-site-theme="light"] .module-card p,
 html[data-site-theme="light"] .entry-panel p,
 html[data-site-theme="light"] .plan-card p,
+html[data-site-theme="light"] .answer-card p,
 html[data-site-theme="light"] .review-card p,
 html[data-site-theme="light"] .plan-card li,
 html[data-site-theme="light"] .review-card small {
@@ -709,6 +732,7 @@ html[data-site-theme="light"] .module-card,
 html[data-site-theme="light"] .entry-panel,
 html[data-site-theme="light"] .plan-card,
 html[data-site-theme="light"] .review-card,
+html[data-site-theme="light"] .answer-card,
 html[data-site-theme="light"] .memory-node,
 html[data-site-theme="light"] .course-card,
 html[data-site-theme="light"] .course-stats span,
@@ -732,6 +756,7 @@ html[data-site-theme="light"] .daily-step h3,
 html[data-site-theme="light"] .module-card h3,
 html[data-site-theme="light"] .entry-panel h3,
 html[data-site-theme="light"] .plan-card h3,
+html[data-site-theme="light"] .answer-card h3,
 html[data-site-theme="light"] .review-card strong,
 html[data-site-theme="light"] .course-card h3,
 html[data-site-theme="light"] .course-stats strong,
@@ -929,7 +954,8 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .spark-section,
   .pricing-section,
   .memory-loop-section,
-  .final-cta-section {
+  .final-cta-section,
+  .answer-section {
     padding: 70px 16px;
   }
 
@@ -938,6 +964,7 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .entry-grid,
   .pricing-grid,
   .reviews-grid,
+  .answer-grid,
   .memory-grid,
   .course-cards,
   .course-stats,

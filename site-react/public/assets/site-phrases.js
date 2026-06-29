@@ -29513,6 +29513,51 @@ const publicSiteGeneratedTranslations = {
     "tr": "Popüler öğrenme dilleri:",
     "vi": "Ngôn ngữ học phổ biến:"
   },
+  "Search answers": {
+    "ru": "Поисковые ответы"
+  },
+  "Answers for search and AI assistants": {
+    "ru": "Ответы для поиска и AI"
+  },
+  "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.": {
+    "ru": "Короткие прямые ответы о Poliglot AI для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод."
+  },
+  "What is Poliglot AI?": {
+    "ru": "Что такое Poliglot AI?"
+  },
+  "Poliglot AI is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.": {
+    "ru": "Poliglot AI — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле."
+  },
+  "Can I practice English with an AI tutor in Telegram?": {
+    "ru": "Можно ли учить английский с ИИ в Telegram?"
+  },
+  "Yes. In Telegram you can start practice, receive tasks, send answers and voice messages, while progress stays synced with the web app.": {
+    "ru": "Да. В Telegram можно запускать практику, получать задания, отправлять ответы и голосовые сообщения, а прогресс сохраняется вместе с web app."
+  },
+  "How is an AI tutor different from a vocabulary app?": {
+    "ru": "Чем AI-репетитор отличается от обычного приложения со словами?"
+  },
+  "Poliglot AI is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.": {
+    "ru": "Poliglot AI не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение."
+  },
+  "Can I practice pronunciation and speaking?": {
+    "ru": "Можно ли тренировать произношение и speaking?"
+  },
+  "Yes. Voice Coach and shadowing help you practice speech, see weak words, get a score, and repeat a more natural phrase.": {
+    "ru": "Да. Voice Coach и shadowing помогают тренировать речь, видеть слабые слова, получать score и повторять более естественную фразу."
+  },
+  "Can I translate text from photos?": {
+    "ru": "Можно ли переводить текст с фото?"
+  },
+  "Yes. A photo of a menu, sign, or exercise becomes a translation, note, and short practice prompt in that context.": {
+    "ru": "Да. Фото меню, вывески или задания превращается в перевод, заметку и короткую практику по этому контексту."
+  },
+  "Is there a free plan?": {
+    "ru": "Есть ли бесплатный тариф?"
+  },
+  "Yes. Free gives starter lessons and practice without payment, while Premium and Platinum unlock higher limits, voice, photo tools, and intensive daily study.": {
+    "ru": "Да. Free дает стартовые уроки и практику без оплаты, а Premium и Platinum открывают больше лимитов, голос, фото и интенсивную ежедневную учебу."
+  },
   "Practice speaking before the moment matters": {
     "ru": "Потренируйте речь до важного момента",
     "es": "Practica hablar antes de que el momento importe",
