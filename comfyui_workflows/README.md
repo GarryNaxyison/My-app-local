@@ -21,7 +21,8 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `render_poliglot_tech_outro_v11.py` - kinetic 2-second 1080x1920 tech-warp outro renderer; writes the final MP4, preview frames, a ComfyUI input reference, and a matching Wan/RIFE API prompt.
 - `render_poliglot_tech_outro_v11_composite.py` - final v11 compositor that uses the ComfyUI Wan output as moving source/background and overlays the exact animated logo/URL lockup.
 - `render_poliglot_tech_outro_v12_comet_text.py` - refined final compositor that masks model text artifacts and assembles the URL from a comet-like letter/particle pass.
-- `render_poliglot_tech_outro_v13_motion_logo_text.py` - current final compositor with post-materialization logo rotation/glint and a stronger per-character comet URL assembly.
+- `render_poliglot_tech_outro_v13_motion_logo_text.py` - previous compositor with post-materialization logo rotation/glint and a stronger per-character comet URL assembly.
+- `render_poliglot_tech_outro_v14_coin_logo_upright_text.py` - current final compositor with upright comet URL assembly, no separate text panel, and a simple one-turn coin spin for the materialized logo.
 - `poliglot_outro_2s_tech_warp_v11_api.json` - v11 ComfyUI API prompt for the new dynamic technology direction.
 - `poliglot_outro_2s_tech_warp_v11_prompt.md` - v11 prompt notes and output paths.
 - `poliglot_outro_tech_warp_v11_reference_1080x1920.png` - v11 high-energy reference frame copied into ComfyUI input.
@@ -101,13 +102,13 @@ Render the kinetic replacement for the rejected static/flat-space direction:
 Queue `poliglot_outro_2s_tech_warp_v11_api.json` through ComfyUI, then render the refined final composite:
 
 ```powershell
-& 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_poliglot_tech_outro_v13_motion_logo_text.py
+& 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_poliglot_tech_outro_v14_coin_logo_upright_text.py
 ```
 
 Current final output:
 
 ```text
-C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v13_motion_logo_text.mp4
+C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v14_coin_logo_upright_text.mp4
 ```
 
 ## Chain

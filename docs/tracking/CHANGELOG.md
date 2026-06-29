@@ -2,6 +2,7 @@
 
 ## 2026-06-29
 
+- Promoted the 2-second outro to v14: kept the liked comet lead-in, made the URL assembly stay upright, removed the separate panel-like text background, and changed the post-materialization logo motion to one clean 360-degree coin spin before settling. Final MP4: `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v14_coin_logo_upright_text.mp4`.
 - Promoted the outro to v13 with post-materialization logo rotation/glint and a stronger per-character comet URL assembly, while keeping the final domain exact. Final MP4: `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v13_motion_logo_text.mp4`.
 - Refined the dynamic outro into v12: masked the unwanted model-rendered text stripe in the center and replaced the stiff URL reveal with a comet-style letter/particle assembly. Final MP4: `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v12_comet_text.mp4`.
 - Added a new dynamic Poliglot AI 2-second tech-warp outro v11 after rejecting the flatter/static space direction: holographic tunnel depth, logo shard assembly, light-object URL arrival, and deterministic readable `poliglotAI.online` lockup.

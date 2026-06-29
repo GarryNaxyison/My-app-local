@@ -8,6 +8,10 @@
 - After materialization, the logo should keep a subtle 3D-like life: rotation, glint, or orbit movement instead of freezing as a flat static PNG.
 - The `poliglotAI.online` URL can arrive as a light object/comet/data streak, but the final domain must be exact, stable, and readable.
 - The URL should feel animated and assembled, not like a stiff block sliding into place. Prefer per-character motion, curved comet paths, sparks, and a final clean lock.
+- During the comet URL assembly, the text should never fly upside down. Per-letter motion can be energetic, but it should stay readable/upright as it resolves.
+- Do not put a separate small panel/card/background behind the URL during the flight. Use glow, sparks, and shadow only if they feel integrated with the scene.
+- After the logo materializes, keep its motion simple and premium: one clear 360-degree coin-like spin is enough, then it should settle front-facing.
+- Keep the comet passing ahead of the URL assembly, because that part of the motion direction works well.
 - Use the new v11 tech-warp direction as the preferred baseline over the rejected v10 space-comet look unless a future reference says otherwise.
 - Do not leave model-rendered text stripes, vertical URL fragments, or ghost typography from the Wan source in the center of the outro. Mask them and rebuild the final URL with a clean comet/particle assembly pass.
 
