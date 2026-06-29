@@ -48,6 +48,34 @@ export const socialProfileUrls = [
   "https://www.tiktok.com/@poliglotai.online",
 ] as const;
 
+export const staticSeoGuideLinks = [
+  {
+    slug: "ai-english-tutor",
+    ru: { href: "/ai-english-tutor.html", label: "AI-репетитор английского" },
+    en: { href: "/en/ai-english-tutor.html", label: "AI English tutor" },
+  },
+  {
+    slug: "english-speaking-practice",
+    ru: { href: "/english-speaking-practice.html", label: "Разговорная практика" },
+    en: { href: "/en/english-speaking-practice.html", label: "Speaking practice" },
+  },
+  {
+    slug: "english-pronunciation-trainer",
+    ru: { href: "/english-pronunciation-trainer.html", label: "Произношение" },
+    en: { href: "/en/english-pronunciation-trainer.html", label: "Pronunciation trainer" },
+  },
+  {
+    slug: "english-for-work-and-travel",
+    ru: { href: "/english-for-work-and-travel.html", label: "Работа и поездки" },
+    en: { href: "/en/english-for-work-and-travel.html", label: "Work and travel" },
+  },
+  {
+    slug: "language-learning-web-app",
+    ru: { href: "/language-learning-web-app.html", label: "Web app для языков" },
+    en: { href: "/en/language-learning-web-app.html", label: "Language web app" },
+  },
+] as const;
+
 export const landingSeoCopy = {
   ru: {
     title: "Poliglot AI - AI-репетитор английского и языков в Telegram",

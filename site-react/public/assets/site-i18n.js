@@ -1295,6 +1295,7 @@
         const raw = node.getAttribute(attr);
         const normalized = normalizePhrase(raw);
         if (!normalized || node.closest?.("[data-no-translate], [data-site-language-select]")) return;
+        if (attr === "content" && node.tagName === "META" && normalizePhrase(node.getAttribute("name")) === "viewport") return;
         node.__poliglotOriginalAttrs ||= {};
         if (currentLanguage() === "ru" && node.closest?.(".legal-document-shell")) {
             if (node.__poliglotOriginalAttrs[attr]) {
@@ -1344,6 +1345,7 @@
         translatePlainText();
         translateAttributes();
         document.querySelectorAll("a[href]").forEach((link) => {
+            if (link.hasAttribute("data-no-localize-href")) return;
             const original = link.dataset.originalHref || link.getAttribute("href");
             link.dataset.originalHref = original;
             link.setAttribute("href", localizeHref(original, lang));

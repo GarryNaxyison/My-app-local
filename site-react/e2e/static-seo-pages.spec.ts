@@ -1,0 +1,146 @@
+import { expect, test } from "@playwright/test";
+
+const pages = [
+  {
+    slug: "ai-english-tutor",
+    ruPath: "/ai-english-tutor.html",
+    enPath: "/en/ai-english-tutor.html",
+    ruTitle: "AI-репетитор английского онлайн - Poliglot AI",
+    enTitle: "AI English Tutor Online - Poliglot AI",
+    ruH1: "AI-репетитор английского в веб-приложении Poliglot AI",
+    enH1: "AI English tutor inside the Poliglot AI web app",
+  },
+  {
+    slug: "english-speaking-practice",
+    ruPath: "/english-speaking-practice.html",
+    enPath: "/en/english-speaking-practice.html",
+    ruTitle: "Разговорная практика английского с AI - Poliglot AI",
+    enTitle: "English Speaking Practice With AI - Poliglot AI",
+    ruH1: "Разговорная практика английского с AI",
+    enH1: "English speaking practice with AI",
+  },
+  {
+    slug: "english-pronunciation-trainer",
+    ruPath: "/english-pronunciation-trainer.html",
+    enPath: "/en/english-pronunciation-trainer.html",
+    ruTitle: "Тренажер произношения английского с AI - Poliglot AI",
+    enTitle: "English Pronunciation Trainer With AI - Poliglot AI",
+    ruH1: "Тренажер произношения английского с AI",
+    enH1: "English pronunciation trainer with AI",
+  },
+  {
+    slug: "english-for-work-and-travel",
+    ruPath: "/english-for-work-and-travel.html",
+    enPath: "/en/english-for-work-and-travel.html",
+    ruTitle: "Английский для работы и путешествий - Poliglot AI",
+    enTitle: "English for Work and Travel - Poliglot AI",
+    ruH1: "Английский для работы и путешествий",
+    enH1: "English for work and travel",
+  },
+  {
+    slug: "language-learning-web-app",
+    ruPath: "/language-learning-web-app.html",
+    enPath: "/en/language-learning-web-app.html",
+    ruTitle: "Веб-приложение для изучения языков - Poliglot AI",
+    enTitle: "Language Learning Web App - Poliglot AI",
+    ruH1: "Веб-приложение для изучения языков Poliglot AI",
+    enH1: "Poliglot AI language learning web app",
+  },
+] as const;
+
+test.describe("static SEO pages", () => {
+  test("serves Russian static SEO pages with real HTML content and metadata", async ({ page }) => {
+    for (const item of pages) {
+      const response = await page.goto(item.ruPath);
+      expect(response?.ok(), `${item.ruPath} should be served`).toBe(true);
+      await expect(page).toHaveTitle(item.ruTitle);
+      await expect(page.locator("html")).toHaveAttribute("lang", "ru");
+      await expect(page.locator("h1")).toHaveText(item.ruH1);
+      await expect(page.locator("#root")).toHaveCount(0);
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Poliglot AI/);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator(".seo-faq__item")).toHaveCount(5);
+      await expect(page.locator(".seo-related a")).toHaveCount(4);
+      await expect(page.locator('a[data-entry="web-app"]').first()).toHaveAttribute("href", "/app/");
+      await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html");
+      await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+      await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://poliglotai.ru${item.ruPath}`);
+      await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+      await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", item.ruTitle);
+
+      const jsonLdText = await page.locator('script[type="application/ld+json"]').textContent();
+      expect(jsonLdText).toBeTruthy();
+      const jsonLd = JSON.parse(jsonLdText || "{}");
+      const types = jsonLd["@graph"].map((node: { "@type": string }) => node["@type"]);
+      expect(types).toEqual(expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "WebPage", "BreadcrumbList", "FAQPage"]));
+      const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
+      expect(faqNode.mainEntity).toHaveLength(5);
+      const visibleFaq = await page.locator(".seo-faq__item").evaluateAll((items) =>
+        items.map((item) => ({
+          question: item.querySelector("h3")?.textContent?.trim(),
+          answer: item.querySelector("p")?.textContent?.trim(),
+        })),
+      );
+      expect(faqNode.mainEntity.map((entry: { name: string; acceptedAnswer: { text: string } }) => ({
+        question: entry.name,
+        answer: entry.acceptedAnswer.text,
+      }))).toEqual(visibleFaq);
+    }
+  });
+
+  test("serves English static SEO pages with international canonical metadata", async ({ page }) => {
+    for (const item of pages) {
+      const response = await page.goto(item.enPath);
+      expect(response?.ok(), `${item.enPath} should be served`).toBe(true);
+      await expect(page).toHaveTitle(item.enTitle);
+      await expect(page.locator("html")).toHaveAttribute("lang", "en");
+      await expect(page.locator("h1")).toHaveText(item.enH1);
+      await expect(page.locator("#root")).toHaveCount(0);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator(".seo-page")).toContainText("web app");
+      await expect(page.locator(".seo-page")).toContainText("Telegram");
+      await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html?lang=en");
+      await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
+      await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", item.enTitle);
+    }
+  });
+
+  test("sitemap exposes the bilingual SEO page cluster with alternates", async ({ page }) => {
+    const response = await page.goto("/sitemap.xml");
+    expect(response?.ok()).toBe(true);
+    const body = await response?.text();
+    expect(body).toBeTruthy();
+
+    for (const item of pages) {
+      expect(body).toContain(`https://poliglotai.ru${item.ruPath}`);
+      expect(body).toContain(`https://poliglotai.online${item.enPath}`);
+      expect(body).toContain(`hreflang="ru" href="https://poliglotai.ru${item.ruPath}"`);
+      expect(body).toContain(`hreflang="en" href="https://poliglotai.online${item.enPath}"`);
+      expect(body).toContain(`hreflang="x-default" href="https://poliglotai.online${item.enPath}"`);
+    }
+  });
+
+  test("landing exposes SEO guides only outside the primary hero and navigation", async ({ page }) => {
+    await page.goto("/poliglot-ai.html?lang=en");
+
+    const guideLinks = page.locator(".seo-guides a");
+    await expect(guideLinks).toHaveCount(5);
+    await expect(page.locator(".landing-hero .seo-guides")).toHaveCount(0);
+    await expect(page.locator(".public-nav .seo-guides")).toHaveCount(0);
+    await expect(guideLinks.first()).toHaveAttribute("href", "/en/ai-english-tutor.html");
+
+    await page.goto("/poliglot-ai.html?lang=ru");
+    const ruGuideLinks = page.locator(".seo-guides a");
+    await expect(ruGuideLinks).toHaveCount(5);
+    await expect(ruGuideLinks.first()).toHaveAttribute("href", "/ai-english-tutor.html");
+  });
+});

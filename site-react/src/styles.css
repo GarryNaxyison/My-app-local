@@ -719,7 +719,7 @@ html[data-site-theme="dark"] .public-nav select option {
 
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) repeat(4, minmax(150px, 0.5fr));
+  grid-template-columns: minmax(220px, 1.4fr) repeat(auto-fit, minmax(150px, 1fr));
   gap: 24px;
   padding: 46px clamp(20px, 5vw, 72px);
   color: white;
@@ -742,6 +742,10 @@ html[data-site-theme="dark"] .public-nav select option {
 
 .site-footer strong {
   color: white;
+}
+
+.seo-guides a {
+  line-height: 1.35;
 }
 
 .landing-social-proof {

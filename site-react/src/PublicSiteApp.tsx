@@ -35,6 +35,7 @@ import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { personalDataConsentDocumentHtml, privacyDocumentHtml, termsDocumentHtml, userAgreementDocumentHtml } from "./legacyLegalContent";
 import { EnglishSparkLanding } from "./EnglishSparkLanding";
+import { staticSeoGuideLinks } from "./landingSeoContent";
 import { SiteFooterSocial } from "./components/SocialLinks";
 
 type PageId = "landing" | "privacy" | "terms" | "agreement" | "consent";
@@ -392,7 +393,7 @@ export function PublicSiteApp() {
     <div className="public-shell">
       <SiteNavDrawer page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
       {page === "landing" ? <EnglishSparkLanding siteTheme={theme} /> : <LegalPageV2 page={page} />}
-      <SiteFooterEnglish />
+      <SiteFooterEnglish showSeoGuides={page === "landing"} />
       <CookieConsentBanner />
     </div>
   );
@@ -1250,8 +1251,9 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
   );
 }
 
-function SiteFooterEnglish() {
+function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
   const isRussian = getInitialSiteLanguage() === "ru";
+  const guideLocale = isRussian ? "ru" : "en";
   return (
     <footer className="site-footer">
       <div>
@@ -1267,6 +1269,19 @@ function SiteFooterEnglish() {
         <a href="/app/">Web app</a>
       </nav>
       <SiteFooterSocial title={isRussian ? "Соцсети" : "Social"} />
+      {showSeoGuides ? (
+        <nav className="seo-guides" aria-label={isRussian ? "Материалы" : "Guides"}>
+          <strong>{isRussian ? "Материалы" : "Guides"}</strong>
+          {staticSeoGuideLinks.map((item) => {
+            const link = item[guideLocale];
+            return (
+              <a key={item.slug} href={link.href} data-no-localize-href>
+                {link.label}
+              </a>
+            );
+          })}
+        </nav>
+      ) : null}
       <nav>
         <strong>Documents</strong>
         <a href="/privacy.html"><span data-legal-nav="privacy">Privacy</span></a>

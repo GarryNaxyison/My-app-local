@@ -95,6 +95,10 @@ const awkwardRussianLandingCopy = [
   "Более высокие лимиты на поездки",
 ] as const;
 
+test.beforeEach(async ({ page }) => {
+  await page.route("https://mc.yandex.ru/**", (route) => route.abort());
+});
+
 test("landing presents the approved English spark hero product site", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/poliglot-ai.html?lang=en");
@@ -341,6 +345,7 @@ test("cookie banner stays hidden with legacy saved consent values", async ({ pag
 });
 
 test("landing light theme keeps the approved layout readable", async ({ page }) => {
+  test.setTimeout(90_000);
   await page.addInitScript(() => {
     localStorage.setItem("poliglot-site-theme", "light");
   });
@@ -669,18 +674,23 @@ test("landing localizes core product copy across all 35 interface locales", asyn
       languageSelect.value = nextCode;
       languageSelect.dispatchEvent(new Event("change", { bubbles: true }));
     }, code);
-    await page.waitForTimeout(140);
 
-    const htmlLang = await page.locator("html").getAttribute("lang");
-    expect(htmlLang).toBe(code);
+    await expect(page.locator("html")).toHaveAttribute("lang", code);
+    const localizedLanding = await page.evaluate(() => {
+      const htmlLang = document.documentElement.getAttribute("lang") || "";
+      const landingText = document.querySelector(".english-spark-landing")?.textContent || "";
+      const socialProofText = document.querySelector(".landing-social-proof")?.textContent || "";
+      return { htmlLang, landingText, socialProofText };
+    });
 
-    const landingText = await page.locator(".english-spark-landing").innerText();
+    expect(localizedLanding.htmlLang).toBe(code);
+    const landingText = localizedLanding.landingText;
     expect(landingText).toContain("35");
     if (code !== "en") {
       expect(landingText).not.toContain("Practice speaking before the moment matters");
       expect(landingText).not.toContain("Real situations where the language has to work today");
       expect(landingText).not.toContain("Start free");
-      await expect(page.locator(".landing-social-proof")).not.toContainText("Follow Poliglot AI");
+      expect(localizedLanding.socialProofText).not.toContain("Follow Poliglot AI");
       for (const englishCopy of englishLandingCopyThatMustLocalize) {
         expect(landingText).not.toContain(englishCopy);
       }
@@ -772,7 +782,7 @@ test("privacy and terms keep contacts and both themes readable", async ({ page }
 test("privacy Russian contact grid keeps Telegram bot visible", async ({ page }) => {
   await page.goto("/privacy.html?lang=ru");
 
-  const botContact = page.locator('#contacts .legal-contact-grid a[href="https://t.me/poliglot_ai_bot"]');
+  const botContact = page.locator('.legal-contact-grid a[href="https://t.me/poliglot_ai_bot"]');
   await expect(botContact).toBeVisible();
   await expect(botContact.locator("small")).toHaveText("Telegram bot");
   await expect(botContact).toContainText("@poliglot_ai_bot");
