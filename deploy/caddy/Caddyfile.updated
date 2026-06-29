@@ -25,17 +25,17 @@ poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
 		reverse_proxy localhost:8080
 	}
 
-	@siteHtml path / /poliglot-ai.html /privacy.html /terms.html
+	@siteHtml path / /poliglot-ai.html /privacy.html /terms.html /agreement.html /consent.html /robots.txt /sitemap.xml
 	header @siteHtml Cache-Control "no-cache, no-store, must-revalidate"
 	header @siteHtml Pragma "no-cache"
 	header @siteHtml Expires "0"
 
-	@siteScripts path /assets/site-i18n.js /assets/site-phrases.js /assets/privacy-policy-i18n.js
+	@siteScripts path /assets/site-i18n.js /assets/site-phrases.js /assets/privacy-policy-i18n.js /assets/legal-documents-i18n.js
 	header @siteScripts Cache-Control "no-cache, must-revalidate"
 
 	@immutableAssets {
 		path /assets/*
-		not path /assets/site-i18n.js /assets/site-phrases.js /assets/privacy-policy-i18n.js
+		not path /assets/site-i18n.js /assets/site-phrases.js /assets/privacy-policy-i18n.js /assets/legal-documents-i18n.js
 	}
 	header @immutableAssets Cache-Control "public, max-age=31536000, immutable"
 
