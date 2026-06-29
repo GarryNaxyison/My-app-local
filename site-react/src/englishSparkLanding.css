@@ -193,6 +193,7 @@
 .pricing-section,
 .memory-loop-section,
 .final-cta-section,
+.comparison-section,
 .answer-section,
 .course-strip,
 .device-flow {
@@ -204,6 +205,7 @@
 .pricing-section,
 .memory-loop-section,
 .final-cta-section,
+.comparison-section,
 .answer-section {
   padding: 104px 24px;
 }
@@ -255,6 +257,7 @@
 .entry-grid,
 .pricing-grid,
 .reviews-grid,
+.comparison-grid,
 .answer-grid,
 .memory-grid {
   display: grid;
@@ -289,6 +292,7 @@
 .entry-panel,
 .plan-card,
 .review-card,
+.comparison-card,
 .answer-card,
 .memory-node {
   min-width: 0;
@@ -304,6 +308,7 @@
 .entry-panel,
 .plan-card,
 .review-card,
+.comparison-card,
 .answer-card {
   padding: 22px;
 }
@@ -323,6 +328,7 @@ html[data-site-theme="light"] .plan-label {
 .module-card h3,
 .entry-panel h3,
 .plan-card h3,
+.comparison-card h3,
 .answer-card h3,
 .review-card strong,
 .course-card h3,
@@ -340,6 +346,7 @@ html[data-site-theme="light"] .plan-label {
 .module-card p,
 .entry-panel p,
 .plan-card p,
+.comparison-card p,
 .answer-card p,
 .review-card p,
 .course-card p,
@@ -362,6 +369,67 @@ html[data-site-theme="light"] .plan-label {
 
 .answer-card p {
   margin: 12px 0 0;
+}
+
+.comparison-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.comparison-card {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.comparison-card h3 {
+  margin: 0;
+  font-size: 1.12rem;
+  line-height: 1.2;
+}
+
+.comparison-card__rows {
+  display: grid;
+  gap: 10px;
+}
+
+.comparison-card__rows div {
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 14px;
+}
+
+.comparison-card__rows span {
+  display: block;
+  color: #8ff1d0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.comparison-card__rows p {
+  margin: 7px 0 0;
+  font-size: 0.93rem;
+  line-height: 1.45;
+}
+
+.comparison-card__verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 14px;
+  font-weight: 700;
+}
+
+.comparison-card__verdict svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #8ff1d0;
 }
 
 .english-spark-landing .course-strip {
@@ -687,6 +755,7 @@ html[data-site-theme="light"] .spark-section,
 html[data-site-theme="light"] .pricing-section,
 html[data-site-theme="light"] .memory-loop-section,
 html[data-site-theme="light"] .final-cta-section,
+html[data-site-theme="light"] .comparison-section,
 html[data-site-theme="light"] .answer-section,
 html[data-site-theme="light"] .course-strip,
 html[data-site-theme="light"] .cockpit-section,
@@ -720,6 +789,7 @@ html[data-site-theme="light"] .daily-step p,
 html[data-site-theme="light"] .module-card p,
 html[data-site-theme="light"] .entry-panel p,
 html[data-site-theme="light"] .plan-card p,
+html[data-site-theme="light"] .comparison-card p,
 html[data-site-theme="light"] .answer-card p,
 html[data-site-theme="light"] .review-card p,
 html[data-site-theme="light"] .plan-card li,
@@ -732,6 +802,7 @@ html[data-site-theme="light"] .module-card,
 html[data-site-theme="light"] .entry-panel,
 html[data-site-theme="light"] .plan-card,
 html[data-site-theme="light"] .review-card,
+html[data-site-theme="light"] .comparison-card,
 html[data-site-theme="light"] .answer-card,
 html[data-site-theme="light"] .memory-node,
 html[data-site-theme="light"] .course-card,
@@ -756,6 +827,7 @@ html[data-site-theme="light"] .daily-step h3,
 html[data-site-theme="light"] .module-card h3,
 html[data-site-theme="light"] .entry-panel h3,
 html[data-site-theme="light"] .plan-card h3,
+html[data-site-theme="light"] .comparison-card h3,
 html[data-site-theme="light"] .answer-card h3,
 html[data-site-theme="light"] .review-card strong,
 html[data-site-theme="light"] .course-card h3,
@@ -815,6 +887,20 @@ html[data-site-theme="light"] .english-spark-landing .price-tags span {
   -webkit-text-fill-color: #2d5bff !important;
 }
 
+html[data-site-theme="light"] .comparison-card__rows div {
+  border-color: rgba(15, 23, 42, 0.1);
+  background: rgba(248, 250, 252, 0.92);
+}
+
+html[data-site-theme="light"] .comparison-card__rows span,
+html[data-site-theme="light"] .comparison-card__verdict svg {
+  color: #2d5bff;
+}
+
+html[data-site-theme="light"] .comparison-card__verdict {
+  border-top-color: rgba(15, 23, 42, 0.1);
+}
+
 html[data-site-theme="light"] .english-spark-landing .course-card > span,
 html[data-site-theme="light"] .english-spark-landing .scenario-modules span {
   border: 1px solid rgba(45, 91, 255, 0.24) !important;
@@ -871,6 +957,7 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .pricing-grid,
   .reviews-grid,
   .course-cards,
+  .comparison-grid,
   .scenario-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -955,6 +1042,7 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .pricing-section,
   .memory-loop-section,
   .final-cta-section,
+  .comparison-section,
   .answer-section {
     padding: 70px 16px;
   }
@@ -964,6 +1052,7 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .entry-grid,
   .pricing-grid,
   .reviews-grid,
+  .comparison-grid,
   .answer-grid,
   .memory-grid,
   .course-cards,

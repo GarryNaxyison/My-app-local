@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const englishAnswerCopy = [
   "Search answers",
@@ -17,6 +17,31 @@ const englishAnswerCopy = [
   "Is there a free plan?",
   "Yes. Free gives starter lessons and practice without payment, while Premium and Platinum unlock higher limits, voice, photo tools, and intensive daily study.",
 ] as const;
+
+const englishComparisonCopy = [
+  "Compare options",
+  "Poliglot AI compared with the tools people usually search for",
+  "See when a vocabulary app, AI tutor, Telegram bot, or web app is the better fit for language practice.",
+  "Poliglot AI vs vocabulary app",
+  "Word lists, flashcards, spaced repetition, and isolated meanings.",
+  "Context phrases, answers, corrections, weak-spot review, voice, and photo practice.",
+  "Best when you need correction and context, not only memorization.",
+  "AI tutor vs language bot",
+  "Quick chat prompts in Telegram with simple answers.",
+  "Guided lessons, roleplay, mistake explanations, progress, and next repetition.",
+  "Best when Telegram convenience needs tutor-level feedback.",
+  "Telegram bot vs web app",
+  "Fast tasks, voice messages, reminders, and short daily practice.",
+  "Longer sessions, pricing, notes, progress, mistakes, and profile control.",
+  "Best when quick mobile practice and deeper desktop study should stay synced.",
+] as const;
+
+async function selectLandingLanguage(page: Page, code: string) {
+  const languageSelect = page.locator("[data-site-language-select]").first();
+  await languageSelect.selectOption(code);
+  await expect(languageSelect).toHaveValue(code);
+  await expect.poll(async () => page.locator("html").getAttribute("lang")).toBe(code);
+}
 
 test.describe("public landing SEO and AEO metadata", () => {
   test.describe.configure({ timeout: 90_000 });
@@ -74,17 +99,25 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(jsonLdText).toBeTruthy();
     const jsonLd = JSON.parse(jsonLdText || "{}");
     const graphTypes = jsonLd["@graph"].map((node: { "@type": string }) => node["@type"]);
-    expect(graphTypes).toHaveLength(4);
+    expect(graphTypes).toHaveLength(5);
     expect(graphTypes).toEqual(
-      expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "FAQPage"]),
+      expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "FAQPage", "ItemList"]),
     );
     const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
     expect(faqNode.mainEntity).toHaveLength(6);
     expect(faqNode.mainEntity.map((entity: { name: string }) => entity.name)).toContain("Что такое Poliglot AI?");
+    const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
+    expect(comparisonNode.itemListElement).toHaveLength(3);
+
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://poliglotai.ru/assets/seo/poliglot-ai-og-ru.jpg");
+    await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
+    await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
 
     await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
     await expect(page.locator(".answer-card")).toHaveCount(6);
     await expect(page.locator(".answer-card").filter({ hasText: "Что такое Poliglot AI?" })).toBeVisible();
+    await expect(page.locator(".comparison-card")).toHaveCount(3);
   });
 
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {
@@ -110,6 +143,17 @@ test.describe("public landing SEO and AEO metadata", () => {
       ]),
     );
 
+    const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
+    expect(comparisonNode.itemListElement).toHaveLength(3);
+
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://poliglotai.online/assets/seo/poliglot-ai-og-en.jpg");
+    await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
+    await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+
+    await expect(page.getByRole("heading", { name: "Poliglot AI compared with the tools people usually search for" })).toBeVisible();
+    await expect(page.locator(".comparison-card")).toHaveCount(3);
+    await expect(page.locator(".comparison-card").filter({ hasText: "Poliglot AI vs vocabulary app" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Answers for search and AI assistants" })).toBeVisible();
     await expect(page.locator(".answer-card").filter({ hasText: "AI language tutor" })).toBeVisible();
 
@@ -129,8 +173,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(languageCodes).toHaveLength(35);
 
     for (const code of languageCodes) {
-      await page.locator("[data-site-language-select]").selectOption(code);
-      await page.waitForTimeout(120);
+      await selectLandingLanguage(page, code);
 
       await expect(page.locator(".answer-card")).toHaveCount(6);
 
@@ -140,6 +183,30 @@ test.describe("public landing SEO and AEO metadata", () => {
 
       const sectionText = await page.locator(".answer-section").innerText();
       for (const englishCopy of englishAnswerCopy) {
+        expect(sectionText).not.toContain(englishCopy);
+      }
+    }
+  });
+
+  test("localizes visible comparison answers across every interface language", async ({ page }) => {
+    await page.goto("/poliglot-ai.html?lang=en");
+
+    const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
+      options.map((option) => (option as HTMLOptionElement).value),
+    );
+    expect(languageCodes).toHaveLength(35);
+
+    for (const code of languageCodes) {
+      await selectLandingLanguage(page, code);
+
+      await expect(page.locator(".comparison-card")).toHaveCount(3);
+
+      if (code === "en") {
+        continue;
+      }
+
+      const sectionText = await page.locator(".comparison-section").innerText();
+      for (const englishCopy of englishComparisonCopy) {
         expect(sectionText).not.toContain(englishCopy);
       }
     }

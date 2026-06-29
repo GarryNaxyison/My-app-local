@@ -665,6 +665,35 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         </div>
       </section>
 
+      <section id="compare" className="spark-section comparison-section" aria-labelledby="comparison-section-heading">
+        <div className="section-copy">
+          <span className="eyebrow">{landingSeoCopy.en.comparisonEyebrow}</span>
+          <h2 id="comparison-section-heading">{landingSeoCopy.en.comparisonTitle}</h2>
+          <p>{landingSeoCopy.en.comparisonIntro}</p>
+        </div>
+        <div className="comparison-grid">
+          {landingSeoCopy.en.comparisons.map((item, index) => (
+            <article className="comparison-card" id={`comparison-${index + 1}`} key={item.title}>
+              <h3>{item.title}</h3>
+              <div className="comparison-card__rows">
+                <div>
+                  <span>{item.alternativeLabel}</span>
+                  <p>{item.alternative}</p>
+                </div>
+                <div>
+                  <span>{item.productLabel}</span>
+                  <p>{item.product}</p>
+                </div>
+              </div>
+              <p className="comparison-card__verdict">
+                <CheckCircle size={16} />
+                {item.verdict}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="spark-section answer-section" aria-labelledby="answer-section-heading">
         <div className="section-copy">
           <span className="eyebrow">{landingSeoCopy.en.sectionEyebrow}</span>

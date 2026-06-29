@@ -70,6 +70,10 @@ function absoluteAssetUrl(path: string, origin: string) {
   return new URL(path, origin).toString();
 }
 
+function socialImagePathForLanguage(language: ReturnType<typeof currentLandingLanguage>) {
+  return language === "ru" ? "/assets/seo/poliglot-ai-og-ru.jpg" : "/assets/seo/poliglot-ai-og-en.jpg";
+}
+
 function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
   const locale = seoLocaleForLanguage(language);
   const copy = landingSeoCopy[locale];
@@ -128,6 +132,25 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
           },
         })),
       },
+      {
+        "@type": "ItemList",
+        "@id": `${canonicalUrl}#comparisons`,
+        name: copy.comparisonTitle,
+        description: copy.comparisonIntro,
+        url: `${canonicalUrl}#compare`,
+        inLanguage: language,
+        itemListElement: copy.comparisons.map((item, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: item.title,
+          url: `${canonicalUrl}#comparison-${index + 1}`,
+          item: {
+            "@type": "Thing",
+            name: item.title,
+            description: `${item.alternativeLabel}: ${item.alternative} ${item.productLabel}: ${item.product} ${item.verdict}`,
+          },
+        })),
+      },
     ],
   };
 }
@@ -140,7 +163,7 @@ export function updateLandingSeoMetadata() {
   const copy = landingSeoCopy[locale];
   const canonicalUrl = canonicalUrlForLanguage(language);
   const origin = canonicalOriginForLanguage(language);
-  const imageUrl = absoluteAssetUrl("/assets/brand-logo-mini.png", origin);
+  const imageUrl = absoluteAssetUrl(socialImagePathForLanguage(language), origin);
 
   if (document.title !== copy.title) {
     document.title = copy.title;
@@ -167,11 +190,15 @@ export function updateLandingSeoMetadata() {
   upsertMetaByProperty("og:type", "website");
   upsertMetaByProperty("og:url", canonicalUrl);
   upsertMetaByProperty("og:image", imageUrl);
+  upsertMetaByProperty("og:image:width", "1200");
+  upsertMetaByProperty("og:image:height", "630");
+  upsertMetaByProperty("og:image:alt", `${copy.title} social preview`);
 
-  upsertMetaByName("twitter:card", "summary");
+  upsertMetaByName("twitter:card", "summary_large_image");
   upsertMetaByName("twitter:title", copy.title);
   upsertMetaByName("twitter:description", copy.description);
   upsertMetaByName("twitter:image", imageUrl);
+  upsertMetaByName("twitter:image:alt", `${copy.title} social preview`);
 
   let script = document.getElementById(jsonLdScriptId) as HTMLScriptElement | null;
   if (!script) {

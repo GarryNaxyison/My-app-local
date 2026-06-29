@@ -55,6 +55,35 @@ export const landingSeoCopy = {
     sectionEyebrow: "Поисковые ответы",
     sectionTitle: "Ответы для поиска и AI",
     sectionIntro: "Короткие прямые ответы о Poliglot AI для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
+    comparisonEyebrow: "Сравнение вариантов",
+    comparisonTitle: "Poliglot AI в сравнении с инструментами, которые обычно ищут",
+    comparisonIntro: "Коротко о том, когда словарное приложение, AI-репетитор, Telegram-бот или web app лучше подходят для языковой практики.",
+    comparisons: [
+      {
+        title: "Poliglot AI vs словарное приложение",
+        alternativeLabel: "Словарное приложение",
+        alternative: "Списки слов, карточки, интервальные повторения и отдельные значения.",
+        productLabel: "Poliglot AI",
+        product: "Фразы в контексте, ответы, исправления, повторение слабых мест, голос и фото-практика.",
+        verdict: "Подходит, когда нужны исправления и контекст, а не только запоминание.",
+      },
+      {
+        title: "AI-репетитор vs языковой бот",
+        alternativeLabel: "Языковой бот",
+        alternative: "Быстрые подсказки в Telegram и простые ответы.",
+        productLabel: "AI-репетитор",
+        product: "Уроки с направлением, roleplay, объяснение ошибок, прогресс и следующее повторение.",
+        verdict: "Подходит, когда удобство Telegram нужно соединить с обратной связью уровня репетитора.",
+      },
+      {
+        title: "Telegram-бот vs web app",
+        alternativeLabel: "Telegram-бот",
+        alternative: "Быстрые задания, голосовые сообщения, напоминания и короткая ежедневная практика.",
+        productLabel: "Web app",
+        product: "Длинные сессии, тарифы, заметки, прогресс, ошибки и управление профилем.",
+        verdict: "Подходит, когда быстрая мобильная практика и глубокая учеба за компьютером должны синхронизироваться.",
+      },
+    ],
     questions: [
       {
         question: "Что такое Poliglot AI?",
@@ -88,6 +117,35 @@ export const landingSeoCopy = {
     sectionEyebrow: "Search answers",
     sectionTitle: "Answers for search and AI assistants",
     sectionIntro: "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
+    comparisonEyebrow: "Compare options",
+    comparisonTitle: "Poliglot AI compared with the tools people usually search for",
+    comparisonIntro: "See when a vocabulary app, AI tutor, Telegram bot, or web app is the better fit for language practice.",
+    comparisons: [
+      {
+        title: "Poliglot AI vs vocabulary app",
+        alternativeLabel: "Vocabulary app",
+        alternative: "Word lists, flashcards, spaced repetition, and isolated meanings.",
+        productLabel: "Poliglot AI",
+        product: "Context phrases, answers, corrections, weak-spot review, voice, and photo practice.",
+        verdict: "Best when you need correction and context, not only memorization.",
+      },
+      {
+        title: "AI tutor vs language bot",
+        alternativeLabel: "Language bot",
+        alternative: "Quick chat prompts in Telegram with simple answers.",
+        productLabel: "AI tutor",
+        product: "Guided lessons, roleplay, mistake explanations, progress, and next repetition.",
+        verdict: "Best when Telegram convenience needs tutor-level feedback.",
+      },
+      {
+        title: "Telegram bot vs web app",
+        alternativeLabel: "Telegram bot",
+        alternative: "Fast tasks, voice messages, reminders, and short daily practice.",
+        productLabel: "Web app",
+        product: "Longer sessions, pricing, notes, progress, mistakes, and profile control.",
+        verdict: "Best when quick mobile practice and deeper desktop study should stay synced.",
+      },
+    ],
     questions: [
       {
         question: "What is Poliglot AI?",

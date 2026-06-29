@@ -9,6 +9,8 @@ const requiredDeployAssets = [
   "assets/scenarios/work-ai-tutor.jpg",
   "assets/scenarios/exam-ai-tutor.jpg",
   "assets/scenarios/speaking-ai-tutor.jpg",
+  "assets/seo/poliglot-ai-og-ru.jpg",
+  "assets/seo/poliglot-ai-og-en.jpg",
   "assets/testimonials/anna.jpg",
   "assets/testimonials/marat.jpg",
   "assets/testimonials/sofia.jpg",
