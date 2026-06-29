@@ -213,10 +213,62 @@ func botRuntimeText(user userState, key string) string {
 			return text
 		}
 	}
+	if code != "en" {
+		if text := localizedBotRuntimeText(user, key); text != "" {
+			return text
+		}
+	}
 	if text := botRuntimeTexts["en"][key]; text != "" {
 		return text
 	}
 	return key
+}
+
+func localizedBotRuntimeText(user userState, key string) string {
+	copy := ui(user)
+	premium := premiumUI(user)
+	switch key {
+	case "lesson_task_failed":
+		return copy.NewLesson + ": %s"
+	case "word_game_not_found":
+		return copy.WordGame + ". " + copy.TryAgain
+	case "word_task_missing":
+		return copy.LearnWords + ". " + copy.TryAgain
+	case "word_game_missing":
+		return copy.WordGame + ". " + copy.TryAgain
+	case "spelling_not_found":
+		return copy.Spelling + ". " + copy.TryAgain
+	case "spelling_missing":
+		return copy.Spelling + ". " + copy.TryAgain
+	case "mistake_missing":
+		return copy.Mistakes + ". " + copy.TryAgain
+	case "check_failed":
+		return copy.ChooseAnswer + ": %s"
+	case "reply_failed":
+		return copy.UnknownButton + ": %s"
+	case "level_promoted":
+		return copy.LevelTest + ": %s\n\n" + copy.Progress + "."
+	case "translator_unavailable":
+		return copy.Tool.Translator + ". " + copy.TryAgain
+	case "translator_empty":
+		return copy.Tool.Translator + ". " + copy.TryAgain
+	case "translation_tts_failed":
+		return copy.Tool.TranslationLabel + ": %s"
+	case "heard_label":
+		return copy.Tool.TranscriptLabel + ":"
+	case "web_auth_unavailable":
+		return copy.Tool.WebApp + ". " + copy.TryAgain
+	case "web_auth_failed":
+		return copy.Tool.WebApp + ": %s"
+	case "web_auth_code":
+		return copy.Tool.WebApp + ": %s\n\nPoliglot AI. 10."
+	case "mistakes_empty_hint":
+		return copy.Mistakes + ": " + copy.Practice
+	case "mistakes_empty_start":
+		return premium.CheckLimits
+	default:
+		return ""
+	}
 }
 
 func botRuntimeMessage(user userState, key string, args ...any) string {
@@ -1730,15 +1782,19 @@ func vocabularyFallbackPrompt(word vocabWord, interfaceLanguage string) string {
 	if translation := wordTranslation(word, interfaceLanguage); translation != "" {
 		return firstDictionaryValue(translation)
 	}
-	for _, fallbackLanguage := range []string{"ru", "en"} {
-		if fallbackLanguage == normalizeLearningLanguage(word.Language) {
-			continue
-		}
-		if translation := wordTranslationForLanguage(word, fallbackLanguage); translation != "" {
-			return firstDictionaryValue(translation)
-		}
+	return localizedMissingVocabularyTranslation(interfaceLanguage, word)
+}
+
+func localizedMissingVocabularyTranslation(interfaceLanguage string, word vocabWord) string {
+	copy := ui(userState{InterfaceLanguage: interfaceLanguage})
+	label := cleanDictionaryDisplay(word.English)
+	if label == "" {
+		label = cleanDictionaryDisplay(word.ID)
 	}
-	return ""
+	if label == "" {
+		return copy.Vocabulary + ": " + copy.TryAgain
+	}
+	return copy.Vocabulary + ": " + label + ". " + copy.TryAgain
 }
 
 func (b *bot) vocabularyExample(ctx context.Context, user userState, word vocabWord, mode string) string {
@@ -3446,16 +3502,8 @@ func (b *bot) checkCryptoPayment(ctx context.Context, chatID int64, user userSta
 
 func cryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string) string {
 	expiresAt := userLocalDateTimeLabel(payment.ExpiresAt, user)
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		return fmt.Sprintf(
-			"%s\n\nСумма: %s TON\nСеть: TON\nАдрес: %s\nКомментарий: %s\n\nОткройте TON-кошелек кнопкой ниже или отправьте перевод вручную. Комментарий обязателен: по нему сервер найдет ваш платеж.\n\nПосле перевода нажмите \"I paid - check\".\n\nСсылка: %s\nСчет действителен до: %s",
-			plan.Title,
-			payment.Amount,
-			payment.Address,
-			payment.Memo,
-			invoiceURL,
-			expiresAt,
-		)
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) != "en" {
+		return localizedCryptoPaymentText(user, plan, payment, invoiceURL, expiresAt)
 	}
 	return fmt.Sprintf(
 		"%s\n\nAmount: %s TON\nNetwork: TON\nAddress: %s\nComment: %s\n\nOpen a TON wallet with the button below or send the transfer manually. The comment is required: the server uses it to match your payment.\n\nAfter sending, tap \"I paid - check\".\n\nLink: %s\nInvoice expires at: %s",
@@ -3467,49 +3515,29 @@ func cryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, 
 		expiresAt,
 	)
 }
-
 func cryptoPaymentPendingText(user userState, plan premiumPlan, payment cryptoPayment) string {
-	if payment.Status == cryptoStatusExpired {
-		if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-			return "Счет истек. Откройте Premium и создайте новый TON-счет."
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) != "en" {
+		if payment.Status == cryptoStatusExpired {
+			return ui(user).Premium + ": " + ui(user).TryAgain
 		}
-		return "This invoice has expired. Open Premium and create a new TON invoice."
+		return localizedCryptoPaymentPendingText(user, plan, payment)
 	}
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		return fmt.Sprintf("%s\n\nПлатеж пока не найден.\n\nПроверьте сумму %s TON и обязательный комментарий: %s", plan.Title, payment.Amount, payment.Memo)
+	if payment.Status == cryptoStatusExpired {
+		return "This invoice has expired. Open Premium and create a new TON invoice."
 	}
 	return fmt.Sprintf("%s\n\nPayment is not found yet.\n\nCheck the %s TON amount and required comment: %s", plan.Title, payment.Amount, payment.Memo)
 }
-
 func cryptoPaymentTextV2(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string) string {
 	expiresAt := userLocalDateTimeLabel(payment.ExpiresAt, user)
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) != "en" {
+		return localizedCryptoPaymentText(user, plan, payment, invoiceURL, expiresAt)
+	}
 	methodLabel := cryptoPaymentMethodLabel(payment)
 	amountLabel := payment.Amount + " " + payment.Currency
 	memo := strings.TrimSpace(payment.Memo)
-	ruLinkLine := ""
 	enLinkLine := ""
 	if strings.TrimSpace(invoiceURL) != "" {
-		ruLinkLine = "\n\nСсылка: " + invoiceURL
 		enLinkLine = "\n\nLink: " + invoiceURL
-	}
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		memoLine := "Комментарий: не нужен"
-		instruction := "Отправьте точную сумму на адрес ниже. Для этого метода сервер отличает платеж по сумме, поэтому не округляйте ее."
-		if memo != "" {
-			memoLine = "Комментарий: " + memo
-			instruction = "Откройте кошелек кнопкой ниже или отправьте перевод вручную. Комментарий обязателен: по нему сервер найдет ваш платеж."
-		}
-		return fmt.Sprintf(
-			"%s\n\nСумма: %s\nСеть: %s\nАдрес: %s\n%s\n\n%s\n\nПосле перевода нажмите \"I paid - check\".%s\nСчет действителен до: %s",
-			plan.Title,
-			amountLabel,
-			methodLabel,
-			payment.Address,
-			memoLine,
-			instruction,
-			ruLinkLine,
-			expiresAt,
-		)
 	}
 	memoLine := "Comment: not needed"
 	instruction := "Send the exact amount to the address below. This method is matched by the unique amount, so do not round it."
@@ -3529,27 +3557,22 @@ func cryptoPaymentTextV2(user userState, plan premiumPlan, payment cryptoPayment
 		expiresAt,
 	)
 }
-
 func cryptoPaymentPendingTextV2(user userState, plan premiumPlan, payment cryptoPayment) string {
-	if payment.Status == cryptoStatusExpired {
-		if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-			return "Счет истек. Откройте Premium и создайте новый crypto-счет."
+	if normalizeInterfaceLanguage(user.InterfaceLanguage) != "en" {
+		if payment.Status == cryptoStatusExpired {
+			return ui(user).Premium + ": " + ui(user).TryAgain
 		}
+		return localizedCryptoPaymentPendingText(user, plan, payment)
+	}
+	if payment.Status == cryptoStatusExpired {
 		return "This invoice has expired. Open Premium and create a new crypto invoice."
 	}
 	amountLabel := payment.Amount + " " + payment.Currency
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		if strings.TrimSpace(payment.Memo) != "" {
-			return fmt.Sprintf("%s\n\nПлатеж пока не найден.\n\nПроверьте сумму %s и обязательный комментарий: %s", plan.Title, amountLabel, payment.Memo)
-		}
-		return fmt.Sprintf("%s\n\nПлатеж пока не найден.\n\nПроверьте точную сумму %s и сеть %s.", plan.Title, amountLabel, cryptoPaymentMethodLabel(payment))
-	}
 	if strings.TrimSpace(payment.Memo) != "" {
 		return fmt.Sprintf("%s\n\nPayment is not found yet.\n\nCheck the %s amount and required comment: %s", plan.Title, amountLabel, payment.Memo)
 	}
 	return fmt.Sprintf("%s\n\nPayment is not found yet.\n\nCheck the exact %s amount and the %s network.", plan.Title, amountLabel, cryptoPaymentMethodLabel(payment))
 }
-
 func (b *bot) sendPremiumMenu(ctx context.Context, chatID int64, user userState) error {
 	cryptoProducts := map[string][]cryptoPaymentMethod{}
 	if b.cryptoPaymentsReady() {
@@ -3576,13 +3599,46 @@ func (b *bot) sendPremiumPaymentOptions(ctx context.Context, chatID int64, user 
 func premiumPaymentOptionsText(user userState, plan premiumPlan) string {
 	prompt := "Choose a payment method for this plan."
 	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		prompt = "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0441\u043f\u043e\u0441\u043e\u0431 \u043e\u043f\u043b\u0430\u0442\u044b \u0434\u043b\u044f \u044d\u0442\u043e\u0433\u043e \u0442\u0430\u0440\u0438\u0444\u0430."
+		prompt = ui(user).Premium + ": " + premiumUI(user).PaySBPButton + " / Stars"
+	} else if normalizeInterfaceLanguage(user.InterfaceLanguage) != "en" {
+		prompt = ui(user).Premium + ": " + premiumUI(user).PaySBPButton + " / Stars"
 	}
 	return "*" + escapeMarkdownV2(plan.Title) + "*\n" +
 		escapeMarkdownV2(plan.DaysLabel) + " \\- " + escapeMarkdownV2(strconv.Itoa(plan.RubPrice)+" RUB / "+strconv.Itoa(plan.StarsPrice)+" Stars") + "\n\n" +
 		escapeMarkdownV2(prompt)
 }
 
+func localizedCryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string, expiresAt string) string {
+	copy := ui(user)
+	premium := premiumUI(user)
+	amountLabel := payment.Amount + " " + firstNonEmpty(payment.Currency, "TON")
+	lines := []string{
+		plan.Title,
+		"",
+		premium.PaySBPButton + ": " + amountLabel,
+		copy.Tool.SourceLanguage + ": " + cryptoPaymentMethodLabel(payment),
+		copy.Tool.TargetLanguage + ": " + payment.Address,
+	}
+	if strings.TrimSpace(payment.Memo) != "" {
+		lines = append(lines, copy.Hint+": "+payment.Memo)
+	}
+	lines = append(lines, "", copy.ChooseAnswer)
+	if strings.TrimSpace(invoiceURL) != "" {
+		lines = append(lines, "", copy.Tool.WebApp+": "+invoiceURL)
+	}
+	lines = append(lines, premium.ActiveUntil+": "+expiresAt)
+	return strings.Join(lines, "\n")
+}
+
+func localizedCryptoPaymentPendingText(user userState, plan premiumPlan, payment cryptoPayment) string {
+	copy := ui(user)
+	amountLabel := payment.Amount + " " + firstNonEmpty(payment.Currency, "TON")
+	detail := amountLabel
+	if strings.TrimSpace(payment.Memo) != "" {
+		detail += " / " + payment.Memo
+	}
+	return plan.Title + "\n\n" + copy.TryAgain + "\n\n" + detail
+}
 func (b *bot) premiumPlanList() []premiumPlan {
 	return []premiumPlan{
 		{

@@ -361,6 +361,9 @@ var toolUICopies = map[string]toolUICopy{
 func toolUICopyFor(code string) toolUICopy {
 	normalizedCode := normalizeInterfaceLanguage(code)
 	copy := englishToolUICopy()
+	if normalizedCode != "en" {
+		copy = localizedGenericToolUICopy(normalizedCode)
+	}
 	if generated, ok := generatedToolUICopy(normalizedCode); ok {
 		copy = mergeToolUICopy(copy, generated)
 	}
@@ -371,6 +374,73 @@ func toolUICopyFor(code string) toolUICopy {
 		copy.Translator = label
 	}
 	return copy
+}
+
+func localizedBaseUICopy(code string) (uiCopy, bool) {
+	code = normalizeInterfaceLanguage(code)
+	if copy, ok := uiCopies[code]; ok {
+		return copy, true
+	}
+	if copy, ok := generatedUICopy(code); ok {
+		return copy, true
+	}
+	if alias := uiAliases[code]; alias != "" {
+		if copy, ok := uiCopies[alias]; ok {
+			return copy, true
+		}
+	}
+	return uiCopy{}, false
+}
+
+func localizedGenericToolUICopy(code string) toolUICopy {
+	base, ok := localizedBaseUICopy(code)
+	if !ok {
+		return englishToolUICopy()
+	}
+	translator := localizedTranslatorToolLabel(code)
+	if translator == "" || (normalizeInterfaceLanguage(code) != "en" && translator == englishToolUICopy().Translator) {
+		translator = base.Tools
+	}
+	voiceToText := firstNonEmpty(base.Tool.VoiceToText, base.Shadowing+" / "+base.Words)
+	imageTranslate := firstNonEmpty(base.Tool.ImageTranslate, base.Tools+" / "+base.Vocabulary)
+	transcript := firstNonEmpty(base.Tool.TranscriptLabel, base.Words)
+	translation := firstNonEmpty(base.Tool.TranslationLabel, translator)
+	sourceLanguage := firstNonEmpty(base.Tool.SourceLanguage, base.LearningLanguage)
+	targetLanguage := firstNonEmpty(base.Tool.TargetLanguage, base.BotLanguage)
+	auto := firstNonEmpty(base.Tool.AutoDetect, base.Correct)
+	webApp := firstNonEmpty(base.Tool.WebApp, base.Tools)
+	return toolUICopy{
+		VoiceToText:            voiceToText,
+		ImageTranslate:         imageTranslate,
+		Translator:             translator,
+		GPTAgent:               firstNonEmpty(base.Tool.GPTAgent, aiTutorButtonLabel(code)),
+		VoicePrompt:            voiceToText + ". " + base.ChooseAnswer,
+		ImagePrompt:            imageTranslate + ". " + base.ChooseAnswer,
+		TranslatorPrompt:       translator + ". " + base.ChooseLearnLang,
+		VoiceModePrompt:        voiceToText + ". " + base.ChooseAnswer,
+		ImageModePrompt:        imageTranslate + ". " + base.ChooseAnswer,
+		TranslatorModePrompt:   translator + ". " + base.ChooseLearnLang,
+		ImageOpenToolsPrompt:   base.Tools + ": " + imageTranslate,
+		ImageSinglePhotoPrompt: imageTranslate + ". " + base.TryAgain,
+		TranscriptLabel:        transcript,
+		TranslationLabel:       translation,
+		SourceLanguage:         sourceLanguage,
+		TargetLanguage:         targetLanguage,
+		AutoDetect:             auto,
+		WebApp:                 webApp,
+		VoiceDiscussPrompt:     base.Practice + ": " + voiceToText,
+		ImageDiscussPrompt:     base.Practice + ": " + imageTranslate,
+		VoicePremiumRequired:   base.Premium + ": " + voiceToText,
+		ImagePremiumRequired:   base.Premium + ": " + imageTranslate,
+		VoiceLimitReached:      base.Limits + ": %d/%d",
+		VoiceTooLong:           base.Limits + ": %d / %d",
+		VoiceDownloadFailed:    voiceToText + ": %s",
+		VoiceTranscribeFailed:  voiceToText + ": %s",
+		VoiceTranslationFailed: translation + ": %s",
+		ImageFileMissing:       imageTranslate + ". " + base.TryAgain,
+		ImageDownloadFailed:    imageTranslate + ": %s",
+		ImageReadFailed:        imageTranslate + ": %s",
+	}
 }
 
 func localizedTranslatorToolLabel(code string) string {
@@ -593,33 +663,81 @@ func aiTutorButtonLabel(code string) string {
 }
 
 func withRuntimeUICopy(code string, copy uiCopy) uiCopy {
+	code = normalizeInterfaceLanguage(code)
 	if copy.NextPage == "" {
-		copy.NextPage = englishUICopy().NextPage
+		if code == "en" {
+			copy.NextPage = englishUICopy().NextPage
+		} else {
+			copy.NextPage = firstNonEmpty(copy.NextWord, copy.Progress) + " ▶"
+		}
 	}
 	if copy.AITutor == "" {
 		copy.AITutor = aiTutorButtonLabel(code)
 	}
 	if copy.Shadowing == "" {
-		copy.Shadowing = shadowingButtonLabel(code)
+		label := shadowingButtonLabel(code)
+		if code != "en" && label == shadowingButtonLabel("en") {
+			label = firstNonEmpty(copy.Practice, copy.Learning)
+		}
+		copy.Shadowing = label
 	}
 	if copy.Pronunciation == "" {
-		copy.Pronunciation = pronunciationButtonLabel(code)
+		label := pronunciationButtonLabel(code)
+		if code != "en" && label == pronunciationButtonLabel("en") {
+			label = firstNonEmpty(copy.Spelling, copy.Practice)
+		}
+		copy.Pronunciation = label
 	}
 	if copy.Phrasebook == "" {
-		copy.Phrasebook = phrasebookButtonLabel(code)
+		label := phrasebookButtonLabel(code)
+		if code != "en" && label == phrasebookButtonLabel("en") {
+			label = firstNonEmpty(copy.Vocabulary, copy.Words)
+		}
+		copy.Phrasebook = label
 	}
 	if copy.Referral == "" {
-		switch normalizeInterfaceLanguage(code) {
+		switch code {
 		case "ru":
 			copy.Referral = "\u0420\u0435\u0444\u0435\u0440\u0430\u043b\u044b"
-		default:
+		case "en":
 			copy.Referral = englishUICopy().Referral
+		default:
+			copy.Referral = firstNonEmpty(copy.Premium, copy.Limits)
 		}
 	}
 	if strings.TrimSpace(copy.WordReportFixFormat) == "" {
 		copy.WordReportFixFormat = localizedWordReportFixFormat(code)
 	}
 	copy.Tool = toolUICopyFor(code)
+	if code != "en" {
+		copy = replaceEnglishRuntimeLabels(copy)
+	}
+	return copy
+}
+
+func replaceEnglishRuntimeLabels(copy uiCopy) uiCopy {
+	english := englishUICopy()
+	if copy.Tools == english.Tools {
+		copy.Tools = firstNonEmpty(copy.Settings, copy.MainMenuTitle)
+	}
+	if copy.Leaders == english.Leaders {
+		copy.Leaders = firstNonEmpty(copy.Progress, copy.Stats)
+	}
+	if copy.Limits == english.Limits {
+		copy.Limits = firstNonEmpty(copy.Progress, copy.Settings)
+	}
+	if copy.Notifications == english.Notifications {
+		copy.Notifications = firstNonEmpty(copy.Settings, copy.ChooseTimezone)
+	}
+	if copy.Referral == english.Referral {
+		copy.Referral = firstNonEmpty(copy.Premium, copy.Limits)
+	}
+	if copy.Tool.Translator == english.Tool.Translator {
+		copy.Tool.Translator = firstNonEmpty(copy.Tools, copy.Tool.TranslationLabel)
+	}
+	if copy.Tool.WebApp == english.Tool.WebApp {
+		copy.Tool.WebApp = firstNonEmpty(copy.Tools, copy.MainMenuTitle)
+	}
 	return copy
 }
 

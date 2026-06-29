@@ -382,8 +382,12 @@ func localizedReferralShareText(interfaceLanguage string) string {
 }
 
 func premiumUI(user userState) premiumUICopy {
+	code := normalizeInterfaceLanguage(user.InterfaceLanguage)
 	copy := englishPremiumUICopy()
-	if override, ok := premiumUICopyOverrides[normalizeInterfaceLanguage(user.InterfaceLanguage)]; ok {
+	if code != "en" {
+		copy = localizedGenericPremiumUICopy(code)
+	}
+	if override, ok := premiumUICopyOverrides[code]; ok {
 		copy = mergePremiumUICopy(copy, override)
 	}
 	if referralShareText := localizedReferralShareText(user.InterfaceLanguage); referralShareText != "" {
@@ -391,6 +395,76 @@ func premiumUI(user userState) premiumUICopy {
 		copy.ReferralShareText = referralShareText
 	}
 	return copy
+}
+
+func localizedGenericPremiumUICopy(code string) premiumUICopy {
+	copy := ui(userState{InterfaceLanguage: code})
+	premium := copy.Premium
+	referral := firstNonEmpty(copy.Referral, premium)
+	lessons := copy.NewLesson
+	practice := copy.Practice
+	voice := firstNonEmpty(copy.Tool.VoiceToText, copy.Shadowing)
+	image := firstNonEmpty(copy.Tool.ImageTranslate, copy.Tools)
+	limits := copy.Limits
+	inviteText := fmt.Sprintf("Poliglot AI\n%%s\n\n%s / %s / %s / %s.", premium, lessons, practice, voice)
+	return premiumUICopy{
+		FreeVoiceUnavailable:        voice + " - " + premium,
+		LessonsPerDay:               "%d " + lessons,
+		PracticeMessagesPerDay:      "%d " + practice,
+		PremiumVoicesPerDay:         "%d " + voice + " / %d",
+		VoiceTextAndTranslation:     voice,
+		ImageTextTranslation:        image,
+		VoicePhotoContextPractice:   practice + ": " + voice + " / " + image,
+		BestValueLabel:              premium + " 70%",
+		MaxAccessLabel:              limits + " Max",
+		PlatinumPriority:            "Platinum " + limits,
+		MonthPrice:                  "30: %d ₽ / %d Stars",
+		YearPrice:                   "365: %d ₽ / %d Stars (%d%%)",
+		PlatinumMonthPrice:          "Platinum 30: %d ₽ / %d Stars",
+		PlatinumYearPrice:           "Platinum 365: %d ₽ / %d Stars (%d%%)",
+		InviteFree:                  referral + ": Premium 7",
+		InvoiceDescription:          premium + ": %d " + lessons + ", %d " + practice + ", %d " + voice + " / %d.",
+		PaymentUnrecognized:         premium + ": %s",
+		PreCheckoutFailed:           premium + ". " + copy.TryAgain,
+		ActivatedTitle:              premium + ": %s",
+		ActivatedAvailable:          premium + ": %d / %d / %d",
+		ActiveUntil:                 premium + ": %s",
+		CheckLimits:                 "%s -> %s",
+		YooKassaUnavailable:         "YooKassa: " + copy.TryAgain,
+		YooKassaCreateFailed:        "YooKassa: " + copy.TryAgain,
+		YooKassaPaymentText:         "*%s*\n\n%d ₽\nYooKassa\n\n" + premium,
+		InviteCreateFailed:          referral + ": %s",
+		InviteLinkText:              inviteText,
+		ReferralShareText:           inviteText,
+		ReferralInviter:             referral + ": Premium 7",
+		ReferralInviterLevel:        referral + ": %d / %s",
+		ReferralInvitee:             referral + ": Premium 7",
+		ReferralBalanceTitle:        referral,
+		ReferralInvitationsLabel:    referral,
+		ReferralBalanceHint:         referral + ": 20% / 5% / USDT",
+		ReferralWithdrawButton:      referral,
+		ReferralWithdrawUnavailable: referral + ": 1000 ₽ / USDT. %s (%s).",
+		LimitsTitle:                 limits,
+		PlanLabel:                   premium,
+		LessonsToday:                lessons,
+		PracticeToday:               practice,
+		VoicesToday:                 voice,
+		MonthStarsButton:            "30: %d Stars",
+		MonthRubButton:              "30: %d ₽ YooKassa",
+		YearStarsButton:             "365: %d Stars",
+		YearRubButton:               "365: %d ₽ YooKassa",
+		PlanStarsButton:             "%s: %d Stars",
+		PlanRubButton:               "%s: %d ₽ YooKassa",
+		InviteFriendButton:          referral,
+		PaySBPButton:                "SBP",
+		PayStarsButton:              "%d Stars",
+		MonthTitle:                  premium + " 30",
+		YearTitle:                   premium + " 365",
+		PlatinumMonthTitle:          "Platinum 30",
+		PlatinumYearTitle:           "Platinum 365",
+		MonthDays:                   "30",
+		YearDays:                    "365",
+	}
 }
 
 func mergePremiumUICopy(base, override premiumUICopy) premiumUICopy {

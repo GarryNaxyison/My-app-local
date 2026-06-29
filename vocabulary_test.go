@@ -657,8 +657,8 @@ func TestVocabularyPromptUsesCachedInterfaceTranslationBeforeFallback(t *testing
 	if !ok {
 		t.Fatal("expected station in test vocabulary")
 	}
-	if fallback := vocabularyFallbackPrompt(word, "es"); fallback != "станция" {
-		t.Fatalf("expected Russian fallback before AI cache, got %q", fallback)
+	if fallback := vocabularyFallbackPrompt(word, "es"); fallback != localizedMissingVocabularyTranslation("es", word) {
+		t.Fatalf("expected localized missing-translation message before AI cache, got %q", fallback)
 	}
 	if err := sqliteVocabularyAITranslationSet(word, "es", "test-model", "prompt", "estación; parada"); err != nil {
 		t.Fatalf("sqliteVocabularyAITranslationSet: %v", err)

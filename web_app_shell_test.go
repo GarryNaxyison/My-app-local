@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -242,6 +244,49 @@ func TestReactFrontendContainsTutorOverflowGuards(t *testing.T) {
 	} {
 		if !strings.Contains(source, want) {
 			t.Fatalf("React tutor overflow guard is missing %q", want)
+		}
+	}
+}
+
+func TestReactFullLocalizationCoverageGateExists(t *testing.T) {
+	scriptPath := filepath.Join("tools", "i18n", "check_web_i18n_coverage.mjs")
+	script, err := os.ReadFile(scriptPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := string(script)
+	for _, want := range []string{
+		"appLocaleCodes",
+		"fullLocaleCopy",
+		"copy(",
+		"allowed_invariant_terms.json",
+	} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("coverage checker is missing marker %q", want)
+		}
+	}
+
+	cmd := exec.Command("node", scriptPath)
+	cmd.Dir = "."
+	output, runErr := cmd.CombinedOutput()
+	if runErr != nil {
+		t.Fatalf("coverage checker failed:\n%s", bytes.TrimSpace(output))
+	}
+}
+
+func TestReactGuideDoesNotUseDerivedProductionCopy(t *testing.T) {
+	source, err := os.ReadFile(filepath.Join("web-react", "src", "lib", "i18n.ts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(source)
+	for _, forbidden := range []string{
+		"function buildDerivedGuideCopy",
+		`key.startsWith("app_guide_") return false`,
+		"localizedGuideCopy[code as LocalizedGuideCode] || buildDerivedGuideCopy",
+	} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("i18n.ts still uses derived guide production copy marker %q", forbidden)
 		}
 	}
 }

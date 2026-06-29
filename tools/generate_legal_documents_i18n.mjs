@@ -349,6 +349,39 @@ const operatorLabels = {
     email: "Email",
     bot: "Telegram bot",
   },
+  es: { operator: "Operador", inn: "INN", address: "Dirección", email: "Email", bot: "Bot de Telegram" },
+  de: { operator: "Betreiber", inn: "INN", address: "Adresse", email: "E-Mail", bot: "Telegram-Bot" },
+  fr: { operator: "Responsable", inn: "INN", address: "Adresse", email: "E-mail", bot: "Bot Telegram" },
+  it: { operator: "Operatore", inn: "INN", address: "Indirizzo", email: "Email", bot: "Bot Telegram" },
+  zh: { operator: "运营者", inn: "INN", address: "地址", email: "电子邮件", bot: "Telegram bot" },
+  ja: { operator: "運営者", inn: "INN", address: "住所", email: "メール", bot: "Telegram bot" },
+  ko: { operator: "운영자", inn: "INN", address: "주소", email: "이메일", bot: "Telegram 봇" },
+  tg: { operator: "Оператор", inn: "INN", address: "Суроға", email: "Email", bot: "боти Telegram" },
+  uz: { operator: "Operator", inn: "INN", address: "Manzil", email: "Email", bot: "Telegram boti" },
+  tt: { operator: "Оператор", inn: "INN", address: "Адрес", email: "Email", bot: "Telegram bot" },
+  hy: { operator: "Օպերատոր", inn: "INN", address: "Հասցե", email: "Email", bot: "Telegram bot" },
+  kk: { operator: "Оператор", inn: "INN", address: "Мекенжай", email: "Email", bot: "Telegram боты" },
+  ky: { operator: "Оператор", inn: "INN", address: "Дарек", email: "Email", bot: "Telegram боту" },
+  ka: { operator: "ოპერატორი", inn: "INN", address: "მისამართი", email: "Email", bot: "Telegram bot" },
+  uk: { operator: "Оператор", inn: "INN", address: "Адреса", email: "Email", bot: "Telegram-бот" },
+  pl: { operator: "Operator", inn: "INN", address: "Adres", email: "E-mail", bot: "Bot Telegram" },
+  ro: { operator: "Operator", inn: "INN", address: "Adresă", email: "Email", bot: "Bot Telegram" },
+  pt: { operator: "Operador", inn: "INN", address: "Endereço", email: "Email", bot: "Bot do Telegram" },
+  ar: { operator: "المشغل", inn: "INN", address: "العنوان", email: "البريد الإلكتروني", bot: "بوت Telegram" },
+  bn: { operator: "অপারেটর", inn: "INN", address: "ঠিকানা", email: "ইমেইল", bot: "Telegram বট" },
+  cs: { operator: "Provozovatel", inn: "INN", address: "Adresa", email: "E-mail", bot: "Telegram bot" },
+  el: { operator: "Υπεύθυνος", inn: "INN", address: "Διεύθυνση", email: "Email", bot: "Bot Telegram" },
+  hi: { operator: "ऑपरेटर", inn: "INN", address: "पता", email: "ईमेल", bot: "Telegram bot" },
+  hu: { operator: "Üzemeltető", inn: "INN", address: "Cím", email: "E-mail", bot: "Telegram bot" },
+  id: { operator: "Operator", inn: "INN", address: "Alamat", email: "Email", bot: "Bot Telegram" },
+  nl: { operator: "Operator", inn: "INN", address: "Adres", email: "E-mail", bot: "Telegram-bot" },
+  sv: { operator: "Operatör", inn: "INN", address: "Adress", email: "E-post", bot: "Telegram-bot" },
+  ta: { operator: "இயக்குநர்", inn: "INN", address: "முகவரி", email: "Email", bot: "Telegram bot" },
+  te: { operator: "ఆపరేటర్", inn: "INN", address: "చిరునామా", email: "Email", bot: "Telegram bot" },
+  th: { operator: "ผู้ดำเนินการ", inn: "INN", address: "ที่อยู่", email: "Email", bot: "บอต Telegram" },
+  tl: { operator: "Tagapagpatakbo", inn: "INN", address: "Address", email: "Email", bot: "Telegram bot" },
+  tr: { operator: "İşletmeci", inn: "INN", address: "Adres", email: "E-posta", bot: "Telegram bot" },
+  vi: { operator: "Nhà vận hành", inn: "INN", address: "Địa chỉ", email: "Email", bot: "Bot Telegram" },
 };
 
 const englishDocuments = {
@@ -779,6 +812,10 @@ function localizeShape(value, code, translations) {
   return value;
 }
 
+function operatorLabelsFor(code) {
+  return operatorLabels[code] || operatorLabels.en;
+}
+
 function buildRendererPayload(translations) {
   const localized = {};
   for (const [code] of languages) {
@@ -788,15 +825,14 @@ function buildRendererPayload(translations) {
         cookie,
         operator: {
           ...operator,
-          labels: operatorLabels.ru,
+          labels: operatorLabelsFor(code),
         },
         documents,
       };
       continue;
     }
     if (code !== "ru" && !translations) {
-      localized[code] = englishLegalPack;
-      continue;
+      throw new Error(`Missing legal translation source for ${code}; run with POLIGLOT_TRANSLATE_LEGAL=1`);
     }
     localized[code] = {
       nav: localizeShape(nav, code, translations),
@@ -804,12 +840,40 @@ function buildRendererPayload(translations) {
       operator: {
         ...operator,
         title: localizeShape(operator.title, code, translations),
-        labels: operatorLabels.ru,
+        labels: operatorLabelsFor(code),
       },
       documents: localizeShape(documents, code, translations),
     };
   }
   return { languages, localized };
+}
+
+function validateRendererPayload(payload) {
+  const docOrder = ["privacy", "terms", "agreement", "consent"];
+  const englishTitles = new Set(Object.values(englishDocuments).map((doc) => doc.title));
+  const russianTitles = new Set(Object.values(documents).map((doc) => doc.title));
+  for (const [code] of languages) {
+    const pack = payload.localized[code];
+    if (!pack) throw new Error(`Missing legal localization pack for ${code}`);
+    for (const docId of docOrder) {
+      const doc = pack.documents?.[docId];
+      if (!doc?.title || !doc?.sections?.length) {
+        throw new Error(`Missing legal document ${docId} for ${code}`);
+      }
+      if (code !== "en" && englishTitles.has(doc.title)) {
+        throw new Error(`${code}:${docId} fell back to English title ${doc.title}`);
+      }
+      if (code !== "ru" && russianTitles.has(doc.title)) {
+        throw new Error(`${code}:${docId} fell back to Russian title ${doc.title}`);
+      }
+    }
+    if (!pack.operator?.inn?.includes("505017471160")) {
+      throw new Error(`Missing invariant INN details for ${code}`);
+    }
+    if ((pack.operator?.labels?.inn || "").toUpperCase() !== "INN" && code !== "ru") {
+      throw new Error(`Translated INN label must stay invariant for ${code}`);
+    }
+  }
 }
 
 function rendererSource(payload) {
@@ -931,5 +995,6 @@ function rendererSource(payload) {
 
 const translations = process.env.POLIGLOT_TRANSLATE_LEGAL === "1" ? await translateAll(collectStrings()) : undefined;
 const payload = buildRendererPayload(translations);
+validateRendererPayload(payload);
 await writeFile(outputPath, rendererSource(payload), "utf8");
 console.log(`wrote ${outputPath}`);

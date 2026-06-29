@@ -447,6 +447,11 @@ var localizedLanguageNames = map[string]map[string]string{
 
 func localizedLanguageNameForInterface(language learningLanguage, interfaceCode string) string {
 	interfaceCode = normalizeInterfaceLanguage(interfaceCode)
+	if names, ok := fullLocalizedLanguageNames[interfaceCode]; ok {
+		if name := strings.TrimSpace(names[language.Code]); name != "" {
+			return name
+		}
+	}
 	if names, ok := localizedLanguageNames[interfaceCode]; ok {
 		if name := strings.TrimSpace(names[language.Code]); name != "" {
 			return name

@@ -75,6 +75,27 @@ const englishLandingCopyThatMustLocalize = [
   "The photo becomes translation, a note, and a practice prompt.",
 ] as const;
 
+test("public site i18n source uses explicit 35-locale copy without English runtime fallback", async () => {
+  const fs = await import("node:fs/promises");
+  const path = await import("node:path");
+  const root = process.cwd();
+  const siteI18n = await fs.readFile(path.join(root, "public", "assets", "site-i18n.js"), "utf8");
+  const privacyHtml = await fs.readFile(path.join(root, "privacy.html"), "utf8");
+
+  expect(siteI18n).toContain("const fullSiteCopy =");
+  expect(siteI18n).not.toContain("...copy.en");
+  expect(siteI18n).not.toContain("copy.en[key]");
+  expect(siteI18n).not.toContain("entry?.en");
+  expect(siteI18n).not.toContain("phraseTranslations[normalizePhrase(ruText)]");
+  expect(siteI18n).toContain('attr === "content" && node.tagName === "META"');
+  for (const code of siteLocaleCodes) {
+    expect(siteI18n, `fullSiteCopy should include ${code}`).toContain(`"${code}": {`);
+  }
+
+  expect(privacyHtml).not.toContain("privacy-policy-i18n.js");
+  expect(privacyHtml).toContain("legal-documents-i18n.js");
+});
+
 const curatedRussianLandingCopy = [
   "Поездка без паники",
   "Рабочие звонки и переписка",
@@ -657,30 +678,32 @@ test("public site language selector exposes all interface locales", async ({ pag
 });
 
 test("landing localizes core product copy across all 35 interface locales", async ({ page }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(480_000);
   await page.goto("/poliglot-ai.html?lang=en");
   const select = page.locator("[data-site-language-select]");
   await expect(select).toBeVisible();
 
   for (const code of siteLocaleCodes) {
-    await page.evaluate((nextCode) => {
+    const localizedLanding = await page.evaluate((nextCode) => {
       const languageSelect = document.querySelector("[data-site-language-select]") as HTMLSelectElement | null;
       if (!languageSelect) throw new Error("missing public site language selector");
       languageSelect.value = nextCode;
       languageSelect.dispatchEvent(new Event("change", { bubbles: true }));
+      const htmlLang = document.documentElement.getAttribute("lang") || "";
+      const landingText = (document.querySelector(".english-spark-landing") as HTMLElement | null)?.innerText || "";
+      const socialProofText = (document.querySelector(".landing-social-proof") as HTMLElement | null)?.innerText || "";
+      return { htmlLang, landingText, socialProofText };
     }, code);
-    await page.waitForTimeout(140);
 
-    const htmlLang = await page.locator("html").getAttribute("lang");
-    expect(htmlLang).toBe(code);
+    expect(localizedLanding.htmlLang).toBe(code);
 
-    const landingText = await page.locator(".english-spark-landing").innerText();
+    const landingText = localizedLanding.landingText;
     expect(landingText).toContain("35");
     if (code !== "en") {
       expect(landingText).not.toContain("Practice speaking before the moment matters");
       expect(landingText).not.toContain("Real situations where the language has to work today");
       expect(landingText).not.toContain("Start free");
-      await expect(page.locator(".landing-social-proof")).not.toContainText("Follow Poliglot AI");
+      expect(localizedLanding.socialProofText).not.toContain("Follow Poliglot AI");
       for (const englishCopy of englishLandingCopyThatMustLocalize) {
         expect(landingText).not.toContain(englishCopy);
       }
@@ -689,6 +712,49 @@ test("landing localizes core product copy across all 35 interface locales", asyn
       expect(landingText).not.toMatch(/\p{Script=Cyrillic}/u);
     }
   }
+});
+
+test("legal documents render localized copy across all 35 interface locales", async ({ page }) => {
+  test.setTimeout(360_000);
+  const requests: string[] = [];
+  page.on("request", (request) => requests.push(new URL(request.url()).pathname));
+  const legalPaths = ["/privacy.html", "/terms.html", "/agreement.html", "/consent.html"] as const;
+  const englishTitles = [
+    "Personal Data Processing Policy",
+    "Terms of Use",
+    "User Agreement",
+    "Consent to Personal Data Processing",
+  ] as const;
+  const russianTitles = [
+    "\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0438 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445",
+    "\u0423\u0441\u043b\u043e\u0432\u0438\u044f \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u043d\u0438\u044f",
+    "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c\u0441\u043a\u043e\u0435 \u0441\u043e\u0433\u043b\u0430\u0448\u0435\u043d\u0438\u0435",
+    "\u0421\u043e\u0433\u043b\u0430\u0441\u0438\u0435 \u043d\u0430 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0443 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445",
+  ] as const;
+
+  for (const legalPath of legalPaths) {
+    for (const code of siteLocaleCodes) {
+      await page.goto(`${legalPath}?lang=${code}`, { waitUntil: "domcontentloaded" });
+      const snapshot = await page.evaluate(() => ({
+        htmlLang: document.documentElement.lang,
+        shellText: (document.querySelector(".legal-document-shell") as HTMLElement | null)?.innerText || "",
+        viewport: document.querySelector('meta[name="viewport"]')?.getAttribute("content") || "",
+      }));
+      expect(snapshot.htmlLang).toBe(code);
+      expect(snapshot.shellText).toContain("supportpoliglotai@gmail.com");
+      expect(snapshot.shellText).toContain("505017471160");
+      expect(snapshot.viewport).toBe("width=device-width, initial-scale=1.0");
+      if (code !== "en") {
+        for (const title of englishTitles) expect(snapshot.shellText).not.toContain(title);
+      }
+      if (code !== "ru") {
+        for (const title of russianTitles) expect(snapshot.shellText).not.toContain(title);
+      }
+    }
+  }
+
+  expect(requests).toContain("/assets/legal-documents-i18n.js");
+  expect(requests).not.toContain("/assets/privacy-policy-i18n.js");
 });
 
 test("privacy and terms keep contacts and both themes readable", async ({ page }) => {

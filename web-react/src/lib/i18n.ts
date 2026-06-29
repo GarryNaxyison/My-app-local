@@ -1,3 +1,4 @@
+import { fullLocaleCopy } from "./fullLocaleCopy";
 import type { ViewId } from "./types";
 
 export const appLocaleCodes = [
@@ -132,7 +133,7 @@ const en: Record<string, string> = {
   app_guide_step_1_detail_3: "Completed lessons stay in history, so you can return to the topic, level, summary, and review.",
   app_guide_step_1_result: "Best first session: Today -> AI Tutor -> one weak-spot repair.",
   app_guide_step_2_title: "How plans differ",
-  app_guide_step_2_body: "Free keeps the starter learning loop: basic text practice, word trainer, notes, phrase audio, and progress. Premium opens AI Tutor, listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits.",
+  app_guide_step_2_body: "Free keeps the starter learning loop: basic text practice, word trainer, notes, phrase audio, and progress. Premium opens AI Tutor with guided listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits.",
   app_guide_step_2_detail_1: "Free is enough to test the route and keep a small daily habit.",
   app_guide_step_2_detail_2: "Premium is the normal daily mode when you need guided lessons, voice, listening, and pronunciation feedback.",
   app_guide_step_2_detail_3: "Platinum is useful before travel, work, exams, or any period where you practice heavily every day.",
@@ -373,10 +374,10 @@ const en: Record<string, string> = {
   account: "Account",
   free_plan_title: "Free",
   free_plan_tier: "Basic",
-  free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening practice, pronunciation scoring, and voice review open in Premium.",
+  free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor with listening practice, pronunciation scoring, and voice review opens in Premium.",
   premium_month_title: "Premium",
   premium_month_tier: "Premium",
-  premium_month_body: "The main mode for daily practice: AI Tutor, listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.",
+  premium_month_body: "The main mode for daily practice: AI Tutor with listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.",
   platinum_month_title: "Platinum",
   platinum_month_tier: "Platinum",
   platinum_month_body: "AI Tutor with maximum daily limits, deeper role-play practice, intensive review practice, and maximum voice and pronunciation practice.",
@@ -3886,8 +3887,8 @@ const aiTutorPremiumCopyOverrides: Partial<Record<AppLocaleCode, Record<string, 
     platinum_feature_priority: "Лучший режим для поездки, работы, экзамена или плотного темпа",
   },
   en: {
-    free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening practice, pronunciation scoring, and voice review open in Premium.",
-    premium_month_body: "The main mode for daily practice: AI Tutor, listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.",
+    free_plan_body: "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor with listening practice, pronunciation scoring, and voice review opens in Premium.",
+    premium_month_body: "The main mode for daily practice: AI Tutor with listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.",
     platinum_month_body: "AI Tutor with maximum daily limits, deeper role-play practice, intensive review practice, and maximum voice and pronunciation practice.",
   },
 };
@@ -5142,66 +5143,6 @@ const localizedGuideCopy: Partial<Record<LocalizedGuideCode, AppGuideCopy>> = {
   },
 };
 
-function buildDerivedGuideCopy(target: Record<string, string>, terms: Record<string, string>): AppGuideCopy {
-  const ready = terms.ready || "Ready";
-  const learn = target.learning_group || terms.learn || "Learning";
-  const today = target.today || terms.daily || "Today";
-  const words = target.learn_words || target.tutor_words || terms.words || "Words";
-  const progress = target.progress || terms.growth || "Progress";
-  const settings = target.settings || "Settings";
-  const premium = target.premium || "Premium";
-  const phrasebook = target.phrasebook || target.save_to_phrasebook || "Notes";
-  const audio = target.listen || target.listening_phrase || target.shadowing || "Audio";
-  const aiTutor = target.ai_tutor || "AI Tutor";
-  const mistakes = target.mistakes || target.choose_mistake || progress;
-  const pronunciation = target.pronunciation || "Pronunciation";
-  const spelling = target.spelling || "Spelling";
-  const level = target.level_label || "Level";
-  const theme = target.toggle_theme || target.theme || settings;
-  const interfaceLanguage = target.interface_language || settings;
-  const learningLanguage = target.learning_language || learn;
-  const learningFocus = target.learning_focus || learn;
-  const completedLessons = target.tutor_completed_lessons || target.lessons_completed || progress;
-  const review = target.tutor_review || target.review || words;
-  const report = target.report_bug || mistakes;
-
-  return {
-    guide: target.guide && target.guide !== en.guide && target.guide !== terms.section ? target.guide : learn,
-    app_guide_title: `${learn}: ${ready}`,
-    app_guide_body: `${learn}: ${today}; ${premium}; ${theme}; ${words}; ${phrasebook}; ${audio}; ${progress}; ${aiTutor}; Telegram.`,
-    app_guide_step_1_title: `${aiTutor} + Telegram`,
-    app_guide_step_1_body: target.view_tutor_subtitle || target.tutor_short_hint || `${aiTutor}: ${words}; ${audio}; ${progress}; Telegram.`,
-    app_guide_step_1_detail_1: `${today}: ${aiTutor}; ${ready}.`,
-    app_guide_step_1_detail_2: `Telegram / Web: ${learn}; ${audio}; ${words}; ${progress}.`,
-    app_guide_step_1_detail_3: `${completedLessons}: ${level}; ${review}; ${progress}.`,
-    app_guide_step_1_result: `${today} -> ${aiTutor} -> ${mistakes}.`,
-    app_guide_step_2_title: `${premium} / Platinum`,
-    app_guide_step_2_body: `${target.free_plan_body || `Free: ${words}; ${phrasebook}; ${progress}.`} ${target.premium_month_body || `${premium}: ${aiTutor}; ${audio}; ${pronunciation}.`} ${target.platinum_month_body || `Platinum: ${progress}; ${ready}.`}`,
-    app_guide_step_2_detail_1: `Free: ${target.free_feature_daily || words}.`,
-    app_guide_step_2_detail_2: `${premium}: ${aiTutor}; ${audio}; ${pronunciation}; ${words}.`,
-    app_guide_step_2_detail_3: `Platinum: ${progress}; ${learn}; ${ready}.`,
-    app_guide_step_2_result: `${premium}: ${target.price || premium}; ${target.payment_method || premium}; ${target.activation_key || premium}; ${progress}.`,
-    app_guide_step_3_title: `${settings} + ${theme}`,
-    app_guide_step_3_body: `${theme}: ${settings}. ${settings}: ${interfaceLanguage}; ${learningLanguage}; ${level}; ${learningFocus}.`,
-    app_guide_step_3_detail_1: `${theme}: ${settings}; ${ready}.`,
-    app_guide_step_3_detail_2: `${settings}: ${interfaceLanguage}; ${learningLanguage}; ${level}.`,
-    app_guide_step_3_detail_3: `${learningFocus}: ${learn}; ${words}; ${progress}.`,
-    app_guide_step_3_result: `${theme}: ${settings}. ${level}: ${learn}; ${progress}.`,
-    app_guide_step_4_title: `${words} + ${spelling}`,
-    app_guide_step_4_body: `${words}: ${review}; ${spelling}; ${progress}. ${aiTutor}: ${mistakes}.`,
-    app_guide_step_4_detail_1: `${words}: ${learn}; ${review}; ${spelling}.`,
-    app_guide_step_4_detail_2: `${aiTutor}: ${report}; ${words}; ${review}.`,
-    app_guide_step_4_detail_3: `${mistakes}: ${words}; ${spelling}; ${pronunciation}; ${progress}.`,
-    app_guide_step_4_result: `${review}: ${words}; ${ready}; ${progress}.`,
-    app_guide_step_5_title: `${phrasebook}, ${audio}, ${report}`,
-    app_guide_step_5_body: `${phrasebook}: ${words}; ${learn}. ${audio}: Listening; ${pronunciation}; ${progress}.`,
-    app_guide_step_5_detail_1: `${phrasebook}: ${learn}; ${words}; ${ready}.`,
-    app_guide_step_5_detail_2: `Listening: ${audio}; ${words}; ${review}.`,
-    app_guide_step_5_detail_3: `${report}: ${settings}; ${words}; ${mistakes}.`,
-    app_guide_step_5_result: `${audio}; ${phrasebook}; ${report}; ${review}; ${progress}.`,
-  };
-}
-
 appLocaleCodes.forEach((code) => {
   const target = localeOverrides[code] || {};
   const terms = derivedUiTerms[code] || {
@@ -5220,7 +5161,7 @@ appLocaleCodes.forEach((code) => {
   const completedLessons = target.lessons_completed || target.tutor_completed_lessons || progress;
   const guideValues: Record<string, string> = code === "ru" || code === "en"
     ? {}
-    : localizedGuideCopy[code as LocalizedGuideCode] || buildDerivedGuideCopy(target, terms);
+    : localizedGuideCopy[code as LocalizedGuideCode] || {};
   const tutorValues: Record<string, string> = code === "ru"
     ? {}
     : code === "en"
@@ -5997,6 +5938,36 @@ appLocaleCodes.forEach((code) => {
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ai_router: "AI Router" };
 });
 
+appLocaleCodes.forEach((code) => {
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...(fullLocaleCopy[code] || {}) };
+});
+
+appLocaleCodes.forEach((code) => {
+  const current = localeOverrides[code] || {};
+  const payment = paymentSafetyCopy[code] || paymentSafetyCopy.en;
+  const paymentFields = paymentFieldCopy[code] || paymentFieldCopy.en;
+  const wordAudioLabel = code === "en"
+    ? "Word audio"
+    : current.learn_words || current.tutor_words || current.words_group || current.words || current.tutor_audio_word;
+  localeOverrides[code] = {
+    ...current,
+    ai_router: "AI Router",
+    global_top: globalTopOverrides[code],
+    pay_stars: "Telegram Stars",
+    network: paymentFields.network,
+    comment: paymentFields.comment,
+    expires_at: paymentFields.expires,
+    payment_stars_instruction: payment.stars,
+    payment_crypto_prepare_instruction: payment.cryptoPrepare,
+    payment_crypto_instruction: payment.crypto,
+    payment_usdt_trc20_instruction: payment.trc20,
+    roleplay_ai_line: "AI",
+    shown_amount: payment.shownAmount,
+    tx_hash: paymentFields.tx,
+    tutor_audio_word: wordAudioLabel,
+  };
+});
+
 let cp1251ReverseMap: Map<string, number> | null = null;
 
 function getCp1251ReverseMap() {
@@ -6030,8 +6001,8 @@ const fallbackLeakAllowedKeys = new Set([
 
 function isLikelyFallbackLeak(locale: AppLocaleCode, key: string, value: string, fallback?: string) {
   if (locale === "en") return false;
-  if (key.startsWith("app_guide_")) return false;
   if (fallbackLeakAllowedKeys.has(key)) return false;
+  if (key.startsWith("app_guide_")) return false;
   if (key === "sample_phrase") return false;
   if (key === "skip") return false;
   const cleaned = cleanAppText(value).trim();

@@ -1466,11 +1466,11 @@ function premiumPlanBody(plan: PremiumPlan, copy: (key: string, fallback: string
   const source = premiumPlanSource(plan);
   const body = cleanAppText(plan.body);
   if (body) return body;
-  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor, listening practice, pronunciation scoring, and voice review open in Premium.");
+  if (premiumPlanIsFree(plan)) return copy("free_plan_body", "Basic text learning, word training, Phrasebook, and progress overview. AI Tutor with listening practice, pronunciation scoring, and voice review opens in Premium.");
   if (premiumPlanIsPlatinum(plan)) return copy("platinum_month_body", "AI Tutor with maximum daily limits, deeper role-play practice, intensive review practice, and maximum voice and pronunciation practice.");
   if (source.includes("year") || source.includes("365")) return copy("premium_year_body", "Same daily AI audio limits, paid yearly.");
-  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.");
-  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor, listening practice, pronunciation scoring, voice tools, image practice, and focused daily training.");
+  if (premiumPlanIsPremium(plan)) return copy("premium_month_body", "The main mode for daily practice: AI Tutor with listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits.");
+  return cleanAppText(plan.days_label) || copy("premium_month_body", "AI Tutor with listening practice, pronunciation scoring, voice tools, image practice, and focused daily training.");
 }
 
 function premiumPlanCatalog(plans: PremiumPlan[], copy: (key: string, fallback: string) => string) {
@@ -5137,7 +5137,7 @@ function AppGuideDialog({
     },
     {
       title: copy("app_guide_step_2_title", "How plans differ"),
-      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor, listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
+      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor with guided listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
       details: [
         copy("app_guide_step_2_detail_1", "Free is enough to test the route and keep a small daily habit."),
         copy("app_guide_step_2_detail_2", "Premium is the normal daily mode when you need guided lessons, voice, listening, and pronunciation feedback."),
@@ -8883,7 +8883,7 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("free_plan_title", "Free"),
       tier: "free",
       label: copy("free_plan_label", "Для начала"),
-      body: copy("free_plan_body", "Basic text learning, word training, notes, and progress overview. AI Tutor, listening practice, pronunciation scoring, and voice review open in Premium."),
+      body: copy("free_plan_body", "Basic text learning, word training, notes, and progress overview. AI Tutor with listening practice, pronunciation scoring, and voice review opens in Premium."),
       features: [
         copy("free_feature_daily", "ежедневная привычка и стартовые уроки"),
         copy("free_feature_words", "базовая тренировка слов"),
@@ -8903,7 +8903,7 @@ function fallbackPlans(copy: (key: string, fallback: string) => string): Premium
       title: copy("premium_month_title", "Premium"),
       tier: "premium",
       label: copy("premium_plan_label", "Регулярная учеба"),
-      body: copy("premium_month_body", "The main mode for daily practice: AI Tutor, listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits."),
+      body: copy("premium_month_body", "The main mode for daily practice: AI Tutor with listening practice, pronunciation scoring, AI-guided tutor lessons, voice review, image tools, and expanded daily limits."),
       features: [
         copy("premium_feature_voice_text", "голос в текст и перевод услышанного"),
         copy("premium_feature_image_text", "перевод текста с картинки"),
