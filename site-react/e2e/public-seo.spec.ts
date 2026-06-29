@@ -1,5 +1,23 @@
 import { expect, test } from "@playwright/test";
 
+const englishAnswerCopy = [
+  "Search answers",
+  "Answers for search and AI assistants",
+  "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
+  "What is Poliglot AI?",
+  "Poliglot AI is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
+  "Can I practice English with an AI tutor in Telegram?",
+  "Yes. In Telegram you can start practice, receive tasks, send answers and voice messages, while progress stays synced with the web app.",
+  "How is an AI tutor different from a vocabulary app?",
+  "Poliglot AI is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
+  "Can I practice pronunciation and speaking?",
+  "Yes. Voice Coach and shadowing help you practice speech, see weak words, get a score, and repeat a more natural phrase.",
+  "Can I translate text from photos?",
+  "Yes. A photo of a menu, sign, or exercise becomes a translation, note, and short practice prompt in that context.",
+  "Is there a free plan?",
+  "Yes. Free gives starter lessons and practice without payment, while Premium and Platinum unlock higher limits, voice, photo tools, and intensive daily study.",
+] as const;
+
 test.describe("public landing SEO and AEO metadata", () => {
   test.describe.configure({ timeout: 90_000 });
 
@@ -100,6 +118,31 @@ test.describe("public landing SEO and AEO metadata", () => {
     );
     expect(webEntryHrefs.length).toBeGreaterThan(0);
     expect(webEntryHrefs.every((href) => href === "/app/")).toBe(true);
+  });
+
+  test("localizes visible AEO answers across every interface language", async ({ page }) => {
+    await page.goto("/poliglot-ai.html?lang=en");
+
+    const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
+      options.map((option) => (option as HTMLOptionElement).value),
+    );
+    expect(languageCodes).toHaveLength(35);
+
+    for (const code of languageCodes) {
+      await page.locator("[data-site-language-select]").selectOption(code);
+      await page.waitForTimeout(120);
+
+      await expect(page.locator(".answer-card")).toHaveCount(6);
+
+      if (code === "en") {
+        continue;
+      }
+
+      const sectionText = await page.locator(".answer-section").innerText();
+      for (const englishCopy of englishAnswerCopy) {
+        expect(sectionText).not.toContain(englishCopy);
+      }
+    }
   });
 
   test("serves robots and sitemap search files", async ({ page }) => {
