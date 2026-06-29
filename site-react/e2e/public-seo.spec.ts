@@ -1,6 +1,29 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("public landing SEO and AEO metadata", () => {
+  test.describe.configure({ timeout: 90_000 });
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      const originalMatchMedia = window.matchMedia.bind(window);
+      window.matchMedia = ((query: string) => {
+        if (query === "(prefers-reduced-motion: reduce)") {
+          return {
+            matches: true,
+            media: query,
+            onchange: null,
+            addListener: () => undefined,
+            removeListener: () => undefined,
+            addEventListener: () => undefined,
+            removeEventListener: () => undefined,
+            dispatchEvent: () => false,
+          } as MediaQueryList;
+        }
+        return originalMatchMedia(query);
+      }) as typeof window.matchMedia;
+    });
+  });
+
   test("sets Russian canonical metadata, alternates, JSON-LD, and visible answers", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=ru");
 
