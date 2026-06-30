@@ -10,8 +10,6 @@ At the start of this or any future project, verify or start the MCP connections 
 
 Headroom MCP is configured in Codex as `headroom`. At the start of a session, verify it with `headroom_stats` when the tool is available. Use `headroom_compress` for large tool outputs, logs, search results, or files, and `headroom_retrieve` when the original content is needed. If the current Codex process does not expose the Headroom tools yet, restart Codex so it reloads `C:\Users\Admin\.codex\config.toml`.
 
-Open Design MCP is configured in Codex as `open-design`. The Open Design source install lives at `C:\Users\Admin\.codex\vendor_imports\open-design`, and Codex starts it with absolute `node.exe` + `apps\daemon\dist\cli.js` paths to avoid the Windows/Git Bash `od` name collision. At the start of design or artifact work, ensure the Open Design daemon is running on `http://127.0.0.1:7456`; restart Codex if the current process does not expose the `open-design` MCP tools yet.
-
 MarkItDown MCP is configured in Codex as `markitdown`. It runs from the isolated venv at `C:\Users\Admin\.codex\vendor_imports\markitdown-mcp-venv` via `python.exe -m markitdown_mcp` and exposes `convert_to_markdown(uri)` for `file:`, `http:`, `https:`, and `data:` URIs. Treat inputs as trusted or sanitized because the server reads resources with the current user's privileges.
 
 ## Shell Preference

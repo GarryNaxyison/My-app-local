@@ -13,7 +13,6 @@ E:\PROJECTS\New project\My app local
 - Ref MCP: use when framework/library documentation is needed.
 - shadcn MCP: use when adding or checking shadcn/ui components.
 - Nx MCP: use when project graph, affected targets, or Nx workspace context is needed.
-- Open Design MCP: use for design projects, artifacts, project file access, plugin/design-system context, and handoff from Open Design.
 - MarkItDown MCP: use to convert trusted local files, URLs, or data URIs into Markdown for LLM-readable context.
 - Linux/Ubuntu access: use when server deployment or production verification is needed.
 - Project-specific Codex MCP: use any additional MCP configured for this project/session.
@@ -57,57 +56,6 @@ Manual stdio command, only useful when an MCP client attaches to it:
 ```powershell
 npx nx mcp --workspacePath "E:\PROJECTS\New project\My app local" --no-minimal --disableTelemetry
 ```
-
-## Open Design MCP
-
-Open Design is installed at:
-
-```text
-C:\Users\Admin\.codex\vendor_imports\open-design
-```
-
-Codex MCP server name:
-
-```text
-open-design
-```
-
-Start the Open Design daemon when design/artifact work needs it:
-
-```powershell
-$odRoot = 'C:\Users\Admin\.codex\vendor_imports\open-design'
-$logDir = 'C:\Users\Admin\.codex\tmp'
-New-Item -ItemType Directory -Force -Path $logDir | Out-Null
-Start-Process -FilePath 'C:\Program Files\nodejs\node.exe' `
-  -ArgumentList @((Join-Path $odRoot 'apps\daemon\dist\cli.js'),'daemon','start','--headless','--serve-web','--port','7456','--host','127.0.0.1') `
-  -WorkingDirectory $odRoot `
-  -WindowStyle Hidden `
-  -RedirectStandardOutput (Join-Path $logDir 'open-design-daemon.out.log') `
-  -RedirectStandardError (Join-Path $logDir 'open-design-daemon.err.log')
-```
-
-Validate:
-
-```powershell
-Get-NetTCPConnection -LocalPort 7456 -ErrorAction SilentlyContinue
-(Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:7456/api/health').Content
-& 'C:\Program Files\nodejs\node.exe' 'C:\Users\Admin\.codex\vendor_imports\open-design\apps\daemon\dist\cli.js' daemon status --json --daemon-url http://127.0.0.1:7456
-```
-
-Expected health response includes:
-
-```json
-{"ok":true,"version":"0.12.1"}
-```
-
-The Codex MCP config uses absolute paths:
-
-```text
-command = 'C:\Program Files\nodejs\node.exe'
-args = ['C:\Users\Admin\.codex\vendor_imports\open-design\apps\daemon\dist\cli.js', "mcp", "--daemon-url", "http://127.0.0.1:7456"]
-```
-
-Do not rely on a bare `od` command in Git Bash: `/usr/bin/od` is the system octal-dump tool and can shadow Open Design's CLI.
 
 ## MarkItDown MCP
 
