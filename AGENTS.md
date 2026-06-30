@@ -10,6 +10,8 @@ At the start of this or any future project, verify or start the MCP connections 
 
 Headroom MCP is configured in Codex as `headroom`. At the start of a session, verify it with `headroom_stats` when the tool is available. Use `headroom_compress` for large tool outputs, logs, search results, or files, and `headroom_retrieve` when the original content is needed. If the current Codex process does not expose the Headroom tools yet, restart Codex so it reloads `C:\Users\Admin\.codex\config.toml`.
 
+Use Headroom MCP for large context payloads: tool outputs over ~200 lines, files over ~20 KB, large JSON/CSS/TSX/logs/search results, and repeated diagnostics. Do not compress short diffs, concise errors, or exact code fragments needed for editing unless they are unusually large.
+
 MarkItDown MCP is configured in Codex as `markitdown`. It runs from the isolated venv at `C:\Users\Admin\.codex\vendor_imports\markitdown-mcp-venv` via `python.exe -m markitdown_mcp` and exposes `convert_to_markdown(uri)` for `file:`, `http:`, `https:`, and `data:` URIs. Treat inputs as trusted or sanitized because the server reads resources with the current user's privileges.
 
 ## Shell Preference
