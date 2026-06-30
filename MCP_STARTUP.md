@@ -14,6 +14,7 @@ E:\PROJECTS\New project\My app local
 - shadcn MCP: use when adding or checking shadcn/ui components.
 - Nx MCP: use when project graph, affected targets, or Nx workspace context is needed.
 - Open Design MCP: use for design projects, artifacts, project file access, plugin/design-system context, and handoff from Open Design.
+- MarkItDown MCP: use to convert trusted local files, URLs, or data URIs into Markdown for LLM-readable context.
 - Linux/Ubuntu access: use when server deployment or production verification is needed.
 - Project-specific Codex MCP: use any additional MCP configured for this project/session.
 
@@ -107,6 +108,35 @@ args = ['C:\Users\Admin\.codex\vendor_imports\open-design\apps\daemon\dist\cli.j
 ```
 
 Do not rely on a bare `od` command in Git Bash: `/usr/bin/od` is the system octal-dump tool and can shadow Open Design's CLI.
+
+## MarkItDown MCP
+
+MarkItDown MCP is installed in an isolated Python venv at:
+
+```text
+C:\Users\Admin\.codex\vendor_imports\markitdown-mcp-venv
+```
+
+Codex MCP server name:
+
+```text
+markitdown
+```
+
+The Codex MCP config uses:
+
+```text
+command = 'C:\Users\Admin\.codex\vendor_imports\markitdown-mcp-venv\Scripts\python.exe'
+args = ["-m", "markitdown_mcp"]
+```
+
+Validate with an MCP client or after Codex restart by listing the `markitdown` tools. The expected tool is:
+
+```text
+convert_to_markdown
+```
+
+The tool accepts a `uri` value for `file:`, `http:`, `https:`, or `data:` resources and converts it to Markdown. Treat inputs as trusted or sanitized: MarkItDown runs with the current user's privileges and can read any resource the process can access.
 
 ## Browser MCP
 
