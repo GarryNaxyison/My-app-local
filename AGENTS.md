@@ -4,15 +4,15 @@
 
 Work in this repository by default: `E:\PROJECTS\New project\My app local`. Treat the parent folder `E:\PROJECTS\New project` as a container unless the user explicitly asks to work there.
 
-## Universal MCP Startup
+## On-Demand MCP Usage
 
-At the start of this or any future project, verify or start the MCP connections described in `MCP_STARTUP.md`: Figma, 21st.dev Magic, Ref, shadcn, Nx MCP, Linux/Ubuntu access when server work may be needed, and any project-specific MCP from Codex config.
+Do not verify, start, or call MCP servers by default. Use MCP tools only when the current task directly needs that capability or local shell/file inspection is insufficient. Prefer local repository context first, and use `MCP_STARTUP.md` as an on-demand trigger map rather than a startup checklist.
 
-Headroom MCP is configured in Codex as `headroom`. At the start of a session, verify it with `headroom_stats` when the tool is available. Use `headroom_compress` for large tool outputs, logs, search results, or files, and `headroom_retrieve` when the original content is needed. If the current Codex process does not expose the Headroom tools yet, restart Codex so it reloads `C:\Users\Admin\.codex\config.toml`.
+Headroom MCP is configured in Codex as `headroom`. Keep it available for context savings, but call `headroom_stats` only when MCP availability matters or before compression-heavy work. Use `headroom_compress` for large tool outputs, logs, search results, or files, and `headroom_retrieve` when the original content is needed. If the current Codex process does not expose the Headroom tools yet, restart Codex so it reloads `C:\Users\Admin\.codex\config.toml`.
 
 Use Headroom MCP for large context payloads: tool outputs over ~200 lines, files over ~20 KB, large JSON/CSS/TSX/logs/search results, and repeated diagnostics. Do not compress short diffs, concise errors, or exact code fragments needed for editing unless they are unusually large.
 
-MarkItDown MCP is configured in Codex as `markitdown`. It runs from the isolated venv at `C:\Users\Admin\.codex\vendor_imports\markitdown-mcp-venv` via `python.exe -m markitdown_mcp` and exposes `convert_to_markdown(uri)` for `file:`, `http:`, `https:`, and `data:` URIs. Treat inputs as trusted or sanitized because the server reads resources with the current user's privileges.
+MarkItDown MCP is configured in Codex as `markitdown`. Use it only when converting documents, URLs, PDFs, or other resources into Markdown is useful for the current task. It runs from the isolated venv at `C:\Users\Admin\.codex\vendor_imports\markitdown-mcp-venv` via `python.exe -m markitdown_mcp` and exposes `convert_to_markdown(uri)` for `file:`, `http:`, `https:`, and `data:` URIs. Treat inputs as trusted or sanitized because the server reads resources with the current user's privileges.
 
 ## Shell Preference
 

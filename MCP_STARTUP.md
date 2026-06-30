@@ -1,23 +1,26 @@
-# MCP Startup
+# MCP On-Demand Usage
 
-Use this checklist at the start of work when MCP context may matter. The primary workspace is:
+Use this file as a trigger map, not as a startup checklist. Do not verify, start, or call MCP servers by default. Prefer local shell/file inspection first, then use MCP only when the current task directly needs the capability or local tools are insufficient. The primary workspace is:
 
 ```text
 E:\PROJECTS\New project\My app local
 ```
 
-## Required Checks
+## Trigger Map
 
+- Headroom MCP: use for large outputs/files/logs/search results over ~200 lines or ~20 KB, large JSON/CSS/TSX payloads, and repeated diagnostics.
+- Browser/Playwright MCP: use for UI behavior, screenshots, console checks, responsive verification, or local web testing.
+- GitHub MCP: use for PRs, issues, reviews, releases, remote repository metadata, or explicit GitHub actions.
+- Nx MCP: use when project graph, affected targets, workspace/project config, or Nx-specific documentation is needed.
+- MarkItDown MCP: use to convert trusted local files, URLs, PDFs, or data URIs into Markdown for LLM-readable context.
 - Figma MCP: use when working from Figma links, inspecting designs, or writing screens back to Figma.
 - 21st.dev Magic MCP: use when generating UI components or looking up component patterns.
-- Ref MCP: use when framework/library documentation is needed.
+- Ref MCP: use when framework/library documentation is needed and local docs are insufficient.
 - shadcn MCP: use when adding or checking shadcn/ui components.
-- Nx MCP: use when project graph, affected targets, or Nx workspace context is needed.
-- MarkItDown MCP: use to convert trusted local files, URLs, or data URIs into Markdown for LLM-readable context.
 - Linux/Ubuntu access: use when server deployment or production verification is needed.
-- Project-specific Codex MCP: use any additional MCP configured for this project/session.
+- Project-specific Codex MCP: use additional MCP configured for this project/session only when the task needs it.
 
-If an MCP is unavailable, continue with the best local fallback and report the missing connection only when it affects the task.
+Do not start persistent MCP daemons unless the current task needs them. If an MCP is unavailable, continue with the best local fallback and report the missing connection only when it affects the task.
 
 ## Nx MCP
 
