@@ -4304,10 +4304,6 @@ func (api *webAPI) handleCryptoPremiumPayment(w http.ResponseWriter, r *http.Req
 		writeAPIError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := api.bot.saveDirectCryptoPayment(payment); err != nil {
-		writeAPIError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
 	writeJSON(w, http.StatusOK, cryptoPaymentDTO(payment, invoiceURL))
 }
 

@@ -1746,6 +1746,13 @@ func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {
 	if invoiceURL, _ := payment["invoice_url"].(string); !strings.HasPrefix(invoiceURL, "https://app.tonkeeper.com/transfer/") {
 		t.Fatalf("expected Tonkeeper invoice url, got %#v", payment)
 	}
+	var count int
+	if err := store.db.QueryRow(`SELECT COUNT(*) FROM crypto_payments`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 1 {
+		t.Fatalf("crypto_payments count = %d, want 1", count)
+	}
 }
 
 func TestWebStarsPaymentSendsTelegramInvoice(t *testing.T) {
