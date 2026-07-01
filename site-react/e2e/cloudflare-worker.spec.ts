@@ -34,9 +34,9 @@ test("Cloudflare Worker returns branded maintenance HTML when the origin is unav
   }) as typeof fetch;
 
   try {
-    const response = await worker.default.fetch(new Request("https://poliglotai.ru/app/"), {
+    const response = await worker.default.fetch(new Request("https://neriva.ru/app/"), {
       ORIGIN_BASE_URL: "https://origin.example.com",
-      MAINTENANCE_PAGE_URL: "https://poliglotai.ru/maintenance.html",
+      MAINTENANCE_PAGE_URL: "https://neriva.ru/maintenance.html",
     });
 
     expect(response.status).toBe(503);
@@ -61,22 +61,22 @@ test("Cloudflare Worker serves static pages from the Pages origin", async () => 
   }) as typeof fetch;
 
   try {
-    const response = await worker.default.fetch(new Request("https://poliglotai.online/en/ai-english-tutor.html"), {
-      STATIC_BASE_URL: "https://poliglotai-online.pages.dev",
+    const response = await worker.default.fetch(new Request("https://neriva.ru/en/ai-english-tutor.html"), {
+      STATIC_BASE_URL: "https://neriva.pages.dev",
     });
 
     expect(response.status).toBe(200);
     expect(await response.text()).toContain("SEO page");
 
-    const homeResponse = await worker.default.fetch(new Request("https://poliglotai.online/"), {
-      STATIC_BASE_URL: "https://poliglotai-online.pages.dev",
+    const homeResponse = await worker.default.fetch(new Request("https://neriva.ru/"), {
+      STATIC_BASE_URL: "https://neriva.pages.dev",
     });
 
     expect(homeResponse.status).toBe(200);
     expect(await homeResponse.text()).toContain("SEO page");
     expect(requestedUrls).toEqual([
-      "https://poliglotai-online.pages.dev/en/ai-english-tutor",
-      "https://poliglotai-online.pages.dev/poliglot-ai",
+      "https://neriva.pages.dev/en/ai-english-tutor",
+      "https://neriva.pages.dev/poliglot-ai",
     ]);
   } finally {
     globalThis.fetch = originalFetch;

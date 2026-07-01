@@ -1291,7 +1291,7 @@ function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
       </nav>
       <address>
         <strong>Contacts</strong>
-        <a href="/app/">poliglotai.ru/app</a>
+        <a href="/app/">neriva.ru/app</a>
         <a href="https://t.me/poliglot_ai_bot">@poliglot_ai_bot</a>
         <a href="https://t.me/AsaselD">@AsaselD</a>
         <a href="mailto:supportpoliglotai@gmail.com">supportpoliglotai@gmail.com</a>
@@ -1323,7 +1323,7 @@ function SiteFooter() {
       </nav>
       <address>
         <strong>Контакты</strong>
-        <a href="/app/">poliglotai.ru/app</a>
+        <a href="/app/">neriva.ru/app</a>
         <a href="https://t.me/poliglot_ai_bot">@poliglot_ai_bot</a>
         <a href="https://t.me/AsaselD">@AsaselD</a>
         <a href="mailto:supportpoliglotai@gmail.com">supportpoliglotai@gmail.com</a>

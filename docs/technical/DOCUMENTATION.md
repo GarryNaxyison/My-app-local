@@ -175,7 +175,7 @@ The build writes `poliglot-ai.html`, `privacy.html`, `terms.html`, and hashed as
 
 Authentication uses the current React shell at `/login` and `/app/login`. Caddy must route `/login` and `/login/*` to the Go web app together with `/app/*`; otherwise the public site fallback will serve the landing page instead of auth. Unauthenticated `/app` visitors are redirected to `/login`, where the user can switch the interface language and theme before registering or signing in. Authenticated visits to `/login` return to `/app`; Telegram profile completion can stay on the login shell while the user chooses whether to finish a new profile or link an existing web account.
 
-Public website links to the web app should use relative `/app/` URLs. This keeps `poliglotai.ru` users on the Russian domain and `poliglotai.online` users on the European mirror instead of forcing either group to a single host. The landing page also rewrites visible app URL labels from the current host, so Russian-domain visitors see `poliglotai.ru/app` and online-mirror visitors see `poliglotai.online/app`.
+Public website links to the web app should use relative `/app/` URLs. This keeps Neriva and old Poliglot alias visitors on the current host instead of forcing either group to a single host. The landing page also rewrites visible app URL labels from the current host, so Neriva visitors see `neriva.ru/app` while old-host visitors can still see their current accepted alias.
 
 The public Privacy and Terms pages keep the legal body text inside the React legal shell. Their first block uses the same restrained Sparkles treatment as the landing, and `legacyLegalContent.ts` is generated from the prior static pages so legal information is not lost during design work. The public Privacy page also keeps `РЎР°Р№С‚ РїРѕР»РёРіР»РѕС‚Р° РґР»СЏ Р±РѕС‚Р°/assets/privacy-policy-i18n.js` available for existing translation behavior. That file and the shared `legal_card_*`, `legal_updated_date`, and `legal_site_scope` keys in `assets/site-i18n.js` must stay translated for every supported site language. Public-site regression coverage lives in `site-react/e2e/public-site.spec.ts` and must keep checking the theme toggle, `/app/` app links, shader canvas on desktop and mobile, key feature headings, light-theme section-label readability, dark-theme language select readability, and the `@AsaselD` contact card.
 
@@ -451,7 +451,7 @@ If explicit `CRYPTO_USDT_*_AMOUNT` values are empty, USDT invoices are calculate
 If you create the API key in TonConsole, put it into `CRYPTO_TONAPI_KEY` (not `CRYPTO_TONCENTER_API_KEY`). `CRYPTO_TONAPI_WEBHOOK_KEY` must be only the secret token, not the full URL. You can then add a TonAPI webhook in TonConsole with this endpoint:
 
 ```text
-https://poliglotai.ru/tonapi/webhook/<CRYPTO_TONAPI_WEBHOOK_KEY>
+https://api.neriva.ru/tonapi/webhook/<CRYPTO_TONAPI_WEBHOOK_KEY>
 ```
 
 Then subscribe the webhook to the merchant TON wallet account. The webhook is used as a wake-up signal: the server receives the transaction hash/LT from TonAPI, rechecks pending TON and USDT-TON invoices against the blockchain, and activates the matching Premium or Platinum invoice automatically.
@@ -459,7 +459,11 @@ Then subscribe the webhook to the merchant TON wallet account. The webhook is us
 Example Caddy shape:
 
 ```caddyfile
-poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+	reverse_proxy 127.0.0.1:8080
+}
+
+api.neriva.ru, api.poliglotai.ru, api.poliglotai.online {
 	reverse_proxy 127.0.0.1:8080
 }
 ```
@@ -618,7 +622,7 @@ After adding or refreshing a dictionary source, run `python tools/build_multilin
 
 The Ubuntu server has a persistent `poliglot-deploy-upload.service` for large deploy artifacts when PuTTY `pscp` or streamed SSH uploads fail.
 
-- Public HTTPS route: `https://poliglotai.ru/__codex_deploy_upload/<filename>`.
+- Public HTTPS route: `https://neriva.ru/__codex_deploy_upload/<filename>`.
 - The service itself binds only to `127.0.0.1:19081`; Caddy proxies the route and enforces a `450MB` request body limit.
 - Uploads require the `X-Deploy-Token` header. The token is stored on the server in `/opt/aibot/deploy-upload/deploy-upload.env` and should not be printed in user-facing answers.
 - Allowed filenames are intentionally narrow: `aibot-linux-amd64`, `poliglot-app-web.tgz`, `poliglot-public-site.tgz`, `Caddyfile.deploy`, `deploy_react_server.sh`, and smoke-test file `deploy-upload-smoke.txt`.

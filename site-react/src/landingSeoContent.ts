@@ -39,8 +39,8 @@ export const landingLanguageCodes = [
 export type LandingLanguageCode = (typeof landingLanguageCodes)[number];
 export type LandingSeoLocale = "ru" | "en";
 
-export const russianSiteOrigin = "https://poliglotai.ru";
-export const internationalSiteOrigin = "https://poliglotai.online";
+export const russianSiteOrigin = "https://neriva.ru";
+export const internationalSiteOrigin = "https://neriva.ru";
 
 export const socialProfileUrls = [
   "https://www.youtube.com/@PoliglotAI",

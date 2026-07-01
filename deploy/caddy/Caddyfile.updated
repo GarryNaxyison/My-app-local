@@ -1,4 +1,4 @@
-poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
 	# Production DDoS/edge throttling must be enforced before Caddy
 	# (provider firewall, Cloudflare/WAF, or a Caddy build with a verified rate-limit plugin).
 	# The Go backend also applies /api/* application rate limits, but it cannot absorb volumetric floods.
@@ -46,6 +46,6 @@ poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
 	}
 }
 
-api.poliglotai.ru, api.poliglotai.online {
+api.neriva.ru, api.poliglotai.ru, api.poliglotai.online {
 	reverse_proxy localhost:8080
 }

@@ -3818,9 +3818,12 @@ function languageCode(code?: string) {
 }
 
 function legalDocumentOrigin() {
-  const fallback = "https://poliglotai.online";
+  const fallback = "https://neriva.ru";
   if (typeof window === "undefined") return fallback;
   const hostname = window.location.hostname.toLowerCase();
+  if (hostname === "neriva.ru" || hostname === "www.neriva.ru") {
+    return "https://neriva.ru";
+  }
   if (hostname === "poliglotai.ru" || hostname === "www.poliglotai.ru") {
     return "https://poliglotai.ru";
   }

@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	privacyPolicyURL       = "https://poliglotai.ru/privacy.html"
-	personalDataConsentURL = "https://poliglotai.ru/consent.html"
-	userAgreementURL       = "https://poliglotai.ru/agreement.html"
+	privacyPolicyURL       = "https://neriva.ru/privacy.html"
+	personalDataConsentURL = "https://neriva.ru/consent.html"
+	userAgreementURL       = "https://neriva.ru/agreement.html"
 )
 
 type telegramEditTarget struct {
@@ -634,7 +634,7 @@ func mainMenuInlineKeyboard(copies ...uiCopy) map[string]any {
 	copy := keyboardCopy(copies)
 	webAppURL := strings.TrimSpace(os.Getenv("WEB_APP_URL"))
 	if webAppURL == "" {
-		webAppURL = "https://poliglotai.ru/app"
+		webAppURL = "https://neriva.ru/app"
 	}
 	return map[string]any{
 		"inline_keyboard": [][]map[string]any{

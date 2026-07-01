@@ -79,10 +79,10 @@ test.describe("static SEO pages", () => {
       await expect(page.locator("h1")).toHaveText(item.ruH1);
       await expect(page.locator("#root")).toHaveCount(0);
       await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Poliglot AI/);
-      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
-      await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
-      await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
-      await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://neriva.ru${item.ruPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://neriva.ru${item.ruPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
       await expect(page.locator(".seo-faq__item")).toHaveCount(5);
       await expect(page.locator(".seo-related a")).toHaveCount(4);
       await expect(page.locator('a[data-entry="web-app"]').first()).toHaveAttribute("href", "/app/");
@@ -90,7 +90,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
       await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
-      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://poliglotai.ru${item.ruPath}`);
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://neriva.ru${item.ruPath}`);
       await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
       await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", item.ruTitle);
 
@@ -122,15 +122,15 @@ test.describe("static SEO pages", () => {
       await expect(page.locator("html")).toHaveAttribute("lang", "en");
       await expect(page.locator("h1")).toHaveText(item.enH1);
       await expect(page.locator("#root")).toHaveCount(0);
-      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
-      await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
-      await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://neriva.ru${item.ruPath}`);
+      await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
       await expect(page.locator(".seo-page")).toContainText("web app");
       await expect(page.locator(".seo-page")).toContainText("Telegram");
       await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html?lang=en");
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
-      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://poliglotai.online${item.enPath}`);
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://neriva.ru${item.enPath}`);
       await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", item.enTitle);
     }
   });
@@ -142,11 +142,11 @@ test.describe("static SEO pages", () => {
     expect(body).toBeTruthy();
 
     for (const item of pages) {
-      expect(body).toContain(`https://poliglotai.ru${item.ruPath}`);
-      expect(body).toContain(`https://poliglotai.online${item.enPath}`);
-      expect(body).toContain(`hreflang="ru" href="https://poliglotai.ru${item.ruPath}"`);
-      expect(body).toContain(`hreflang="en" href="https://poliglotai.online${item.enPath}"`);
-      expect(body).toContain(`hreflang="x-default" href="https://poliglotai.online${item.enPath}"`);
+      expect(body).toContain(`https://neriva.ru${item.ruPath}`);
+      expect(body).toContain(`https://neriva.ru${item.enPath}`);
+      expect(body).toContain(`hreflang="ru" href="https://neriva.ru${item.ruPath}"`);
+      expect(body).toContain(`hreflang="en" href="https://neriva.ru${item.enPath}"`);
+      expect(body).toContain(`hreflang="x-default" href="https://neriva.ru${item.enPath}"`);
     }
   });
 

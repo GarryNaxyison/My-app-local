@@ -203,18 +203,20 @@ function renderPage(page, language) {
 }
 
 function renderSitemap() {
+  const landingRuUrl = `${russianOrigin}/poliglot-ai.html`;
+  const landingEnUrl = `${englishOrigin}/poliglot-ai.html?lang=en`;
   const landingAlternates = [
-    '<xhtml:link rel="alternate" hreflang="ru" href="https://poliglotai.ru/poliglot-ai.html" />',
-    '<xhtml:link rel="alternate" hreflang="en" href="https://poliglotai.online/poliglot-ai.html?lang=en" />',
-    '<xhtml:link rel="alternate" hreflang="x-default" href="https://poliglotai.online/poliglot-ai.html?lang=en" />',
+    `<xhtml:link rel="alternate" hreflang="ru" href="${landingRuUrl}" />`,
+    `<xhtml:link rel="alternate" hreflang="en" href="${landingEnUrl}" />`,
+    `<xhtml:link rel="alternate" hreflang="x-default" href="${landingEnUrl}" />`,
   ];
   const urls = [
     `<url>
-    <loc>https://poliglotai.ru/poliglot-ai.html</loc>
+    <loc>${landingRuUrl}</loc>
     ${landingAlternates.join("\n    ")}
   </url>`,
     `<url>
-    <loc>https://poliglotai.online/poliglot-ai.html?lang=en</loc>
+    <loc>${landingEnUrl}</loc>
     ${landingAlternates.join("\n    ")}
   </url>`,
   ];
@@ -236,8 +238,8 @@ function renderSitemap() {
   }
 
   for (const legalPath of ["/privacy.html", "/terms.html", "/agreement.html", "/consent.html"]) {
-    urls.push(`<url><loc>https://poliglotai.ru${legalPath}</loc></url>`);
-    urls.push(`<url><loc>https://poliglotai.online${legalPath}?lang=en</loc></url>`);
+    urls.push(`<url><loc>${russianOrigin}${legalPath}</loc></url>`);
+    urls.push(`<url><loc>${englishOrigin}${legalPath}?lang=en</loc></url>`);
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>

@@ -139,11 +139,11 @@ func configFromEnv() (config, error) {
 		RollyPayWebhookSecret:             strings.TrimSpace(os.Getenv("ROLLYPAY_WEBHOOK_SECRET")),
 		WebhookListenAddr:                 envOrDefault("WEBHOOK_LISTEN_ADDR", ":8080"),
 		WebAPISessionSecret:               strings.TrimSpace(os.Getenv("WEB_API_SESSION_SECRET")),
-		WebCORSOrigins:                    envListOrDefault("WEB_CORS_ORIGINS", []string{"https://poliglot.ai", "https://www.poliglot.ai", "https://poliglotai.ru", "https://www.poliglotai.ru", "https://poliglotai.online", "https://www.poliglotai.online"}),
+		WebCORSOrigins:                    envListOrDefault("WEB_CORS_ORIGINS", []string{"https://neriva.ru", "https://www.neriva.ru", "https://api.neriva.ru", "https://poliglotai.ru", "https://www.poliglotai.ru", "https://api.poliglotai.ru", "https://poliglotai.online", "https://www.poliglotai.online", "https://api.poliglotai.online"}),
 		WebCookieDomain:                   strings.TrimSpace(os.Getenv("WEB_COOKIE_DOMAIN")),
 		WebCookieSecure:                   envBoolOrDefault("WEB_COOKIE_SECURE", false),
 		WebCookieSameSite:                 strings.ToLower(envOrDefault("WEB_COOKIE_SAMESITE", "lax")),
-		WebAppURL:                         envOrDefault("WEB_APP_URL", "https://poliglotai.ru/app"),
+		WebAppURL:                         envOrDefault("WEB_APP_URL", "https://neriva.ru/app"),
 		WebTelegramLoginBot:               strings.TrimPrefix(envOrDefault("WEB_TELEGRAM_LOGIN_BOT", "Poliglot_AI_bot"), "@"),
 		WebPaymentReturnURL:               strings.TrimSpace(os.Getenv("WEB_PAYMENT_RETURN_URL")),
 		WebTurnstileSiteKey:               strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SITE_KEY")),
@@ -298,14 +298,14 @@ func (cfg config) rollyPayBotReturnURL() string {
 	if cfg.WebAppURL != "" {
 		return cfg.WebAppURL
 	}
-	return "https://poliglotai.online/app"
+	return "https://neriva.ru/app"
 }
 
 func (cfg config) rollyPayWebReturnURL() string {
 	if cfg.WebPaymentReturnURL != "" {
 		return cfg.WebPaymentReturnURL
 	}
-	return "https://poliglotai.online/app?payment=success&provider=rollypay"
+	return "https://neriva.ru/app?payment=success&provider=rollypay"
 }
 
 func envOrDefault(name string, fallback string) string {

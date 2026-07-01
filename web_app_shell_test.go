@@ -171,6 +171,8 @@ func TestReactFrontendLegalLinksFollowCurrentDomain(t *testing.T) {
 	for _, want := range []string{
 		`function legalDocumentOrigin`,
 		`window.location.hostname`,
+		`neriva.ru`,
+		`www.neriva.ru`,
 		`poliglotai.ru`,
 		`poliglotai.online`,
 		`legalDocumentOrigin()`,

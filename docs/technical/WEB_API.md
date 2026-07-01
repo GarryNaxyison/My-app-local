@@ -39,23 +39,23 @@ All web sessions use an HttpOnly signed cookie. The same SQLite store is used fo
 ```env
 WEBHOOK_LISTEN_ADDR=:8080
 WEB_API_SESSION_SECRET=change_me_to_a_long_random_secret_for_web_sessions
-WEB_CORS_ORIGINS=https://poliglotai.ru,https://www.poliglotai.ru,https://poliglotai.online,https://www.poliglotai.online
+WEB_CORS_ORIGINS=https://neriva.ru,https://www.neriva.ru,https://api.neriva.ru,https://poliglotai.ru,https://www.poliglotai.ru,https://api.poliglotai.ru,https://poliglotai.online,https://www.poliglotai.online,https://api.poliglotai.online
 WEB_COOKIE_SECURE=true
 WEB_COOKIE_SAMESITE=lax
 WEB_YOOKASSA_SHOP_ID=1359880
 WEB_YOOKASSA_SECRET_KEY=site_shop_secret_key
-WEB_PAYMENT_RETURN_URL=https://poliglotai.ru/app?payment=success
+WEB_PAYMENT_RETURN_URL=https://neriva.ru/app?payment=success
 ```
 
 If the site is on another origin, add it to `WEB_CORS_ORIGINS`.
-If the site is on a different registrable domain than `api.poliglotai.ru`, use `WEB_COOKIE_SAMESITE=none` together with HTTPS and `WEB_COOKIE_SECURE=true`.
+If the site is on a different registrable domain than `api.neriva.ru`, use `WEB_COOKIE_SAMESITE=none` together with HTTPS and `WEB_COOKIE_SECURE=true`.
 If `WEB_YOOKASSA_SHOP_ID` and `WEB_YOOKASSA_SECRET_KEY` are not set, website payments fall back to the Telegram YooKassa shop.
-For the separate website shop, set YooKassa notifications to `https://api.poliglotai.ru/yookassa/webhook/`.
+For the separate website shop, set YooKassa notifications to `https://api.neriva.ru/yookassa/webhook/`.
 
 ## Caddy
 
 ```caddyfile
-poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
     @webapp path /app /app/*
     handle @webapp {
         reverse_proxy 127.0.0.1:8080
@@ -78,9 +78,9 @@ poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
     }
 }
 
-api.poliglotai.ru, api.poliglotai.online {
+api.neriva.ru, api.poliglotai.ru, api.poliglotai.online {
     reverse_proxy 127.0.0.1:8080
 }
 ```
 
-Open the app at `https://poliglotai.ru/app` or `https://poliglotai.online/app`, or link to it from the main site.
+Open the app at `https://neriva.ru/app`, or use the old Poliglot hosts while they remain accepted aliases.

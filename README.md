@@ -133,13 +133,13 @@ AI-filled vocabulary is mutable runtime data. Preserve `VOCABULARY_DATABASE_PATH
 Для YooKassa лучше указывать страницу возврата:
 
 ```env
-YOOKASSA_RETURN_URL=https://poliglotai.ru/payment/success
+YOOKASSA_RETURN_URL=https://api.neriva.ru/payment/success
 WEB_YOOKASSA_SHOP_ID=1359880
 WEB_YOOKASSA_SECRET_KEY=site_shop_secret_key
-WEB_PAYMENT_RETURN_URL=https://poliglotai.ru/app?payment=success
+WEB_PAYMENT_RETURN_URL=https://neriva.ru/app?payment=success
 ```
 
-Caddy должен прокидывать `/payment/success`, `/app`, `/api` и webhook на бота. Для отдельного магазина сайта URL уведомлений в YooKassa: `https://api.poliglotai.ru/yookassa/webhook/`.
+Caddy должен прокидывать `/payment/success`, `/app`, `/api` и webhook на бота. Для отдельного магазина сайта URL уведомлений в YooKassa: `https://api.neriva.ru/yookassa/webhook/`.
 
 ## Быстрый старт
 

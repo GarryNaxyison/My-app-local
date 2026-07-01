@@ -1,5 +1,5 @@
-export const russianOrigin = "https://poliglotai.ru";
-export const englishOrigin = "https://poliglotai.online";
+export const russianOrigin = "https://neriva.ru";
+export const englishOrigin = "https://neriva.ru";
 
 export const socialProfileUrls = [
   "https://www.youtube.com/@PoliglotAI",

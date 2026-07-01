@@ -1,5 +1,5 @@
-const DEFAULT_ORIGIN_BASE_URL = "https://api.poliglotai.online";
-const DEFAULT_STATIC_BASE_URL = "https://poliglotai-online.pages.dev";
+const DEFAULT_ORIGIN_BASE_URL = "https://api.neriva.ru";
+const DEFAULT_STATIC_BASE_URL = "https://neriva.pages.dev";
 const DEFAULT_MAINTENANCE_PATH = "/maintenance.html";
 
 const exactProxyPaths = new Set([

@@ -75,7 +75,7 @@ test.describe("public landing SEO and AEO metadata", () => {
       "content",
       /AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium/,
     );
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://poliglotai.ru/poliglot-ai.html");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/poliglot-ai.html");
 
     const alternates = await page.locator('link[rel="alternate"]').evaluateAll((links) =>
       links.map((link) => ({
@@ -89,9 +89,9 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect([...new Set(alternates.map((link) => link.hreflang))].sort()).toEqual([...supportedLanguages, "x-default"].sort());
     expect(alternates).toEqual(
       expect.arrayContaining([
-        { hreflang: "ru", href: "https://poliglotai.ru/poliglot-ai.html" },
-        { hreflang: "en", href: "https://poliglotai.online/poliglot-ai.html?lang=en" },
-        { hreflang: "x-default", href: "https://poliglotai.online/poliglot-ai.html?lang=en" },
+        { hreflang: "ru", href: "https://neriva.ru/poliglot-ai.html" },
+        { hreflang: "en", href: "https://neriva.ru/poliglot-ai.html?lang=en" },
+        { hreflang: "x-default", href: "https://neriva.ru/poliglot-ai.html?lang=en" },
       ]),
     );
 
@@ -109,7 +109,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
     expect(comparisonNode.itemListElement).toHaveLength(3);
 
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://poliglotai.ru/assets/seo/poliglot-ai-og-ru.jpg");
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/poliglot-ai-og-ru.jpg");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
@@ -128,8 +128,8 @@ test.describe("public landing SEO and AEO metadata", () => {
       "content",
       /AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans/,
     );
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://poliglotai.online/poliglot-ai.html?lang=en");
-    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://poliglotai.online/poliglot-ai.html?lang=en");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/poliglot-ai.html?lang=en");
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://neriva.ru/poliglot-ai.html?lang=en");
     await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Poliglot AI - AI language tutor in Telegram and web app");
 
     const jsonLdText = await page.locator("#poliglot-seo-jsonld").textContent();
@@ -146,7 +146,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
     expect(comparisonNode.itemListElement).toHaveLength(3);
 
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://poliglotai.online/assets/seo/poliglot-ai-og-en.jpg");
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/poliglot-ai-og-en.jpg");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
@@ -218,15 +218,14 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(robotsResponse?.ok()).toBeTruthy();
     const robotsBody = await robotsResponse?.text();
     expect(robotsBody).toContain("User-agent: *");
-    expect(robotsBody).toContain("Sitemap: https://poliglotai.ru/sitemap.xml");
-    expect(robotsBody).toContain("Sitemap: https://poliglotai.online/sitemap.xml");
+    expect(robotsBody).toContain("Sitemap: https://neriva.ru/sitemap.xml");
 
     const sitemapResponse = await page.goto("/sitemap.xml");
     expect(sitemapResponse).toBeTruthy();
     expect(sitemapResponse?.ok()).toBeTruthy();
     const sitemapBody = await sitemapResponse?.text();
-    expect(sitemapBody).toContain("https://poliglotai.ru/poliglot-ai.html");
-    expect(sitemapBody).toContain("https://poliglotai.online/poliglot-ai.html?lang=en");
+    expect(sitemapBody).toContain("https://neriva.ru/poliglot-ai.html");
+    expect(sitemapBody).toContain("https://neriva.ru/poliglot-ai.html?lang=en");
     expect(sitemapBody).toContain('hreflang="x-default"');
   });
 });
