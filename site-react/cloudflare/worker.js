@@ -1,4 +1,5 @@
-const DEFAULT_ORIGIN_BASE_URL = "https://origin.poliglotai.ru";
+const DEFAULT_ORIGIN_BASE_URL = "https://api.poliglotai.online";
+const DEFAULT_STATIC_BASE_URL = "https://poliglotai-online.pages.dev";
 const DEFAULT_MAINTENANCE_PATH = "/maintenance.html";
 
 const exactProxyPaths = new Set([
@@ -22,7 +23,7 @@ const prefixProxyPaths = [
   "/rollypay/webhook/",
 ];
 
-const fallbackStatuses = new Set([502, 503, 504]);
+const fallbackStatuses = new Set([520, 521, 522, 523, 524, 525, 526, 530, 502, 503, 504]);
 
 export function shouldProxyPath(pathname) {
   return exactProxyPaths.has(pathname) || prefixProxyPaths.some((prefix) => pathname.startsWith(prefix));
@@ -36,9 +37,30 @@ export function resolveOriginUrl(requestUrl, originBaseUrl = DEFAULT_ORIGIN_BASE
   return origin.toString();
 }
 
+export function resolveStaticUrl(requestUrl, staticBaseUrl = DEFAULT_STATIC_BASE_URL) {
+  const url = new URL(requestUrl);
+  const staticOrigin = new URL(staticBaseUrl);
+  staticOrigin.pathname = resolvePagesPath(url.pathname);
+  staticOrigin.search = url.search;
+  return staticOrigin.toString();
+}
+
+export function resolvePagesPath(pathname) {
+  if (pathname === "/") {
+    return "/poliglot-ai";
+  }
+  if (pathname === "/index.html") {
+    return "/poliglot-ai";
+  }
+  if (pathname.endsWith(".html")) {
+    return pathname.slice(0, -".html".length) || "/";
+  }
+  return pathname;
+}
+
 function maintenanceUrlFor(request, env) {
   const configuredUrl = env?.MAINTENANCE_PAGE_URL || DEFAULT_MAINTENANCE_PATH;
-  return new URL(configuredUrl, request.url).toString();
+  return new URL(configuredUrl, env?.STATIC_BASE_URL || DEFAULT_STATIC_BASE_URL).toString();
 }
 
 function inlineMaintenanceHtml() {
@@ -89,11 +111,30 @@ export async function maintenanceResponse(request, env, status = 503) {
 async function proxyToOrigin(request, env) {
   const originUrl = resolveOriginUrl(request.url, env?.ORIGIN_BASE_URL || DEFAULT_ORIGIN_BASE_URL);
   const headers = new Headers(request.headers);
-  headers.set("x-forwarded-host", new URL(request.url).host);
+  const originalHost = new URL(request.url).host;
+  headers.set("host", env?.ORIGIN_HOST || new URL(originUrl).host);
+  headers.set("x-forwarded-host", originalHost);
   headers.set("x-poliglot-edge", "cloudflare-worker");
 
   return fetch(
     new Request(originUrl, {
+      method: request.method,
+      headers,
+      body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
+      redirect: "manual",
+    }),
+  );
+}
+
+async function serveStatic(request, env) {
+  const staticUrl = resolveStaticUrl(request.url, env?.STATIC_BASE_URL || DEFAULT_STATIC_BASE_URL);
+  const headers = new Headers(request.headers);
+  headers.delete("host");
+  headers.set("x-forwarded-host", new URL(request.url).host);
+  headers.set("x-poliglot-edge", "cloudflare-worker");
+
+  return fetch(
+    new Request(staticUrl, {
       method: request.method,
       headers,
       body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
@@ -107,7 +148,15 @@ export default {
     const url = new URL(request.url);
 
     if (!shouldProxyPath(url.pathname)) {
-      return fetch(request);
+      try {
+        const response = await serveStatic(request, env);
+        if (fallbackStatuses.has(response.status)) {
+          return maintenanceResponse(request, env, 503);
+        }
+        return response;
+      } catch {
+        return maintenanceResponse(request, env, 503);
+      }
     }
 
     try {

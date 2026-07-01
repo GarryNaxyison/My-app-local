@@ -46,3 +46,39 @@ test("Cloudflare Worker returns branded maintenance HTML when the origin is unav
     globalThis.fetch = originalFetch;
   }
 });
+
+test("Cloudflare Worker serves static pages from the Pages origin", async () => {
+  const worker = await import("../cloudflare/worker.js");
+  const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
+
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const requestUrl = typeof input === "string" || input instanceof URL ? input.toString() : input.url;
+    requestedUrls.push(requestUrl);
+    return new Response("<!doctype html><h1>SEO page</h1>", {
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }) as typeof fetch;
+
+  try {
+    const response = await worker.default.fetch(new Request("https://poliglotai.online/en/ai-english-tutor.html"), {
+      STATIC_BASE_URL: "https://poliglotai-online.pages.dev",
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("SEO page");
+
+    const homeResponse = await worker.default.fetch(new Request("https://poliglotai.online/"), {
+      STATIC_BASE_URL: "https://poliglotai-online.pages.dev",
+    });
+
+    expect(homeResponse.status).toBe(200);
+    expect(await homeResponse.text()).toContain("SEO page");
+    expect(requestedUrls).toEqual([
+      "https://poliglotai-online.pages.dev/en/ai-english-tutor",
+      "https://poliglotai-online.pages.dev/poliglot-ai",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
