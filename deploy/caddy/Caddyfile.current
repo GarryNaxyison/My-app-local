@@ -1,4 +1,4 @@
-poliglotai.ru, www.poliglotai.ru {
+neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru {
 	@webapp path /app /app/* /login /login/*
 	handle @webapp {
 		reverse_proxy localhost:8080
@@ -35,6 +35,6 @@ poliglotai.ru, www.poliglotai.ru {
 	}
 }
 
-api.poliglotai.ru {
+api.neriva.ru, api.poliglotai.ru {
 	reverse_proxy localhost:8080
 }
