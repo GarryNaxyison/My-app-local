@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const siteLocaleCodes = [
   "ru",
@@ -99,8 +99,18 @@ test.beforeEach(async ({ page }) => {
   await page.route("https://mc.yandex.ru/**", (route) => route.abort());
 });
 
+async function keepCookieBannerHidden(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "poliglot-cookie-consent",
+      JSON.stringify({ version: 1, necessary: true, analyticsMarketing: false }),
+    );
+  });
+}
+
 test("landing presents the approved English spark hero product site", async ({ page }) => {
   test.setTimeout(120_000);
+  await keepCookieBannerHidden(page);
   await page.goto("/poliglot-ai.html?lang=en");
 
   await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");

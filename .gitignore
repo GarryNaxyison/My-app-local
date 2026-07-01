@@ -6,6 +6,7 @@ tmp/
 test-results/
 node_modules/
 web-react/dist/
+site-react/dist/
 web-react/playwright-report/
 *.tsbuildinfo
 english_coach_data.json

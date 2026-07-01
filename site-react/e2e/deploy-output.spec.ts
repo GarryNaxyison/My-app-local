@@ -32,7 +32,7 @@ test("built public-site folder contains every asset required by the deploy packa
     }
   }
 
-  const htmlFiles = ["poliglot-ai.html", "privacy.html", "terms.html", "agreement.html", "consent.html"];
+  const htmlFiles = ["poliglot-ai.html", "privacy.html", "terms.html", "agreement.html", "consent.html", "404.html", "maintenance.html"];
   for (const htmlFile of htmlFiles) {
     const stat = await fs.stat(path.join(outputRoot, htmlFile));
     expect(stat.size, `${htmlFile} should be present in build output`).toBeGreaterThan(100);

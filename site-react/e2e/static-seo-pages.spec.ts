@@ -48,6 +48,27 @@ const pages = [
   },
 ] as const;
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const originalMatchMedia = window.matchMedia.bind(window);
+    window.matchMedia = ((query: string) => {
+      if (query === "(prefers-reduced-motion: reduce)") {
+        return {
+          matches: true,
+          media: query,
+          onchange: null,
+          addListener: () => undefined,
+          removeListener: () => undefined,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+          dispatchEvent: () => false,
+        } as MediaQueryList;
+      }
+      return originalMatchMedia(query);
+    }) as typeof window.matchMedia;
+  });
+});
+
 test.describe("static SEO pages", () => {
   test("serves Russian static SEO pages with real HTML content and metadata", async ({ page }) => {
     for (const item of pages) {

@@ -1,0 +1,183 @@
+.error-page {
+  min-height: 100vh;
+  background: #0b0c0a;
+  color: #f5f5f5;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  font-family: "JetBrains Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.error-page * {
+  box-sizing: border-box;
+}
+
+.error-page__shell {
+  width: min(980px, calc(100vw - 48px));
+  border: 1px solid rgba(198, 255, 74, 0.45);
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  background:
+    linear-gradient(90deg, rgba(198, 255, 74, 0.08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(198, 255, 74, 0.08) 1px, transparent 1px),
+    #000000;
+  background-size: 32px 32px;
+}
+
+.error-page__status {
+  min-width: 0;
+  border-right: 1px solid rgba(198, 255, 74, 0.35);
+  display: grid;
+  align-content: stretch;
+}
+
+.error-page__status span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  display: grid;
+  place-items: center;
+  padding: 20px 12px;
+  border-bottom: 1px solid rgba(198, 255, 74, 0.25);
+  color: #c6ff4a;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.error-page__content {
+  min-width: 0;
+  padding: clamp(32px, 7vw, 84px);
+}
+
+.error-page__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  color: #c6ff4a;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.error-page h1 {
+  margin: 0;
+  max-width: 820px;
+  color: #ffffff;
+  font-family: "JetBrains Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: clamp(42px, 8vw, 92px);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.error-page__body,
+.error-page__english,
+.error-page__detail {
+  max-width: 720px;
+  color: rgba(245, 245, 245, 0.82);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.error-page__body {
+  margin: 28px 0 0;
+}
+
+.error-page__english {
+  margin: 12px 0 0;
+  color: rgba(245, 245, 245, 0.6);
+}
+
+.error-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 34px;
+}
+
+.error-page__button {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid rgba(245, 245, 245, 0.32);
+  background: #000000;
+  color: #f5f5f5;
+  padding: 0 16px;
+  font: inherit;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.error-page__button:hover,
+.error-page__button:focus-visible {
+  border-color: #c6ff4a;
+  color: #c6ff4a;
+  outline: none;
+}
+
+.error-page__button--primary {
+  border-color: #c6ff4a;
+  background: #c6ff4a;
+  color: #000000;
+}
+
+.error-page__button--primary:hover,
+.error-page__button--primary:focus-visible {
+  background: #000000;
+  color: #c6ff4a;
+}
+
+.error-page__detail {
+  min-width: 0;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px 24px;
+  border-top: 1px solid rgba(198, 255, 74, 0.35);
+  color: rgba(245, 245, 245, 0.64);
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .error-page {
+    padding: 14px;
+  }
+
+  .error-page__shell {
+    width: calc(100vw - 28px);
+    grid-template-columns: 1fr;
+  }
+
+  .error-page__status {
+    border-right: 0;
+    border-bottom: 1px solid rgba(198, 255, 74, 0.35);
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .error-page__status span {
+    writing-mode: initial;
+    transform: none;
+    min-width: 0;
+    padding: 12px 8px;
+    border-right: 1px solid rgba(198, 255, 74, 0.25);
+    border-bottom: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .error-page__content {
+    padding: 28px 18px 32px;
+  }
+
+  .error-page h1 {
+    font-size: clamp(36px, 15vw, 64px);
+  }
+
+  .error-page__actions {
+    display: grid;
+  }
+
+  .error-page__button {
+    width: 100%;
+  }
+}

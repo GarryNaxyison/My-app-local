@@ -3,6 +3,12 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
+const defaultOutDir = "../Сайт полиглота для бота";
+const outDir = process.env.PUBLIC_SITE_OUT_DIR || defaultOutDir;
+const emptyOutDir = process.env.PUBLIC_SITE_EMPTY_OUT_DIR
+  ? process.env.PUBLIC_SITE_EMPTY_OUT_DIR === "true"
+  : false;
+
 export default defineConfig({
   base: "/",
   plugins: [react(), tailwindcss()],
@@ -12,8 +18,8 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../Сайт полиглота для бота",
-    emptyOutDir: false,
+    outDir,
+    emptyOutDir,
     sourcemap: false,
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
@@ -23,6 +29,8 @@ export default defineConfig({
         terms: path.resolve(__dirname, "terms.html"),
         agreement: path.resolve(__dirname, "agreement.html"),
         consent: path.resolve(__dirname, "consent.html"),
+        notFound: path.resolve(__dirname, "404.html"),
+        maintenance: path.resolve(__dirname, "maintenance.html"),
       },
       output: {
         entryFileNames: "assets/site-react/[name]-[hash].js",
