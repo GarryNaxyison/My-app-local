@@ -305,7 +305,7 @@ func (cfg config) rollyPayWebReturnURL() string {
 	if cfg.WebPaymentReturnURL != "" {
 		return cfg.WebPaymentReturnURL
 	}
-	return "https://neriva.ru/app?payment=success&provider=rollypay"
+	return "https://poliglotai.ru/app?payment=success&provider=rollypay"
 }
 
 func envOrDefault(name string, fallback string) string {

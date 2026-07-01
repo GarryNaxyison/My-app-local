@@ -21,11 +21,8 @@ Recommended routes:
 - `neriva.ru/login*`
 - `neriva.ru/api/*`
 - `neriva.ru/healthz`
-- `neriva.ru/payment/success*`
-- `neriva.ru/tonapi/webhook*`
-- `neriva.ru/yookassa/webhook*`
-- `neriva.ru/rollypay/webhook/*`
-- repeat the same routes for `www.neriva.ru`, `poliglotai.ru`, `www.poliglotai.ru`, `poliglotai.online`, and `www.poliglotai.online`
+- repeat the same app/API/health routes for `www.neriva.ru`, `poliglotai.ru`, `www.poliglotai.ru`, `poliglotai.online`, and `www.poliglotai.online`
+- keep payment success and webhook routes on the existing Poliglot callback hosts until the payment providers are explicitly reconfigured
 
 Worker variables:
 

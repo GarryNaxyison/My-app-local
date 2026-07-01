@@ -36,10 +36,10 @@
 **Files:**
 - Modify: `.env.example`
 
-- [ ] Set `YOOKASSA_RETURN_URL=https://api.neriva.ru/payment/success`.
+- [ ] Keep `YOOKASSA_RETURN_URL=https://api.poliglotai.ru/payment/success`.
 - [ ] Include Neriva and old Poliglot domains in `WEB_CORS_ORIGINS`.
 - [ ] Set `WEB_APP_URL=https://neriva.ru/app`.
-- [ ] Set `WEB_PAYMENT_RETURN_URL=https://neriva.ru/app?payment=success`.
+- [ ] Keep `WEB_PAYMENT_RETURN_URL=https://poliglotai.ru/app?payment=success`.
 - [ ] Do not edit the ignored local `.env` file in git.
 
 ### Task 3: Operator Documentation

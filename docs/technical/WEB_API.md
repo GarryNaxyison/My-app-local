@@ -44,13 +44,13 @@ WEB_COOKIE_SECURE=true
 WEB_COOKIE_SAMESITE=lax
 WEB_YOOKASSA_SHOP_ID=1359880
 WEB_YOOKASSA_SECRET_KEY=site_shop_secret_key
-WEB_PAYMENT_RETURN_URL=https://neriva.ru/app?payment=success
+WEB_PAYMENT_RETURN_URL=https://poliglotai.ru/app?payment=success
 ```
 
 If the site is on another origin, add it to `WEB_CORS_ORIGINS`.
 If the site is on a different registrable domain than `api.neriva.ru`, use `WEB_COOKIE_SAMESITE=none` together with HTTPS and `WEB_COOKIE_SECURE=true`.
 If `WEB_YOOKASSA_SHOP_ID` and `WEB_YOOKASSA_SECRET_KEY` are not set, website payments fall back to the Telegram YooKassa shop.
-For the separate website shop, set YooKassa notifications to `https://api.neriva.ru/yookassa/webhook/`.
+For the separate website shop, set YooKassa notifications to `https://api.poliglotai.ru/yookassa/webhook/`.
 
 ## Caddy
 

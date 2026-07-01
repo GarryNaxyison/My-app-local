@@ -43,7 +43,7 @@ Out of scope:
 
 - `deploy/caddy/Caddyfile.updated` includes `neriva.ru`, `www.neriva.ru`, and `api.neriva.ru`.
 - Existing `poliglotai.ru` and `poliglotai.online` hostnames remain present.
-- `.env.example` documents Neriva as the primary `WEB_APP_URL`, `WEB_PAYMENT_RETURN_URL`, and `YOOKASSA_RETURN_URL`.
+- `.env.example` documents Neriva as the primary `WEB_APP_URL` while keeping payment return and webhook URLs on the existing Poliglot callback hosts.
 - Runtime defaults and legal links prefer Neriva, while old hosts remain accepted where aliases are needed.
 - Generated SEO pages, sitemap, robots, and Cloudflare Worker defaults use Neriva as the canonical public host.
 - Documentation uses Neriva for deploy/upload, webhook, and verification examples.

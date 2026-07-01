@@ -451,7 +451,7 @@ If explicit `CRYPTO_USDT_*_AMOUNT` values are empty, USDT invoices are calculate
 If you create the API key in TonConsole, put it into `CRYPTO_TONAPI_KEY` (not `CRYPTO_TONCENTER_API_KEY`). `CRYPTO_TONAPI_WEBHOOK_KEY` must be only the secret token, not the full URL. You can then add a TonAPI webhook in TonConsole with this endpoint:
 
 ```text
-https://api.neriva.ru/tonapi/webhook/<CRYPTO_TONAPI_WEBHOOK_KEY>
+https://api.poliglotai.ru/tonapi/webhook/<CRYPTO_TONAPI_WEBHOOK_KEY>
 ```
 
 Then subscribe the webhook to the merchant TON wallet account. The webhook is used as a wake-up signal: the server receives the transaction hash/LT from TonAPI, rechecks pending TON and USDT-TON invoices against the blockchain, and activates the matching Premium or Platinum invoice automatically.

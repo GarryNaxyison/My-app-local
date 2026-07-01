@@ -319,11 +319,11 @@ func TestRollyPayConfigRequiresSeparateCashboxes(t *testing.T) {
 	if cfg.rollyPayWebEnabled() {
 		t.Fatal("web RollyPay must require web API key")
 	}
-	cfg = config{YooKassaReturnURL: "https://api.neriva.ru/payment/success"}
-	if got := cfg.rollyPayWebReturnURL(); got != "https://neriva.ru/app?payment=success&provider=rollypay" {
+	cfg = config{YooKassaReturnURL: "https://api.poliglotai.ru/payment/success"}
+	if got := cfg.rollyPayWebReturnURL(); got != "https://poliglotai.ru/app?payment=success&provider=rollypay" {
 		t.Fatalf("RollyPay web return URL = %q, want RollyPay app success URL", got)
 	}
-	cfg.WebPaymentReturnURL = "https://neriva.ru/app?payment=success"
+	cfg.WebPaymentReturnURL = "https://poliglotai.ru/app?payment=success"
 	if got := cfg.rollyPayWebReturnURL(); got != cfg.WebPaymentReturnURL {
 		t.Fatalf("RollyPay web return URL should honor WEB_PAYMENT_RETURN_URL: got %q", got)
 	}
