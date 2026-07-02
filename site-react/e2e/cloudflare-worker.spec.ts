@@ -29,6 +29,40 @@ test("Cloudflare Worker redirects legacy public domains to Neriva with path and 
   }
 });
 
+test("Cloudflare Worker keeps reserve Neriva hostnames on the edge", async () => {
+  const worker = await import("../cloudflare/worker.js");
+  const originalFetch = globalThis.fetch;
+  const requestedUrls: string[] = [];
+
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const requestUrl = typeof input === "string" || input instanceof URL ? input.toString() : input.url;
+    requestedUrls.push(requestUrl);
+    return new Response("<!doctype html><h1>NERIVA reserve route</h1>", {
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }) as typeof fetch;
+
+  try {
+    for (const host of ["cf.neriva.ru", "fallback.neriva.ru", "reserve.neriva.ru"]) {
+      const response = await worker.default.fetch(new Request(`https://${host}/privacy.html?lang=ru`), {
+        STATIC_BASE_URL: "https://poliglotai-online.pages.dev",
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+      expect(await response.text()).toContain("NERIVA reserve route");
+    }
+
+    expect(requestedUrls).toEqual([
+      "https://poliglotai-online.pages.dev/privacy?lang=ru",
+      "https://poliglotai-online.pages.dev/privacy?lang=ru",
+      "https://poliglotai-online.pages.dev/privacy?lang=ru",
+    ]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("Cloudflare Worker returns branded maintenance HTML when the origin is unavailable", async () => {
   const worker = await import("../cloudflare/worker.js");
   const originalFetch = globalThis.fetch;

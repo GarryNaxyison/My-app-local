@@ -8,13 +8,24 @@ Use Cloudflare Pages for the public landing.
 - Build command: `npm run build:cloudflare`
 - Build output directory: `dist`
 - Production domains: `neriva.ru`, `www.neriva.ru`
+- Reserve Cloudflare routes: `cf.neriva.ru`, `fallback.neriva.ru`, `reserve.neriva.ru`
 - Legacy public domains redirect to `https://neriva.ru{uri}`: `poliglotai.ru`, `www.poliglotai.ru`, `poliglotai.online`, `www.poliglotai.online`
 
 The build keeps the current VPS deploy path untouched. It only changes output when `PUBLIC_SITE_OUT_DIR=dist` is set by `scripts/build-cloudflare.mjs`.
 
 ## Worker Fallback
 
-Use the Worker only on dynamic routes, not on the whole public site.
+Keep `neriva.ru` and `www.neriva.ru` DNS-only when Russian access is the priority. DNS-only traffic bypasses Cloudflare, so the Worker cannot automatically serve the same hostname when the VPS is down.
+
+Use proxied Worker custom domains for reserve access:
+
+- `cf.neriva.ru`
+- `fallback.neriva.ru`
+- `reserve.neriva.ru`
+
+Those reserve hostnames are expected to serve static landing, SEO, legal, robots, sitemap, and maintenance pages from Cloudflare Pages even if the VPS is down. Dynamic `/app`, `/api`, payment, webhook, and deploy-upload paths still require the origin API; when the origin is unavailable, the Worker returns the maintenance page.
+
+Use the Worker only on dynamic routes for DNS-only primary domains, not on the whole public site.
 
 Recommended routes:
 
