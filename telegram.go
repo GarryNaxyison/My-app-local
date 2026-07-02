@@ -1083,7 +1083,7 @@ func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, rollyPayEnabled bool, c
 		rows = append(rows, []map[string]any{{"text": "RollyPay", "callback_data": "buy_rollypay|" + plan.Product}})
 	}
 	if yooKassaEnabled && plan.RubPrice > 0 {
-		rows = append(rows, []map[string]any{{"text": premiumCopy.PaySBPButton, "callback_data": "buy_yookassa|" + plan.Product}})
+		rows = append(rows, []map[string]any{{"text": "ЮKassa", "callback_data": "buy_yookassa|" + plan.Product}})
 	}
 	for _, method := range cryptoMethods {
 		rows = append(rows, []map[string]any{{"text": method.Label, "callback_data": "buy_crypto|" + plan.Product + "|" + method.ID}})
@@ -1095,11 +1095,25 @@ func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, rollyPayEnabled bool, c
 	return map[string]any{"inline_keyboard": rows}
 }
 
+func yookassaPaymentMethodKeyboard(product string, user userState) map[string]any {
+	copy := ui(user)
+	return map[string]any{
+		"inline_keyboard": [][]map[string]any{
+			{{"text": yooKassaPaymentMethodLabel("", user.InterfaceLanguage), "callback_data": "buy_yookassa_method|" + product + "|any"}},
+			{{"text": yooKassaPaymentMethodLabel("bank_card", user.InterfaceLanguage), "callback_data": "buy_yookassa_method|" + product + "|bank_card"}},
+			{{"text": yooKassaPaymentMethodLabel("sbp", user.InterfaceLanguage), "callback_data": "buy_yookassa_method|" + product + "|sbp"}},
+			{{"text": yooKassaPaymentMethodLabel("yoo_money", user.InterfaceLanguage), "callback_data": "buy_yookassa_method|" + product + "|yoo_money"}},
+			{{"text": copy.Back, "callback_data": "premium_plan|" + product}},
+			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
+		},
+	}
+}
+
 func yookassaPaymentKeyboard(paymentURL string, user userState) map[string]any {
 	copy := ui(user)
 	return map[string]any{
 		"inline_keyboard": [][]map[string]any{
-			{{"text": premiumUI(user).PaySBPButton, "url": paymentURL}},
+			{{"text": "ЮKassa", "url": paymentURL}},
 			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 		},
 	}

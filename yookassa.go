@@ -18,6 +18,10 @@ type yooKassaClient struct {
 	http      *http.Client
 }
 
+type yooKassaPaymentOptions struct {
+	PaymentMethod string
+}
+
 type yooKassaPayment struct {
 	ID           string                 `json:"id"`
 	Status       string                 `json:"status"`
@@ -54,37 +58,50 @@ func newYooKassaClient(shopID string, secretKey string, httpClient *http.Client)
 }
 
 func (c *yooKassaClient) createPremiumPayment(ctx context.Context, telegramID int64, firstName string, interfaceLanguage string, plan premiumPlan, returnURL string, channel string, idempotencyKeys ...string) (yooKassaPayment, error) {
+	return c.createPremiumPaymentWithOptions(ctx, telegramID, firstName, interfaceLanguage, plan, returnURL, channel, yooKassaPaymentOptions{}, idempotencyKeys...)
+}
+
+func (c *yooKassaClient) createPremiumPaymentWithOptions(ctx context.Context, telegramID int64, firstName string, interfaceLanguage string, plan premiumPlan, returnURL string, channel string, options yooKassaPaymentOptions, idempotencyKeys ...string) (yooKassaPayment, error) {
 	channel = strings.TrimSpace(channel)
 	if channel == "" {
 		channel = "telegram"
+	}
+	paymentMethod := normalizeYooKassaPaymentMethod(options.PaymentMethod)
+	metadata := map[string]string{
+		"telegram_id":        strconv.FormatInt(telegramID, 10),
+		"first_name":         firstName,
+		"interface_language": normalizeInterfaceLanguage(interfaceLanguage),
+		"product":            plan.Product,
+		"channel":            channel,
+	}
+	if paymentMethod != "" {
+		metadata["payment_method"] = paymentMethod
 	}
 	payload := map[string]any{
 		"amount": map[string]string{
 			"value":    fmt.Sprintf("%d.00", plan.RubPrice),
 			"currency": "RUB",
 		},
-		"payment_method_data": map[string]string{
-			"type": "sbp",
-		},
 		"confirmation": map[string]string{
 			"type":       "redirect",
 			"return_url": returnURL,
 		},
 		"capture":     true,
-		"description": plan.Title + " - POLYGLOT AI",
-		"metadata": map[string]string{
-			"telegram_id":        strconv.FormatInt(telegramID, 10),
-			"first_name":         firstName,
-			"interface_language": normalizeInterfaceLanguage(interfaceLanguage),
-			"product":            plan.Product,
-			"channel":            channel,
-		},
+		"description": plan.Title + " - NERIVA",
+		"metadata":    metadata,
+	}
+	if paymentMethod != "" {
+		payload["payment_method_data"] = map[string]string{"type": paymentMethod}
 	}
 
 	var payment yooKassaPayment
 	idempotenceKey := ""
 	if len(idempotencyKeys) > 0 {
-		idempotenceKey = paymentIdempotencyToken("yookassa", telegramID, plan.Product, channel, idempotencyKeys[0])
+		idempotencyChannel := channel
+		if paymentMethod != "" {
+			idempotencyChannel += ":" + paymentMethod
+		}
+		idempotenceKey = paymentIdempotencyToken("yookassa", telegramID, plan.Product, idempotencyChannel, idempotencyKeys[0])
 	}
 	if err := c.do(ctx, http.MethodPost, "https://api.yookassa.ru/v3/payments", payload, &payment, idempotenceKey); err != nil {
 		return yooKassaPayment{}, err
@@ -93,6 +110,53 @@ func (c *yooKassaClient) createPremiumPayment(ctx context.Context, telegramID in
 		return yooKassaPayment{}, fmt.Errorf("yookassa payment has no confirmation_url")
 	}
 	return payment, nil
+}
+
+func normalizeYooKassaPaymentMethod(method string) string {
+	method = strings.ToLower(strings.TrimSpace(method))
+	switch method {
+	case "", "any", "yookassa":
+		return ""
+	case "card":
+		return "bank_card"
+	case "bank_card", "sbp", "yoo_money", "sberbank", "tinkoff_bank", "mir_pay":
+		return method
+	default:
+		return ""
+	}
+}
+
+func yooKassaPaymentMethodLabel(method string, interfaceLanguage string) string {
+	method = normalizeYooKassaPaymentMethod(method)
+	ru := normalizeInterfaceLanguage(interfaceLanguage) == "ru"
+	switch method {
+	case "bank_card":
+		if ru {
+			return "банковская карта"
+		}
+		return "bank card"
+	case "sbp":
+		if ru {
+			return "СБП"
+		}
+		return "SBP"
+	case "yoo_money":
+		return "ЮMoney"
+	case "sberbank":
+		if ru {
+			return "Сбербанк"
+		}
+		return "SberBank"
+	case "tinkoff_bank":
+		return "T-Bank"
+	case "mir_pay":
+		return "Mir Pay"
+	default:
+		if ru {
+			return "выбор в ЮKassa"
+		}
+		return "YooKassa checkout"
+	}
 }
 
 func (c *yooKassaClient) getPayment(ctx context.Context, paymentID string) (yooKassaPayment, error) {

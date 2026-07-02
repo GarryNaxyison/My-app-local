@@ -960,13 +960,13 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 	case "buy_platinum_year", "buy_" + platinumYearlyProduct:
 		return b.sendPremiumPaymentOptions(ctx, chatID, user, platinumYearlyProduct)
 	case "buy_yookassa", "buy_yookassa_month":
-		return b.sendYooKassaPayment(ctx, chatID, user, premiumMonthlyProduct)
+		return b.sendYooKassaMethodOptions(ctx, chatID, user, premiumMonthlyProduct)
 	case "buy_yookassa_year":
-		return b.sendYooKassaPayment(ctx, chatID, user, premiumYearlyProduct)
+		return b.sendYooKassaMethodOptions(ctx, chatID, user, premiumYearlyProduct)
 	case "buy_yookassa_platinum_month":
-		return b.sendYooKassaPayment(ctx, chatID, user, platinumMonthlyProduct)
+		return b.sendYooKassaMethodOptions(ctx, chatID, user, platinumMonthlyProduct)
 	case "buy_yookassa_platinum_year":
-		return b.sendYooKassaPayment(ctx, chatID, user, platinumYearlyProduct)
+		return b.sendYooKassaMethodOptions(ctx, chatID, user, platinumYearlyProduct)
 	case "buy_rollypay_month":
 		return b.sendRollyPayPayment(ctx, chatID, user, premiumMonthlyProduct)
 	case "buy_rollypay_year":
@@ -1065,7 +1065,14 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		}
 		if strings.HasPrefix(query.Data, "buy_yookassa|") {
 			product := strings.TrimPrefix(query.Data, "buy_yookassa|")
-			return b.sendYooKassaPayment(ctx, chatID, user, product)
+			return b.sendYooKassaMethodOptions(ctx, chatID, user, product)
+		}
+		if strings.HasPrefix(query.Data, "buy_yookassa_method|") {
+			parts := strings.Split(query.Data, "|")
+			if len(parts) != 3 {
+				return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
+			}
+			return b.sendYooKassaPayment(ctx, chatID, user, parts[1], parts[2])
 		}
 		if strings.HasPrefix(query.Data, "buy_rollypay|") {
 			product := strings.TrimPrefix(query.Data, "buy_rollypay|")
@@ -3367,7 +3374,20 @@ func (b *bot) premiumInvoiceDescription(user userState, plan premiumPlan) string
 	)
 }
 
-func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userState, product string) error {
+func (b *bot) sendYooKassaMethodOptions(ctx context.Context, chatID int64, user userState, product string) error {
+	if b.yookassa == nil || !b.cfg.yooKassaEnabled() {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, premiumUI(user).YooKassaUnavailable, ui(user))
+	}
+	plan, ok := b.premiumPlan(product)
+	if !ok {
+		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
+	}
+	plan = localizedPremiumPlan(user, plan)
+	text := fmt.Sprintf("%s\n\n%d RUB\n\n%s", plan.Title, plan.RubPrice, yooKassaPaymentMethodLabel("", user.InterfaceLanguage))
+	return b.telegram.sendInlineMessage(ctx, chatID, text, yookassaPaymentMethodKeyboard(plan.Product, user))
+}
+
+func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userState, product string, paymentMethod string) error {
 	if b.yookassa == nil || !b.cfg.yooKassaEnabled() {
 		return b.telegram.sendMessageWithCopy(ctx, chatID, premiumUI(user).YooKassaUnavailable, ui(user))
 	}
@@ -3377,7 +3397,7 @@ func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userSt
 	}
 	plan = localizedPremiumPlan(user, plan)
 
-	payment, err := b.yookassa.createPremiumPayment(ctx, user.TelegramID, user.FirstName, user.InterfaceLanguage, plan, b.cfg.YooKassaReturnURL, "telegram")
+	payment, err := b.yookassa.createPremiumPaymentWithOptions(ctx, user.TelegramID, user.FirstName, user.InterfaceLanguage, plan, b.cfg.YooKassaReturnURL, "telegram", yooKassaPaymentOptions{PaymentMethod: paymentMethod})
 	if err != nil {
 		log.Printf("failed to create yookassa payment for %d: %v", user.TelegramID, err)
 		return b.telegram.sendMessageWithCopy(ctx, chatID, premiumUI(user).YooKassaCreateFailed, ui(user))
@@ -3388,6 +3408,7 @@ func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userSt
 		plan.Title,
 		plan.RubPrice,
 	))
+	text += "\n\n" + yooKassaPaymentMethodLabel(paymentMethod, user.InterfaceLanguage)
 	return b.telegram.sendInlineMessage(ctx, chatID, text, yookassaPaymentKeyboard(payment.Confirmation.ConfirmationURL, user))
 }
 

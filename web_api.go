@@ -4115,7 +4115,8 @@ func (api *webAPI) handlePremiumPayment(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	var req struct {
-		Product string `json:"product"`
+		Product       string `json:"product"`
+		PaymentMethod string `json:"payment_method"`
 	}
 	if !decodeJSONRequest(w, r, &req) {
 		return
@@ -4127,7 +4128,7 @@ func (api *webAPI) handlePremiumPayment(w http.ResponseWriter, r *http.Request) 
 	}
 	plan = localizedPremiumPlan(user, plan)
 	returnURL := api.cfg.webPaymentReturnURL()
-	payment, err := client.createPremiumPayment(r.Context(), user.TelegramID, user.FirstName, user.InterfaceLanguage, plan, returnURL, "web", requestIdempotencyKey(r))
+	payment, err := client.createPremiumPaymentWithOptions(r.Context(), user.TelegramID, user.FirstName, user.InterfaceLanguage, plan, returnURL, "web", yooKassaPaymentOptions{PaymentMethod: req.PaymentMethod}, requestIdempotencyKey(r))
 	if err != nil {
 		writeAPIError(w, http.StatusBadGateway, premiumUI(user).YooKassaCreateFailed)
 		return
@@ -4135,6 +4136,8 @@ func (api *webAPI) handlePremiumPayment(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"payment_id":       payment.ID,
 		"confirmation_url": payment.Confirmation.ConfirmationURL,
+		"method":           normalizeYooKassaPaymentMethod(req.PaymentMethod),
+		"method_label":     yooKassaPaymentMethodLabel(req.PaymentMethod, user.InterfaceLanguage),
 	})
 }
 

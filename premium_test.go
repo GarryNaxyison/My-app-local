@@ -419,6 +419,66 @@ func TestYooKassaClientUsesStableIdempotenceKeyForRetry(t *testing.T) {
 	}
 }
 
+func TestYooKassaClientOmitsPaymentMethodWhenUserChoosesAny(t *testing.T) {
+	var gotPayload map[string]any
+	client := newYooKassaClient("shop", "secret", &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		if err := json.NewDecoder(req.Body).Decode(&gotPayload); err != nil {
+			t.Fatal(err)
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"id":"pay_123","confirmation":{"confirmation_url":"https://pay.example/123"}}`)),
+		}, nil
+	})})
+	plan := premiumPlan{Product: premiumMonthlyProduct, Title: "Premium", RubPrice: 300}
+
+	if _, err := client.createPremiumPaymentWithOptions(context.Background(), 42, "Ada", "en", plan, "https://example.test/success", "web", yooKassaPaymentOptions{}, "checkout-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, ok := gotPayload["payment_method_data"]; ok {
+		t.Fatalf("unexpected payment_method_data in payload: %#v", gotPayload)
+	}
+	if gotPayload["description"] != "Premium - NERIVA" {
+		t.Fatalf("description = %#v, want NERIVA brand; full=%#v", gotPayload["description"], gotPayload)
+	}
+}
+
+func TestYooKassaClientIncludesSelectedPaymentMethod(t *testing.T) {
+	var gotPayload map[string]any
+	client := newYooKassaClient("shop", "secret", &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		if err := json.NewDecoder(req.Body).Decode(&gotPayload); err != nil {
+			t.Fatal(err)
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"id":"pay_123","confirmation":{"confirmation_url":"https://pay.example/123"}}`)),
+		}, nil
+	})})
+	plan := premiumPlan{Product: premiumMonthlyProduct, Title: "Premium", RubPrice: 300}
+
+	if _, err := client.createPremiumPaymentWithOptions(context.Background(), 42, "Ada", "ru", plan, "https://example.test/success", "telegram", yooKassaPaymentOptions{PaymentMethod: "bank_card"}, "checkout-1"); err != nil {
+		t.Fatal(err)
+	}
+
+	methodData, ok := gotPayload["payment_method_data"].(map[string]any)
+	if !ok {
+		t.Fatalf("payment_method_data = %#v, want object; full=%#v", gotPayload["payment_method_data"], gotPayload)
+	}
+	if methodData["type"] != "bank_card" {
+		t.Fatalf("payment_method_data.type = %#v, want bank_card", methodData["type"])
+	}
+	metadata, ok := gotPayload["metadata"].(map[string]any)
+	if !ok {
+		t.Fatalf("metadata = %#v, want object", gotPayload["metadata"])
+	}
+	if metadata["payment_method"] != "bank_card" {
+		t.Fatalf("metadata.payment_method = %#v, want bank_card", metadata["payment_method"])
+	}
+}
+
 func TestRollyPayClientUsesStableOrderIDForRetry(t *testing.T) {
 	var orderIDs []string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

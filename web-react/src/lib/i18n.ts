@@ -132,7 +132,7 @@ const en: Record<string, string> = {
   app_guide_step_1_detail_3: "Completed lessons stay in history, so you can return to the topic, level, summary, and review.",
   app_guide_step_1_result: "Best first session: Today -> AI Tutor -> one weak-spot repair.",
   app_guide_step_2_title: "How plans differ",
-  app_guide_step_2_body: "Free keeps the starter learning loop: basic text practice, word trainer, notes, phrase audio, and progress. Premium opens AI Tutor, listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits.",
+  app_guide_step_2_body: "Free keeps the starter learning loop: basic text practice, word trainer, notes, phrase audio, and progress. Premium opens AI Tutor with listening practice, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits.",
   app_guide_step_2_detail_1: "Free is enough to test the route and keep a small daily habit.",
   app_guide_step_2_detail_2: "Premium is the normal daily mode when you need guided lessons, voice, listening, and pronunciation feedback.",
   app_guide_step_2_detail_3: "Platinum is useful before travel, work, exams, or any period where you practice heavily every day.",

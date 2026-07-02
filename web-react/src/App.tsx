@@ -2953,7 +2953,7 @@ export function App() {
     setView("premium");
   };
 
-  const startPremiumPayment = async (plan: PremiumPlan, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string) => {
+  const startPremiumPayment = async (plan: PremiumPlan, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string, yooKassaMethod?: string) => {
     const endpoint =
       method === "card"
         ? "/api/premium/payment"
@@ -2963,7 +2963,15 @@ export function App() {
             ? "/api/premium/stars"
             : "/api/premium/crypto/payment";
     const payload = await runAction(`premium-${method}`, () =>
-      api<ApiRecord>(endpoint, { method: "POST", body: method === "crypto" ? { product: plan.product, method: cryptoMethod || "ton" } : { product: plan.product } }),
+      api<ApiRecord>(endpoint, {
+        method: "POST",
+        body:
+          method === "crypto"
+            ? { product: plan.product, method: cryptoMethod || "ton" }
+            : method === "card"
+              ? { product: plan.product, payment_method: yooKassaMethod || "" }
+              : { product: plan.product },
+      }),
     );
     if (!payload) return;
     const record = getRecord(payload);
@@ -3430,7 +3438,7 @@ export function App() {
             copy={copy}
             busy={busy}
             onClose={() => setPayment(null)}
-            onPay={(method, cryptoMethod) => void startPremiumPayment(payment.plan, method, cryptoMethod)}
+            onPay={(method, cryptoMethod, yooKassaMethod) => void startPremiumPayment(payment.plan, method, cryptoMethod, yooKassaMethod)}
             onCheckPayment={(paymentID) => void checkPremiumPayment(paymentID)}
           />
         ) : null}
@@ -5189,7 +5197,7 @@ function AppGuideDialog({
     },
     {
       title: copy("app_guide_step_2_title", "How plans differ"),
-      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor, listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
+      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor with listening practice, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
       details: [
         copy("app_guide_step_2_detail_1", "Free is enough to test the route and keep a small daily habit."),
         copy("app_guide_step_2_detail_2", "Premium is the normal daily mode when you need guided lessons, voice, listening, and pronunciation feedback."),
@@ -5438,7 +5446,7 @@ function PaymentModal({
   copy: (key: string, fallback: string) => string;
   busy: string | null;
   onClose: () => void;
-  onPay: (method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string) => void;
+  onPay: (method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string, yooKassaMethod?: string) => void;
   onCheckPayment: (paymentID: string) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState("");
@@ -5476,9 +5484,9 @@ function PaymentModal({
     return "";
   })();
   const isConfirmed = /paid|confirmed|success|succeed|complete/i.test(status);
-  const chooseMethod = (key: string, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string) => {
+  const chooseMethod = (key: string, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string, yooKassaMethod?: string) => {
     setSelectedMethod(key);
-    onPay(method, cryptoMethod);
+    onPay(method, cryptoMethod, yooKassaMethod);
   };
   const requisites = [
     [copy("status", "Status"), status],
@@ -5498,6 +5506,12 @@ function PaymentModal({
     }
     return "";
   })();
+  const yooKassaMethods = [
+    { id: "any", label: copy("pay_yookassa_choose", "Choose in YooKassa") },
+    { id: "bank_card", label: copy("pay_card", "Bank card") },
+    { id: "sbp", label: copy("pay_sbp", "SBP") },
+    { id: "yoo_money", label: "ЮMoney" },
+  ];
   return (
     <div className="modal-backdrop-v2" role="dialog" aria-modal="true">
       <section className="v2-payment-modal">
@@ -5510,13 +5524,16 @@ function PaymentModal({
         </div>
         <p>{premiumPlanBody(plan, copy)}</p>
         <div className="payment-methods-v2">
-          <MorphButton
-            text={copy("pay_card", "Bank card")}
-            icon={<CircleDollarSign size={18} />}
-            isLoading={selectedMethod === "card" && !isConfirmed}
-            onClick={() => chooseMethod("card", "card")}
-            className={cn("payment-method-button-v2", selectedMethod === "card" && "is-selected")}
-          />
+          {yooKassaMethods.map((method) => (
+            <MorphButton
+              key={method.id}
+              text={method.label}
+              icon={<CircleDollarSign size={18} />}
+              isLoading={selectedMethod === `yookassa-${method.id}` && !isConfirmed}
+              onClick={() => chooseMethod(`yookassa-${method.id}`, "card", undefined, method.id)}
+              className={cn("payment-method-button-v2", selectedMethod === `yookassa-${method.id}` && "is-selected")}
+            />
+          ))}
           {rollypayEnabled ? (
             <MorphButton
               text="RollyPay"
