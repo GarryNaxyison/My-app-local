@@ -292,24 +292,24 @@
     });
 
     const landingPricingLineCopy = {
-        es: "La web app se sincroniza con Telegram, y Premium cuesta ahora 300 RUB, 150 Stars o unos 4.15 USDT al mes con el 70% de descuento de lanzamiento incluido. El descuento está disponible solo durante el primer mes de lanzamiento.",
-        de: "Die Web-App synchronisiert sich mit Telegram, und Premium kostet jetzt 300 RUB, 150 Stars oder etwa 4.15 USDT pro Monat inklusive 70% Start-Rabatt. Der Rabatt gilt nur im ersten Launch-Monat.",
-        fr: "L'app web se synchronise avec Telegram, et Premium coûte maintenant 300 RUB, 150 Stars ou environ 4.15 USDT par mois avec la remise de lancement de 70% incluse. La remise est disponible uniquement pendant le premier mois de lancement.",
-        it: "La web app si sincronizza con Telegram, e Premium ora costa 300 RUB, 150 Stars o circa 4.15 USDT al mese con lo sconto lancio del 70% incluso. Lo sconto è disponibile solo durante il primo mese di lancio.",
-        uk: "Веб-додаток синхронізується з Telegram, а Premium зараз коштує 300 RUB, 150 Stars або близько 4.15 USDT на місяць з урахуванням стартової знижки 70%. Знижка діє лише протягом першого місяця запуску.",
-        pl: "Aplikacja web synchronizuje się z Telegramem, a Premium kosztuje teraz 300 RUB, 150 Stars lub około 4.15 USDT miesięcznie z uwzględnioną 70% zniżką startową. Zniżka obowiązuje tylko w pierwszym miesiącu startu.",
-        pt: "O app web sincroniza com o Telegram, e o Premium agora custa 300 RUB, 150 Stars ou cerca de 4.15 USDT por mês com o desconto inicial de 70% incluído. O desconto vale apenas durante o primeiro mês de lançamento.",
-        ro: "Aplicația web se sincronizează cu Telegram, iar Premium costă acum 300 RUB, 150 Stars sau aproximativ 4.15 USDT pe lună cu reducerea de lansare de 70% inclusă. Reducerea este disponibilă doar în prima lună de lansare.",
-        zh: "Web 应用会与 Telegram 同步，Premium 现价为每月 300 卢布、150 Stars 或约 4.15 USDT，已包含 70% 上线折扣。折扣仅在上线第一个月有效。",
-        ja: "Webアプリは Telegram と同期し、Premium は現在、70%のローンチ割引込みで月額300 RUB、150 Stars、または約4.15 USDTです。割引はローンチ最初の1か月だけ有効です。",
-        ko: "웹 앱은 Telegram과 동기화되며, Premium은 출시 70% 할인이 적용되어 월 300 RUB, 150 Stars 또는 약 4.15 USDT입니다. 할인은 출시 첫 달에만 적용됩니다.",
-        tg: "Web app бо Telegram ҳамоҳанг мешавад, Premium ҳоло бо тахфифи оғози 70% дар як моҳ 300 RUB, 150 Stars ё тақрибан 4.15 USDT аст. Тахфиф танҳо дар моҳи аввали оғоз амал мекунад.",
-        uz: "Web app Telegram bilan sinxronlashadi, Premium esa 70% start chegirmasi bilan oyiga 300 RUB, 150 Stars yoki taxminan 4.15 USDT turadi. Chegirma faqat ishga tushirishning birinchi oyida amal qiladi.",
-        tt: "Web app Telegram белән синхронлаша, ә Premium хәзер 70% старт ташламасы белән аена 300 RUB, 150 Stars яки якынча 4.15 USDT тора. Ташлама стартның беренче аенда гына гамәлдә.",
-        hy: "Web app-ը համաժամացվում է Telegram-ի հետ, իսկ Premium-ը հիմա արժե ամսական 300 RUB, 150 Stars կամ մոտ 4.15 USDT՝ 70% մեկնարկային զեղչով: Զեղչը գործում է միայն մեկնարկի առաջին ամսում:",
-        kk: "Web app Telegram-мен синхрондалады, ал Premium қазір 70% бастапқы жеңілдікпен айына 300 RUB, 150 Stars немесе шамамен 4.15 USDT тұрады. Жеңілдік іске қосылған алғашқы айда ғана қолданылады.",
-        ky: "Web app Telegram менен синхрондолот, ал Premium азыр 70% старттык арзандатуу менен айына 300 RUB, 150 Stars же болжол менен 4.15 USDT турат. Арзандатуу башталган биринчи айда гана жарактуу.",
-        ka: "Web app სინქრონდება Telegram-თან, ხოლო Premium ახლა 70% საწყისი ფასდაკლებით თვეში 300 RUB, 150 Stars ან დაახლოებით 4.15 USDT ღირს. ფასდაკლება მოქმედებს მხოლოდ გაშვების პირველ თვეში."
+        es: "La web app se sincroniza con Telegram, y Premium cuesta ahora 300 RUB o 150 Stars al mes con el 70% de descuento de lanzamiento incluido. El descuento está disponible solo durante el primer mes de lanzamiento.",
+        de: "Die Web-App synchronisiert sich mit Telegram, und Premium kostet jetzt 300 RUB oder 150 Stars pro Monat inklusive 70% Start-Rabatt. Der Rabatt gilt nur im ersten Launch-Monat.",
+        fr: "L'app web se synchronise avec Telegram, et Premium coûte maintenant 300 RUB ou 150 Stars par mois avec la remise de lancement de 70% incluse. La remise est disponible uniquement pendant le premier mois de lancement.",
+        it: "La web app si sincronizza con Telegram, e Premium ora costa 300 RUB o 150 Stars al mese con lo sconto lancio del 70% incluso. Lo sconto è disponibile solo durante il primo mese di lancio.",
+        uk: "Веб-додаток синхронізується з Telegram, а Premium зараз коштує 300 RUB або 150 Stars на місяць з урахуванням стартової знижки 70%. Знижка діє лише протягом першого місяця запуску.",
+        pl: "Aplikacja web synchronizuje się z Telegramem, a Premium kosztuje teraz 300 RUB lub 150 Stars miesięcznie z uwzględnioną 70% zniżką startową. Zniżka obowiązuje tylko w pierwszym miesiącu startu.",
+        pt: "O app web sincroniza com o Telegram, e o Premium agora custa 300 RUB ou 150 Stars por mês com o desconto inicial de 70% incluído. O desconto vale apenas durante o primeiro mês de lançamento.",
+        ro: "Aplicația web se sincronizează cu Telegram, iar Premium costă acum 300 RUB sau 150 Stars pe lună cu reducerea de lansare de 70% inclusă. Reducerea este disponibilă doar în prima lună de lansare.",
+        zh: "Web 应用会与 Telegram 同步，Premium 现价为每月 300 卢布或 150 Stars，已包含 70% 上线折扣。折扣仅在上线第一个月有效。",
+        ja: "Webアプリは Telegram と同期し、Premium は現在、70%のローンチ割引込みで月額300 RUB、150 Stars、です。割引はローンチ最初の1か月だけ有効です。",
+        ko: "웹 앱은 Telegram과 동기화되며, Premium은 출시 70% 할인이 적용되어 월 300 RUB 또는 150 Stars입니다. 할인은 출시 첫 달에만 적용됩니다.",
+        tg: "Web app бо Telegram ҳамоҳанг мешавад, Premium ҳоло бо тахфифи оғози 70% дар як моҳ 300 RUB ё 150 Stars аст. Тахфиф танҳо дар моҳи аввали оғоз амал мекунад.",
+        uz: "Web app Telegram bilan sinxronlashadi, Premium esa 70% start chegirmasi bilan oyiga 300 RUB, 150 Stars turadi. Chegirma faqat ishga tushirishning birinchi oyida amal qiladi.",
+        tt: "Web app Telegram белән синхронлаша, ә Premium хәзер 70% старт ташламасы белән аена 300 RUB яки 150 Stars тора. Ташлама стартның беренче аенда гына гамәлдә.",
+        hy: "Web app-ը համաժամացվում է Telegram-ի հետ, իսկ Premium-ը հիմա արժե ամսական 300 RUB, 150 Stars՝ 70% մեկնարկային զեղչով: Զեղչը գործում է միայն մեկնարկի առաջին ամսում:",
+        kk: "Web app Telegram-мен синхрондалады, ал Premium қазір 70% бастапқы жеңілдікпен айына 300 RUB, 150 Stars тұрады. Жеңілдік іске қосылған алғашқы айда ғана қолданылады.",
+        ky: "Web app Telegram менен синхрондолот, ал Premium азыр 70% старттык арзандатуу менен айына 300 RUB, 150 Stars турат. Арзандатуу башталган биринчи айда гана жарактуу.",
+        ka: "Web app სინქრონდება Telegram-თან, ხოლო Premium ახლა 70% საწყისი ფასდაკლებით თვეში 300 RUB ან 150 Stars ღირს. ფასდაკლება მოქმედებს მხოლოდ გაშვების პირველ თვეში."
     };
 
     Object.entries(landingPricingLineCopy).forEach(([code, value]) => {
@@ -660,13 +660,13 @@
             uk: "5. Оплата і Stars", pl: "5. Płatności i Stars", pt: "5. Pagamentos e Stars", ro: "5. Plăți și Stars",
             zh: "5. 付款和 Stars", ja: "5. 支払いと Stars", ko: "5. 결제 및 Stars"
         }),
-        "5. Оплата, Telegram Stars, TON, USDT и срок доступа": legalTranslations("5. Payment, Telegram Stars, TON, USDT and access period", {
-            es: "5. Pago, Telegram Stars, TON, USDT y periodo de acceso", de: "5. Zahlung, Telegram Stars, TON, USDT und Zugriffszeitraum",
-            fr: "5. Paiement, Telegram Stars, TON, USDT et durée d'accès", it: "5. Pagamento, Telegram Stars, TON, USDT e periodo di accesso",
-            uk: "5. Оплата, Telegram Stars, TON, USDT і строк доступу", pl: "5. Płatność, Telegram Stars, TON, USDT i okres dostępu",
-            pt: "5. Pagamento, Telegram Stars, TON, USDT e período de acesso", ro: "5. Plată, Telegram Stars, TON, USDT și perioada de acces",
-            zh: "5. 付款、Telegram Stars、TON、USDT 和访问期限", ja: "5. 支払い、Telegram Stars、TON、USDT、利用期間",
-            ko: "5. 결제, Telegram Stars, TON, USDT 및 이용 기간"
+        "5. Оплата, Telegram Stars и срок доступа": legalTranslations("5. Payment, Telegram Stars and access period", {
+            es: "5. Pago, Telegram Stars y periodo de acceso", de: "5. Zahlung, Telegram Stars und Zugriffszeitraum",
+            fr: "5. Paiement, Telegram Stars et durée d'accès", it: "5. Pagamento, Telegram Stars e periodo di accesso",
+            uk: "5. Оплата, Telegram Stars і строк доступу", pl: "5. Płatność, Telegram Stars i okres dostępu",
+            pt: "5. Pagamento, Telegram Stars e período de acesso", ro: "5. Plată, Telegram Stars și perioada de acces",
+            zh: "5. 付款、Telegram Stars 和访问期限", ja: "5. 支払い、Telegram Stars、利用期間",
+            ko: "5. 결제, Telegram Stars 및 이용 기간"
         }),
         "6. Оплаты и Premium": legalTranslations("6. Payments and Premium", {
             es: "6. Pagos y Premium", de: "6. Zahlungen und Premium", fr: "6. Paiements et Premium", it: "6. Pagamenti e Premium",
@@ -700,16 +700,12 @@
         "Тариф и период": legalTranslations("Plan and period", { es: "Plan y periodo", de: "Tarif und Zeitraum", fr: "Offre et période", it: "Piano e periodo", uk: "Тариф і період", pl: "Plan i okres", pt: "Plano e período", ro: "Plan și perioadă", zh: "套餐和期限", ja: "プランと期間", ko: "요금제 및 기간" }),
         "Цена в рублях": legalTranslations("Price in RUB", { es: "Precio en RUB", de: "Preis in RUB", fr: "Prix en RUB", it: "Prezzo in RUB", uk: "Ціна в RUB", pl: "Cena w RUB", pt: "Preço em RUB", ro: "Preț în RUB", zh: "卢布价格", ja: "RUB価格", ko: "RUB 가격" }),
         "Цена в Telegram Stars": legalTranslations("Price in Telegram Stars", { es: "Precio en Telegram Stars", de: "Preis in Telegram Stars", fr: "Prix en Telegram Stars", it: "Prezzo in Telegram Stars", uk: "Ціна в Telegram Stars", pl: "Cena w Telegram Stars", pt: "Preço em Telegram Stars", ro: "Preț în Telegram Stars", zh: "Telegram Stars 价格", ja: "Telegram Stars価格", ko: "Telegram Stars 가격" }),
-        "около 4.15 USDT; TON по счёту": legalTranslations("about 4.15 USDT; TON by invoice", { es: "unos 4.15 USDT; TON según factura", de: "ca. 4.15 USDT; TON per Rechnung", fr: "environ 4.15 USDT ; TON selon facture", it: "circa 4.15 USDT; TON su fattura", uk: "близько 4.15 USDT; TON за рахунком", pl: "około 4.15 USDT; TON według faktury", pt: "cerca de 4.15 USDT; TON por fatura", ro: "aprox. 4.15 USDT; TON pe factură", zh: "约 4.15 USDT；TON 按账单", ja: "約4.15 USDT、TONは請求額", ko: "약 4.15 USDT; TON은 청구서 기준" }),
-        "около 41.50 USDT; TON по счёту": legalTranslations("about 41.50 USDT; TON by invoice", { ko: "약 41.50 USDT; TON은 청구서 기준", zh: "约 41.50 USDT；TON 按账单", ja: "約41.50 USDT、TONは請求額" }),
-        "около 8.15 USDT; TON по счёту": legalTranslations("about 8.15 USDT; TON by invoice", { ko: "약 8.15 USDT; TON은 청구서 기준", zh: "约 8.15 USDT；TON 按账单", ja: "約8.15 USDT、TONは請求額" }),
-        "около 81.50 USDT; TON по счёту": legalTranslations("about 81.50 USDT; TON by invoice", { ko: "약 81.50 USDT; TON은 청구서 기준", zh: "约 81.50 USDT；TON 按账单", ja: "約81.50 USDT、TONは請求額" }),
         "Месячные цены Premium 300 ₽ / 150 Stars и Platinum 590 ₽ / 300 Stars уже указаны с учётом стартовой скидки 70%. Годовая оплата доступна на 365 дней и дополнительно снижает стоимость по сравнению с помесячной оплатой.": legalTranslations("Monthly prices Premium 300 RUB / 150 Stars and Platinum 590 RUB / 300 Stars already include the 70% launch discount. Annual payment is available for 365 days and additionally lowers the cost compared with monthly payment.", { ko: "월간 가격 Premium 300 RUB / 150 Stars 및 Platinum 590 RUB / 300 Stars에는 이미 출시 70% 할인이 포함되어 있습니다. 연간 결제는 365일 이용권이며 월 결제보다 비용이 더 낮습니다." }),
         "50 уроков в день, 200 сообщений практики, 20 голосовых до 30 секунд, голос в текст, перевод услышанного, перевод текста с картинки, практика по голосу или фото.": legalTranslations("50 lessons per day, 200 practice messages, 20 voice messages up to 30 seconds, voice to text, heard speech translation, image text translation and practice from voice or photo context.", { ko: "하루 50레슨, 연습 메시지 200개, 최대 30초 음성 20개, 음성 텍스트 변환, 들은 내용 번역, 이미지 텍스트 번역, 음성 또는 사진 맥락 연습." }),
         "100 уроков в день, 500 сообщений практики, 60 голосовых до 30 секунд, максимальный доступ к AI-диалогам, voice/photo-практике и переводчику.": legalTranslations("100 lessons per day, 500 practice messages, 60 voice messages up to 30 seconds, maximum access to AI dialogues, voice/photo practice and translator.", { ko: "하루 100레슨, 연습 메시지 500개, 최대 30초 음성 60개, AI 대화, 음성/사진 연습 및 번역기에 대한 최대 접근." }),
         "Платежные данные банковских карт и платежных инструментов обрабатываются платежными провайдерами, YooKassa, Telegram, банками, магазинами приложений, блокчейн-сетями или иными платежными участниками. NERIVA не запрашивает и не хранит полный номер банковской карты, CVV/CVC-код и иные полные реквизиты платежного инструмента.": legalTranslations("Payment data for bank cards and payment instruments is processed by payment providers, YooKassa, Telegram, banks, app stores, blockchain networks or other payment participants. NERIVA does not request or store the full bank card number, CVV/CVC code or other full payment instrument details.", { ko: "은행 카드 및 결제 수단 데이터는 결제 제공업체, YooKassa, Telegram, 은행, 앱 스토어, 블록체인 네트워크 또는 기타 결제 참여자가 처리합니다. NERIVA는 전체 카드 번호, CVV/CVC 코드 또는 기타 전체 결제 수단 정보를 요청하거나 저장하지 않습니다." }),
-        "Для подтверждения Premium- или Platinum-доступа Администрация может обрабатывать платежный статус, идентификатор операции, выбранный тариф, срок доступа, сумму, валюту, количество Telegram Stars, TON/USDT-сеть, хеш транзакции и сведения, которые Пользователь сам передает в поддержку для проверки оплаты.": legalTranslations("To confirm Premium or Platinum access, the Administration may process payment status, transaction identifier, selected plan, access period, amount, currency, number of Telegram Stars, TON/USDT network, transaction hash and information the User provides to support for payment verification.", { ko: "Premium 또는 Platinum 이용을 확인하기 위해 운영자는 결제 상태, 거래 식별자, 선택한 요금제, 이용 기간, 금액, 통화, Telegram Stars 수량, TON/USDT 네트워크, 거래 해시 및 사용자가 결제 확인을 위해 지원팀에 제공한 정보를 처리할 수 있습니다." }),
-        "сведения о тарифе: Free, Premium или Platinum, дата активации, срок доступа, лимиты, факт оплаты, платежный статус, выбранный способ оплаты, Telegram Stars, TON/USDT и данные для сверки платежа;": legalTranslations("plan information: Free, Premium or Platinum, activation date, access period, limits, payment fact, payment status, selected payment method, Telegram Stars, TON/USDT and payment verification data;", { ko: "요금제 정보: Free, Premium 또는 Platinum, 활성화 날짜, 이용 기간, 한도, 결제 사실, 결제 상태, 선택한 결제 방법, Telegram Stars, TON/USDT 및 결제 확인 데이터;" }),
+        "Для подтверждения Premium- или Platinum-доступа Администрация может обрабатывать платежный статус, идентификатор операции, выбранный тариф, срок доступа, сумму, валюту, количество Telegram Stars, сведения, которые Пользователь сам передает в поддержку для проверки оплаты.": legalTranslations("To confirm Premium or Platinum access, the Administration may process payment status, transaction identifier, selected plan, access period, amount, currency, number of Telegram Stars, information the User provides to support for payment verification.", { ko: "Premium 또는 Platinum 이용을 확인하기 위해 운영자는 결제 상태, 거래 식별자, 선택한 요금제, 이용 기간, 금액, 통화, Telegram Stars 수량,, 거래 해시 및 사용자가 결제 확인을 위해 지원팀에 제공한 정보를 처리할 수 있습니다." }),
+        "сведения о тарифе: Free, Premium или Platinum, дата активации, срок доступа, лимиты, факт оплаты, платежный статус, выбранный способ оплаты, Telegram Stars и данные для сверки платежа;": legalTranslations("plan information: Free, Premium or Platinum, activation date, access period, limits, payment fact, payment status, selected payment method, Telegram Stars and payment verification data;", { ko: "요금제 정보: Free, Premium 또는 Platinum, 활성화 날짜, 이용 기간, 한도, 결제 사실, 결제 상태, 선택한 결제 방법, Telegram Stars,;" }),
         "учет дневных лимитов Free, Premium и Platinum: уроки, сообщения практики, голосовые и иные доступные функции;": legalTranslations("accounting for daily Free, Premium and Platinum limits: lessons, practice messages, voice messages and other available features;", { ko: "Free, Premium 및 Platinum의 일일 한도 계산: 레슨, 연습 메시지, 음성 및 기타 사용 가능한 기능;" })
     };
 
@@ -771,15 +767,15 @@
         ["грузинский", "Georgian"],
         ["AI-платформа для языковой практики", "AI platform for language practice"],
         ["Один сервис для уроков, диалогов, перевода, голоса и фото", "One service for lessons, dialogs, translation, voice and photos"],
-        ["NERIVA закрывает главную боль языкового обучения: человек не просто читает теорию, а каждый день говорит, пишет, слушает, получает исправления и сразу видит свои ошибки. Это не отдельное тяжёлое приложение, а связка Telegram-бота и web app с одним прогрессом, оплатой в рублях, Stars, TON и USDT.", "NERIVA solves the main pain of language learning: people do not just read theory, they speak, write, listen, get corrections and see their mistakes every day. It is not a heavy separate app, but a Telegram bot and web app with shared progress and payments in RUB, Stars, TON and USDT."],
+        ["NERIVA закрывает главную боль языкового обучения: человек не просто читает теорию, а каждый день говорит, пишет, слушает, получает исправления и сразу видит свои ошибки. Это не отдельное тяжёлое приложение, а связка Telegram-бота и web app с одним прогрессом, оплатой в рублях и Stars.", "NERIVA solves the main pain of language learning: people do not just read theory, they speak, write, listen, get corrections and see their mistakes every day. It is not a heavy separate app, but a Telegram bot and web app with shared progress and payments in RUB and Stars."],
         ["20 языков", "20 languages"],
         ["Telegram-вход", "Telegram login"],
         ["Мультиязычный сайт", "Multilingual website"],
         ["Фото", "Photo"],
         ["Скидка только первый месяц запуска", "Discount only for the first launch month"],
         ["Premium на 30 дней", "Premium for 30 days"],
-        ["500 Stars · около 14 USDT", "500 Stars · about 14 USDT"],
-        ["150 Stars · около 4.15 USDT · TON по счёту", "150 Stars · about 4.15 USDT · TON by invoice"],
+        ["500 Stars", "500 Stars"],
+        ["150 Stars", "150 Stars"],
         ["Получить Premium онлайн", "Get Premium online"],
         ["Стартовая цена", "Launch price"],
         ["70% скидки только первый месяц запуска", "70% discount only for the first launch month"],
@@ -820,7 +816,7 @@
         ["Попробуйте NERIVA сегодня", "Try NERIVA today"],
         ["Начните с бесплатного тарифа: 5 уроков и 15 сообщений практики в день. Когда захотите больше — подключите Premium или Platinum на 30 дней либо на год.", "Start with the free plan: 5 lessons and 15 practice messages per day. When you want more, upgrade to Premium or Platinum for 30 days or a year."],
         ["Сайт и Telegram", "Website and Telegram"],
-        ["YooKassa/СБП, Stars, TON или USDT", "YooKassa/SBP, Stars, TON or USDT"],
+        ["YooKassa/СБП и Stars", "YooKassa/SBP and Stars"],
         ["7 дней за приглашение друга", "7 days for inviting a friend"],
         ["Частые вопросы", "FAQ"],
         ["Коротко о доступе, лимитах, оплате и Premium-функциях.", "Quick answers about access, limits, payments and Premium features."],
@@ -900,9 +896,9 @@
         ["Начать бесплатно", "Start free"],
         ["Лучший выбор · скидка 70%", "Best choice · 70% discount"],
         ["в месяц", "per month"],
-        ["150 Stars · около 4.15 USDT", "150 Stars · about 4.15 USDT"],
+        ["150 Stars", "150 Stars"],
         ["≈10 000 ₽/год", "≈10,000 RUB/year"],
-        ["3 000 ₽/год · 1 500 Stars · около 41.50 USDT", "3,000 RUB/year · 1,500 Stars · about 41.50 USDT"],
+        ["3 000 ₽/год · 1 500 Stars", "3,000 RUB/year · 1,500 Stars"],
         ["70% уже в цене · только первый месяц запуска", "70% already included · only for the first launch month"],
         ["Для ежедневного прогресса: больше уроков, диалогов, голос, фото и словарь ошибок.", "For daily progress: more lessons, dialogs, voice, photos and a mistake dictionary."],
         ["50 уроков в день", "50 lessons per day"],
@@ -912,14 +908,14 @@
         ["Перевод текста с фото из проводника или камеры", "Text translation from a file photo or camera"],
         ["Подключить Premium", "Upgrade to Premium"],
         ["Максимум доступа · скидка 70%", "Maximum access · 70% discount"],
-        ["1 000 Stars · около 27 USDT", "1,000 Stars · about 27 USDT"],
-        ["300 Stars · около 8.15 USDT", "300 Stars · about 8.15 USDT"],
+        ["1 000 Stars", "1,000 Stars"],
+        ["300 Stars", "300 Stars"],
         ["≈20 000 ₽/год", "≈20,000 RUB/year"],
-        ["5 900 ₽/год · 3 000 Stars · около 81.50 USDT", "5,900 RUB/year · 3,000 Stars · about 81.50 USDT"],
+        ["5 900 ₽/год · 3 000 Stars", "5,900 RUB/year · 3,000 Stars"],
         ["Для интенсивных рывков, поездок, экзаменов и тех, кто хочет максимум лимитов.", "For intensive sprints, trips, exams and users who want maximum limits."],
         ["Все возможности Premium", "All Premium features"],
         ["60 голосовых в день до 30 секунд", "60 voice messages per day up to 30 seconds"],
-        ["Годовая оплата: 5900 ₽ / 3000 Stars / около 81.50 USDT", "Annual payment: 5,900 RUB / 3,000 Stars / about 81.50 USDT"],
+        ["Годовая оплата: 5900 ₽ / 3000 Stars", "Annual payment: 5,900 RUB / 3,000 Stars"],
         ["Выбрать Platinum", "Choose Platinum"],
         ["Что входит в бесплатный тариф Free?", "What is included in the free Free plan?"],
         ["Free включает 5 уроков в день и 15 сообщений практики в день. Голосовые функции на бесплатном тарифе недоступны.", "Free includes 5 lessons per day and 15 practice messages per day. Voice features are unavailable on the free plan."],
@@ -938,7 +934,7 @@
         ["Можно ли выбрать язык бота отдельно от языка обучения?", "Can I choose the bot language separately from the learning language?"],
         ["Да. Пользователь может выбрать язык сайта, онлайн-приложения и интерфейса бота отдельно от языка, который он хочет изучать. Например, пользоваться сервисом на O'zbekcha, а учить English.", "Yes. Users can choose the website, web app and bot interface language separately from the language they want to learn. For example, use the service in Uzbek while learning English."],
         ["Сколько стоит Premium?", "How much does Premium cost?"],
-        ["Premium стоит 300 ₽ в месяц, 150 Telegram Stars или около 4.15 USDT. Годовой доступ стоит 3000 ₽, 1500 Stars или около 41.50 USDT. Platinum стоит 590 ₽ в месяц или 5900 ₽ в год.", "Premium costs 300 RUB per month, 150 Telegram Stars or about 4.15 USDT. Annual access costs 3,000 RUB, 1,500 Stars or about 41.50 USDT. Platinum costs 590 RUB per month or 5,900 RUB per year."],
+        ["Premium стоит 300 ₽ в месяц или 150 Telegram Stars. Годовой доступ стоит 3000 ₽ или 1500 Stars. Platinum стоит 590 ₽ в месяц или 5900 ₽ в год.", "Premium costs 300 RUB per month or 150 Telegram Stars. Annual access costs 3,000 RUB or 1,500 Stars. Platinum costs 590 RUB per month or 5,900 RUB per year."],
         ["Как получить Premium бесплатно на 7 дней?", "How do I get Premium free for 7 days?"],
         ["Пригласите друга в NERIVA — за приглашение можно получить 7 дней Premium бесплатно.", "Invite a friend to NERIVA and get 7 days of Premium for free."],
         ["Нужно ли устанавливать отдельное приложение?", "Do I need to install a separate app?"],
@@ -962,11 +958,11 @@
         ["AI-репетитор в Telegram и web app: уроки, голос, фото, ошибки и словарь", "AI tutor in Telegram and web app: lessons, voice, photos, mistakes and vocabulary"],
         ["Заговорите на новом языке быстрее: AI-репетитор уже внутри Telegram", "Speak a new language faster: your AI tutor is already inside Telegram"],
         ["NERIVA превращает привычный мессенджер в личного языкового тренера: даёт короткие уроки, ведёт диалог, разбирает ошибки, тренирует слова, понимает голос и переводит текст с фото.", "NERIVA turns a familiar messenger into a personal language coach: it gives short lessons, holds dialogs, explains mistakes, trains words, understands voice and translates text from photos."],
-        ["Веб-приложение синхронизируется с Telegram, а Premium сейчас стоит 300 ₽, 150 Stars или около 4.15 USDT в месяц с учётом стартовой скидки 70%. Скидка действует только первый месяц запуска.", "The web app syncs with Telegram, and Premium now costs 300 RUB, 150 Stars or about 4.15 USDT per month with the 70% launch discount included. The discount is available only during the first launch month."],
+        ["Веб-приложение синхронизируется с Telegram, а Premium сейчас стоит 300 ₽ или 150 Stars в месяц с учётом стартовой скидки 70%. Скидка действует только первый месяц запуска.", "The web app syncs with Telegram, and Premium now costs 300 RUB or 150 Stars per month with the 70% launch discount included. The discount is available only during the first launch month."],
         ["20 языков, единый web/Telegram-аккаунт, AI-уроки, диалоги, голос, фото, камера, словарь ошибок и тарифы Free, Premium, Platinum.", "20 languages, one web/Telegram account, AI lessons, dialogs, voice, photos, camera, mistake dictionary and Free, Premium, Platinum plans."],
         ["NERIVA — AI-репетитор в Telegram и web app", "NERIVA — AI tutor in Telegram and web app"],
         ["NERIVA — AI-репетитор в Telegram и web app для 20 языков", "NERIVA — AI tutor in Telegram and web app for 20 languages"],
-        ["NERIVA — AI-репетитор в Telegram и веб-приложении: уроки, диалоги, голос, фото-перевод, словарь, ошибки, CEFR-тест, синхронизация прогресса и тарифы Free, Premium, Platinum. Premium от 300 ₽, 150 Stars или около 4.15 USDT в месяц.", "NERIVA is an AI tutor in Telegram and the web app: lessons, dialogs, voice, photo translation, vocabulary, mistakes, CEFR test, progress sync and Free, Premium, Platinum plans. Premium starts from 300 RUB, 150 Stars or about 4.15 USDT per month."],
+        ["NERIVA — AI-репетитор в Telegram и веб-приложении: уроки, диалоги, голос, фото-перевод, словарь, ошибки, CEFR-тест, синхронизация прогресса и тарифы Free, Premium, Platinum. Premium от 300 ₽ или 150 Stars в месяц.", "NERIVA is an AI tutor in Telegram and the web app: lessons, dialogs, voice, photo translation, vocabulary, mistakes, CEFR test, progress sync and Free, Premium, Platinum plans. Premium starts from 300 RUB or 150 Stars per month."],
         ["изучение языков, веб-приложение для языков, Telegram бот, вход через Telegram, AI переводчик, переводчик с фото, переводчик голосом, NERIVA, AI обучение, английский язык, русский язык, испанский язык, немецкий язык, французский язык, итальянский язык, таджикский язык, узбекский язык, татарский язык, армянский язык, казахский язык, украинский язык, польский язык, румынский язык, португальский язык, кыргызский язык, грузинский язык, голосовая практика, произношение слов, YooKassa, СБП, Telegram Stars", "language learning, language web app, Telegram bot, Telegram login, AI translator, photo translator, voice translator, NERIVA, AI learning, English, Russian, Spanish, German, French, Italian, Tajik, Uzbek, Tatar, Armenian, Kazakh, Ukrainian, Polish, Romanian, Portuguese, Kyrgyz, Georgian, voice practice, word pronunciation, YooKassa, SBP, Telegram Stars"],
         ["Нет. Можно заниматься в онлайн-приложении на сайте или через Telegram: откройте <span data-app-url-text>neriva.ru/app</span> либо @NERIVAapp_bot.", "No. You can study in the web app on the website or through Telegram: open <span data-app-url-text>neriva.ru/app</span> or @NERIVAapp_bot."],
         ["AI-репетитор в Telegram и web app: уроки, аудирование, голосовая оценка, фото и словарь", "AI tutor in Telegram and web app: lessons, listening, pronunciation scoring, photos and vocabulary"],
@@ -1070,33 +1066,33 @@
             ky: "≈20 000 ₽/жыл", ka: "≈20 000 ₽/წელი", uk: "≈20 000 ₽/рік", pl: "≈20 000 ₽/rok",
             ro: "≈20.000 ₽/an", pt: "≈20.000 ₽/ano"
         }),
-        "500 Stars · около 14 USDT": legalTranslations("500 Stars · about 14 USDT", {
-            es: "500 Stars · unos 14 USDT", de: "500 Stars · ca. 14 USDT", fr: "500 Stars · environ 14 USDT", it: "500 Stars · circa 14 USDT",
-            zh: "500 Stars · 约 14 USDT", ja: "500 Stars · 約14 USDT", ko: "500 Stars · 약 14 USDT", tg: "500 Stars · тақрибан 14 USDT",
-            uz: "500 Stars · taxminan 14 USDT", tt: "500 Stars · якынча 14 USDT", hy: "500 Stars · մոտ 14 USDT", kk: "500 Stars · шамамен 14 USDT",
-            ky: "500 Stars · болжол менен 14 USDT", ka: "500 Stars · დაახლოებით 14 USDT", uk: "500 Stars · близько 14 USDT", pl: "500 Stars · około 14 USDT",
-            ro: "500 Stars · aprox. 14 USDT", pt: "500 Stars · cerca de 14 USDT"
+        "500 Stars": legalTranslations("500 Stars", {
+            es: "500 Stars", de: "500 Stars", fr: "500 Stars", it: "500 Stars",
+            zh: "500 Stars", ja: "500 Stars", ko: "500 Stars", tg: "500 Stars",
+            uz: "500 Stars", tt: "500 Stars", hy: "500 Stars", kk: "500 Stars",
+            ky: "500 Stars", ka: "500 Stars", uk: "500 Stars", pl: "500 Stars · okoł",
+            ro: "500 Stars", pt: "500 Stars"
         }),
-        "150 Stars · около 4.15 USDT": legalTranslations("150 Stars · about 4.15 USDT", {
-            es: "150 Stars · unos 4.15 USDT", de: "150 Stars · ca. 4.15 USDT", fr: "150 Stars · environ 4.15 USDT", it: "150 Stars · circa 4.15 USDT",
-            zh: "150 Stars · 约 4.15 USDT", ja: "150 Stars · 約4.15 USDT", ko: "150 Stars · 약 4.15 USDT", tg: "150 Stars · тақрибан 4.15 USDT",
-            uz: "150 Stars · taxminan 4.15 USDT", tt: "150 Stars · якынча 4.15 USDT", hy: "150 Stars · մոտ 4.15 USDT", kk: "150 Stars · шамамен 4.15 USDT",
-            ky: "150 Stars · болжол менен 4.15 USDT", ka: "150 Stars · დაახლოებით 4.15 USDT", uk: "150 Stars · близько 4.15 USDT", pl: "150 Stars · około 4.15 USDT",
-            ro: "150 Stars · aprox. 4.15 USDT", pt: "150 Stars · cerca de 4.15 USDT"
+        "150 Stars": legalTranslations("150 Stars", {
+            es: "150 Stars", de: "150 Stars", fr: "150 Stars", it: "150 Stars",
+            zh: "150 Stars", ja: "150 Stars", ko: "150 Stars", tg: "150 Stars",
+            uz: "150 Stars", tt: "150 Stars", hy: "150 Stars", kk: "150 Stars",
+            ky: "150 Stars", ka: "150 Stars", uk: "150 Stars", pl: "150 Stars · okoł",
+            ro: "150 Stars", pt: "150 Stars"
         }),
-        "1 000 Stars · около 27 USDT": legalTranslations("1,000 Stars · about 27 USDT", {
-            es: "1 000 Stars · unos 27 USDT", de: "1.000 Stars · ca. 27 USDT", fr: "1 000 Stars · environ 27 USDT", it: "1.000 Stars · circa 27 USDT",
-            zh: "1,000 Stars · 约 27 USDT", ja: "1,000 Stars · 約27 USDT", ko: "1,000 Stars · 약 27 USDT", tg: "1 000 Stars · тақрибан 27 USDT",
-            uz: "1 000 Stars · taxminan 27 USDT", tt: "1 000 Stars · якынча 27 USDT", hy: "1 000 Stars · մոտ 27 USDT", kk: "1 000 Stars · шамамен 27 USDT",
-            ky: "1 000 Stars · болжол менен 27 USDT", ka: "1 000 Stars · დაახლოებით 27 USDT", uk: "1 000 Stars · близько 27 USDT", pl: "1 000 Stars · około 27 USDT",
-            ro: "1.000 Stars · aprox. 27 USDT", pt: "1.000 Stars · cerca de 27 USDT"
+        "1 000 Stars": legalTranslations("1,000 Stars", {
+            es: "1 000 Stars", de: "1.000 Stars", fr: "1 000 Stars", it: "1.000 Stars",
+            zh: "1,000 Stars", ja: "1,000 Stars", ko: "1,000 Stars", tg: "1 000 Stars",
+            uz: "1 000 Stars", tt: "1 000 Stars", hy: "1 000 Stars", kk: "1 000 Stars",
+            ky: "1 000 Stars", ka: "1 000 Stars", uk: "1 000 Stars", pl: "1 000 Stars · okoł",
+            ro: "1.000 Stars", pt: "1.000 Stars"
         }),
-        "300 Stars · около 8.15 USDT": legalTranslations("300 Stars · about 8.15 USDT", {
-            es: "300 Stars · unos 8.15 USDT", de: "300 Stars · ca. 8.15 USDT", fr: "300 Stars · environ 8.15 USDT", it: "300 Stars · circa 8.15 USDT",
-            zh: "300 Stars · 约 8.15 USDT", ja: "300 Stars · 約8.15 USDT", ko: "300 Stars · 약 8.15 USDT", tg: "300 Stars · тақрибан 8.15 USDT",
-            uz: "300 Stars · taxminan 8.15 USDT", tt: "300 Stars · якынча 8.15 USDT", hy: "300 Stars · մոտ 8.15 USDT", kk: "300 Stars · шамамен 8.15 USDT",
-            ky: "300 Stars · болжол менен 8.15 USDT", ka: "300 Stars · დაახლოებით 8.15 USDT", uk: "300 Stars · близько 8.15 USDT", pl: "300 Stars · około 8.15 USDT",
-            ro: "300 Stars · aprox. 8.15 USDT", pt: "300 Stars · cerca de 8.15 USDT"
+        "300 Stars": legalTranslations("300 Stars", {
+            es: "300 Stars", de: "300 Stars", fr: "300 Stars", it: "300 Stars",
+            zh: "300 Stars", ja: "300 Stars", ko: "300 Stars", tg: "300 Stars",
+            uz: "300 Stars", tt: "300 Stars", hy: "300 Stars", kk: "300 Stars",
+            ky: "300 Stars", ka: "300 Stars", uk: "300 Stars", pl: "300 Stars · okoł",
+            ro: "300 Stars", pt: "300 Stars"
         }),
         "в месяц": legalTranslations("per month", {
             es: "al mes", de: "pro Monat", fr: "par mois", it: "al mese", zh: "每月", ja: "月額", ko: "월",

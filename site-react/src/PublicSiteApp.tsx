@@ -816,7 +816,7 @@ function LandingPage() {
         <div className="section-copy">
           <span className="eyebrow">Premium</span>
           <h2>Начните бесплатно, а для серьезной практики откройте голос, фото и расширенные лимиты</h2>
-          <p className="payment-methods">Оплата: Telegram Stars, YooKassa/SBP, TON и USDT.</p>
+          <p className="payment-methods">Оплата: Telegram Stars и YooKassa/SBP.</p>
         </div>
         <div className="pricing-grid">
           {planCards.map((plan) => (

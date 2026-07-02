@@ -1537,13 +1537,7 @@ function paymentAmountLine(info: ApiRecord) {
   const numeric = Number(String(raw).replace(",", "."));
   let amount = raw;
   if (Number.isFinite(numeric) && numeric > 0) {
-    if (currency.toUpperCase().includes("USDT") && numeric >= 100000) {
-      amount = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 6 }).format(numeric / 1000000);
-    } else if (currency.toUpperCase() === "TON" && numeric >= 100000000) {
-      amount = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 9 }).format(numeric / 1000000000);
-    } else {
-      amount = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 6 }).format(numeric);
-    }
+    amount = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 6 }).format(numeric);
   }
   return amount && currency && !amount.toLowerCase().includes(currency.toLowerCase()) ? `${amount} ${currency}` : amount;
 }
@@ -2954,31 +2948,25 @@ export function App() {
     setView("premium");
   };
 
-  const startPremiumPayment = async (plan: PremiumPlan, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string, yooKassaMethod?: string) => {
+  const startPremiumPayment = async (plan: PremiumPlan, method: "card" | "stars", yooKassaMethod?: string) => {
     const endpoint =
       method === "card"
         ? "/api/premium/payment"
-        : method === "rollypay"
-          ? "/api/premium/rollypay"
-          : method === "stars"
-            ? "/api/premium/stars"
-            : "/api/premium/crypto/payment";
+        : "/api/premium/stars";
     const payload = await runAction(`premium-${method}`, () =>
       api<ApiRecord>(endpoint, {
         method: "POST",
         body:
-          method === "crypto"
-            ? { product: plan.product, method: cryptoMethod || "ton" }
-            : method === "card"
-              ? { product: plan.product, payment_method: yooKassaMethod || "" }
-              : { product: plan.product },
+          method === "card"
+            ? { product: plan.product, payment_method: yooKassaMethod || "" }
+            : { product: plan.product },
       }),
     );
     if (!payload) return;
     const record = getRecord(payload);
     setPayment({ plan, info: record });
     const url = asText(record.confirmation_url || record.bot_url || record.invoice_url || record.url, "");
-    if (url && method !== "crypto") window.open(url, "_blank", "noopener,noreferrer");
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
     setStatus({ kind: "ok", text: asText(record.message, copy("payment_window_ready", "Payment window is ready.")) });
   };
 
@@ -2997,49 +2985,12 @@ export function App() {
     });
   };
 
-  const checkPremiumPayment = async (paymentID: string, silent = false) => {
-    if (!paymentID) return;
-    const payload = await runAction("premium-check", () =>
-      api<ApiRecord>("/api/premium/crypto/check", { method: "POST", body: { payment_id: paymentID } }),
-    );
-    if (!payload) return;
-    const record = getRecord(payload);
-    setPayment((current) => (current ? { ...current, info: record } : current));
-    if (record.paid) {
-      setStatus({ kind: "ok", text: copy("payment_confirmed", "Payment confirmed.") });
-      const paymentID = asText(record.payment_id || record.id || payment?.info?.payment_id || payment?.info?.id, "");
-      if (paymentID) {
-        rememberPaymentHistory({
-          id: paymentID,
-          date: new Date().toISOString(),
-          plan: payment?.plan.title || payment?.plan.product || copy("premium", "Premium"),
-          period: premiumPeriodLabel(payment?.plan, copy),
-          amount: paymentAmountLine(record),
-          method: asText(record.method_label || record.method || record.provider || "Crypto", "Crypto"),
-          status: copy("paid", "Paid"),
-        });
-      }
-      await showPaymentSuccessNotice(record);
-      return;
-    }
-    if (!silent) {
-      setPaymentNotice({
-        kind: "not-found",
-        title: copy("payment_not_found_title", "Платеж не найден"),
-        description: copy("payment_not_found_body", "Проверьте сумму, сеть и комментарий/мемо в реквизитах ниже. Если перевод уже отправлен, попробуйте проверить чуть позже."),
-      });
-    }
-    setStatus({ kind: "info", text: copy("payment_pending", "Payment is still pending.") });
-  };
-
   useEffect(() => {
     const timer = window.setInterval(() => {
       void refreshSession().catch(() => undefined);
-      const paymentID = asText(payment?.info?.payment_id || payment?.info?.id, "");
-      if (paymentID && !payment?.info?.paid) void checkPremiumPayment(paymentID, true);
     }, 15 * 60 * 1000);
     return () => window.clearInterval(timer);
-  }, [payment?.info?.payment_id, payment?.info?.id, payment?.info?.paid, payment?.plan.product]);
+  }, []);
 
   const saveSettings = async (payload: ApiRecord) => {
     await runAction("settings", () => api<SessionData>("/api/settings", { method: "POST", body: payload }), copy("settings_saved", "Settings saved."));
@@ -3435,12 +3386,10 @@ export function App() {
         {payment ? (
           <PaymentModal
             payment={payment}
-            rollypayEnabled={session?.rollypay_enabled ?? false}
             copy={copy}
             busy={busy}
             onClose={() => setPayment(null)}
-            onPay={(method, cryptoMethod, yooKassaMethod) => void startPremiumPayment(payment.plan, method, cryptoMethod, yooKassaMethod)}
-            onCheckPayment={(paymentID) => void checkPremiumPayment(paymentID)}
+            onPay={(method, yooKassaMethod) => void startPremiumPayment(payment.plan, method, yooKassaMethod)}
           />
         ) : null}
         {paymentNotice ? <PaymentNoticeDialog notice={paymentNotice} copy={copy} onClose={() => setPaymentNotice(null)} /> : null}
@@ -5429,27 +5378,21 @@ function OnboardingDialog({
 
 function PaymentModal({
   payment,
-  rollypayEnabled,
   copy,
   busy,
   onClose,
   onPay,
-  onCheckPayment,
 }: {
   payment: PaymentState;
-  rollypayEnabled: boolean;
   copy: (key: string, fallback: string) => string;
   busy: string | null;
   onClose: () => void;
-  onPay: (method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string, yooKassaMethod?: string) => void;
-  onCheckPayment: (paymentID: string) => void;
+  onPay: (method: "card" | "stars", yooKassaMethod?: string) => void;
 }) {
   const [selectedMethod, setSelectedMethod] = useState("");
   const plan = payment.plan;
   const info = payment.info || {};
-  const cryptoMethods = plan.crypto_methods || [];
   const invoiceURL = asText(info.invoice_url || info.url || info.confirmation_url || info.bot_url, "");
-  const currency = asText(info.currency || info.asset || info.network, "");
   const amountLine = paymentAmountLine(info);
   const address = asText(info.address || info.wallet || info.recipient, "");
   const memo = asText(info.memo || info.comment || info.payload || info.payment_comment, "");
@@ -5463,25 +5406,11 @@ function PaymentModal({
     if (Number.isNaN(date.getTime())) return prettyDate(expiresRaw);
     return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
   })();
-  const paymentInstruction = (() => {
-    const method = asText(info.method || info.method_label || network || currency, "").toUpperCase();
-    const amount = amountLine || copy("shown_amount", "the shown amount");
-    const template = method.includes("TRC") || network.toUpperCase().includes("TRC")
-      ? copy("payment_usdt_trc20_instruction", "Send exactly {amount} as USDT TRC20 on the Tron network. If the amount or network is different, the payment may not be found automatically. Add the shown comment if the wallet asks for it.")
-      : copy("payment_crypto_instruction", "Transfer exactly {amount}. Use the network shown below: {network}. A different amount or network may not be credited. Add the memo/comment below if it is shown.");
-    const render = (fallbackNetwork: string) => template.replace("{amount}", amount).replace("{network}", network || fallbackNetwork);
-    if (method.includes("USDT") || currency.toUpperCase().includes("USDT")) {
-      return render(copy("specified_network", "specified network"));
-    }
-    if (method.includes("TON") || network.toUpperCase().includes("TON")) {
-      return render("TON");
-    }
-    return "";
-  })();
+  const paymentInstruction = "";
   const isConfirmed = /paid|confirmed|success|succeed|complete/i.test(status);
-  const chooseMethod = (key: string, method: "card" | "rollypay" | "stars" | "crypto", cryptoMethod?: string, yooKassaMethod?: string) => {
+  const chooseMethod = (key: string, method: "card" | "stars", yooKassaMethod?: string) => {
     setSelectedMethod(key);
-    onPay(method, cryptoMethod, yooKassaMethod);
+    onPay(method, yooKassaMethod);
   };
   const requisites = [
     [copy("status", "Status"), status],
@@ -5495,9 +5424,6 @@ function PaymentModal({
   const methodNote = (() => {
     if (selectedMethod === "stars") {
       return copy("payment_stars_instruction", "Telegram Stars payment opens in Telegram. Finish it in the bot window; Premium will turn on automatically after Telegram confirms the invoice.");
-    }
-    if (selectedMethod.startsWith("crypto-") && !requisites.length && !invoiceURL) {
-      return copy("payment_crypto_prepare_instruction", "Choose a crypto network, then copy the exact amount, wallet, network, and comment from the requisites. Do not round the amount.");
     }
     return "";
   })();
@@ -5525,20 +5451,10 @@ function PaymentModal({
               text={method.label}
               icon={<CircleDollarSign size={18} />}
               isLoading={selectedMethod === `yookassa-${method.id}` && !isConfirmed}
-              onClick={() => chooseMethod(`yookassa-${method.id}`, "card", undefined, method.id)}
+              onClick={() => chooseMethod(`yookassa-${method.id}`, "card", method.id)}
               className={cn("payment-method-button-v2", selectedMethod === `yookassa-${method.id}` && "is-selected")}
             />
           ))}
-          {rollypayEnabled ? (
-            <MorphButton
-              text="RollyPay"
-              icon={<CircleDollarSign size={18} />}
-              variant="secondary"
-              isLoading={selectedMethod === "rollypay" && !isConfirmed}
-              onClick={() => chooseMethod("rollypay", "rollypay")}
-              className={cn("payment-method-button-v2", selectedMethod === "rollypay" && "is-selected")}
-            />
-          ) : null}
           <MorphButton
             text={copy("pay_stars", "Telegram Stars")}
             icon={<Star size={18} />}
@@ -5547,17 +5463,6 @@ function PaymentModal({
             onClick={() => chooseMethod("stars", "stars")}
             className={cn("payment-method-button-v2", selectedMethod === "stars" && "is-selected")}
           />
-          {(cryptoMethods.length ? cryptoMethods : [{ id: "ton", label: "TON/USDT" }]).map((method) => (
-            <MorphButton
-              key={method.id}
-              text={method.label || ("currency" in method ? method.currency : "") || method.id}
-              icon={<Diamond size={18} />}
-              variant="secondary"
-              isLoading={selectedMethod === `crypto-${method.id}` && !isConfirmed}
-              onClick={() => chooseMethod(`crypto-${method.id}`, "crypto", method.id)}
-              className={cn("payment-method-button-v2", selectedMethod === `crypto-${method.id}` && "is-selected")}
-            />
-          ))}
         </div>
         {methodNote ? <div className="payment-method-note-v2">{methodNote}</div> : null}
         {requisites.length || invoiceURL ? (
@@ -5572,12 +5477,6 @@ function PaymentModal({
             ))}
             <div className="payment-actions-v2">
               {invoiceURL ? <a href={invoiceURL} target="_blank" rel="noreferrer">{copy("open_payment", "Open payment")}</a> : null}
-              {paymentID ? (
-                <Button type="button" variant="outline" onClick={() => onCheckPayment(paymentID)} disabled={busy === "premium-check"}>
-                  {busy === "premium-check" ? <Spinner size="small" className="button-spinner-v2" /> : <Check size={16} />}
-                  {copy("check_payment", "Проверить оплату")}
-                </Button>
-              ) : null}
             </div>
           </div>
         ) : null}
@@ -8191,7 +8090,7 @@ function PremiumView({ user, premiumPlans, loadPremiumPlans, paymentHistory, bus
               {copy("current_plan", "Current plan")}
             </span>
           ) : null}
-          <strong>{isFree ? copy("free_plan_price", "Included") : plan.rub_price ? `${plan.rub_price} RUB` : plan.usdt_price ? `${plan.usdt_price} USDT` : copy("available", "Available")}</strong>
+          <strong>{isFree ? copy("free_plan_price", "Included") : plan.rub_price ? `${plan.rub_price} RUB` : copy("available", "Available")}</strong>
           <p>{premiumPlanBody(plan, copy)}</p>
           <ul className="plan-features-v2">
             {premiumPlanFeatures(plan, copy).map((feature) => (
@@ -8548,12 +8447,11 @@ function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, f
           <div><strong>7</strong><span>{copy("referral_inviter_terms", "days Premium when the invited learner reaches XP level 3")}</span></div>
           <div><strong>20%</strong><span>{copy("referral_direct_terms", "direct purchase reward")}</span></div>
           <div><strong>5%</strong><span>{copy("referral_indirect_terms", "second-line purchase reward")}</span></div>
-          <div><strong>{user.referral_withdraw_min_usdt || user.referral_withdraw_min || "1000 RUB"}</strong><span>{copy("referral_withdraw_terms", "minimum withdrawal")}</span></div>
+          <div><strong>{user.referral_withdraw_min || "1000 RUB"}</strong><span>{copy("referral_withdraw_terms", "minimum withdrawal")}</span></div>
         </div>
         <div className="metric-grid-v2">
           <Metric label={copy("invites", "Invites")} value={user.referral_count || 0} />
-          <Metric label={copy("balance", "Balance")} value={user.referral_balance_usdt || user.referral_balance || "0"} />
-          <Metric label={copy("usdt_rub_rate", "USDT/RUB")} value={user.usdt_rub_rate ? `${user.usdt_rub_rate} RUB` : "—"} />
+          <Metric label={copy("balance", "Balance")} value={user.referral_balance || "0 RUB"} />
         </div>
         <div className="referral-actions-v2">
           <Button variant="outline" disabled={!link} onClick={() => link && navigator.clipboard?.writeText(shareText)}>{copy("copy_invite", "Copy invite")}</Button>

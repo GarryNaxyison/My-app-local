@@ -967,14 +967,8 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.sendYooKassaMethodOptions(ctx, chatID, user, platinumMonthlyProduct)
 	case "buy_yookassa_platinum_year":
 		return b.sendYooKassaMethodOptions(ctx, chatID, user, platinumYearlyProduct)
-	case "buy_rollypay_month":
-		return b.sendRollyPayPayment(ctx, chatID, user, premiumMonthlyProduct)
-	case "buy_rollypay_year":
-		return b.sendRollyPayPayment(ctx, chatID, user, premiumYearlyProduct)
-	case "buy_crypto_month":
-		return b.sendCryptoPayment(ctx, chatID, user, premiumMonthlyProduct, cryptoMethodTON)
-	case "buy_crypto_year":
-		return b.sendCryptoPayment(ctx, chatID, user, premiumYearlyProduct, cryptoMethodTON)
+	case "buy_rollypay_month", "buy_rollypay_year", "buy_crypto_month", "buy_crypto_year":
+		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 	case "invite_friend":
 		return b.sendInviteLink(ctx, chatID, user)
 	case "referral_withdraw":
@@ -1052,8 +1046,7 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 			return b.sendLanguageLeaderboard(ctx, chatID, scope, user)
 		}
 		if strings.HasPrefix(query.Data, "check_crypto|") {
-			paymentID := strings.TrimPrefix(query.Data, "check_crypto|")
-			return b.checkCryptoPayment(ctx, chatID, user, paymentID)
+			return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 		}
 		if strings.HasPrefix(query.Data, "premium_plan|") {
 			product := strings.TrimPrefix(query.Data, "premium_plan|")
@@ -1075,15 +1068,10 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 			return b.sendYooKassaPayment(ctx, chatID, user, parts[1], parts[2])
 		}
 		if strings.HasPrefix(query.Data, "buy_rollypay|") {
-			product := strings.TrimPrefix(query.Data, "buy_rollypay|")
-			return b.sendRollyPayPayment(ctx, chatID, user, product)
+			return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 		}
 		if strings.HasPrefix(query.Data, "buy_crypto|") {
-			parts := strings.Split(query.Data, "|")
-			if len(parts) != 3 {
-				return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-			}
-			return b.sendCryptoPayment(ctx, chatID, user, parts[1], parts[2])
+			return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 		}
 		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 	}
@@ -3328,10 +3316,9 @@ func (b *bot) sendInviteLink(ctx context.Context, chatID int64, user userState) 
 
 func referralAccountText(user userState) string {
 	copy := premiumUI(user)
-	return fmt.Sprintf("%s: %s (%s)\n%s: %d\n%s",
+	return fmt.Sprintf("%s: %s\n%s: %d\n%s",
 		copy.ReferralBalanceTitle,
 		formatRubKopecks(user.ReferralBalanceKopecks),
-		formatUSDTFromKopecks(user.ReferralBalanceKopecks),
 		copy.ReferralInvitationsLabel,
 		user.ReferralCount,
 		copy.ReferralBalanceHint)
@@ -3340,8 +3327,7 @@ func referralAccountText(user userState) string {
 func (b *bot) sendReferralWithdrawInfo(ctx context.Context, chatID int64, user userState) error {
 	copy := premiumUI(user)
 	text := fmt.Sprintf(copy.ReferralWithdrawUnavailable,
-		formatRubKopecks(user.ReferralBalanceKopecks),
-		formatUSDTFromKopecks(user.ReferralBalanceKopecks))
+		formatRubKopecks(user.ReferralBalanceKopecks))
 	return b.telegram.sendInlineMessage(ctx, chatID, text, backToMenuKeyboard(ui(user)))
 }
 
@@ -3413,63 +3399,22 @@ func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userSt
 }
 
 func (b *bot) sendRollyPayPayment(ctx context.Context, chatID int64, user userState, product string) error {
-	if b.rollyPayBot == nil || !b.cfg.rollyPayBotEnabled() {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, "RollyPay payment is not configured yet.", ui(user))
-	}
-	plan, ok := b.premiumPlan(product)
-	if !ok {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-	}
-	plan = localizedPremiumPlan(user, plan)
-	returnURL := b.cfg.rollyPayBotReturnURL()
-	payment, err := b.rollyPayBot.createPremiumPayment(ctx, user, plan, rollyPayChannelTelegram, returnURL, returnURL, time.Now())
-	if err != nil {
-		log.Printf("failed to create rollypay payment for %d: %v", user.TelegramID, err)
-		return b.telegram.sendMessageWithCopy(ctx, chatID, "Could not create a RollyPay payment. Try again a little later.", ui(user))
-	}
-	text := fmt.Sprintf("%s\n\nPrice: %d RUB\nPayment method: RollyPay\n\nAfter payment, Premium will turn on automatically.", plan.Title, plan.RubPrice)
-	return b.telegram.sendInlineMessage(ctx, chatID, text, yookassaPaymentKeyboard(payment.URL, user))
+	return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 }
 
 func (b *bot) sendCryptoPayment(ctx context.Context, chatID int64, user userState, product string, methodID string) error {
-	if !b.cryptoPaymentsReady() {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, "Direct crypto payments are not configured yet.", ui(user))
-	}
-	plan, ok := b.premiumPlan(product)
-	if !ok {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-	}
-	payment, invoiceURL, err := b.createDirectCryptoPayment(ctx, product, user, methodID)
-	if err != nil {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, err.Error(), ui(user))
-	}
-	if err := b.saveDirectCryptoPayment(payment); err != nil {
-		return err
-	}
-	plan = localizedPremiumPlan(user, plan)
-	return b.telegram.sendInlineMessage(ctx, chatID, cryptoPaymentTextV2(user, plan, payment, invoiceURL), cryptoPaymentKeyboard(invoiceURL, payment.ID, user))
+	return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 }
 
 func (b *bot) checkCryptoPayment(ctx context.Context, chatID int64, user userState, paymentID string) error {
-	payment, refreshed, paid, err := b.refreshDirectCryptoPayment(ctx, paymentID, user)
-	if err != nil {
-		return b.telegram.sendMessageWithCopy(ctx, chatID, err.Error(), ui(user))
-	}
-	if !paid {
-		plan, _ := b.premiumPlan(payment.Product)
-		plan = localizedPremiumPlan(user, plan)
-		return b.telegram.sendInlineMessage(ctx, chatID, cryptoPaymentPendingTextV2(user, plan, payment), cryptoPaymentKeyboard(b.cryptoPaymentURL(payment), payment.ID, user))
-	}
-	plan, _ := b.premiumPlan(payment.Product)
-	plan = localizedPremiumPlan(refreshed, plan)
-	return b.telegram.sendMarkdownMessageWithCopy(ctx, chatID, premiumActivationMarkdown(refreshed, plan, refreshed.PremiumUntil.Format("2006-01-02"), true), ui(refreshed))
+	return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 }
 
 func cryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string) string {
 	expiresAt := userLocalDateTimeLabel(payment.ExpiresAt, user)
 	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
 		return fmt.Sprintf(
-			"%s\n\nСумма: %s TON\nСеть: TON\nАдрес: %s\nКомментарий: %s\n\nОткройте TON-кошелек кнопкой ниже или отправьте перевод вручную. Комментарий обязателен: по нему сервер найдет ваш платеж.\n\nПосле перевода нажмите \"I paid - check\".\n\nСсылка: %s\nСчет действителен до: %s",
+			"%s\n\nСумма: %s\nАдрес: %s\nКомментарий: %s\n\nЭтот способ оплаты больше недоступен. Выберите YooKassa/СБП или Telegram Stars.\n\nСсылка: %s\nСчет действителен до: %s",
 			plan.Title,
 			payment.Amount,
 			payment.Address,
@@ -3479,7 +3424,7 @@ func cryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, 
 		)
 	}
 	return fmt.Sprintf(
-		"%s\n\nAmount: %s TON\nNetwork: TON\nAddress: %s\nComment: %s\n\nOpen a TON wallet with the button below or send the transfer manually. The comment is required: the server uses it to match your payment.\n\nAfter sending, tap \"I paid - check\".\n\nLink: %s\nInvoice expires at: %s",
+		"%s\n\nAmount: %s\nAddress: %s\nComment: %s\n\nThis payment method is no longer available. Choose YooKassa/SBP or Telegram Stars.\n\nLink: %s\nInvoice expires at: %s",
 		plan.Title,
 		payment.Amount,
 		payment.Address,
@@ -3492,14 +3437,14 @@ func cryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, 
 func cryptoPaymentPendingText(user userState, plan premiumPlan, payment cryptoPayment) string {
 	if payment.Status == cryptoStatusExpired {
 		if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-			return "Счет истек. Откройте Premium и создайте новый TON-счет."
+			return "Счет истек. Откройте Premium и выберите YooKassa/СБП или Telegram Stars."
 		}
-		return "This invoice has expired. Open Premium and create a new TON invoice."
+		return "This invoice has expired. Open Premium and choose YooKassa/SBP or Telegram Stars."
 	}
 	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		return fmt.Sprintf("%s\n\nПлатеж пока не найден.\n\nПроверьте сумму %s TON и обязательный комментарий: %s", plan.Title, payment.Amount, payment.Memo)
+		return fmt.Sprintf("%s\n\nЭтот способ оплаты больше недоступен. Выберите YooKassa/СБП или Telegram Stars.", plan.Title)
 	}
-	return fmt.Sprintf("%s\n\nPayment is not found yet.\n\nCheck the %s TON amount and required comment: %s", plan.Title, payment.Amount, payment.Memo)
+	return fmt.Sprintf("%s\n\nThis payment method is no longer available. Choose YooKassa/SBP or Telegram Stars.", plan.Title)
 }
 
 func cryptoPaymentTextV2(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string) string {
@@ -3573,11 +3518,6 @@ func cryptoPaymentPendingTextV2(user userState, plan premiumPlan, payment crypto
 
 func (b *bot) sendPremiumMenu(ctx context.Context, chatID int64, user userState) error {
 	cryptoProducts := map[string][]cryptoPaymentMethod{}
-	if b.cryptoPaymentsReady() {
-		for _, plan := range b.premiumPlanList() {
-			cryptoProducts[plan.Product] = b.cryptoPaymentMethodsForProduct(ctx, plan.Product)
-		}
-	}
 	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, b.premiumText(user), premiumInlineKeyboard(b.cfg.yooKassaEnabled(), cryptoProducts, localizedPremiumPlans(user, b.premiumPlanList()), user))
 }
 
@@ -3588,10 +3528,7 @@ func (b *bot) sendPremiumPaymentOptions(ctx context.Context, chatID int64, user 
 	}
 	plan = localizedPremiumPlan(user, plan)
 	methods := []cryptoPaymentMethod{}
-	if b.cryptoPaymentsReady() {
-		methods = b.cryptoPaymentMethodsForProduct(ctx, product)
-	}
-	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), b.cfg.rollyPayBotEnabled(), methods, plan, user))
+	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), false, methods, plan, user))
 }
 
 func premiumPaymentOptionsText(user userState, plan premiumPlan) string {

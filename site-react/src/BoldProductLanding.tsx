@@ -241,7 +241,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Фокусные уроки, dashboard прогресса, длинные сессии, тарифы и полный словарь ошибок.": "Focused lessons, progress dashboard, longer sessions, pricing, and the full mistake dictionary.",
     "быстрая практика, voice, reminders и продолжение того же урока без потери прогресса.": "fast practice, voice, reminders, and continuing the same lesson without losing progress.",
     "Free для старта, Premium и Platinum для ежедневной практики": "Free to start, Premium and Platinum for daily practice",
-    "Оплата: Stars, YooKassa, TON и USDT.": "Payment: Stars, YooKassa, TON, and USDT.",
+    "Оплата: Stars и YooKassa.": "Payment: Stars and YooKassa.",
     "Выбрать тариф": "Choose plan",
     "Короткие истории пользователей": "Short user stories",
     "Без рейтингов и обещаний результата: только реальные сценарии, где нужен язык.": "No ratings or outcome promises: only real scenarios where language is needed.",
@@ -318,7 +318,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Фокусные уроки, dashboard прогресса, длинные сессии, тарифы и полный словарь ошибок.": "专注课程、进度 dashboard、长时学习、价格和完整错误词典。",
     "быстрая практика, voice, reminders и продолжение того же урока без потери прогресса.": "快速练习、voice、reminders，以及不丢进度地继续同一节课。",
     "Free для старта, Premium и Platinum для ежедневной практики": "Free 用于开始，Premium 和 Platinum 用于每日练习",
-    "Оплата: Stars, YooKassa, TON и USDT.": "支付方式：Stars、YooKassa、TON 和 USDT。",
+    "Оплата: Stars и YooKassa.": "支付方式：Stars 和 YooKassa。",
     "Выбрать тариф": "选择套餐",
     "Короткие истории пользователей": "简短用户故事",
     "Без рейтингов и обещаний результата: только реальные сценарии, где нужен язык.": "没有评分和结果承诺：只有真正需要语言的场景。",
@@ -597,7 +597,7 @@ export function BoldProductLanding() {
         <div className="section-copy">
           <span className="bold-kicker">Pricing</span>
           <h2>Free для старта, Premium и Platinum для ежедневной практики</h2>
-          <p className="payment-methods">Оплата: Stars, YooKassa, TON и USDT.</p>
+          <p className="payment-methods">Оплата: Stars и YooKassa.</p>
         </div>
         <div className="pricing-grid">
           {plans.map((plan) => (

@@ -264,22 +264,11 @@ func (cfg config) cryptoPaymentMethodForProduct(product string, methodID string)
 }
 
 func (cfg config) cryptoPlanEnabled(product string) bool {
-	return len(cfg.cryptoPaymentMethodsForProduct(product)) > 0
+	return false
 }
 
 func (cfg config) cryptoPaymentsReady(store store) bool {
-	enabled := false
-	for _, product := range paidProductIDs() {
-		if cfg.cryptoPlanEnabled(product) {
-			enabled = true
-			break
-		}
-	}
-	if !enabled {
-		return false
-	}
-	_, ok := store.(cryptoPaymentStore)
-	return ok
+	return false
 }
 
 func (b *bot) cryptoPaymentsReady() bool {

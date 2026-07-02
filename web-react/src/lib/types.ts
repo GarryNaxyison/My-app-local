@@ -49,12 +49,9 @@ export type UserProfile = {
   referral_code?: string;
   referral_count?: number;
   referral_balance?: string;
-  referral_balance_usdt?: string;
   referral_withdraw_min?: string;
-  referral_withdraw_min_usdt?: string;
   referral_invitees?: ReferralInvitee[];
   phrasebook?: PhrasebookItem[];
-  usdt_rub_rate?: string;
   invited_by?: string;
   xp?: number;
   xp_level?: number;

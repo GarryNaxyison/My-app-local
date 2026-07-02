@@ -36,7 +36,7 @@ const nav = {
 
 const cookie = {
   title: "Cookie и технические данные",
-  body: "Мы используем необходимые cookie и локальное хранилище для входа, языка, темы, безопасности, сохранения согласий и корректной работы сайта. Необязательные cookie применяются только после согласия.",
+  body: "Мы используем необходимые cookie и локальное хранилище для входа, языка, темы, безопасности, сохранения согласий и корректной работы сайта. Яндекс Метрика и другие необязательные аналитические cookie применяются только после согласия.",
   accept: "Принять все cookie",
   necessary: "Только необходимые",
   privacy: "Политика",
@@ -87,6 +87,7 @@ const documents = {
         title: "5. Cookie и локальное хранилище",
         blocks: [
           "Сайт и веб-приложение используют необходимые cookie и локальное хранилище для входа, сохранения языка, темы, согласий, сессии, защиты аккаунта и стабильной работы интерфейса.",
+          "После согласия пользователя сайт может использовать Яндекс Метрику для веб-аналитики: просмотра посещаемости, источников переходов, технических параметров браузера и улучшения работы страниц.",
           "Необязательные аналитические или маркетинговые cookie применяются только после отдельного согласия, если такие технологии включены в текущей версии сайта.",
         ],
       },
@@ -215,7 +216,7 @@ const documents = {
         title: "3. Услуги, тарифы и оплата",
         blocks: [
           "Параметры бесплатного доступа, платных тарифов, лимитов, периода действия и стоимости определяются оператором и отображаются в интерфейсе сервиса на момент использования или оплаты.",
-          "Оплата производится в форме предварительной оплаты через доступные платежные инструменты: платежного провайдера, Telegram Stars, YooKassa/СБП, TON, USDT или иной способ, если он показан пользователю в интерфейсе.",
+          "Оплата производится в форме предварительной оплаты через доступные платежные инструменты: платежного провайдера, Telegram Stars, YooKassa/СБП или иной доступный способ, если он показан пользователю в интерфейсе.",
           "Оператор вправе изменять стоимость и состав тарифов для будущих периодов. Изменения не ухудшают уже оплаченный период, если иное не требуется законом.",
         ],
       },
@@ -327,7 +328,7 @@ const englishNav = {
 
 const englishCookie = {
   title: "Cookie and technical data",
-  body: "We use necessary cookies and local storage for login, language, theme, security, saved consents, and stable site operation. Optional cookies are used only after consent.",
+  body: "We use necessary cookies and local storage for login, language, theme, security, saved consents, and stable site operation. Yandex Metrica and other optional analytics cookies are used only after consent.",
   accept: "Accept all cookies",
   necessary: "Necessary only",
   privacy: "Privacy",
@@ -395,6 +396,7 @@ const englishDocuments = {
         title: "5. Cookies and local storage",
         blocks: [
           "The website and web app use necessary cookies and local storage for login, language, theme, consent records, session, account protection, and stable interface operation.",
+          "After the user's consent, the website may use Yandex Metrica for web analytics: traffic measurement, referral sources, browser technical parameters, and page improvement.",
           "Optional analytics or marketing cookies are used only after separate consent if such technologies are enabled in the current version of the site.",
         ],
       },
@@ -523,7 +525,7 @@ const englishDocuments = {
         title: "3. Services, plans, and payment",
         blocks: [
           "Free access, paid plans, limits, access period, and price are determined by the operator and shown in the service interface at the time of use or payment.",
-          "Payment is made as prepayment through available tools: payment provider, Telegram Stars, YooKassa/SBP, TON, USDT, or another method shown in the interface.",
+          "Payment is made as prepayment through available tools: payment provider, Telegram Stars, YooKassa/SBP, or another available method shown in the interface.",
           "The operator may change prices and plan contents for future periods. Changes do not worsen an already paid period unless required by law.",
         ],
       },

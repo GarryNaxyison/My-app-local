@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime/debug"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -63,12 +62,6 @@ func main() {
 	if cfg.webYooKassaEnabled() {
 		bot.webYooKassa = newYooKassaClient(cfg.webYooKassaShopID(), cfg.webYooKassaSecretKey(), httpClient)
 	}
-	if cfg.rollyPayBotEnabled() {
-		bot.rollyPayBot = newRollyPayClient(cfg.RollyPayBotCashboxID, cfg.RollyPayBotAPIKey, cfg.RollyPayAPIBaseURL, cfg.RollyPayCreatePaymentPath, httpClient)
-	}
-	if cfg.rollyPayWebEnabled() {
-		bot.rollyPayWeb = newRollyPayClient(cfg.RollyPayWebCashboxID, cfg.RollyPayWebAPIKey, cfg.RollyPayAPIBaseURL, cfg.RollyPayCreatePaymentPath, httpClient)
-	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -84,12 +77,6 @@ func main() {
 		}
 		if cfg.YooKassaWebhookKey == "" {
 			log.Printf("YooKassa webhook is disabled: set YOOKASSA_WEBHOOK_KEY")
-		}
-		if bot.rollyPayBot == nil {
-			log.Printf("Telegram RollyPay is disabled: set ROLLYPAY_BOT_CASHBOX_ID and ROLLYPAY_BOT_API_KEY")
-		}
-		if bot.rollyPayWeb == nil {
-			log.Printf("Website RollyPay is disabled: set ROLLYPAY_WEB_CASHBOX_ID and ROLLYPAY_WEB_API_KEY")
 		}
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Printf("HTTP server failed: %v", err)
@@ -130,27 +117,6 @@ func yookassaWebhookMux(webhookKey string, bot *bot) http.Handler {
 	if webhookKey != "" {
 		mux.HandleFunc("/yookassa/webhook/"+webhookKey, bot.handleYooKassaWebhook)
 	}
-	rollyPayWebhook := func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/rollypay/webhook/site":
-			bot.handleRollyPayWebhook(w, r, rollyPayChannelWeb)
-		case "/rollypay/webhook/bot":
-			bot.handleRollyPayWebhook(w, r, rollyPayChannelTelegram)
-		default:
-			http.NotFound(w, r)
-		}
-	}
-	mux.HandleFunc("/rollypay/webhook/site", rollyPayWebhook)
-	mux.HandleFunc("/rollypay/webhook/bot", rollyPayWebhook)
-	tonAPIWebhook := func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/tonapi/webhook" && !strings.HasPrefix(r.URL.Path, "/tonapi/webhook/") {
-			http.NotFound(w, r)
-			return
-		}
-		bot.handleTONAPIWebhook(w, r)
-	}
-	mux.HandleFunc("/tonapi/webhook", tonAPIWebhook)
-	mux.HandleFunc("/tonapi/webhook/", tonAPIWebhook)
 	return web.withCORS(mux)
 }
 

@@ -287,11 +287,11 @@ func (cfg config) webYooKassaEnabled() bool {
 }
 
 func (cfg config) rollyPayBotEnabled() bool {
-	return strings.TrimSpace(cfg.RollyPayBotCashboxID) != "" && strings.TrimSpace(cfg.RollyPayBotAPIKey) != ""
+	return false
 }
 
 func (cfg config) rollyPayWebEnabled() bool {
-	return strings.TrimSpace(cfg.RollyPayWebCashboxID) != "" && strings.TrimSpace(cfg.RollyPayWebAPIKey) != ""
+	return false
 }
 
 func (cfg config) rollyPayBotReturnURL() string {

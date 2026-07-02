@@ -632,7 +632,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         <div className="section-copy">
           <span className="eyebrow">Pricing</span>
           <h2>Start free, then unlock the daily practice limits you actually need</h2>
-          <p className="pricing-lead">Payment is available through Telegram Stars, YooKassa/SBP, TON, and USDT.</p>
+          <p className="pricing-lead">Payment is available through Telegram Stars and YooKassa/SBP.</p>
         </div>
         <div className="pricing-grid">
           {plans.map((plan) => (
@@ -660,8 +660,6 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         <div className="payment-methods" aria-label="Payment methods">
           <span>Telegram Stars</span>
           <span>YooKassa/SBP</span>
-          <span>TON</span>
-          <span>USDT</span>
         </div>
       </section>
 

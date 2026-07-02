@@ -100,9 +100,9 @@ const PROTECTED_PATTERNS = [
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
   /\bpoliglotai\.(?:ru|online)\/app\b/gi,
   /\b(?:NERIVA|NERIVA)\b/g,
-  /\b(?:Telegram|Premium|Platinum|Free|Stars|TON|USDT|RUB|YooKassa|SBP|CEFR|OCR|AI)\b/g,
-  /\b\d+(?:[.,]\d+)?\s*(?:₽|RUB|Stars|USDT|TON)\b/gi,
-  /≈\s*\d[\d\s,.]*(?:₽|RUB|Stars|USDT|TON)?(?:\/год|\/year)?/gi,
+  /\b(?:Telegram|Premium|Platinum|Free|Stars|RUB|YooKassa|SBP|CEFR|OCR|AI)\b/g,
+  /\b\d+(?:[.,]\d+)?\s*(?:₽|RUB|Stars)\b/gi,
+  /≈\s*\d[\d\s,.]*(?:₽|RUB|Stars)?(?:\/год|\/year)?/gi,
 ];
 
 const CURATED_RU_TRANSLATIONS = {
@@ -237,8 +237,7 @@ const CURATED_RU_TRANSLATIONS = {
   "Open Web app": "Открыть веб-приложение",
   "Start quick practice, voice checks, reminders, and weak-word review from the same profile.": "Начинайте быструю практику, проверку голоса, напоминания и повторение слабых слов из одного профиля.",
   "Pricing": "Тарифы",
-  "Start free, then unlock the daily practice limits you actually need": "Начните бесплатно, затем подключите нужные дневные лимиты",
-  "Payment is available through Telegram Stars, YooKassa/SBP, TON, and USDT.": "Оплата доступна через Telegram Stars, YooKassa/СБП, TON и USDT.",
+  "Start free, then unlock the daily practice limits you actually need": "Начните бесплатно, затем подключите нужные дневные лимиты",  "Payment is available through Telegram Stars and YooKassa/SBP.": "Payment is available through Telegram Stars and YooKassa/SBP.",
   "Try the loop": "Попробовать цикл",
   "Basic text practice for trying lessons, word training, notes, and progress without payment.": "Базовая текстовая практика: уроки, слова, заметки и прогресс без оплаты.",
   "Basic notes and phrasebook": "Заметки и разговорник",
@@ -300,7 +299,7 @@ function hasLatinWord(value) {
 
 function isOnlyProtectedName(value) {
   return NATIVE_LANGUAGE_NAMES.has(value)
-    || /^(?:NERIVA|Premium|Platinum|Free|Telegram|Stars|TON|USDT|YooKassa|SBP|AI|FAQ|CEFR|OCR|RUB)$/i.test(value)
+    || /^(?:NERIVA|Premium|Platinum|Free|Telegram|Stars|YooKassa|SBP|AI|FAQ|CEFR|OCR|RUB)$/i.test(value)
     || /^[@/#.]/.test(value)
     || /^[\w.-]+@[\w.-]+$/.test(value);
 }
@@ -529,8 +528,8 @@ function protectText(source) {
         restored = restored.replace(tokenPattern, original);
       });
       return restored
-        .replace(/(\p{L})(Telegram|Premium|Platinum|Free|Stars|TON|USDT|RUB|YooKassa|SBP|CEFR|OCR|AI)\b/gu, "$1 $2")
-        .replace(/\b(Telegram|Premium|Platinum|Free|Stars|TON|USDT|RUB|YooKassa|SBP|CEFR|OCR|AI)(\p{L})/gu, "$1 $2")
+        .replace(/(\p{L})(Telegram|Premium|Platinum|Free|Stars|RUB|YooKassa|SBP|CEFR|OCR|AI)\b/gu, "$1 $2")
+        .replace(/\b(Telegram|Premium|Platinum|Free|Stars|RUB|YooKassa|SBP|CEFR|OCR|AI)(\p{L})/gu, "$1 $2")
         .replace(/\s+([,.!?;:%])/g, "$1")
         .replace(/([([{])\s+/g, "$1")
         .replace(/\s+([)\]}])/g, "$1")

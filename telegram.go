@@ -1033,13 +1033,13 @@ func wordGameDoneKeyboard(copies ...uiCopy) map[string]any {
 	}
 }
 
-func premiumInlineKeyboard(yooKassaEnabled bool, cryptoProducts map[string][]cryptoPaymentMethod, plans []premiumPlan, user userState) map[string]any {
+func premiumInlineKeyboard(yooKassaEnabled bool, _ map[string][]cryptoPaymentMethod, plans []premiumPlan, user userState) map[string]any {
 	copy := ui(user)
 	premiumCopy := premiumUI(user)
 	rows := [][]map[string]any{}
 	for _, plan := range plans {
 		rows = append(rows, []map[string]any{{
-			"text":          premiumPlanChoiceButtonText(plan, yooKassaEnabled, cryptoProducts[plan.Product]),
+			"text":          premiumPlanChoiceButtonText(plan, yooKassaEnabled, nil),
 			"callback_data": "premium_plan|" + plan.Product,
 		}})
 	}
@@ -1051,42 +1051,23 @@ func premiumInlineKeyboard(yooKassaEnabled bool, cryptoProducts map[string][]cry
 	return map[string]any{"inline_keyboard": rows}
 }
 
-func premiumPlanChoiceButtonText(plan premiumPlan, yooKassaEnabled bool, cryptoMethods []cryptoPaymentMethod) string {
+func premiumPlanChoiceButtonText(plan premiumPlan, yooKassaEnabled bool, _ []cryptoPaymentMethod) string {
 	prices := []string{strconv.Itoa(plan.StarsPrice) + " Stars"}
 	if yooKassaEnabled && plan.RubPrice > 0 {
 		prices = append(prices, strconv.Itoa(plan.RubPrice)+" RUB")
 	}
-	text := plan.Title + " - " + strings.Join(prices, " / ")
-	if len(cryptoMethods) == 0 {
-		return text
-	}
-	methodLabels := make([]string, 0, len(cryptoMethods))
-	for _, method := range cryptoMethods {
-		if strings.TrimSpace(method.Label) != "" {
-			methodLabels = append(methodLabels, method.Label)
-		}
-	}
-	if len(methodLabels) == 0 {
-		return text
-	}
-	return text + " / " + strings.Join(methodLabels, ", ")
+	return plan.Title + " - " + strings.Join(prices, " / ")
 }
 
-func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, rollyPayEnabled bool, cryptoMethods []cryptoPaymentMethod, plan premiumPlan, user userState) map[string]any {
+func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, _ bool, _ []cryptoPaymentMethod, plan premiumPlan, user userState) map[string]any {
 	copy := ui(user)
 	premiumCopy := premiumUI(user)
 	rows := [][]map[string]any{}
 	if plan.StarsPrice > 0 {
 		rows = append(rows, []map[string]any{{"text": fmt.Sprintf(premiumCopy.PayStarsButton, plan.StarsPrice), "callback_data": "buy_stars|" + plan.Product}})
 	}
-	if rollyPayEnabled && plan.RubPrice > 0 {
-		rows = append(rows, []map[string]any{{"text": "RollyPay", "callback_data": "buy_rollypay|" + plan.Product}})
-	}
 	if yooKassaEnabled && plan.RubPrice > 0 {
 		rows = append(rows, []map[string]any{{"text": "ЮKassa", "callback_data": "buy_yookassa|" + plan.Product}})
-	}
-	for _, method := range cryptoMethods {
-		rows = append(rows, []map[string]any{{"text": method.Label, "callback_data": "buy_crypto|" + plan.Product + "|" + method.ID}})
 	}
 	rows = append(rows,
 		[]map[string]any{{"text": copy.Back, "callback_data": "menu_premium"}},

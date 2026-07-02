@@ -220,10 +220,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/progress", api.handleProgress)
 	mux.HandleFunc("/api/premium/plans", api.handlePremiumPlans)
 	mux.HandleFunc("/api/premium/payment", api.handlePremiumPayment)
-	mux.HandleFunc("/api/premium/rollypay", api.handlePremiumRollyPayPayment)
 	mux.HandleFunc("/api/premium/stars", api.handlePremiumStarsPayment)
-	mux.HandleFunc("/api/premium/crypto/payment", api.handleCryptoPremiumPayment)
-	mux.HandleFunc("/api/premium/crypto/check", api.handleCryptoPremiumCheck)
 	mux.HandleFunc("/api/premium/activation-key", api.handlePremiumActivationKey)
 }
 
@@ -4094,8 +4091,8 @@ func (api *webAPI) handlePremiumPlans(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
 		"enabled":          api.webYooKassaReady(),
-		"rollypay_enabled": api.webRollyPayReady(),
-		"crypto_enabled":   api.bot.cryptoPaymentsReady(),
+		"rollypay_enabled": false,
+		"crypto_enabled":   false,
 		"plans":            api.premiumPlansDTO(user),
 	})
 }
@@ -4145,39 +4142,7 @@ func (api *webAPI) handlePremiumRollyPayPayment(w http.ResponseWriter, r *http.R
 	if !allowMethod(w, r, http.MethodPost) {
 		return
 	}
-	user, err := api.currentUser(w, r)
-	if err != nil {
-		api.writeCurrentUserError(w, err)
-		return
-	}
-	if !api.webRollyPayReady() {
-		writeAPIError(w, http.StatusServiceUnavailable, "RollyPay payment is not configured yet.")
-		return
-	}
-	var req struct {
-		Product string `json:"product"`
-	}
-	if !decodeJSONRequest(w, r, &req) {
-		return
-	}
-	plan, ok := api.bot.premiumPlan(req.Product)
-	if !ok {
-		writeAPIError(w, http.StatusBadRequest, "unknown product")
-		return
-	}
-	plan = localizedPremiumPlan(user, plan)
-	returnURL := api.cfg.rollyPayWebReturnURL()
-	payment, err := api.bot.rollyPayWeb.createPremiumPayment(r.Context(), user, plan, rollyPayChannelWeb, returnURL, returnURL, time.Now(), requestIdempotencyKey(r))
-	if err != nil {
-		writeAPIError(w, http.StatusBadGateway, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusOK, map[string]any{
-		"payment_id":       payment.ID,
-		"confirmation_url": payment.URL,
-		"provider":         "rollypay",
-		"status":           payment.Status,
-	})
+	writeAPIError(w, http.StatusGone, "This payment method is no longer available.")
 }
 
 func (api *webAPI) handlePremiumStarsPayment(w http.ResponseWriter, r *http.Request) {
@@ -4286,56 +4251,14 @@ func (api *webAPI) handleCryptoPremiumPayment(w http.ResponseWriter, r *http.Req
 	if !allowMethod(w, r, http.MethodPost) {
 		return
 	}
-	user, err := api.currentUser(w, r)
-	if err != nil {
-		api.writeCurrentUserError(w, err)
-		return
-	}
-	if !api.bot.cryptoPaymentsReady() {
-		writeAPIError(w, http.StatusServiceUnavailable, "Direct crypto payments are not configured yet")
-		return
-	}
-	var req struct {
-		Product string `json:"product"`
-		Method  string `json:"method"`
-	}
-	if !decodeJSONRequest(w, r, &req) {
-		return
-	}
-	payment, invoiceURL, err := api.bot.createOrReuseDirectCryptoPayment(r.Context(), req.Product, user, req.Method, requestIdempotencyKey(r))
-	if err != nil {
-		writeAPIError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusOK, cryptoPaymentDTO(payment, invoiceURL))
+	writeAPIError(w, http.StatusGone, "This payment method is no longer available.")
 }
 
 func (api *webAPI) handleCryptoPremiumCheck(w http.ResponseWriter, r *http.Request) {
 	if !allowMethod(w, r, http.MethodPost) {
 		return
 	}
-	user, err := api.currentUser(w, r)
-	if err != nil {
-		api.writeCurrentUserError(w, err)
-		return
-	}
-	var req struct {
-		PaymentID string `json:"payment_id"`
-	}
-	if !decodeJSONRequest(w, r, &req) {
-		return
-	}
-	payment, refreshed, paid, err := api.bot.refreshDirectCryptoPayment(r.Context(), req.PaymentID, user)
-	if err != nil {
-		writeAPIError(w, http.StatusBadGateway, err.Error())
-		return
-	}
-	payload := cryptoPaymentDTO(payment, api.bot.cryptoPaymentURL(payment))
-	payload["paid"] = paid
-	if paid {
-		payload["user"] = api.userDTO(refreshed)
-	}
-	writeJSON(w, http.StatusOK, payload)
+	writeAPIError(w, http.StatusGone, "This payment method is no longer available.")
 }
 
 func (api *webAPI) currentUser(w http.ResponseWriter, r *http.Request) (userState, error) {
@@ -4586,8 +4509,8 @@ func (api *webAPI) sessionPayload(user userState) map[string]any {
 		"learning_languages":  webLanguageDTOs(learningLanguages),
 		"premium_plans":       api.premiumPlansDTO(user),
 		"yookassa_enabled":    api.webYooKassaReady(),
-		"rollypay_enabled":    api.webRollyPayReady(),
-		"crypto_enabled":      api.bot.cryptoPaymentsReady(),
+		"rollypay_enabled":    false,
+		"crypto_enabled":      false,
 		"captcha":             api.webCaptchaDTO(),
 		"telegram_login_bot":  api.cfg.WebTelegramLoginBot,
 		"web_app_url":         api.cfg.WebAppURL,
@@ -4615,7 +4538,6 @@ func (api *webAPI) writeAnonymousSession(w http.ResponseWriter) {
 func (api *webAPI) userDTO(user userState) map[string]any {
 	level, title, currentXP, neededXP := knowledgeLevel(user.XP)
 	lessonLimit, practiceLimit := limitsFor(user)
-	rate := api.currentUSDTRubRate().USDTRub
 	var referralInvitees []referralInviteeEntry
 	if api != nil && api.bot != nil && api.bot.store != nil {
 		var err error
@@ -4660,10 +4582,7 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		"referral_count":              user.ReferralCount,
 		"referral_balance_kopecks":    user.ReferralBalanceKopecks,
 		"referral_balance":            formatRubKopecks(user.ReferralBalanceKopecks),
-		"referral_balance_usdt":       formatUSDTFromKopecksAtRate(user.ReferralBalanceKopecks, rate),
 		"referral_withdraw_min":       formatRubKopecks(referralWithdrawalMinKopecks),
-		"referral_withdraw_min_usdt":  formatUSDTFromKopecksAtRate(referralWithdrawalMinKopecks, rate),
-		"usdt_rub_rate":               formatUSDTRubRateValue(rate),
 		"referral_invitees":           referralInvitees,
 		"invited_by":                  user.InvitedBy,
 		"xp":                          user.XP,
@@ -4786,9 +4705,9 @@ func (api *webAPI) premiumPlansDTO(user userState) []map[string]any {
 			"days_label":      plan.DaysLabel,
 			"rub_price":       plan.RubPrice,
 			"stars_price":     plan.StarsPrice,
-			"usdt_price":      api.usdtPriceLabel(plan.Product),
-			"crypto_enabled":  api.cfg.cryptoPlanEnabled(plan.Product),
-			"crypto_methods":  api.cryptoPaymentMethodsDTO(plan.Product),
+			"usdt_price":      "",
+			"crypto_enabled":  false,
+			"crypto_methods":  []map[string]any{},
 		})
 	}
 	return result
