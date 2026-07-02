@@ -104,7 +104,7 @@ const sessionPayload = {
     invited_count: 11,
     referral_balance_kopecks: 30000,
     referral_code: "DEMO22",
-    referral_link: "https://t.me/poliglot_ai_bot?start=ref_DEMO22",
+    referral_link: "https://t.me/neriva_app?start=ref_DEMO22",
     referral_invitees: referralInvitees,
     phrasebook: phrasebookSeed,
   },
@@ -116,7 +116,7 @@ const sessionPayload = {
   ],
   yookassa_enabled: true,
   crypto_enabled: true,
-  telegram_login_bot: "poliglot_ai_bot",
+  telegram_login_bot: "neriva_app",
 };
 
 const legacyPhrasebookSeed = [
@@ -656,7 +656,7 @@ async function mockApi(page: Page) {
         currency: "TON",
         network: "TON",
         address: "UQCDkENqCLcFLvAzPHX8LxfK6wdlPEmpFQ5DQ5UhG9BIZQ3i",
-        comment: "POLIGLOT:test",
+        comment: "NERIVA:test",
         status: "pending",
         method: "TON",
         expires_at: "2026-05-27T01:38:00+03:00",
@@ -713,7 +713,7 @@ async function mockAnonymousAuth(page: Page) {
         interface_languages: sessionPayload.interface_languages,
         learning_languages: sessionPayload.learning_languages,
         captcha: { enabled: true, provider: "turnstile", site_key: "1x00000000000000000000AA" },
-        telegram_login_bot: "poliglot_ai_bot",
+        telegram_login_bot: "neriva_app",
       }),
     }),
   );
@@ -745,7 +745,7 @@ test("app shell embeds branded loader before JavaScript hydrates", () => {
   const html = readFileSync("index.html", "utf8");
   expect(html).toContain('class="poliglot-boot"');
   expect(html).toContain("brand-logo-mini.png");
-  expect(html).toContain("Poliglot AI");
+  expect(html).toContain("NERIVA");
   expect(html).toContain("poliglotBootSpin");
   expect(html).toContain("poliglotBootOrbit");
   expect(html).toContain("poliglotBootBackground");
@@ -1138,9 +1138,9 @@ test("v2 required labels are localized for all 35 interface languages", () => {
   expect(appCopy("ru", "global_top")).toBe("Общий");
   expect(appCopy("en", "phrasebook")).toBe("Notes");
   expect(appCopy("en", "save_to_phrasebook")).toBe("Save to notes");
-  expect(appCopy("en", "poliglot_social_title")).toBe("Follow Poliglot AI");
+  expect(appCopy("en", "poliglot_social_title")).toBe("Follow NERIVA");
   expect(appCopy("en", "poliglot_social_body")).toBe("Short lessons, updates, and product tips.");
-  expect(appCopy("ru", "poliglot_social_title")).toBe("Соцсети Poliglot AI");
+  expect(appCopy("ru", "poliglot_social_title")).toBe("Соцсети NERIVA");
   expect(appCopy("ru", "poliglot_social_body")).toBe("Короткие уроки, обновления и советы по обучению.");
   expect(appCopy("ru", "auth_login_hint")).toBe("Введите логин и пароль или подтвердите вход через Telegram.");
   expect(appCopy("ru", "auth_subtitle")).toBe("Вход или регистрация");
@@ -1381,13 +1381,14 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await page.goto("/app/?view=settings");
   const settingsSocial = page.locator(".settings-social-card-v2");
   await expect(settingsSocial).toBeVisible();
-  await expect(settingsSocial).toContainText("Соцсети Poliglot AI");
+  await expect(settingsSocial).toContainText("Соцсети NERIVA");
   await expect(settingsSocial).toContainText("Короткие уроки, обновления и советы по обучению.");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
-  await expect(settingsSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
+  await expect(settingsSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
+  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
+  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
+  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("rel", "noreferrer");
   await expect(page.locator(".password-card-v2")).toContainText("Смена пароля");
   await page.locator(".password-card-v2 input").nth(0).fill("old-password");
   await page.locator(".password-card-v2 input").nth(1).fill("short");
@@ -1405,11 +1406,13 @@ test("settings social links stay localized in English", async ({ page }) => {
 
   const settingsSocial = page.locator(".settings-social-card-v2");
   await expect(settingsSocial).toBeVisible();
-  await expect(settingsSocial).toContainText("Follow Poliglot AI");
+  await expect(settingsSocial).toContainText("Follow NERIVA");
   await expect(settingsSocial).toContainText("Short lessons, updates, and product tips.");
-  await expect(settingsSocial).not.toContainText("Соцсети Poliglot AI");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(settingsSocial).not.toContainText("Соцсети NERIVA");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("rel", "noreferrer");
 });
 
 test("tools spacing and free plan Russian copy stay compact and localized", async ({ page, isMobile }) => {
@@ -1878,7 +1881,7 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ bot_url: "https://t.me/poliglot_ai_bot?start=stars_invoice", status: "created", message: "Stars invoice created." }),
+      body: JSON.stringify({ bot_url: "https://t.me/neriva_app?start=stars_invoice", status: "created", message: "Stars invoice created." }),
     }),
   );
   await page.unroute("**/api/premium/crypto/payment").catch(() => undefined);
@@ -1892,7 +1895,7 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
         currency: "USDT",
         network: "TRC20",
         address: "TXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        comment: "POLIGLOT:test",
+        comment: "NERIVA:test",
         status: "pending",
         method: "USDT_TRC20",
         expires_at: "2026-05-27T01:38:00+03:00",
@@ -3871,7 +3874,7 @@ test("regression: chat messages keep the speaker marker beside the bubble", asyn
   expect(metrics.metaRight).toBeLessThanOrEqual(metrics.bubbleX - 4);
   expect(Math.abs(metrics.metaCenterY - metrics.bubbleCenterY)).toBeLessThan(42);
   expect(metrics.bubbleWidth).toBeGreaterThan(240);
-  expect(metrics.content).not.toMatch(/^Poliglot AI\s+/);
+  expect(metrics.content).not.toMatch(/^NERIVA\s+/);
 });
 
 test("regression: chat user bubble does not duplicate the you label", async ({ page }) => {
