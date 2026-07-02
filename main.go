@@ -28,6 +28,18 @@ func main() {
 	}
 
 	httpClient := &http.Client{Timeout: 60 * time.Second}
+	if cfg.BotTransitionOnly {
+		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+		defer stop()
+
+		targetBot := normalizeBotUsername(cfg.TransitionTargetBot)
+		log.Printf("Telegram transition bot started; forwarding users to @%s", targetBot)
+		if err := runTransitionBot(ctx, newTelegramClient(cfg.TelegramBotToken, httpClient), targetBot); err != nil && ctx.Err() == nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
 	store, err := newStore(cfg)
 	if err != nil {
 		log.Fatalf("failed to open store: %v", err)
@@ -101,7 +113,7 @@ func main() {
 		_ = server.Shutdown(shutdownCtx)
 	}()
 
-	log.Printf("AI Polyglot Coach bot started with model %s (translator %s)", cfg.OpenRouterModel, cfg.OpenRouterTranslatorModel)
+	log.Printf("NERIVA bot started with model %s (translator %s)", cfg.OpenRouterModel, cfg.OpenRouterTranslatorModel)
 	go bot.runReminderScheduler(ctx)
 	go bot.runSQLiteBackupScheduler(ctx)
 	if err := bot.run(ctx); err != nil && ctx.Err() == nil {

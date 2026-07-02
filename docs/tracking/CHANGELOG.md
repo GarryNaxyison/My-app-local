@@ -35,7 +35,7 @@
 - Made mobile leaderboard and roleplay panels grow to the end of their lists so card content no longer continues below a prematurely closed block border.
 - Added OpenRouter-backed phrasebook auto-translation for saved phrases when no manual note/translation is supplied, and covered it with a backend regression test.
 - Fixed the mobile V2 level-test Skip button so it no longer falls back to `Р Р°Р·РґРµР»`, and tightened mobile vocabulary/level card wrapping so long text stays inside the block above the bottom rail.
-- Restored the branded Poliglot AI app boot screen before React hydration: the HTML shell now shows the logo, Poliglot AI title, spinner, and animated dark glass background immediately instead of a blank screen.
+- Restored the branded NERIVA app boot screen before React hydration: the HTML shell now shows the logo, NERIVA title, spinner, and animated dark glass background immediately instead of a blank screen.
 - Matched the in-app `sessionLoading` screen to the same branded animated loader and added Playwright coverage that blocks JavaScript to prove the preloader is visible before hydration.
 - Fixed mobile web bottom-menu reordering so dragging a tile changes the visible rail order immediately while still saving the final order only on pointer release.
 - Updated the mobile Playwright regression to assert live rail movement before release plus persistence after reload.
@@ -72,7 +72,7 @@
 
 ## 2026-05-27
 
-- Reworked the public landing into a Busuu-inspired product flow for Poliglot AI: clear hero, language chooser, course cards, proof stats, concise feature blocks, reviews, FAQ, and pricing while keeping the unique Three.js shader/product demo.
+- Reworked the public landing into a Busuu-inspired product flow for NERIVA: clear hero, language chooser, course cards, proof stats, concise feature blocks, reviews, FAQ, and pricing while keeping the unique Three.js shader/product demo.
 - Expanded the interface language catalog from 20 to 35 languages across the public site, React web app, and Telegram language selector; learning/vocabulary languages remain on the existing dictionary-backed set until new vocabularies are added.
 - Regenerated public-site phrase translations for the expanded 35-language catalog and added Playwright coverage for the Busuu-style landing flow, 35-language selector, legal contacts, dark legal language dropdowns, crossed-out sale prices, and desktop/mobile shader rendering.
 - Fixed the SQLite vocabulary randomization regression for Learn Words and Review: SQLite now samples from cached matching ID arrays instead of falling back to the first `position >= 0` match, so sparse early CEFR pools no longer repeat the same words/options.
@@ -89,7 +89,7 @@
 - Added backend coverage for 24-hour daily bonus locking and randomized vocabulary selection, and verified the full pass with `go test ./...`, `npm --prefix web-react run build`, `npm --prefix web-react run e2e`, `npm --prefix site-react run build`, `npm --prefix site-react run e2e`, and `node tools/check_encoding_artifacts.mjs`.
 - Added the next V2 auth/mobile/privacy regression pass: award details now render through a fixed portal so mobile taps open the trophy card in the currently visible viewport instead of near the top of the scrolled page; mobile Phrasebook save actions stay inside the composer after voice/photo controls; mobile Roleplay no longer spends space on the selected scenario title block; and the mobile mistake dictionary regained bottom scrolling.
 - Reworked standalone login around the shadcn-compatible `SignInPage` component while keeping the existing backend auth contract: login/password, registration, Cloudflare Turnstile, Telegram six-digit OTP, account recovery through `https://t.me/AsaselD`, compact Telegram login row, 20-language auth cards, and required personal-data policy consent for registration and Telegram linking.
-- Updated the privacy-policy assets for both public domains and the Telegram bot onboarding: `privacy-policy-i18n.js` now covers all 20 interface languages, the public Privacy page contains the new PoliglotAI personal-data policy with `@AsaselD`, and first-time Telegram `/start` shows Continue/Policy before onboarding.
+- Updated the privacy-policy assets for both public domains and the Telegram bot onboarding: `privacy-policy-i18n.js` now covers all 20 interface languages, the public Privacy page contains the new NERIVA personal-data policy with `@AsaselD`, and first-time Telegram `/start` shows Continue/Policy before onboarding.
 - Fixed the Privacy asset delivery path after smoke testing: the generated policy asset is clean UTF-8, the Privacy page references it with `?v=20260527-data-policy`, and Caddy no longer treats `/assets/privacy-policy-i18n.js` as an immutable static asset.
 - Fixed shared vocabulary distractor generation for web desktop, web mobile, and Telegram so Learn Words and Review no longer recycle the same wrong answers; options are sampled from dictionary words in the same CEFR band (`A1/A2`, `B1/B2`, `C1/C2`) with uniqueness guards.
 - Extended regression coverage for the new pass: Go tests cover CEFR-band distractors and bot privacy onboarding, web shell tests cover 20-language privacy-policy assets, and Playwright covers auth privacy consent, mobile award viewport placement, mobile mistake scrolling, compact save-to-notes, payment modal placement, tools send-button layout, and trainer result placement.
@@ -200,7 +200,7 @@
 - Added `MCP_STARTUP.md` with the default startup checklist for Figma, 21st.dev Magic, Ref, shadcn, Nx MCP, and Linux/Ubuntu access across projects.
 - Documented the persistent Nx MCP startup command for this workspace, including the Streamable HTTP mode on port 9921 and the difference from the stdio Codex config command.
 - Added a disk-conscious ComfyUI workflow package for Shorts/Reels/TikTok ads: FLUX.2 keyframes, Wan 2.1 I2V FP8 motion, CLIP Vision image lock, native RIFE interpolation, voiceover combine, optional RealESRGAN upscale, model manifest, and guarded installer.
-- Added the first elite Poliglot AI 20-second English ad script/prompt for ComfyUI/XTTS, with a business-suited young adult presenter, web-app visuals, and a four-shot 5-second production plan.
+- Added the first elite NERIVA 20-second English ad script/prompt for ComfyUI/XTTS, with a business-suited young adult presenter, web-app visuals, and a four-shot 5-second production plan.
 - Added the first two 5-second ComfyUI ad test variants and a queue script: one desktop web-app presenter clip and one mobile voice/pronunciation presenter clip.
 - Softened the web app glass cards/panels on desktop and mobile, left-aligned the desktop Tools voice-limit card, and moved the mobile Tools active-status pill onto its own line so it no longer overlaps the voice counter.
 - Improved the mobile Referrals hero text flow and balance card width so referral copy reads in normal lines instead of collapsing into a narrow column.
@@ -241,7 +241,7 @@
 - Fixed Telegram profile completion so entering the login/password of an existing web account opens the merge-choice flow instead of only reporting that the login is taken.
 - Hardened web app view state: each section keeps its own rendered content and composer draft when users move around, and stale async responses can no longer redraw a different active section.
 - Reworked the final desktop/mobile section-header CSS so generated art uses a reserved masked visual lane, while menu card icons, mobile bottom navigation, and the mobile composer stay stable.
-- Restyled the `/app` login/profile-completion screen with current Poliglot AI branding, logo artwork, clean Russian copy, Telegram-login card, and mobile auth rules that hide the bottom navigation instead of letting it cover the form.
+- Restyled the `/app` login/profile-completion screen with current NERIVA branding, logo artwork, clean Russian copy, Telegram-login card, and mobile auth rules that hide the bottom navigation instead of letting it cover the form.
 - Reworked web app section headers again so desktop header art has its own visual zone, mobile header art remains visible as a masked layer, and focus/stat cards do not sit directly on top of the main copy.
 - Added photo/camera input to the Practice composer in the web app and Telegram practice photo handling: image context is analyzed by the OpenRouter vision path and fed to the practice coach without treating the photo text as learner writing.
 - Made the desktop account chip and mobile login pill open Settings, matching the requested header shortcut behavior.
@@ -262,7 +262,7 @@
 - Hardened the mobile web app shell: header artwork is a visible masked no-repeat layer, the global background is visible on mobile, bottom navigation stays fixed, award modals stay centered, the composer uses full width, and the logo/title tap target alone opens the menu.
 - Added `docs/tracking/USER_UI_WISHES.md` as the recurring checklist for generated art, mobile layout, localization, pronunciation scoring, and result-scroll behavior before future web/app changes.
 - Reworked the public landing and Figma landing page away from internal speech-scoring mechanics toward sales-focused benefits: hear, repeat, understand weak spots, and continue learning in Telegram or web app.
-- Created a new editable Figma design file `Poliglot AI Landing 2026` with desktop and mobile landing frames covering refreshed branding, product sections, pronunciation scoring, 20-language positioning, reviews, pricing, Privacy, and Terms.
+- Created a new editable Figma design file `NERIVA Landing 2026` with desktop and mobile landing frames covering refreshed branding, product sections, pronunciation scoring, 20-language positioning, reviews, pricing, Privacy, and Terms.
 - Refreshed the public landing with the same structure: updated hero copy, added the pronunciation-engine explanation, added a reviews section, added a Privacy/Terms product-trust band, and expanded navigation/localization for the new sections.
 - Updated Privacy and Terms to describe the OpenRouter GPT-4o Transcribe pronunciation flow, text-only Gemini coach report, and the educational/non-exam nature of pronunciation scoring.
 - Renamed the learner-facing Shadowing surface to Listening / `РђСѓРґРёСЂРѕРІР°РЅРёРµ` while keeping `/shadowing`, `/repeat`, and internal route names compatible.
@@ -301,7 +301,7 @@
 - Removed decorative pseudo-letter CSS marks from the web app stage, action-card, and panel visual treatments.
 - Updated the local asset manifest with theme, model, seed, prompt, dimensions, source, and QA status metadata, plus a generated contact sheet at `tmp/brand-assets-theme-contact.png`.
 - Reworked `tools/generate_comfy_brand_assets.mjs` so SD3.5 Large FP8 is the default ComfyUI workflow with SD3.5-specific nodes, while SDXL/Juggernaut remains available as a fallback/comparison path.
-- Added `docs/product/REDESIGN_PLAN.md` as the source-of-truth design plan for the Poliglot AI 2026 `Language Intelligence Cockpit` redesign.
+- Added `docs/product/REDESIGN_PLAN.md` as the source-of-truth design plan for the NERIVA 2026 `Language Intelligence Cockpit` redesign.
 - Created a Figma redesign board for the product direction, tokens, app shell, mobile shell, landing, legal pages, and required asset matrix.
 - Rebuilt the final visual asset pack as one consistent no-text/no-pseudo-letter system for plan cards, app headers, app icons, and public-site hero/legal/section visuals.
 - Added `tools/create_poliglot_premium_assets.py` to generate deterministic premium PNG assets without fake text, screens, flags, people, or broken AI lettering.
@@ -421,7 +421,7 @@
 - Hardened AI vocabulary hint prompts and sanitization so native-language clues do not repeat the hidden target word.
 - Improved mobile bottom-rail drag preview, mobile leaderboard bottom clearance, roleplay role-card spacing, and referral localization fallback keys.
 - Added/updated regressions for listening layout, spelling correct-answer display, mistake list/practice navigation, mobile nav reflow, leaderboard clearance, and 35-language referral labels.
-- Fixed Privacy runtime rendering so the bottom Telegram bot contact card keeps `@poliglot_ai_bot` on `privacy.html?lang=ru` for both production domains.
+- Fixed Privacy runtime rendering so the bottom Telegram bot contact card keeps `@NERIVAapp_bot` on `privacy.html?lang=ru` for both production domains.
 - Centered the login/auth form over the animated background, kept the Cloudflare/login/register/Telegram OTP flows, and added layout regressions that reject the old right desktop panel.
 - Hardened the mobile bottom rail reorder flow: long-press edit survives pointer-capture failures, drag auto-scrolls near rail edges, neighboring tiles reflow, and the saved order persists after reload.
 - Tightened vocabulary prompt context so the primary native-language value is the prompt and up to two alternate meanings are kept as context without leaking the target answer.

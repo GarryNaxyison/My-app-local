@@ -1,4 +1,8 @@
-neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+	redir https://neriva.ru{uri} permanent
+}
+
+neriva.ru, www.neriva.ru {
 	# Production DDoS/edge throttling must be enforced before Caddy
 	# (provider firewall, Cloudflare/WAF, or a Caddy build with a verified rate-limit plugin).
 	# The Go backend also applies /api/* application rate limits, but it cannot absorb volumetric floods.

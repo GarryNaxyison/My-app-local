@@ -79,7 +79,7 @@ const flux2Subjects = {
   'panel-progress': 'tiered sapphire crystal stair sculpture, mint silk route ribbon, small faceted milestone gems, soft pearl base, no dial, no gauge, no clock face, no measurement marks',
   'panel-limits': 'stacked translucent mint glass reservoir capsules, warm-gold ribbon, sapphire bead accents, calm utility sculpture, no dial, no gauge, no measuring scale, no tick marks',
   'panel-account': 'decorative account sidebar backdrop only, smooth secure pearl capsule, sapphire shield gem, premium access core, warm-gold protection ring, mint privacy halo, object detail bleeds from lower-right edge, upper-left remains quiet blank studio space for real account text, no account card, no app UI, no portrait, no avatar, no profile icon, no ID card, no menu rows',
-  'brand-logo': 'Poliglot AI brand mark for a language-learning companion: one freestanding polyglot gem-ring sculpture, sapphire speech capsule core, smooth mint translation orbit ring, small warm-gold achievement star only, subtly suggests listening, speaking, learning path and mastery, iconic simple silhouette, no compass arrow, no triangle mark, no printed symbol, no letters, no text',
+  'brand-logo': 'NERIVA brand mark for a language-learning companion: one freestanding polyglot gem-ring sculpture, sapphire speech capsule core, smooth mint translation orbit ring, small warm-gold achievement star only, subtly suggests listening, speaking, learning path and mastery, iconic simple silhouette, no compass arrow, no triangle mark, no printed symbol, no letters, no text',
   'brand-logo-hero-bg': 'large thematic language-learning brand backdrop without any logo or typography: immersive atmosphere with blank speech capsules, smooth translation route arcs, sapphire learning cores, continuous mint waveform ribbons and achievement crystal glow around the edges, completely empty clean center reserved for a separate real transparent logo overlay, no center emblem, no isolated glyph shapes, no arrowheads, no letters, no text, no fake UI',
   'auth-login-hero': 'login page hero background for an AI language-learning service: premium language gateway with only abstract blank speech capsules, sapphire account core without any symbol inside it, mint route arcs, subtle privacy shield halo and daily learning orbit, clean empty left-side negative space for the real login form, rich right-side object detail, absolutely no text, no labels, no letters on rings, no brand names, no Telegram logo, no paper-plane symbol, no icons, no UI screenshot',
 };
@@ -827,7 +827,7 @@ const baseAssets = [
     seed: 2205207201,
     prompt: [
       basePositive,
-      'transparent Poliglot AI logo mark source, one freestanding iconic language-learning symbol sculpture, no typography',
+      'transparent NERIVA logo mark source, one freestanding iconic language-learning symbol sculpture, no typography',
       'sapphire speech capsule core inside a smooth mint translation route ring, tiny warm-gold achievement star floating outside the ring, polished ceramic and glass, memorable silhouette that reads as listen, speak, translate, progress',
       'object fills almost the whole square, transparent-ready chroma background only, no white background, no square tile, no badge, no frame, no letters, no words, no triangle, no arrow, no tiny printed mark',
     ].join(', '),
@@ -877,7 +877,7 @@ const baseAssets = [
     seed: 2205205901,
     prompt: [
       basePositive,
-      'full-screen decorative backdrop for Poliglot AI language-learning web app, designed to sit behind the real interface on desktop and mobile',
+      'full-screen decorative backdrop for NERIVA language-learning web app, designed to sit behind the real interface on desktop and mobile',
       'immersive premium language intelligence atmosphere made of blank translucent sound capsules, soft voice waveform rivers, sapphire learning core near the outer edges, mint translation route arcs, small knowledge gems and calm depth',
       'must work behind glass UI panels, with readable calm negative space through the center and center-left, richer object detail near the outer edges, and a safe mobile portrait crop',
       'one cohesive full-bleed backdrop, no repeated pattern, no tiling, no chat message bubbles, no UI cards, no pseudo text strokes, no screen, no phone, no dashboard, no text, no letters, no words, no logos, no people, no flags',

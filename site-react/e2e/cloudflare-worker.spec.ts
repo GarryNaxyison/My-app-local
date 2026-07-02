@@ -16,6 +16,17 @@ test("Cloudflare Worker fallback path matcher only proxies dynamic application p
   expect(worker.shouldProxyPath("/assets/site-react/main.js")).toBe(false);
 });
 
+test("Cloudflare Worker redirects legacy public domains to Neriva with path and query preserved", async () => {
+  const worker = await import("../cloudflare/worker.js");
+
+  for (const host of ["poliglotai.ru", "www.poliglotai.ru", "poliglotai.online", "www.poliglotai.online"]) {
+    const response = await worker.default.fetch(new Request(`https://${host}/en/ai-english-tutor.html?lang=en&utm=test`), {});
+
+    expect(response.status).toBe(301);
+    expect(response.headers.get("location")).toBe("https://neriva.ru/en/ai-english-tutor.html?lang=en&utm=test");
+  }
+});
+
 test("Cloudflare Worker returns branded maintenance HTML when the origin is unavailable", async () => {
   const worker = await import("../cloudflare/worker.js");
   const originalFetch = globalThis.fetch;
@@ -26,7 +37,7 @@ test("Cloudflare Worker returns branded maintenance HTML when the origin is unav
       throw new Error("origin unavailable");
     }
     if (url.pathname === "/maintenance.html") {
-      return new Response("<!doctype html><h1>Technical maintenance</h1><p>Poliglot AI</p>", {
+      return new Response("<!doctype html><h1>Technical maintenance</h1><p>NERIVA</p>", {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
@@ -41,7 +52,7 @@ test("Cloudflare Worker returns branded maintenance HTML when the origin is unav
 
     expect(response.status).toBe(503);
     expect(response.headers.get("content-type")).toContain("text/html");
-    expect(await response.text()).toContain("Poliglot AI");
+    expect(await response.text()).toContain("NERIVA");
   } finally {
     globalThis.fetch = originalFetch;
   }

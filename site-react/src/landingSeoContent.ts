@@ -43,9 +43,9 @@ export const russianSiteOrigin = "https://neriva.ru";
 export const internationalSiteOrigin = "https://neriva.ru";
 
 export const socialProfileUrls = [
-  "https://www.youtube.com/@PoliglotAI",
-  "https://www.instagram.com/poliglotai.online/",
-  "https://www.tiktok.com/@poliglotai.online",
+  "https://www.youtube.com/@NERIVA",
+  "https://t.me/NERIVAapp_bot",
+  "https://t.me/NERIVAapp_bot",
 ] as const;
 
 export const staticSeoGuideLinks = [
@@ -78,20 +78,20 @@ export const staticSeoGuideLinks = [
 
 export const landingSeoCopy = {
   ru: {
-    title: "Poliglot AI - AI-репетитор английского и языков в Telegram",
-    description: "Poliglot AI: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.",
+    title: "NERIVA - AI-репетитор английского и языков в Telegram",
+    description: "NERIVA: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.",
     sectionEyebrow: "Поисковые ответы",
     sectionTitle: "Ответы для поиска и AI",
-    sectionIntro: "Короткие прямые ответы о Poliglot AI для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
+    sectionIntro: "Короткие прямые ответы о NERIVA для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
     comparisonEyebrow: "Сравнение вариантов",
-    comparisonTitle: "Poliglot AI в сравнении с инструментами, которые обычно ищут",
+    comparisonTitle: "NERIVA в сравнении с инструментами, которые обычно ищут",
     comparisonIntro: "Коротко о том, когда словарное приложение, AI-репетитор, Telegram-бот или web app лучше подходят для языковой практики.",
     comparisons: [
       {
-        title: "Poliglot AI vs словарное приложение",
+        title: "NERIVA vs словарное приложение",
         alternativeLabel: "Словарное приложение",
         alternative: "Списки слов, карточки, интервальные повторения и отдельные значения.",
-        productLabel: "Poliglot AI",
+        productLabel: "NERIVA",
         product: "Фразы в контексте, ответы, исправления, повторение слабых мест, голос и фото-практика.",
         verdict: "Подходит, когда нужны исправления и контекст, а не только запоминание.",
       },
@@ -114,8 +114,8 @@ export const landingSeoCopy = {
     ],
     questions: [
       {
-        question: "Что такое Poliglot AI?",
-        answer: "Poliglot AI — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле.",
+        question: "Что такое NERIVA?",
+        answer: "NERIVA — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле.",
       },
       {
         question: "Можно ли учить английский с ИИ в Telegram?",
@@ -123,7 +123,7 @@ export const landingSeoCopy = {
       },
       {
         question: "Чем AI-репетитор отличается от обычного приложения со словами?",
-        answer: "Poliglot AI не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение.",
+        answer: "NERIVA не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение.",
       },
       {
         question: "Можно ли тренировать произношение и speaking?",
@@ -140,20 +140,20 @@ export const landingSeoCopy = {
     ],
   },
   en: {
-    title: "Poliglot AI - AI language tutor in Telegram and web app",
-    description: "Poliglot AI: AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans in one profile.",
+    title: "NERIVA - AI language tutor in Telegram and web app",
+    description: "NERIVA: AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans in one profile.",
     sectionEyebrow: "Search answers",
     sectionTitle: "Answers for search and AI assistants",
-    sectionIntro: "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
+    sectionIntro: "Short direct answers about NERIVA for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
     comparisonEyebrow: "Compare options",
-    comparisonTitle: "Poliglot AI compared with the tools people usually search for",
+    comparisonTitle: "NERIVA compared with the tools people usually search for",
     comparisonIntro: "See when a vocabulary app, AI tutor, Telegram bot, or web app is the better fit for language practice.",
     comparisons: [
       {
-        title: "Poliglot AI vs vocabulary app",
+        title: "NERIVA vs vocabulary app",
         alternativeLabel: "Vocabulary app",
         alternative: "Word lists, flashcards, spaced repetition, and isolated meanings.",
-        productLabel: "Poliglot AI",
+        productLabel: "NERIVA",
         product: "Context phrases, answers, corrections, weak-spot review, voice, and photo practice.",
         verdict: "Best when you need correction and context, not only memorization.",
       },
@@ -176,8 +176,8 @@ export const landingSeoCopy = {
     ],
     questions: [
       {
-        question: "What is Poliglot AI?",
-        answer: "Poliglot AI is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
+        question: "What is NERIVA?",
+        answer: "NERIVA is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
       },
       {
         question: "Can I practice English with an AI tutor in Telegram?",
@@ -185,7 +185,7 @@ export const landingSeoCopy = {
       },
       {
         question: "How is an AI tutor different from a vocabulary app?",
-        answer: "Poliglot AI is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
+        answer: "NERIVA is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
       },
       {
         question: "Can I practice pronunciation and speaking?",

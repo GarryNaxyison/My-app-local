@@ -145,6 +145,36 @@ func newTelegramClient(token string, httpClient *http.Client) *telegramClient {
 	}
 }
 
+func normalizeBotUsername(username string) string {
+	username = strings.TrimSpace(strings.TrimPrefix(username, "@"))
+	if username == "" {
+		return "NERIVAapp_bot"
+	}
+	return username
+}
+
+func transitionBotURL(targetBot string) string {
+	return "https://t.me/" + normalizeBotUsername(targetBot)
+}
+
+func transitionBotText(targetBot string) string {
+	target := normalizeBotUsername(targetBot)
+	return "NERIVA теперь основной бот.\n\nОткройте @" + target + ", чтобы продолжить обучение и пользоваться новым приложением."
+}
+
+func transitionBotInlineKeyboard(targetBot string) map[string]any {
+	return map[string]any{
+		"inline_keyboard": [][]map[string]string{
+			{
+				{
+					"text": "Open NERIVA",
+					"url":  transitionBotURL(targetBot),
+				},
+			},
+		},
+	}
+}
+
 func (c *telegramClient) getMe(ctx context.Context) (telegramUser, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/getMe", nil)
 	if err != nil {

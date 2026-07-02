@@ -21,7 +21,7 @@ The new Telegram token is a secret and must not be written to source, docs, test
 
 In scope:
 
-- Replace user-facing `Poliglot AI`, `POLIGLOT`, and Russian `Полиглот AI` brand references with `NERIVA` in active product surfaces.
+- Replace user-facing `NERIVA`, `POLIGLOT`, and Russian `NERIVA` brand references with `NERIVA` in active product surfaces.
 - Update landing pages, SEO metadata, Open Graph/Twitter metadata, generated static SEO pages, sitemap, robots, public legal pages, maintenance pages, and visible site copy.
 - Update web app shell/legal fallbacks and Telegram-facing bot copy so new links prefer NERIVA.
 - Update default runtime URLs to `neriva.ru` / `api.neriva.ru` where callbacks can be safely moved.
@@ -80,7 +80,7 @@ Use test-first changes for behavioral code:
 - Go tests for config defaults, transition-mode validation, NERIVA bot username fallback, and transition keyboard/link output.
 - Worker tests for legacy host redirects, path/query preservation, canonical host handling, and VPS-origin maintenance fallback.
 - Playwright tests for public SEO metadata, static SEO pages, sitemap, robots, and visible NERIVA branding.
-- Focused checks that active public outputs no longer contain user-facing `Poliglot AI` brand strings except explicitly allowed legacy redirect/API compatibility docs.
+- Focused checks that active public outputs no longer contain user-facing `NERIVA` brand strings except explicitly allowed legacy redirect/API compatibility docs.
 
 Generated assets should be regenerated from source scripts rather than hand-edited when practical.
 

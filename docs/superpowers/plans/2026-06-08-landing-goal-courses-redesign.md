@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild the public Poliglot AI landing copy and hero presentation around the approved `Goal Courses` direction while keeping the current block list and using the old full-screen hero animation.
+**Goal:** Rebuild the public NERIVA landing copy and hero presentation around the approved `Goal Courses` direction while keeping the current block list and using the old full-screen hero animation.
 
 **Architecture:** Keep the public landing in `site-react`; update React content/data first, then CSS, then generated static output in `Сайт полиглота для бота/`. The `/app/` web application in `web-react` is out of scope and must not be edited or rebuilt for this task.
 
@@ -251,7 +251,7 @@ Inside `LandingPage`, update the hero copy and insert goal cards above the langu
 
 ```tsx
 <span className="eyebrow">AI-репетитор под вашу цель в web app, PWA и Telegram</span>
-<h1>Выберите цель, Poliglot AI соберет маршрут</h1>
+<h1>Выберите цель, NERIVA соберет маршрут</h1>
 <p>
   Путешествие, работа, экзамен или разговорная речь превращаются в короткий курс: AI Tutor, диалоги, голос,
   фото-перевод, словарь ошибок и прогресс работают в одном профиле.
@@ -260,7 +260,7 @@ Inside `LandingPage`, update the hero copy and insert goal cards above the langu
   <a className="hero-action hero-action--primary" href="/app/">
     Выбрать цель и начать бесплатно <ArrowRight size={18} />
   </a>
-  <a className="hero-action hero-action--secondary" href="https://t.me/poliglot_ai_bot">
+  <a className="hero-action hero-action--secondary" href="https://t.me/NERIVAapp_bot">
     Открыть Telegram-бота
   </a>
 </div>
@@ -322,7 +322,7 @@ Replace the inline course card array with `courseRoutes`:
 ```tsx
 <span className="eyebrow">Курсы под цель</span>
 <h2>Не просто уроки, а маршрут под вашу ситуацию</h2>
-<p>Выберите цель, а Poliglot AI соединит урок, диалог, голос, фото, слова и повторение в понятный сценарий.</p>
+<p>Выберите цель, а NERIVA соединит урок, диалог, голос, фото, слова и повторение в понятный сценарий.</p>
 ```
 
 Use this map:

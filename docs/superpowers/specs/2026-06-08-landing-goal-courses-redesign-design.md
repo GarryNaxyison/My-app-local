@@ -18,7 +18,7 @@ The current landing already has the required block list:
 - final start CTA
 - footer and legal pages
 
-The redesign must keep that block list and the main product concept: Poliglot AI is an AI language tutor available in web app, PWA, and Telegram with one learning profile.
+The redesign must keep that block list and the main product concept: NERIVA is an AI language tutor available in web app, PWA, and Telegram with one learning profile.
 
 ## Approved Direction
 
@@ -52,7 +52,7 @@ Keep the current nav structure. Rename the primary app CTA from a generic "Open 
 
 Hero must be full-screen or first-viewport dominant, with the old animated hero background visible across the viewport. The copy should lead with the selected goal-based promise:
 
-- H1 direction: "Выберите цель, Poliglot AI соберет маршрут".
+- H1 direction: "Выберите цель, NERIVA соберет маршрут".
 - Supporting copy: state that travel, work, exam preparation, and conversation practice can combine AI Tutor, roleplay, voice, photo translation, vocabulary, mistakes, and progress in one profile.
 - Primary CTA: "Выбрать цель и начать бесплатно".
 - Secondary CTA: "Открыть Telegram-бота".

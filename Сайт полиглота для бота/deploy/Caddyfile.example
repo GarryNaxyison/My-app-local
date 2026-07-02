@@ -1,12 +1,12 @@
-poliglotai.ru, poliglotai.online {
+neriva.ru, neriva.ru {
     encode zstd gzip
     reverse_proxy 127.0.0.1:3000
 }
 
-www.poliglotai.ru {
-    redir https://poliglotai.ru{uri} permanent
+www.neriva.ru {
+    redir https://neriva.ru{uri} permanent
 }
 
-www.poliglotai.online {
-    redir https://poliglotai.online{uri} permanent
+www.neriva.ru {
+    redir https://neriva.ru{uri} permanent
 }

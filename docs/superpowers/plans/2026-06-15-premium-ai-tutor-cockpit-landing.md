@@ -312,7 +312,7 @@ Inside `LandingPage`, replace the hero eyebrow, H1, body, primary CTA text, lang
   <a className="hero-action hero-action--primary" href="/app/">
     Начать бесплатно <ArrowRight size={18} />
   </a>
-  <a className="hero-action hero-action--secondary" href="https://t.me/poliglot_ai_bot">
+  <a className="hero-action hero-action--secondary" href="https://t.me/NERIVAapp_bot">
     Открыть Telegram
   </a>
 </div>
@@ -370,7 +370,7 @@ Also update the course strip intro to:
 ```tsx
 <span className="eyebrow">Premium cockpit</span>
 <h2>Каждая цель превращается в маршрут: урок, роль, голос, ошибки и повторение</h2>
-<p>Poliglot AI показывает, что делать сегодня, где вы ошиблись и что повторить дальше. Web app, PWA и Telegram держат один учебный профиль.</p>
+<p>NERIVA показывает, что делать сегодня, где вы ошиблись и что повторить дальше. Web app, PWA и Telegram держат один учебный профиль.</p>
 ```
 
 - [ ] **Step 5: Update pricing and final CTA**
@@ -395,7 +395,7 @@ Update `.start-panel` copy to:
 
 ```tsx
 <span className="eyebrow">Первый маршрут</span>
-<h2>Откройте Poliglot AI и начните говорить с разбором ошибок уже сегодня</h2>
+<h2>Откройте NERIVA и начните говорить с разбором ошибок уже сегодня</h2>
 ```
 
 Update the final CTA text to:

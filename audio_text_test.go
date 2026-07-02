@@ -93,7 +93,7 @@ func TestLessonQuestionPronunciationTextDoesNotReadInterfaceInstruction(t *testi
 }
 
 func TestRoleplayQuestionPronunciationTextFallsBackToLastDialogueLine(t *testing.T) {
-	reply := "Poliglot AI: Welcome to the station. Tell me where you need to go.\n\nCorrection: keep it short."
+	reply := "NERIVA: Welcome to the station. Tell me where you need to go.\n\nCorrection: keep it short."
 	got := roleplayQuestionPronunciationText(reply)
 	if got != "Welcome to the station. Tell me where you need to go." {
 		t.Fatalf("roleplay fallback audio = %q", got)

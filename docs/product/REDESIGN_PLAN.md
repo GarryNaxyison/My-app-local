@@ -1,8 +1,8 @@
-# Poliglot AI Redesign Plan
+# NERIVA Redesign Plan
 
 ## Product Direction
 
-Poliglot AI should feel like a premium AI language coach, not a generic bot wrapper and not a playful school app. The product promise is simple: one AI tutor across Telegram and web that helps people speak, write, listen, translate, review mistakes, learn words, and track progress in 20 interface languages.
+NERIVA should feel like a premium AI language coach, not a generic bot wrapper and not a playful school app. The product promise is simple: one AI tutor across Telegram and web that helps people speak, write, listen, translate, review mistakes, learn words, and track progress in 20 interface languages.
 
 The visual language is `Language Intelligence Cockpit`: a calm, high-end workspace with clear controls, language routes, voice waves, progress rings, memory tiles, and premium learning signals. Generated images must support the interface instead of competing with it.
 
@@ -90,7 +90,7 @@ Dark mode keeps the same identity but shifts surfaces to `#0D1320`, `#141E2D`, a
 
 Sections to redesign:
 
-- Hero: Poliglot AI, Telegram + web, 20 languages, one progress system.
+- Hero: NERIVA, Telegram + web, 20 languages, one progress system.
 - Country/language proof: 20 interface languages and separate learning language.
 - Product capabilities: lessons, practice, voice, photo, dictionary, mistakes.
 - Launch discount: Free/Premium/Platinum price story.

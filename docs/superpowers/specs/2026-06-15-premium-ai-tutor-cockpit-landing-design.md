@@ -22,7 +22,7 @@ The language-learning market is crowded. The strongest competitors sell a clear 
 
 The common winning message is not "many lessons". It is confidence: speak more often, make mistakes safely, receive feedback, and see measurable progress.
 
-Poliglot AI should compete by combining the premium AI tutor story with a broader practical ecosystem: web app, PWA, Telegram, daily route, roleplay, pronunciation, photo practice, vocabulary, mistakes, notes, offline decks, and one learning profile.
+NERIVA should compete by combining the premium AI tutor story with a broader practical ecosystem: web app, PWA, Telegram, daily route, roleplay, pronunciation, photo practice, vocabulary, mistakes, notes, offline decks, and one learning profile.
 
 ## Approved Strategy
 
@@ -66,7 +66,7 @@ Use only capabilities already represented in the project:
 
 Primary positioning:
 
-> Poliglot AI is a premium AI tutor that turns each day into a guided language session: lesson, conversation, pronunciation, photo practice, mistakes, and progress in one web + Telegram profile.
+> NERIVA is a premium AI tutor that turns each day into a guided language session: lesson, conversation, pronunciation, photo practice, mistakes, and progress in one web + Telegram profile.
 
 Core promise:
 

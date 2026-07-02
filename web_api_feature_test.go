@@ -1277,7 +1277,7 @@ func TestWebBugReportNotifiesTelegramRecipient(t *testing.T) {
 		}
 	}
 	text, _ := telegramPayloads[0]["text"].(string)
-	for _, want := range []string{"Bug report Poliglot AI", "From: tester (-42)", "View: home", "Меню лагает"} {
+	for _, want := range []string{"Bug report NERIVA", "From: tester (-42)", "View: home", "Меню лагает"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("telegram text %q does not contain %q", text, want)
 		}
@@ -1548,7 +1548,7 @@ func TestWebBugReportSendsScreenshotAsTelegramPhoto(t *testing.T) {
 		}
 	}
 	multipartBody := strings.Join(multipartBodies, "\n---NEXT---\n")
-	for _, want := range []string{`name="photo"; filename="`, `name="caption"`, "Bug report Poliglot AI", "Скрин показывает баг"} {
+	for _, want := range []string{`name="photo"; filename="`, `name="caption"`, "Bug report NERIVA", "Скрин показывает баг"} {
 		if !strings.Contains(multipartBody, want) {
 			t.Fatalf("sendPhoto body does not contain %q: %s", want, multipartBody)
 		}
@@ -1785,7 +1785,7 @@ func TestWebStarsPaymentSendsTelegramInvoice(t *testing.T) {
 
 	cfg := config{
 		WebAPISessionSecret: "test-session-secret",
-		WebTelegramLoginBot: "Poliglot_AI_bot",
+		WebTelegramLoginBot: "NERIVAapp_bot",
 		MaxVoiceSeconds:     30,
 		PremiumRubPrice:     300,
 		PremiumStarsPrice:   150,
@@ -1803,7 +1803,7 @@ func TestWebStarsPaymentSendsTelegramInvoice(t *testing.T) {
 	if sent, _ := response["sent"].(bool); !sent {
 		t.Fatalf("expected sent response, got %#v", response)
 	}
-	if botURL, _ := response["bot_url"].(string); botURL != "https://t.me/Poliglot_AI_bot?start=buy_premium_30d" {
+	if botURL, _ := response["bot_url"].(string); botURL != "https://t.me/NERIVAapp_bot?start=buy_premium_30d" {
 		t.Fatalf("unexpected bot url: %#v", response)
 	}
 	if method != "/sendInvoice" {
@@ -1870,7 +1870,7 @@ func TestTelegramStarsSuccessfulPaymentNotifiesOpsRecipient(t *testing.T) {
 		t.Fatalf("expected ops notification payload, got %#v", payloads)
 	}
 	text, _ := opsPayload["text"].(string)
-	for _, want := range []string{"Payment Poliglot AI", "Source: Telegram Stars", "User: Paid User (123)", "stars-test-payment"} {
+	for _, want := range []string{"Payment NERIVA", "Source: Telegram Stars", "User: Paid User (123)", "stars-test-payment"} {
 		if !strings.Contains(text, want) {
 			t.Fatalf("ops payment text %q does not contain %q", text, want)
 		}

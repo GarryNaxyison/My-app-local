@@ -11,8 +11,8 @@ loadEnvFile();
 const port = Number(process.env.PORT || 3000);
 const openRouterApiKey = process.env.OPENROUTER_API_KEY || "";
 const openRouterModel = process.env.OPENROUTER_MODEL || "openrouter/auto";
-const siteUrl = process.env.SITE_URL || "https://poliglotai.ru";
-const appTitle = process.env.APP_TITLE || "Poliglot AI";
+const siteUrl = process.env.SITE_URL || "https://neriva.ru";
+const appTitle = process.env.APP_TITLE || "NERIVA";
 
 const rateHits = new Map();
 
@@ -52,7 +52,7 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(port, "0.0.0.0", () => {
-    console.log(`Poliglot AI server is running on http://127.0.0.1:${port}`);
+    console.log(`NERIVA server is running on http://127.0.0.1:${port}`);
     if (!openRouterApiKey) {
         console.warn("OPENROUTER_API_KEY is not configured. The chat UI will open, but AI replies will fail.");
     }
@@ -251,7 +251,7 @@ function buildMessages(message, history, interfaceLanguage, learningLanguage, mo
     };
 
     const system = [
-        "Ты Полиглот AI, дружелюбный AI-бот для изучения языков.",
+        "Ты NERIVA, дружелюбный AI-бот для изучения языков.",
         `Отвечай на языке интерфейса пользователя: ${interfaceLanguage}.`,
         `Язык обучения: ${learningLanguage}.`,
         modeInstructions[mode] || modeInstructions.dialog,

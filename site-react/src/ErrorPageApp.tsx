@@ -17,10 +17,10 @@ type ErrorPageCopy = {
 
 const copyByKind: Record<ErrorPageKind, ErrorPageCopy> = {
   "not-found": {
-    eyebrow: "Poliglot AI / 404",
+    eyebrow: "NERIVA / 404",
     title: "Страница не найдена",
     status: "NOT_FOUND",
-    body: "Адрес не совпал с публичной страницей Poliglot AI. Вернитесь на главную или откройте приложение.",
+    body: "Адрес не совпал с публичной страницей NERIVA. Вернитесь на главную или откройте приложение.",
     english: "Page not found. The public landing may have moved.",
     primaryLabel: "На главную",
     primaryHref: "/poliglot-ai.html",
@@ -29,10 +29,10 @@ const copyByKind: Record<ErrorPageKind, ErrorPageCopy> = {
     detail: "Если ссылка пришла из Telegram или письма, проверьте, что она скопирована полностью.",
   },
   maintenance: {
-    eyebrow: "Poliglot AI / status",
+    eyebrow: "NERIVA / status",
     title: "Технические работы",
     status: "MAINTENANCE",
-    body: "Мы обновляем Poliglot AI или восстанавливаем соединение с приложением. Попробуйте обновить страницу через пару минут.",
+    body: "Мы обновляем NERIVA или восстанавливаем соединение с приложением. Попробуйте обновить страницу через пару минут.",
     english: "Maintenance is in progress. Please retry in a few minutes.",
     primaryLabel: "Обновить",
     secondaryLabel: "На главную",
@@ -68,7 +68,7 @@ export function ErrorPageApp({ kind }: { kind: ErrorPageKind }) {
         <div className="error-page__status" aria-hidden="true">
           <span>{copy.status}</span>
           <span>EDGE_READY</span>
-          <span>POLIGLOT_AI</span>
+          <span>NERIVA</span>
         </div>
 
         <div className="error-page__content">
@@ -86,7 +86,7 @@ export function ErrorPageApp({ kind }: { kind: ErrorPageKind }) {
               <ArrowRight size={18} aria-hidden="true" />
               {copy.secondaryLabel}
             </a>
-            <a className="error-page__button" href="https://t.me/poliglot_ai_bot">
+            <a className="error-page__button" href="https://t.me/NERIVAapp_bot">
               <MessageCircle size={18} aria-hidden="true" />
               Telegram
             </a>

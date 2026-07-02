@@ -1,12 +1,12 @@
 {
-  "name": "Poliglot AI V2",
-  "short_name": "Poliglot AI",
+  "name": "NERIVA V2",
+  "short_name": "NERIVA",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",
   "background_color": "#07111f",
   "theme_color": "#63d4dc",
-  "description": "Poliglot AI web learning workspace with offline mini-decks.",
+  "description": "NERIVA web learning workspace with offline mini-decks.",
   "icons": [
     {
       "src": "/app/assets/brand-logo-mini.png",

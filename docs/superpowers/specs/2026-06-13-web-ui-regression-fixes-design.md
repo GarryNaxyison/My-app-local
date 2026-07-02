@@ -2,7 +2,7 @@
 
 ## Goal
 
-Restore the Poliglot AI web UI after the recent layout regressions so desktop and mobile modes keep text readable, controls visible, and phrasebook saves obvious.
+Restore the NERIVA web UI after the recent layout regressions so desktop and mobile modes keep text readable, controls visible, and phrasebook saves obvious.
 
 ## Scope
 

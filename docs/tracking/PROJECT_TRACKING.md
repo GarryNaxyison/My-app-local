@@ -1,5 +1,5 @@
 ﻿---
-project: Poliglot AI
+project: NERIVA
 status: active
 updated: 2026-06-28
 tags:
@@ -10,7 +10,7 @@ tags:
   - deploy
 ---
 
-# Poliglot AI Project Tracking
+# NERIVA Project Tracking
 
 ## Current Sprint
 
@@ -48,7 +48,7 @@ tags:
 - [x] Add web lesson/practice voice recording and file upload with pronunciation score, accent strength, fluency, weak words, and tips.
 - [x] Wire the web app-wide background and account panel background as no-repeat cover/masked CSS layers.
 - [x] Strengthen lesson/practice prompts around active recall, reusable chunks, and focused correction.
-- [x] Create the `Poliglot AI Landing 2026` Figma design file with desktop/mobile frames for the refreshed public site.
+- [x] Create the `NERIVA Landing 2026` Figma design file with desktop/mobile frames for the refreshed public site.
 - [x] Add the public-site reviews section, pronunciation-engine explanation, Privacy/Terms trust band, and localized navigation copy.
 - [x] Update Privacy and Terms with the OpenRouter GPT-4o Transcribe pronunciation assessment flow and educational-use caveat.
 - [x] Fix Telegram/web Listening STT bias by removing the exact target phrase from the transcription prompt.
@@ -239,7 +239,7 @@ tags:
 | 2026-05-24 | `/opt/aibot/aibot`, `/opt/aibot/app_prompts.json`, and `/opt/aibot/web/v2` on `root@186.246.45.123` | Deployed the V2 output/roleplay/pronunciation/offline/dashboard pass; backup saved at `/opt/aibot/deploy-backups/20260524-010220-v2-output-roleplay-pronunciation`; restarted `aibot.service`; public `/healthz`, `/app`, `/app/v2`, `index-BljsgA2m.js`, and `index-CIAalwsj.css` returned 200. |
 | 2026-05-26 | `/opt/aibot/web/v2` on `root@186.246.45.123` | Deployed the V2 localization/mobile cleanup build; backup saved at `/opt/aibot/deploy-backups/20260526-205908-v2-mobile-localization`; restarted `aibot.service`; internal `/healthz`, public `/healthz`, `/app/v2`, `index-DG4RaOUL.js`, and `index-BFuJzIXN.css` verified. |
 | 2026-05-26 | `/opt/aibot/aibot`, `/opt/aibot/web/v2`, and selected `/opt/aibot/web/assets` on `root@186.246.45.123` | Deployed the confirmed-payment/referral/mobile/offline pass plus regenerated FLUX.2 transparent icons; backup saved at `/opt/aibot/deploy-backups/20260526-223406-v2-referrals-mobile`; restarted `aibot.service`; public `/healthz`, `/app/v2`, `index-C4nUHB4M.js`, `index-DqC1jeH0.css`, icon PNGs, and `brand-assets-manifest.json` verified. |
-| 2026-06-27 | `/opt/aibot/web` and `/var/www/poliglotai` on `root@186.246.45.123` | Deployed Poliglot AI social links for the public landing/footer and web app settings; backup saved at `/opt/aibot/deploy-backups/20260627-223337-social-links`; enabled persistent 1G `/swapfile` after OOM report, confirmed no `fold` processes, `aibot.service` and `caddy` active, public `/healthz` returns `ok`, production HTML references `index-CZPGvZ6d.js`, `index-DtwfRzt2.css`, `main-DMRCusAl.js`, and `main-CCIuuDnV.css`, and production JS contains YouTube, Instagram, and TikTok links. |
+| 2026-06-27 | `/opt/aibot/web` and `/var/www/poliglotai` on `root@186.246.45.123` | Deployed NERIVA social links for the public landing/footer and web app settings; backup saved at `/opt/aibot/deploy-backups/20260627-223337-social-links`; enabled persistent 1G `/swapfile` after OOM report, confirmed no `fold` processes, `aibot.service` and `caddy` active, public `/healthz` returns `ok`, production HTML references `index-CZPGvZ6d.js`, `index-DtwfRzt2.css`, `main-DMRCusAl.js`, and `main-CCIuuDnV.css`, and production JS contains YouTube, Instagram, and TikTok links. |
 | 2026-06-27 | `/opt/aibot/web` and `/var/www/poliglotai` on `root@186.246.45.123` | Deployed social/cookie localization follow-up; backup saved at `/opt/aibot/deploy-backups/20260627-233225-social-i18n`; production HTML references `index-C3O7Lq7c.js`, `index-DtwfRzt2.css`, `main-DcJ36_sh.js`, and `main-C1gzSw4z.css`; stale hashed assets removed; `/healthz` returns `ok`; browser checks confirmed light-theme social proof contrast, TikTok `@poliglotai.online`, and cookie banners remain visible after saved consent on both landing and web app. |
 | 2026-06-28 | `/opt/aibot/aibot` on `root@186.246.45.123` | Deployed API security hardening for trusted proxy IP rate keys, webhook HTTP timeouts, and payment create idempotency for YooKassa, RollyPay, and direct crypto payments; backup saved at `/opt/aibot/deploy-backups/20260628-0215-security-hardening/aibot`; verified targeted Go security tests, Linux/amd64 build, public `/healthz`, `/api/health`, `/app/`, `aibot.service`, `caddy`, and post-restart logs. |
 | 2026-06-28 | `/opt/aibot/aibot`, `/opt/aibot/web`, `app_prompts.json`, and vocabulary JSON on `root@186.246.45.123` | Deployed the auth heading wrap fix and OpenRouter-backed web vocabulary prompt fallback; backup saved at `/opt/aibot/deploy-backups/20260628T002340Z-auth-wordgame`; verified targeted Go prompt/cache tests, React build, Playwright auth regression, Linux/amd64 build, public `/healthz`, `/api/health`, `/app/`, `index-C2w2lZfu.js`, `index-4Rannp3W.css`, `aibot.service`, `caddy`, root-owned web assets, and post-restart logs. |

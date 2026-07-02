@@ -1,6 +1,6 @@
 # User UI Wishes
 
-This file is the recurring UI checklist for Poliglot AI. Check it before changing the web app, public site, generated assets, or mobile layout.
+This file is the recurring UI checklist for NERIVA. Check it before changing the web app, public site, generated assets, or mobile layout.
 
 ## 2026-05-30 Mobile Web Menu Reorder
 
@@ -21,7 +21,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - Mobile bottom-menu edge auto-scroll during tile dragging must be slow and controllable; dragging near the edge should nudge the rail, not fling it across the menu.
 - Lesson output must not print raw `Spoken model` / `Озвученный образец` text in place of the sample. Show an actual audio control/button for the spoken sample whenever the backend returns audio text.
 - Mistakes made in web Lessons and Practice must always be saved into the Mistakes dictionary. If the normal answer model forgets the `---MISTAKES---` JSON block, backend must run a strict fallback extraction instead of silently dropping the mistake.
-- App startup must never show a blank mobile screen. Before React hydrates and while the session is loading, show the Poliglot AI logo/title/spinner over the animated dark glass background.
+- App startup must never show a blank mobile screen. Before React hydrates and while the session is loading, show the NERIVA logo/title/spinner over the animated dark glass background.
 - Mobile bottom-menu reorder must visibly move the selected tile during drag, like a phone launcher. Keep the final `localStorage` write on pointer release so slow phones are protected, but do not leave the visible rail frozen while the user is dragging.
 - Regression coverage for mobile menu reorder must check both phases: immediate visual movement before pointer release and saved order after reload.
 
@@ -56,7 +56,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 
 - The public landing must use the generated Poliglot logo asset in the header, not a text-only or stale V2 mark.
 - The landing hero should feel premium and unified: one combined shader/product animation, polished CTA motion, concise product sections, restored reviews, FAQ, and visible pricing proof without information overload.
-- The landing should follow the Busuu-style conversion structure from the provided reference HTML, but with Poliglot AI logic: clear hero, `Я хочу изучать` language chooser, course cards, proof stats, feature blocks, reviews, FAQ, and tariffs.
+- The landing should follow the Busuu-style conversion structure from the provided reference HTML, but with NERIVA logic: clear hero, `Я хочу изучать` language chooser, course cards, proof stats, feature blocks, reviews, FAQ, and tariffs.
 - Keep the old monthly prices crossed out in pricing when the visible monthly price is already the 70% discount price.
 - Public landing, Privacy, Terms, web app, and Telegram interface selectors must support all 35 requested interface languages. Legal pages need the same contact/header treatment as Terms and dark-theme-readable language selectors.
 - The landing must not expose a public `/app/v2` nav link; use the theme toggle where that old V2 button was.
@@ -207,7 +207,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - Chat/output panes must auto-scroll to the newest message when the learner adds text or new generated content arrives.
 - Payment requisites must include exact-amount/network instructions, correctly formatted TON/USDT amounts, expiry time, and a manual "check payment" action.
 - Settings layout should place Activation under Telegram on the right so the page reads as balanced blocks.
-- Header identity should show the user login only once under "Poliglot AI"; do not duplicate it near the trophy.
+- Header identity should show the user login only once under "NERIVA"; do not duplicate it near the trophy.
 - Language dropdowns must render above the header/context layers and never be hidden under adjacent panels.
 - Menu and context animations should be slower, smoother, and visibly drop downward on view selection.
 
@@ -348,7 +348,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 
 - The public landing header must not show a visible `V2` link or pill. Use a compact light/dark theme toggle there instead.
 - The landing should sell the real product without overload: Daily route, Roleplay, Pronunciation, Photo/translation, Offline/PWA, Notes/mistakes, Telegram sync, and progress.
-- The first landing viewport should feel unique to Poliglot AI by combining the app's dark glass visual language with a Three.js anomalous-matter shader and animated CTA buttons.
+- The first landing viewport should feel unique to NERIVA by combining the app's dark glass visual language with a Three.js anomalous-matter shader and animated CTA buttons.
 - Public Privacy and Terms language selectors must stay readable in dark theme.
 - Mobile and desktop Playwright tests must cover the public landing shader, header theme toggle/no-`/app/v2` link, legal dark theme, mobile Back behavior, and active Roleplay choose-another-scenario control.
 - Deploy/startup must keep the site alive while large vocabulary indexes are created; dictionary optimization can run in the background, but `/healthz` and the web app should respond quickly after restart.
@@ -390,7 +390,7 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 
 ## 2026-05-29 Final Regression Closure Notes
 
-- Privacy contact cards must always show the Telegram bot as `@poliglot_ai_bot`; a blank Telegram bot card at the bottom of Privacy is a regression.
+- Privacy contact cards must always show the Telegram bot as `@NERIVAapp_bot`; a blank Telegram bot card at the bottom of Privacy is a regression.
 - Login should be a centered auth form over the animated background on desktop and mobile; no decorative right-side panel should return.
 - Mobile menu reordering should behave like a real long-press drag: the dragged tile moves, neighbors open space, the rail auto-scrolls near edges, and the order survives reload.
 - Vocabulary prompts should keep the main native-language meaning as the prompt and preserve one or two close alternate meanings as context/hint, while never showing the target answer as a clue.

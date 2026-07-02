@@ -11,7 +11,7 @@ const variants = [
     filename: "poliglot-ai-og-ru.jpg",
     lang: "ru",
     kicker: "AI-репетитор в Telegram и web app",
-    title: "Poliglot AI",
+    title: "NERIVA",
     subtitle: "Уроки, разговорная практика, голос, фото-перевод и ошибки в одном профиле.",
     chips: ["AI tutor", "Telegram", "Voice Coach"],
     compare: ["vs словарное приложение", "vs языковой бот", "Telegram + web app"],
@@ -20,7 +20,7 @@ const variants = [
     filename: "poliglot-ai-og-en.jpg",
     lang: "en",
     kicker: "AI language tutor in Telegram and web app",
-    title: "Poliglot AI",
+    title: "NERIVA",
     subtitle: "Lessons, speaking practice, voice, photo translation, mistakes, and progress in one profile.",
     chips: ["AI tutor", "Telegram", "Voice Coach"],
     compare: ["vs vocabulary app", "vs language bot", "Telegram + web app"],
@@ -157,7 +157,7 @@ function renderTemplate(variant) {
         font-size: 25px;
       }
       .compare span::after {
-        content: "Poliglot AI";
+        content: "NERIVA";
         color: #8ff1d0;
       }
     </style>

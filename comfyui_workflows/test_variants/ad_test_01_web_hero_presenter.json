@@ -172,7 +172,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "Vertical 9:16 luxury ad keyframe for Poliglot AI desktop web app. A warm confident young adult woman, age 18 or older, in an elegant business suit presents the Poliglot AI web version on a laptop in a premium modern office studio. The laptop screen clearly shows a beautiful desktop web interface: sidebar, learning cards, progress panel, practice area, premium dashboard, voice waveform. Use the project web assets as brand identity: logo, dark premium dashboard mood, app background. Elite SaaS advertisement, product-first, clean cinematic lighting, tasteful and expensive, no fake text, no sensual pose."
+        "Vertical 9:16 luxury ad keyframe for NERIVA desktop web app. A warm confident young adult woman, age 18 or older, in an elegant business suit presents the NERIVA web version on a laptop in a premium modern office studio. The laptop screen clearly shows a beautiful desktop web interface: sidebar, learning cards, progress panel, practice area, premium dashboard, voice waveform. Use the project web assets as brand identity: logo, dark premium dashboard mood, app background. Elite SaaS advertisement, product-first, clean cinematic lighting, tasteful and expensive, no fake text, no sensual pose."
       ],
       "title": "FLUX keyframe prompt",
       "color": "#232",
@@ -365,7 +365,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "5-second vertical luxury SaaS ad shot. Smooth cinematic push-in toward a laptop showing the Poliglot AI desktop web interface while a friendly young adult woman, age 18 or older, in a business suit presents it with confident calm energy. Premium office studio, polished functional UI visible: sidebar, learning cards, progress, practice, voice waveform, stable logo/product identity, no captions inside the image."
+        "5-second vertical luxury SaaS ad shot. Smooth cinematic push-in toward a laptop showing the NERIVA desktop web interface while a friendly young adult woman, age 18 or older, in a business suit presents it with confident calm energy. Premium office studio, polished functional UI visible: sidebar, learning cards, progress, practice, voice waveform, stable logo/product identity, no captions inside the image."
       ],
       "title": "Wan motion prompt",
       "color": "#232",
@@ -1791,7 +1791,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "XTTS voice direction:\nYoung adult female speaker, age 18 or older. Elegant business tone, warm and confident, premium English tech advertisement. Clear pronunciation, calm luxury pace, no sensual delivery.\n\n5-second English voiceover:\n\"Meet Poliglot AI. Your private language coach works beautifully on the web and in Telegram, helping you practice, improve pronunciation, and keep progress moving every day.\"\n\nVisual focus:\nDesktop web app hero + presenter\n"
+        "XTTS voice direction:\nYoung adult female speaker, age 18 or older. Elegant business tone, warm and confident, premium English tech advertisement. Clear pronunciation, calm luxury pace, no sensual delivery.\n\n5-second English voiceover:\n\"Meet NERIVA. Your private language coach works beautifully on the web and in Telegram, helping you practice, improve pronunciation, and keep progress moving every day.\"\n\nVisual focus:\nDesktop web app hero + presenter\n"
       ],
       "title": "5s script: Desktop web app hero + presenter",
       "color": "#232",

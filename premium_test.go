@@ -319,11 +319,11 @@ func TestRollyPayConfigRequiresSeparateCashboxes(t *testing.T) {
 	if cfg.rollyPayWebEnabled() {
 		t.Fatal("web RollyPay must require web API key")
 	}
-	cfg = config{YooKassaReturnURL: "https://api.poliglotai.ru/payment/success"}
-	if got := cfg.rollyPayWebReturnURL(); got != "https://poliglotai.ru/app?payment=success&provider=rollypay" {
+	cfg = config{YooKassaReturnURL: "https://api.neriva.ru/payment/success"}
+	if got := cfg.rollyPayWebReturnURL(); got != "https://neriva.ru/app?payment=success&provider=rollypay" {
 		t.Fatalf("RollyPay web return URL = %q, want RollyPay app success URL", got)
 	}
-	cfg.WebPaymentReturnURL = "https://poliglotai.ru/app?payment=success"
+	cfg.WebPaymentReturnURL = "https://neriva.ru/app?payment=success"
 	if got := cfg.rollyPayWebReturnURL(); got != cfg.WebPaymentReturnURL {
 		t.Fatalf("RollyPay web return URL should honor WEB_PAYMENT_RETURN_URL: got %q", got)
 	}
@@ -601,8 +601,8 @@ func TestPremiumStarsStartPayloadBuildsTelegramDeepLink(t *testing.T) {
 	if !ok || product != platinumYearlyProduct {
 		t.Fatalf("unexpected start payload parse: product=%q ok=%v", product, ok)
 	}
-	link := telegramBotStartURL("@Poliglot_AI_bot", payload)
-	if link != "https://t.me/Poliglot_AI_bot?start=buy_platinum_365d" {
+	link := telegramBotStartURL("@NERIVAapp_bot", payload)
+	if link != "https://t.me/NERIVAapp_bot?start=buy_platinum_365d" {
 		t.Fatalf("telegram deep link = %q", link)
 	}
 }
@@ -613,8 +613,8 @@ func TestCJKReferralShareTextIncludesWebAndPremium(t *testing.T) {
 		if !strings.Contains(text, "https://example.test/app?ref=CODE") {
 			t.Fatalf("%s referral text does not include link: %q", code, text)
 		}
-		if !strings.Contains(text, "Poliglot AI") || !strings.Contains(text, "Premium") || !(strings.Contains(strings.ToLower(text), "web") || strings.Contains(text, "웹")) {
-			t.Fatalf("%s referral text should mention Poliglot AI, web, and Premium: %q", code, text)
+		if !strings.Contains(text, "NERIVA") || !strings.Contains(text, "Premium") || !(strings.Contains(strings.ToLower(text), "web") || strings.Contains(text, "웹")) {
+			t.Fatalf("%s referral text should mention NERIVA, web, and Premium: %q", code, text)
 		}
 	}
 }

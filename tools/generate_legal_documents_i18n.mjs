@@ -22,12 +22,12 @@ const operator = {
   name: "Самозанятый Чебан Денис Игоревич",
   inn: "ИНН 505017471160",
   address: "г. Щёлково, ул. Сиреневая, 9к1, кв. 9",
-  email: "supportpoliglotai@gmail.com",
-  bot: "@poliglot_ai_bot",
+  email: "support@neriva.ru",
+  bot: "@NERIVAapp_bot",
 };
 
 const nav = {
-  home: "Poliglot AI",
+  home: "NERIVA",
   privacy: "Политика",
   terms: "Условия",
   agreement: "Пользовательское соглашение",
@@ -47,14 +47,14 @@ const documents = {
   privacy: {
     title: "Политика обработки персональных данных",
     badge: "Защита данных",
-    description: "Как Poliglot AI обрабатывает данные пользователей сайта, веб-приложения и Telegram-бота.",
+    description: "Как NERIVA обрабатывает данные пользователей сайта, веб-приложения и Telegram-бота.",
     updated: "Обновлено 24 июня 2026",
     sections: [
       {
         id: "scope",
         title: "1. Общие положения",
         blocks: [
-          "Политика действует для сервиса Poliglot AI: сайт poliglotai.ru, веб-приложение poliglotai.online/app и Telegram-бот @poliglot_ai_bot.",
+          "Политика действует для сервиса NERIVA: сайт poliglotai.ru, веб-приложение poliglotai.online/app и Telegram-бот @NERIVAapp_bot.",
           "Сервис является единой системой для изучения иностранных языков. Используя сервис, пользователь подтверждает, что ознакомился с настоящей Политикой, Пользовательским соглашением и Согласием на обработку персональных данных.",
         ],
       },
@@ -62,7 +62,7 @@ const documents = {
         id: "operator",
         title: "2. Оператор персональных данных",
         blocks: [
-          "Оператор персональных данных: Самозанятый Чебан Денис Игоревич, ИНН 505017471160, адрес: г. Щёлково, ул. Сиреневая, 9к1, кв. 9. Email для обращений: supportpoliglotai@gmail.com.",
+          "Оператор персональных данных: Самозанятый Чебан Денис Игоревич, ИНН 505017471160, адрес: г. Щёлково, ул. Сиреневая, 9к1, кв. 9. Email для обращений: support@neriva.ru.",
         ],
       },
       {
@@ -109,7 +109,7 @@ const documents = {
         id: "rights",
         title: "8. Права пользователя и контакты",
         blocks: [
-          "Пользователь может запросить доступ к данным, уточнение, блокирование, удаление, ограничение обработки или отзыв согласия. Обращения принимаются на supportpoliglotai@gmail.com.",
+          "Пользователь может запросить доступ к данным, уточнение, блокирование, удаление, ограничение обработки или отзыв согласия. Обращения принимаются на support@neriva.ru.",
           "После отзыва согласия часть функций сервиса может стать недоступной, если обработка данных необходима для их работы.",
         ],
       },
@@ -118,7 +118,7 @@ const documents = {
   terms: {
     title: "Условия использования",
     badge: "Правила сервиса",
-    description: "Правила использования сайта, веб-приложения и Telegram-бота Poliglot AI.",
+    description: "Правила использования сайта, веб-приложения и Telegram-бота NERIVA.",
     updated: "Обновлено 24 июня 2026",
     sections: [
       {
@@ -133,7 +133,7 @@ const documents = {
         id: "service",
         title: "2. Описание сервиса",
         blocks: [
-          "Poliglot AI предоставляет учебные материалы и автоматизированные AI-функции для изучения иностранных языков: уроки, ролевые диалоги, словарь ошибок, голосовую практику, распознавание речи, перевод текста с изображений, статистику прогресса, тарифы и поддержку.",
+          "NERIVA предоставляет учебные материалы и автоматизированные AI-функции для изучения иностранных языков: уроки, ролевые диалоги, словарь ошибок, голосовую практику, распознавание речи, перевод текста с изображений, статистику прогресса, тарифы и поддержку.",
           "Сервис не является образовательной организацией, не выдает документы об образовании и не гарантирует конкретный уровень владения языком, экзаменационный результат или трудоустройство.",
         ],
       },
@@ -182,7 +182,7 @@ const documents = {
         title: "8. Изменение условий и контакты",
         blocks: [
           "Оператор вправе обновлять условия. Новая редакция вступает в силу с момента публикации на сайте, если в ней не указан иной срок. Продолжение использования сервиса означает принятие обновленных условий.",
-          "Контакты для обращений: supportpoliglotai@gmail.com, Telegram @AsaselD, Telegram-бот @poliglot_ai_bot.",
+          "Контакты для обращений: support@neriva.ru, Telegram @AsaselD, Telegram-бот @NERIVAapp_bot.",
         ],
       },
     ],
@@ -190,14 +190,14 @@ const documents = {
   agreement: {
     title: "Пользовательское соглашение",
     badge: "Публичная оферта",
-    description: "Публичное пользовательское соглашение для сайта, веб-приложения и Telegram-бота Poliglot AI.",
+    description: "Публичное пользовательское соглашение для сайта, веб-приложения и Telegram-бота NERIVA.",
     updated: "Обновлено 24 июня 2026",
     sections: [
       {
         id: "offer",
         title: "1. Общие положения и акцепт",
         blocks: [
-          "Настоящее соглашение является публичным предложением оператора заключить договор об использовании сервиса Poliglot AI на изложенных ниже условиях.",
+          "Настоящее соглашение является публичным предложением оператора заключить договор об использовании сервиса NERIVA на изложенных ниже условиях.",
           "Акцептом считается регистрация, вход в web-аккаунт, нажатие кнопки продолжения в Telegram-боте, оплата тарифа, отправка сообщений, голосовых записей, изображений или иное фактическое использование сервиса.",
           "С момента акцепта договор считается заключенным. Пользователь подтверждает, что прочитал, понял и принимает условия без изъятий и ограничений.",
         ],
@@ -207,7 +207,7 @@ const documents = {
         title: "2. Предмет договора",
         blocks: [
           "Оператор предоставляет пользователю доступ к сайту, веб-приложению и Telegram-боту для изучения иностранных языков, а пользователь использует сервис в соответствии с настоящим соглашением и законодательством Российской Федерации.",
-          "Доступ обеспечивается через web-интерфейс, PWA, Telegram-бот @poliglot_ai_bot и связанные технические функции.",
+          "Доступ обеспечивается через web-интерфейс, PWA, Telegram-бот @NERIVAapp_bot и связанные технические функции.",
         ],
       },
       {
@@ -263,14 +263,14 @@ const documents = {
   consent: {
     title: "Согласие на обработку персональных данных",
     badge: "152-ФЗ",
-    description: "Отдельное согласие пользователя на обработку персональных данных в Poliglot AI.",
+    description: "Отдельное согласие пользователя на обработку персональных данных в NERIVA.",
     updated: "Обновлено 24 июня 2026",
     sections: [
       {
         id: "consent",
         title: "1. Согласие пользователя",
         blocks: [
-          "Пользователь свободно, своей волей и в своем интересе дает оператору согласие на обработку персональных данных при использовании сайта poliglotai.ru, веб-приложения poliglotai.online/app и Telegram-бота @poliglot_ai_bot.",
+          "Пользователь свободно, своей волей и в своем интересе дает оператору согласие на обработку персональных данных при использовании сайта poliglotai.ru, веб-приложения poliglotai.online/app и Telegram-бота @NERIVAapp_bot.",
           "Если данные относятся к несовершеннолетнему, согласие дает его законный представитель: родитель, усыновитель, опекун или попечитель.",
         ],
       },
@@ -310,7 +310,7 @@ const documents = {
         title: "6. Срок действия и отзыв",
         blocks: [
           "Согласие действует с момента предоставления до достижения целей обработки, удаления аккаунта, прекращения использования сервиса или отзыва согласия, если более длительное хранение не требуется законом или для защиты прав оператора.",
-          "Пользователь может отозвать согласие, запросить доступ, исправление, блокирование или удаление данных по адресу supportpoliglotai@gmail.com. После отзыва часть функций может стать недоступной.",
+          "Пользователь может отозвать согласие, запросить доступ, исправление, блокирование или удаление данных по адресу support@neriva.ru. После отзыва часть функций может стать недоступной.",
         ],
       },
     ],
@@ -318,7 +318,7 @@ const documents = {
 };
 
 const englishNav = {
-  home: "Poliglot AI",
+  home: "NERIVA",
   privacy: "Privacy",
   terms: "Terms",
   agreement: "User Agreement",
@@ -355,14 +355,14 @@ const englishDocuments = {
   privacy: {
     title: "Personal Data Processing Policy",
     badge: "Data protection",
-    description: "How Poliglot AI processes data of website, web app, and Telegram bot users.",
+    description: "How NERIVA processes data of website, web app, and Telegram bot users.",
     updated: "Updated 24 June 2026",
     sections: [
       {
         id: "scope",
         title: "1. General provisions",
         blocks: [
-          "This Policy applies to Poliglot AI: poliglotai.ru, the web app at poliglotai.online/app, and the Telegram bot @poliglot_ai_bot.",
+          "This Policy applies to NERIVA: poliglotai.ru, the web app at poliglotai.online/app, and the Telegram bot @NERIVAapp_bot.",
           "The service is a single system for learning foreign languages. By using it, the user confirms that they have read this Policy, the User Agreement, and the Consent to Personal Data Processing.",
         ],
       },
@@ -370,7 +370,7 @@ const englishDocuments = {
         id: "operator",
         title: "2. Personal data operator",
         blocks: [
-          "Personal data operator: self-employed Cheban Denis Igorevich, INN 505017471160, address: Shchyolkovo, Sirenevaya St., 9k1, apt. 9. Contact email: supportpoliglotai@gmail.com.",
+          "Personal data operator: self-employed Cheban Denis Igorevich, INN 505017471160, address: Shchyolkovo, Sirenevaya St., 9k1, apt. 9. Contact email: support@neriva.ru.",
         ],
       },
       {
@@ -417,7 +417,7 @@ const englishDocuments = {
         id: "rights",
         title: "8. User rights and contacts",
         blocks: [
-          "The user may request access to data, correction, blocking, deletion, restriction of processing, or withdrawal of consent. Requests are accepted at supportpoliglotai@gmail.com.",
+          "The user may request access to data, correction, blocking, deletion, restriction of processing, or withdrawal of consent. Requests are accepted at support@neriva.ru.",
           "After consent is withdrawn, some service functions may become unavailable if data processing is necessary for their operation.",
         ],
       },
@@ -426,7 +426,7 @@ const englishDocuments = {
   terms: {
     title: "Terms of Use",
     badge: "Service rules",
-    description: "Rules for using the Poliglot AI website, web app, and Telegram bot.",
+    description: "Rules for using the NERIVA website, web app, and Telegram bot.",
     updated: "Updated 24 June 2026",
     sections: [
       {
@@ -441,7 +441,7 @@ const englishDocuments = {
         id: "service",
         title: "2. Service description",
         blocks: [
-          "Poliglot AI provides learning materials and automated AI functions for foreign language learning: lessons, roleplay, mistake vocabulary, voice practice, speech recognition, image text translation, progress statistics, plans, and support.",
+          "NERIVA provides learning materials and automated AI functions for foreign language learning: lessons, roleplay, mistake vocabulary, voice practice, speech recognition, image text translation, progress statistics, plans, and support.",
           "The service is not an educational organization, does not issue education certificates, and does not guarantee a specific language level, exam result, or employment outcome.",
         ],
       },
@@ -490,7 +490,7 @@ const englishDocuments = {
         title: "8. Changes and contacts",
         blocks: [
           "The operator may update the terms. A new version takes effect upon publication on the site unless it specifies another effective date. Continued service use means acceptance of the updated terms.",
-          "Contacts: supportpoliglotai@gmail.com, Telegram @AsaselD, Telegram bot @poliglot_ai_bot.",
+          "Contacts: support@neriva.ru, Telegram @AsaselD, Telegram bot @NERIVAapp_bot.",
         ],
       },
     ],
@@ -498,14 +498,14 @@ const englishDocuments = {
   agreement: {
     title: "User Agreement",
     badge: "Public offer",
-    description: "Public user agreement for the Poliglot AI website, web app, and Telegram bot.",
+    description: "Public user agreement for the NERIVA website, web app, and Telegram bot.",
     updated: "Updated 24 June 2026",
     sections: [
       {
         id: "offer",
         title: "1. General provisions and acceptance",
         blocks: [
-          "This agreement is a public offer by the operator to conclude an agreement for using Poliglot AI on the terms below.",
+          "This agreement is a public offer by the operator to conclude an agreement for using NERIVA on the terms below.",
           "Acceptance includes registration, signing in to a web account, pressing the continue button in the Telegram bot, paying for a plan, sending messages, voice recordings, images, or otherwise using the service.",
           "From acceptance, the agreement is considered concluded. The user confirms that they have read, understood, and accept the terms without exclusions or limitations.",
         ],
@@ -515,7 +515,7 @@ const englishDocuments = {
         title: "2. Subject of the agreement",
         blocks: [
           "The operator provides access to the website, web app, and Telegram bot for foreign language learning, and the user uses the service according to this agreement and Russian Federation law.",
-          "Access is provided through the web interface, PWA, Telegram bot @poliglot_ai_bot, and related technical functions.",
+          "Access is provided through the web interface, PWA, Telegram bot @NERIVAapp_bot, and related technical functions.",
         ],
       },
       {
@@ -571,14 +571,14 @@ const englishDocuments = {
   consent: {
     title: "Consent to Personal Data Processing",
     badge: "152-FZ",
-    description: "Separate user consent to personal data processing in Poliglot AI.",
+    description: "Separate user consent to personal data processing in NERIVA.",
     updated: "Updated 24 June 2026",
     sections: [
       {
         id: "consent",
         title: "1. User consent",
         blocks: [
-          "The user freely, by their own will and in their own interest, gives the operator consent to process personal data while using poliglotai.ru, the web app at poliglotai.online/app, and the Telegram bot @poliglot_ai_bot.",
+          "The user freely, by their own will and in their own interest, gives the operator consent to process personal data while using poliglotai.ru, the web app at poliglotai.online/app, and the Telegram bot @NERIVAapp_bot.",
           "If data relates to a minor, consent is given by the legal representative: parent, adoptive parent, guardian, or custodian.",
         ],
       },
@@ -618,7 +618,7 @@ const englishDocuments = {
         title: "6. Term and withdrawal",
         blocks: [
           "Consent is valid from the moment it is given until processing purposes are achieved, account deletion, service use termination, or consent withdrawal, unless longer storage is required by law or to protect the operator's rights.",
-          "The user may withdraw consent or request access, correction, blocking, or deletion at supportpoliglotai@gmail.com. After withdrawal, some functions may become unavailable.",
+          "The user may withdraw consent or request access, correction, blocking, or deletion at support@neriva.ru. After withdrawal, some functions may become unavailable.",
         ],
       },
     ],
@@ -637,12 +637,12 @@ const englishLegalPack = {
 };
 
 const immutablePatterns = [
-  /Poliglot AI/g,
+  /NERIVA/g,
   /poliglotai\.ru/g,
   /poliglotai\.online\/app/g,
-  /@poliglot_ai_bot/g,
+  /@NERIVAapp_bot/g,
   /@AsaselD/g,
-  /supportpoliglotai@gmail\.com/g,
+  /support@neriva\.ru/g,
   /505017471160/g,
   /Telegram/g,
   /YooKassa/g,
@@ -893,7 +893,7 @@ function rendererSource(payload) {
       if (shell && doc) {
         shell.innerHTML = renderDocument(doc, pack.operator);
       }
-      document.title = doc ? doc.title + " - Poliglot AI" : document.title;
+      document.title = doc ? doc.title + " - NERIVA" : document.title;
       document.querySelectorAll("[data-legal-title]").forEach((node) => { node.textContent = doc?.title || node.textContent; });
       document.querySelectorAll("[data-legal-badge]").forEach((node) => { node.textContent = doc?.badge || node.textContent; });
       document.querySelectorAll("[data-legal-description]").forEach((node) => { node.textContent = doc?.description || node.textContent; });

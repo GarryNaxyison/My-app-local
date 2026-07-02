@@ -5,17 +5,17 @@ const pages = [
     slug: "ai-english-tutor",
     ruPath: "/ai-english-tutor.html",
     enPath: "/en/ai-english-tutor.html",
-    ruTitle: "AI-репетитор английского онлайн - Poliglot AI",
-    enTitle: "AI English Tutor Online - Poliglot AI",
-    ruH1: "AI-репетитор английского в веб-приложении Poliglot AI",
-    enH1: "AI English tutor inside the Poliglot AI web app",
+    ruTitle: "AI-репетитор английского онлайн - NERIVA",
+    enTitle: "AI English Tutor Online - NERIVA",
+    ruH1: "AI-репетитор английского в веб-приложении NERIVA",
+    enH1: "AI English tutor inside the NERIVA web app",
   },
   {
     slug: "english-speaking-practice",
     ruPath: "/english-speaking-practice.html",
     enPath: "/en/english-speaking-practice.html",
-    ruTitle: "Разговорная практика английского с AI - Poliglot AI",
-    enTitle: "English Speaking Practice With AI - Poliglot AI",
+    ruTitle: "Разговорная практика английского с AI - NERIVA",
+    enTitle: "English Speaking Practice With AI - NERIVA",
     ruH1: "Разговорная практика английского с AI",
     enH1: "English speaking practice with AI",
   },
@@ -23,8 +23,8 @@ const pages = [
     slug: "english-pronunciation-trainer",
     ruPath: "/english-pronunciation-trainer.html",
     enPath: "/en/english-pronunciation-trainer.html",
-    ruTitle: "Тренажер произношения английского с AI - Poliglot AI",
-    enTitle: "English Pronunciation Trainer With AI - Poliglot AI",
+    ruTitle: "Тренажер произношения английского с AI - NERIVA",
+    enTitle: "English Pronunciation Trainer With AI - NERIVA",
     ruH1: "Тренажер произношения английского с AI",
     enH1: "English pronunciation trainer with AI",
   },
@@ -32,8 +32,8 @@ const pages = [
     slug: "english-for-work-and-travel",
     ruPath: "/english-for-work-and-travel.html",
     enPath: "/en/english-for-work-and-travel.html",
-    ruTitle: "Английский для работы и путешествий - Poliglot AI",
-    enTitle: "English for Work and Travel - Poliglot AI",
+    ruTitle: "Английский для работы и путешествий - NERIVA",
+    enTitle: "English for Work and Travel - NERIVA",
     ruH1: "Английский для работы и путешествий",
     enH1: "English for work and travel",
   },
@@ -41,10 +41,10 @@ const pages = [
     slug: "language-learning-web-app",
     ruPath: "/language-learning-web-app.html",
     enPath: "/en/language-learning-web-app.html",
-    ruTitle: "Веб-приложение для изучения языков - Poliglot AI",
-    enTitle: "Language Learning Web App - Poliglot AI",
-    ruH1: "Веб-приложение для изучения языков Poliglot AI",
-    enH1: "Poliglot AI language learning web app",
+    ruTitle: "Веб-приложение для изучения языков - NERIVA",
+    enTitle: "Language Learning Web App - NERIVA",
+    ruH1: "Веб-приложение для изучения языков NERIVA",
+    enH1: "NERIVA language learning web app",
   },
 ] as const;
 
@@ -78,7 +78,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator("html")).toHaveAttribute("lang", "ru");
       await expect(page.locator("h1")).toHaveText(item.ruH1);
       await expect(page.locator("#root")).toHaveCount(0);
-      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Poliglot AI/);
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /NERIVA/);
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://neriva.ru${item.ruPath}`);
       await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://neriva.ru${item.ruPath}`);
       await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);

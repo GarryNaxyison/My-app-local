@@ -70,6 +70,24 @@ func TestMainMenuContainsCoreBotFunctions(t *testing.T) {
 	}
 }
 
+func TestTransitionBotKeyboardLinksToNerivaBot(t *testing.T) {
+	keyboard := transitionBotInlineKeyboard("@NERIVAapp_bot")
+	rows, ok := keyboard["inline_keyboard"].([][]map[string]string)
+	if !ok || len(rows) != 1 || len(rows[0]) != 1 {
+		t.Fatalf("unexpected transition keyboard shape: %#v", keyboard)
+	}
+	button := rows[0][0]
+	if got := button["url"]; got != "https://t.me/NERIVAapp_bot" {
+		t.Fatalf("transition URL = %q, want new bot deep link", got)
+	}
+	if !strings.Contains(button["text"], "NERIVA") {
+		t.Fatalf("transition button text = %q, want NERIVA brand", button["text"])
+	}
+	if text := transitionBotText("@NERIVAapp_bot"); !strings.Contains(text, "@NERIVAapp_bot") || !strings.Contains(text, "NERIVA") {
+		t.Fatalf("transition text = %q, want NERIVA target bot", text)
+	}
+}
+
 func TestPronunciationMenuLabelIsLocalizedForEveryInterfaceLanguage(t *testing.T) {
 	for _, language := range interfaceLanguages() {
 		copy := ui(userState{InterfaceLanguage: language.Code, InterfaceSelected: true})

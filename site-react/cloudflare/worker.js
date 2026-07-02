@@ -1,6 +1,8 @@
 const DEFAULT_ORIGIN_BASE_URL = "https://api.neriva.ru";
 const DEFAULT_STATIC_BASE_URL = "https://neriva.pages.dev";
 const DEFAULT_MAINTENANCE_PATH = "/maintenance.html";
+const CANONICAL_PUBLIC_HOST = "neriva.ru";
+const LEGACY_PUBLIC_HOSTS = new Set(["poliglotai.ru", "www.poliglotai.ru", "poliglotai.online", "www.poliglotai.online"]);
 
 const exactProxyPaths = new Set([
   "/app",
@@ -58,6 +60,17 @@ export function resolvePagesPath(pathname) {
   return pathname;
 }
 
+export function legacyRedirectUrl(requestUrl) {
+  const url = new URL(requestUrl);
+  if (!LEGACY_PUBLIC_HOSTS.has(url.hostname.toLowerCase())) {
+    return "";
+  }
+  url.protocol = "https:";
+  url.hostname = CANONICAL_PUBLIC_HOST;
+  url.port = "";
+  return url.toString();
+}
+
 function maintenanceUrlFor(request, env) {
   const configuredUrl = env?.MAINTENANCE_PAGE_URL || DEFAULT_MAINTENANCE_PATH;
   return new URL(configuredUrl, env?.STATIC_BASE_URL || DEFAULT_STATIC_BASE_URL).toString();
@@ -70,12 +83,12 @@ function inlineMaintenanceHtml() {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Технические работы - Poliglot AI</title>
+    <title>Технические работы - NERIVA</title>
   </head>
   <body>
     <main>
       <h1>Технические работы</h1>
-      <p>Poliglot AI временно недоступен. Попробуйте обновить страницу через пару минут.</p>
+      <p>NERIVA временно недоступен. Попробуйте обновить страницу через пару минут.</p>
       <p>Maintenance is in progress. Please retry in a few minutes.</p>
       <a href="/poliglot-ai.html">На главную</a>
     </main>
@@ -146,6 +159,10 @@ async function serveStatic(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const redirectUrl = legacyRedirectUrl(request.url);
+    if (redirectUrl) {
+      return Response.redirect(redirectUrl, 301);
+    }
 
     if (!shouldProxyPath(url.pathname)) {
       try {

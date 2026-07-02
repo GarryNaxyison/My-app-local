@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add a real `Настроить` action to the Poliglot AI public-site cookie banner so users can choose optional cookie categories instead of only accepting all cookies or limiting the site to required cookies.
+Add a real `Настроить` action to the NERIVA public-site cookie banner so users can choose optional cookie categories instead of only accepting all cookies or limiting the site to required cookies.
 
 ## Context
 

@@ -411,7 +411,7 @@ type AnomalousMatterHeroProps = {
 };
 
 export function AnomalousMatterHero({
-  title = "Poliglot AI",
+  title = "NERIVA",
   subtitle = "Язык, который тренируется каждый день",
   description = "Уроки, роли, произношение, заметки и Telegram в одном учебном профиле.",
 }: AnomalousMatterHeroProps) {

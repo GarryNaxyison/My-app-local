@@ -127,9 +127,9 @@ type TrainerTone = "success" | "warning" | "info";
 const aiRouterTelegramURL = "https://t.me/AiRouterRu_bot";
 
 const poliglotSocialLinks = [
-  { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
-  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai.online", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+  { name: "YouTube", href: "https://www.youtube.com/@NERIVA", label: "Open NERIVA on YouTube", Icon: YouTubeIcon },
+  { name: "Instagram", href: "https://t.me/NERIVAapp_bot", label: "Open NERIVA on Instagram", Icon: InstagramIcon },
+  { name: "TikTok", href: "https://t.me/NERIVAapp_bot", label: "Open NERIVA on TikTok", Icon: TikTokIcon },
 ] as const;
 
 const dailyQuestTarget = {
@@ -1109,7 +1109,7 @@ function mergeTutorCompletedLessons(primary: TutorCompletedLessonRecord[], fallb
   return result.sort((left, right) => right.completedAt.localeCompare(left.completedAt));
 }
 
-function panelMessage(message: string, tone: ChatMessage["tone"] = "default", title = "Poliglot AI", details?: ApiRecord, meta?: string): ChatMessage {
+function panelMessage(message: string, tone: ChatMessage["tone"] = "default", title = "NERIVA", details?: ApiRecord, meta?: string): ChatMessage {
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     role: tone === "danger" ? "system" : "assistant",
@@ -3590,7 +3590,7 @@ function AuthStandaloneView({
       {
         avatarSrc: "/app/assets/award-09.png",
         name: copy("auth_lessons", "Lessons"),
-        handle: "@poliglot",
+        handle: "@NERIVAapp_bot",
         text: copy("auth_card_lessons", "Short AI lessons adapt to your level."),
       },
       {
@@ -3802,7 +3802,7 @@ function BrandMark({ compact = false, subtitle }: { compact?: boolean; subtitle?
     <div className={cn("v2-brand", compact && "v2-brand--compact")}>
       <img src="/app/assets/brand-logo-mini.png" alt="" />
       <span>
-        <strong>Poliglot AI</strong>
+        <strong>NERIVA</strong>
         {!compact ? <small>{subtitle || "AI Tutor"}</small> : null}
       </span>
     </div>
@@ -3823,12 +3823,6 @@ function legalDocumentOrigin() {
   const hostname = window.location.hostname.toLowerCase();
   if (hostname === "neriva.ru" || hostname === "www.neriva.ru") {
     return "https://neriva.ru";
-  }
-  if (hostname === "poliglotai.ru" || hostname === "www.poliglotai.ru") {
-    return "https://poliglotai.ru";
-  }
-  if (hostname === "poliglotai.online" || hostname === "www.poliglotai.online") {
-    return "https://poliglotai.online";
   }
   return fallback;
 }
@@ -5189,7 +5183,7 @@ function AppGuideDialog({
     },
     {
       title: copy("app_guide_step_2_title", "How plans differ"),
-      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor, listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
+      body: copy("app_guide_step_2_body", "Free keeps the starter learning loop. Premium opens AI Tutor plus listening, pronunciation scoring, voice review, image tools, and higher daily limits. Platinum is for dense study with the maximum limits."),
       details: [
         copy("app_guide_step_2_detail_1", "Free is enough to test the route and keep a small daily habit."),
         copy("app_guide_step_2_detail_2", "Premium is the normal daily mode when you need guided lessons, voice, listening, and pronunciation feedback."),
@@ -7075,7 +7069,7 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
     <div className="teacher-dashboard-v2">
       <section className="v2-panel dashboard-hero-v2">
         <span className="eyebrow"><BarChart3 size={15} />{copy("dashboard", "Dashboard")}</span>
-        <h2>{session.account?.login || "Poliglot learner"}</h2>
+        <h2>{session.account?.login || "NERIVA learner"}</h2>
         <p>{copy("dashboard_learning_body", "Сводка только по обучению и активности: слова, уроки, разговорная практика, голосовые попытки и повторения.")}</p>
       </section>
       <section className="v2-panel dashboard-grid-v2 dashboard-grid-v2--learning">
@@ -7253,7 +7247,7 @@ function audioClipsFrom(details: ApiRecord | undefined, body: string, copy: (key
 
 function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]; copy: (key: string, fallback: string) => string; targetLanguage?: string }) {
   const chatConfig: ChatConfig = {
-    leftPerson: { name: "Poliglot AI", avatar: "/app/assets/brand-logo-mini.png" },
+    leftPerson: { name: "NERIVA", avatar: "/app/assets/brand-logo-mini.png" },
     rightPerson: { name: copy("you", "You") },
     targetLanguage,
     messages: messages
@@ -8435,9 +8429,9 @@ function SettingsView({
         </section>
         <section className="v2-panel settings-card-v2 settings-social-card-v2">
           <span className="eyebrow">{copy("social_channels", "Social channels")}</span>
-          <h2>{copy("poliglot_social_title", "Follow Poliglot AI")}</h2>
+          <h2>{copy("poliglot_social_title", "Follow NERIVA")}</h2>
           <p>{copy("poliglot_social_body", "Short lessons, updates, and product tips.")}</p>
-          <div className="settings-social-links-v2" aria-label={copy("poliglot_social_title", "Follow Poliglot AI")}>
+          <div className="settings-social-links-v2" aria-label={copy("poliglot_social_title", "Follow NERIVA")}>
             {poliglotSocialLinks.map(({ name, href, label, Icon }) => (
               <a key={name} className={`settings-social-link-v2 settings-social-link-v2--${name.toLowerCase()}`} href={href} aria-label={label} target="_blank" rel="noreferrer">
                 <Icon />
@@ -8517,7 +8511,7 @@ function MetricsView({ activeView, user, copy, selectedAwardLevel, setSelectedAw
 function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, fallback: string) => string }) {
   const [page, setPage] = useState(0);
   const link = user.referral_code ? `${location.origin}/app?ref=${user.referral_code}` : "";
-  const shareTemplate = copy("referral_share", "Join Poliglot AI with my invite: {link}");
+  const shareTemplate = copy("referral_share", "Join NERIVA with my invite: {link}");
   const shareText = link ? shareTemplate.replace("{link}", link).replace("%s", link) : "";
   const telegramShare = link ? `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}` : "";
   const invitees = Array.isArray(user.referral_invitees) ? user.referral_invitees : [];
@@ -8546,7 +8540,7 @@ function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, f
         <div className="referral-actions-v2">
           <Button variant="outline" disabled={!link} onClick={() => link && navigator.clipboard?.writeText(shareText)}>{copy("copy_invite", "Copy invite")}</Button>
           {telegramShare ? <a className="telegram-link-v2" href={telegramShare} target="_blank" rel="noreferrer"><TelegramIcon />{copy("invite_telegram", "Invite in Telegram")}</a> : null}
-          {navigator.share ? <Button variant="outline" disabled={!link} onClick={() => link && navigator.share({ title: "Poliglot AI", text: shareText, url: link })}>{copy("share", "Share")}</Button> : null}
+          {navigator.share ? <Button variant="outline" disabled={!link} onClick={() => link && navigator.share({ title: "NERIVA", text: shareText, url: link })}>{copy("share", "Share")}</Button> : null}
         </div>
       </section>
       <section className="v2-panel referral-invitees-v2">

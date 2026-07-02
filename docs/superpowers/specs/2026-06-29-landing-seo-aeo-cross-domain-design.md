@@ -4,7 +4,7 @@ Date: 2026-06-29
 
 ## Summary
 
-Poliglot AI needs the existing public landing page to become easier to discover in search and AI answer experiences without a visual redesign. The Russian domain `poliglotai.ru` is the primary surface for Russian-speaking users. The `poliglotai.online` mirror is the primary surface for international users.
+NERIVA needs the existing public landing page to become easier to discover in search and AI answer experiences without a visual redesign. The Russian domain `poliglotai.ru` is the primary surface for Russian-speaking users. The `poliglotai.online` mirror is the primary surface for international users.
 
 This design adds a technical SEO layer and a small answer-oriented content layer to the current `site-react` public landing. It keeps the current layout, product positioning, language selector, relative `/app/` links, legal pages, and React/Vite build flow.
 
@@ -12,7 +12,7 @@ This design adds a technical SEO layer and a small answer-oriented content layer
 
 - Make the current landing clearer to crawlers and answer engines for Russian queries first.
 - Preserve `poliglotai.ru` as the Russian canonical host and `poliglotai.online` as the international canonical host.
-- Add metadata and structured data that describe Poliglot AI as an AI language tutor, web app, and Telegram bot.
+- Add metadata and structured data that describe NERIVA as an AI language tutor, web app, and Telegram bot.
 - Add a compact visible FAQ/AEO section with direct answers for common product-discovery queries.
 - Add `robots.txt` and `sitemap.xml` entries for the public landing and legal pages.
 - Cover the change with focused Playwright checks and existing build checks.
@@ -53,8 +53,8 @@ Implementation should use static tags where safe and a small runtime metadata he
 Add or update page metadata for the landing:
 
 - `title`
-  - Russian: `Poliglot AI - AI-репетитор английского и языков в Telegram`
-  - English: `Poliglot AI - AI language tutor in Telegram and web app`
+  - Russian: `NERIVA - AI-репетитор английского и языков в Telegram`
+  - English: `NERIVA - AI language tutor in Telegram and web app`
 - `description`
   - Russian should mention AI lessons, speaking practice, Telegram, web app, pronunciation, photo translation, mistakes, and Premium.
   - English should mention AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans.
@@ -77,17 +77,17 @@ Add JSON-LD for the landing. The data should be truthful and compact.
 Recommended graph:
 
 - `Organization`
-  - name `Poliglot AI`
+  - name `NERIVA`
   - url based on canonical host
   - logo URL
   - sameAs social URLs already used by the public site
-  - contact email `supportpoliglotai@gmail.com`
+  - contact email `support@neriva.ru`
 - `WebSite`
-  - name `Poliglot AI`
+  - name `NERIVA`
   - url based on canonical host
   - inLanguage from current language
 - `SoftwareApplication`
-  - name `Poliglot AI`
+  - name `NERIVA`
   - applicationCategory `EducationalApplication`
   - operatingSystem `Web, Telegram`
   - offers for Free, Premium, and Platinum with current public prices
@@ -103,7 +103,7 @@ Add a compact answer-oriented section to the existing landing, near the current 
 
 Russian priority questions:
 
-- `Что такое Poliglot AI?`
+- `Что такое NERIVA?`
 - `Можно ли учить английский с ИИ в Telegram?`
 - `Чем AI-репетитор отличается от обычного приложения со словами?`
 - `Можно ли тренировать произношение и speaking?`
@@ -112,7 +112,7 @@ Russian priority questions:
 
 English/international equivalents:
 
-- `What is Poliglot AI?`
+- `What is NERIVA?`
 - `Can I practice English with an AI tutor in Telegram?`
 - `How is an AI tutor different from a vocabulary app?`
 - `Can I practice pronunciation and speaking?`

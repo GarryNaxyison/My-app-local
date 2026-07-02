@@ -2,7 +2,7 @@
 
 ## Goal
 
-Update Poliglot AI public legal pages, Telegram onboarding, and WebApp consent surfaces so the service publishes operator details, a privacy policy, terms, a separate user agreement, a separate personal-data consent, and an opt-in cookie notice.
+Update NERIVA public legal pages, Telegram onboarding, and WebApp consent surfaces so the service publishes operator details, a privacy policy, terms, a separate user agreement, a separate personal-data consent, and an opt-in cookie notice.
 
 ## Context
 
@@ -24,7 +24,7 @@ Use these details in public documents:
 - Russian display name: Самозанятый Чебан Денис Игоревич.
 - INN: 505017471160.
 - Address for notices: Russia, Moscow Region, Shchyolkovo, Sirenevaya street, 9k1, apartment 9.
-- Support email: supportpoliglotai@gmail.com.
+- Support email: support@neriva.ru.
 
 ## Design
 
@@ -34,7 +34,7 @@ Extend the legal page system from two pages to four pages:
 
 - `/privacy.html`: privacy policy and personal-data processing policy.
 - `/terms.html`: concise service terms.
-- `/agreement.html`: separate user agreement/public offer adapted to Poliglot AI.
+- `/agreement.html`: separate user agreement/public offer adapted to NERIVA.
 - `/consent.html`: separate consent to personal-data processing.
 
 All four pages keep the existing legal-page shell and footer styling. Navigation and footer should expose all four document links.

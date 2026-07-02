@@ -5,7 +5,7 @@ import "testing"
 func TestLoadConfigUsesNerivaProductionDefaults(t *testing.T) {
 	t.Setenv("TELEGRAM_BOT_TOKEN", "test-token")
 	t.Setenv("OPENROUTER_API_KEY", "test-openrouter-key")
-	for _, key := range []string{"WEB_CORS_ORIGINS", "WEB_APP_URL", "WEB_PAYMENT_RETURN_URL"} {
+	for _, key := range []string{"WEB_CORS_ORIGINS", "WEB_APP_URL", "WEB_PAYMENT_RETURN_URL", "WEB_TELEGRAM_LOGIN_BOT"} {
 		t.Setenv(key, "")
 	}
 
@@ -25,8 +25,29 @@ func TestLoadConfigUsesNerivaProductionDefaults(t *testing.T) {
 	if got := cfg.rollyPayBotReturnURL(); got != "https://neriva.ru/app" {
 		t.Fatalf("RollyPay bot fallback URL = %q, want Neriva app URL", got)
 	}
-	if got := cfg.rollyPayWebReturnURL(); got != "https://poliglotai.ru/app?payment=success&provider=rollypay" {
-		t.Fatalf("RollyPay web fallback URL = %q, want Poliglot success URL", got)
+	if got := cfg.rollyPayWebReturnURL(); got != "https://neriva.ru/app?payment=success&provider=rollypay" {
+		t.Fatalf("RollyPay web fallback URL = %q, want Neriva success URL", got)
+	}
+	if cfg.WebTelegramLoginBot != "NERIVAapp_bot" {
+		t.Fatalf("default WEB_TELEGRAM_LOGIN_BOT = %q, want NERIVAapp_bot", cfg.WebTelegramLoginBot)
+	}
+}
+
+func TestLoadConfigAllowsTransitionModeWithoutOpenRouterKey(t *testing.T) {
+	t.Setenv("TELEGRAM_BOT_TOKEN", "test-token")
+	t.Setenv("OPENROUTER_API_KEY", "")
+	t.Setenv("BOT_TRANSITION_ONLY", "true")
+	t.Setenv("TRANSITION_TARGET_BOT", "@NERIVAapp_bot")
+
+	cfg, err := configFromEnv()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.BotTransitionOnly {
+		t.Fatal("BotTransitionOnly = false, want true")
+	}
+	if cfg.TransitionTargetBot != "NERIVAapp_bot" {
+		t.Fatalf("TransitionTargetBot = %q, want NERIVAapp_bot", cfg.TransitionTargetBot)
 	}
 }
 

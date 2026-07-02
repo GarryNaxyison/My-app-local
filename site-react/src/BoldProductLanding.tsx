@@ -23,7 +23,7 @@ import {
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 
 const WEB_APP_HREF = "/app/";
-const TELEGRAM_HREF = "https://t.me/poliglot_ai_bot";
+const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
 
 const heroScreens = [
   {
@@ -31,7 +31,7 @@ const heroScreens = [
     icon: BookOpen,
     label: "AI Tutor lesson",
     prompt: "I would like to book a table for tonight.",
-    output: "Poliglot AI проверяет смысл, грамматику и дает короткое объяснение.",
+    output: "NERIVA проверяет смысл, грамматику и дает короткое объяснение.",
     detail: "XP +12 · ошибка сохранена",
   },
   {
@@ -73,7 +73,7 @@ const dailySteps = [
   },
   {
     title: "Повторите слабое место",
-    body: "Poliglot AI сохраняет ошибку, weak words, заметку и следующий шаг для review.",
+    body: "NERIVA сохраняет ошибку, weak words, заметку и следующий шаг для review.",
     marker: "03",
   },
 ] as const;
@@ -173,7 +173,7 @@ const boldNodeSources = new WeakMap<Text, string>();
 const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, string>> = {
   en: {
     "Урок": "Lesson",
-    "Poliglot AI проверяет смысл, грамматику и дает короткое объяснение.": "Poliglot AI checks meaning, grammar, and gives a short explanation.",
+    "NERIVA проверяет смысл, грамматику и дает короткое объяснение.": "NERIVA checks meaning, grammar, and gives a short explanation.",
     "XP +12 · ошибка сохранена": "XP +12 · mistake saved",
     "Диалог": "Dialogue",
     "Сценарий держит роль, исправляет фразу и предлагает естественный ответ.": "The scenario keeps the role, corrects the phrase, and suggests a natural reply.",
@@ -186,7 +186,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Ответьте как удобно": "Answer your way",
     "Введите текст, скажите голосом или добавьте фото с меню, вывеской или заданием.": "Type text, speak by voice, or add a photo of a menu, sign, or exercise.",
     "Повторите слабое место": "Repeat the weak spot",
-    "Poliglot AI сохраняет ошибку, weak words, заметку и следующий шаг для review.": "Poliglot AI saves the mistake, weak words, note, and next review step.",
+    "NERIVA сохраняет ошибку, weak words, заметку и следующий шаг для review.": "NERIVA saves the mistake, weak words, note, and next review step.",
     "Урок ведет от примера к ответу, проверке, XP и следующему повторению.": "The lesson leads from example to answer, check, XP, and the next repetition.",
     "Travel, work, exam и speaking сценарии держат контекст как живой диалог.": "Travel, work, exam, and speaking scenarios keep context like a live dialogue.",
     "Произношение получает score, weak words, shadowing и следующую фразу.": "Pronunciation gets a score, weak words, shadowing, and the next phrase.",
@@ -235,7 +235,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Четыре рабочих режима в одном учебном профиле": "Four working modes in one learning profile",
     "Каждый модуль выглядит как продуктовый инструмент, а не как абстрактная карточка возможностей.": "Each module looks like a product tool, not an abstract feature card.",
     "Ошибки становятся тренировочным материалом": "Mistakes become training material",
-    "Poliglot AI связывает исправления, weak words, spelling, notes, offline decks, XP, streak, awards и daily bonus в понятный повтор.": "Poliglot AI connects corrections, weak words, spelling, notes, offline decks, XP, streak, awards, and daily bonus into a clear review loop.",
+    "NERIVA связывает исправления, weak words, spelling, notes, offline decks, XP, streak, awards и daily bonus в понятный повтор.": "NERIVA connects corrections, weak words, spelling, notes, offline decks, XP, streak, awards, and daily bonus into a clear review loop.",
     "Две равные точки входа, один профиль обучения": "Two equal entry points, one learning profile",
     "Web app удобнее для длинных занятий и dashboard, Telegram — для быстрой практики, напоминаний, голоса и продолжения на ходу.": "The Web app is better for longer sessions and the dashboard; Telegram is better for fast practice, reminders, voice, and continuing on the go.",
     "Фокусные уроки, dashboard прогресса, длинные сессии, тарифы и полный словарь ошибок.": "Focused lessons, progress dashboard, longer sessions, pricing, and the full mistake dictionary.",
@@ -246,11 +246,11 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Короткие истории пользователей": "Short user stories",
     "Без рейтингов и обещаний результата: только реальные сценарии, где нужен язык.": "No ratings or outcome promises: only real scenarios where language is needed.",
     "Начать сегодня": "Start today",
-    "Откройте Poliglot AI и начните занятие с разбором ошибок": "Open Poliglot AI and start a lesson with mistake review",
+    "Откройте NERIVA и начните занятие с разбором ошибок": "Open NERIVA and start a lesson with mistake review",
   },
   zh: {
     "Урок": "课程",
-    "Poliglot AI проверяет смысл, грамматику и дает короткое объяснение.": "Poliglot AI 检查含义和语法，并给出简短解释。",
+    "NERIVA проверяет смысл, грамматику и дает короткое объяснение.": "NERIVA 检查含义和语法，并给出简短解释。",
     "XP +12 · ошибка сохранена": "XP +12 · 错误已保存",
     "Диалог": "对话",
     "Сценарий держит роль, исправляет фразу и предлагает естественный ответ.": "场景保持角色，修正句子，并给出自然回答。",
@@ -263,7 +263,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Ответьте как удобно": "用适合你的方式回答",
     "Введите текст, скажите голосом или добавьте фото с меню, вывеской или заданием.": "输入文字、用语音回答，或添加菜单、标牌、作业的照片。",
     "Повторите слабое место": "复习薄弱点",
-    "Poliglot AI сохраняет ошибку, weak words, заметку и следующий шаг для review.": "Poliglot AI 保存错误、weak words、笔记和下一步 review。",
+    "NERIVA сохраняет ошибку, weak words, заметку и следующий шаг для review.": "NERIVA 保存错误、weak words、笔记和下一步 review。",
     "Урок ведет от примера к ответу, проверке, XP и следующему повторению.": "课程从示例到回答、检查、XP 和下一次复习。",
     "Travel, work, exam и speaking сценарии держат контекст как живой диалог.": "Travel、work、exam 和 speaking 场景像真实对话一样保持上下文。",
     "Произношение получает score, weak words, shadowing и следующую фразу.": "发音会得到 score、weak words、shadowing 和下一句。",
@@ -312,7 +312,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Четыре рабочих режима в одном учебном профиле": "一个学习账户中的四种工作模式",
     "Каждый модуль выглядит как продуктовый инструмент, а не как абстрактная карточка возможностей.": "每个模块都像真实产品工具，而不是抽象功能卡。",
     "Ошибки становятся тренировочным материалом": "错误会变成训练材料",
-    "Poliglot AI связывает исправления, weak words, spelling, notes, offline decks, XP, streak, awards и daily bonus в понятный повтор.": "Poliglot AI 将修正、weak words、spelling、notes、offline decks、XP、streak、awards 和 daily bonus 连接成清晰复习循环。",
+    "NERIVA связывает исправления, weak words, spelling, notes, offline decks, XP, streak, awards и daily bonus в понятный повтор.": "NERIVA 将修正、weak words、spelling、notes、offline decks、XP、streak、awards 和 daily bonus 连接成清晰复习循环。",
     "Две равные точки входа, один профиль обучения": "两个平等入口，一个学习账户",
     "Web app удобнее для длинных занятий и dashboard, Telegram — для быстрой практики, напоминаний, голоса и продолжения на ходу.": "Web app 更适合长课和 dashboard；Telegram 更适合快速练习、提醒、语音和随时继续。",
     "Фокусные уроки, dashboard прогресса, длинные сессии, тарифы и полный словарь ошибок.": "专注课程、进度 dashboard、长时学习、价格和完整错误词典。",
@@ -323,7 +323,7 @@ const boldTranslations: Record<Exclude<BoldLandingLocale, "ru">, Record<string, 
     "Короткие истории пользователей": "简短用户故事",
     "Без рейтингов и обещаний результата: только реальные сценарии, где нужен язык.": "没有评分和结果承诺：只有真正需要语言的场景。",
     "Начать сегодня": "今天开始",
-    "Откройте Poliglot AI и начните занятие с разбором ошибок": "打开 Poliglot AI，开始带错误解析的课程",
+    "Откройте NERIVA и начните занятие с разбором ошибок": "打开 NERIVA，开始带错误解析的课程",
   },
 };
 
@@ -413,7 +413,7 @@ export function BoldProductLanding() {
             <p>
               Урок, диалог, голос, фото, заметки и повторение слабых мест собираются в один профиль Web app и Telegram.
             </p>
-            <div className="entry-cta-row" aria-label="Точки входа Poliglot AI">
+            <div className="entry-cta-row" aria-label="Точки входа NERIVA">
               <a className="entry-cta" data-entry="web-app" href={WEB_APP_HREF}>
                 <Laptop size={20} />
                 Открыть Web app
@@ -440,7 +440,7 @@ export function BoldProductLanding() {
 
           <motion.div className="hero-product-mockup" initial={{ opacity: 0, x: 36 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.66, delay: 0.08 }}>
             <div className="hero-product-top">
-              <span>Poliglot AI</span>
+              <span>NERIVA</span>
               <strong>Today · 84/100</strong>
             </div>
             <div className="hero-product-tabs" role="tablist" aria-label="Демо функций">
@@ -550,7 +550,7 @@ export function BoldProductLanding() {
         <div className="memory-loop-section__copy">
           <span className="bold-kicker">Mistake memory loop</span>
           <h2>Ошибки становятся тренировочным материалом</h2>
-          <p>Poliglot AI связывает исправления, weak words, spelling, notes, offline decks, XP, streak, awards и daily bonus в понятный повтор.</p>
+          <p>NERIVA связывает исправления, weak words, spelling, notes, offline decks, XP, streak, awards и daily bonus в понятный повтор.</p>
         </div>
         <div className="memory-board" aria-label="Цикл памяти ошибок">
           {memoryNodes.map(([title, body]) => (
@@ -642,7 +642,7 @@ export function BoldProductLanding() {
       <section className="final-cta-section">
         <div>
           <span className="bold-kicker">Начать сегодня</span>
-          <h2>Откройте Poliglot AI и начните занятие с разбором ошибок</h2>
+          <h2>Откройте NERIVA и начните занятие с разбором ошибок</h2>
         </div>
         <div className="entry-cta-row">
           <a className="entry-cta" data-entry="web-app" href={WEB_APP_HREF}>

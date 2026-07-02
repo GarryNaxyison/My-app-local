@@ -99,7 +99,7 @@ const PROTECTED_PATTERNS = [
   /@[A-Za-z0-9_]+/g,
   /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
   /\bpoliglotai\.(?:ru|online)\/app\b/gi,
-  /\b(?:Poliglot AI|Полиглот AI)\b/g,
+  /\b(?:NERIVA|NERIVA)\b/g,
   /\b(?:Telegram|Premium|Platinum|Free|Stars|TON|USDT|RUB|YooKassa|SBP|CEFR|OCR|AI)\b/g,
   /\b\d+(?:[.,]\d+)?\s*(?:₽|RUB|Stars|USDT|TON)\b/gi,
   /≈\s*\d[\d\s,.]*(?:₽|RUB|Stars|USDT|TON)?(?:\/год|\/year)?/gi,
@@ -138,12 +138,12 @@ const CURATED_RU_TRANSLATIONS = {
   "start without payment": "старт без оплаты",
   "Today": "Сегодня",
   "AI Tutor Cockpit": "Панель AI Tutor",
-  "Poliglot AI gives the phrase, meaning, example, and one short next step.": "Poliglot AI дает фразу, смысл, пример и короткий следующий шаг.",
+  "NERIVA gives the phrase, meaning, example, and one short next step.": "NERIVA дает фразу, смысл, пример и короткий следующий шаг.",
   "I would like to book a table for tonight.": "Я хотел бы забронировать столик на сегодня вечером.",
   "The phrase moves straight into your route and review loop.": "Фраза сразу попадает в маршрут и повторение.",
   "AI Tutor routes": "Маршруты AI Tutor",
   "Routes for the goal, not an endless exercise feed": "Маршруты под цель, а не бесконечная лента упражнений",
-  "Choose travel, work, exam, or conversation practice. Poliglot AI connects lesson, dialogue, voice, photo, and review into one controlled cycle.": "Выберите поездки, работу, экзамен или разговорную практику. Poliglot AI связывает урок, диалог, голос, фото и повторение в один понятный цикл.",
+  "Choose travel, work, exam, or conversation practice. NERIVA connects lesson, dialogue, voice, photo, and review into one controlled cycle.": "Выберите поездки, работу, экзамен или разговорную практику. NERIVA связывает урок, диалог, голос, фото и повторение в один понятный цикл.",
   "AI Tutor Core": "База AI Tutor",
   "A complete A1-C2 route with lessons, practice, review, and XP in one controlled loop.": "Полный маршрут A1-C2 с уроками, практикой, повторением и XP в одном цикле.",
   "Start route": "Начать маршрут",
@@ -154,7 +154,7 @@ const CURATED_RU_TRANSLATIONS = {
   "profile for web, PWA, Telegram": "профиль для веба, PWA и Telegram",
   "AI Tutor cockpit": "Панель AI Tutor",
   "Every session ends with a visible next step": "Каждая сессия заканчивается понятным следующим шагом",
-  "Poliglot AI does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.": "Poliglot AI не оставляет вас один на один с заданием: объясняет, просит ответить, проверяет голос или фото и возвращает к ошибкам, пока слабое место не станет понятным.",
+  "NERIVA does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.": "NERIVA не оставляет вас один на один с заданием: объясняет, просит ответить, проверяет голос или фото и возвращает к ошибкам, пока слабое место не станет понятным.",
   "interface languages": "языков интерфейса",
   "level routes": "маршруты по уровням",
   "profile everywhere": "один профиль везде",
@@ -182,7 +182,7 @@ const CURATED_RU_TRANSLATIONS = {
   "translation saved": "перевод сохранен",
   "Scenarios": "Сценарии",
   "Real situations where the language has to work today": "Реальные ситуации, где язык нужен уже сегодня",
-  "At the airport, on a work call, before an exam, or in everyday conversation, Poliglot AI turns practice into a concrete speaking moment.": "В аэропорту, на рабочем звонке, перед экзаменом или в обычном разговоре Poliglot AI превращает практику в конкретный речевой момент.",
+  "At the airport, on a work call, before an exam, or in everyday conversation, NERIVA turns practice into a concrete speaking moment.": "В аэропорту, на рабочем звонке, перед экзаменом или в обычном разговоре NERIVA превращает практику в конкретный речевой момент.",
   "Travel without panic": "Поездка без паники",
   "Short hotel, cafe, airport, and doctor phrases are practiced before the moment gets stressful.": "Короткие фразы для отеля, кафе, аэропорта и врача отрабатываются заранее, до стрессового момента.",
   "Photo": "Фото",
@@ -213,7 +213,7 @@ const CURATED_RU_TRANSLATIONS = {
   "Start quickly, receive reminders, send voice, and keep practicing from the same profile.": "Быстро начинайте практику, получайте напоминания, отправляйте голос и продолжайте из того же профиля.",
   "Daily loop": "Ежедневный цикл",
   "One short session always ends with the next useful step": "Каждая короткая сессия заканчивается понятным следующим шагом",
-  "Poliglot AI is built around a simple loop: learn, use, review. Every module feeds the same progress profile.": "Poliglot AI построен на простом цикле: изучить, применить, повторить. Каждый модуль ведет в общий профиль прогресса.",
+  "NERIVA is built around a simple loop: learn, use, review. Every module feeds the same progress profile.": "NERIVA построен на простом цикле: изучить, применить, повторить. Каждый модуль ведет в общий профиль прогресса.",
   "Learn the phrase": "Изучите фразу",
   "Get the meaning, grammar hint, natural example, and one focused prompt.": "Получите значение, подсказку по грамматике, естественный пример и один точный вопрос.",
   "Use it in context": "Используйте её в контексте",
@@ -300,7 +300,7 @@ function hasLatinWord(value) {
 
 function isOnlyProtectedName(value) {
   return NATIVE_LANGUAGE_NAMES.has(value)
-    || /^(?:Poliglot AI|Premium|Platinum|Free|Telegram|Stars|TON|USDT|YooKassa|SBP|AI|FAQ|CEFR|OCR|RUB)$/i.test(value)
+    || /^(?:NERIVA|Premium|Platinum|Free|Telegram|Stars|TON|USDT|YooKassa|SBP|AI|FAQ|CEFR|OCR|RUB)$/i.test(value)
     || /^[@/#.]/.test(value)
     || /^[\w.-]+@[\w.-]+$/.test(value);
 }
@@ -510,12 +510,12 @@ function createContext(lang, phrasesSource, i18nSource) {
 
 function protectText(source) {
   const placeholders = [];
-  let text = source.replace(/\bПолиглот AI\b/g, "Poliglot AI");
+  let text = source.replace(/\bNERIVA\b/g, "NERIVA");
 
   for (const pattern of PROTECTED_PATTERNS) {
     text = text.replace(pattern, (match) => {
       const token = `__P${placeholders.length}__`;
-      placeholders.push(match === "Полиглот AI" ? "Poliglot AI" : match);
+      placeholders.push(match === "NERIVA" ? "NERIVA" : match);
       return token;
     });
   }
@@ -570,7 +570,7 @@ async function translateBatch(items, targetGoogleCode) {
   for (const item of items) {
     const sl = googleSourceCode(item.source);
     if (sl === targetGoogleCode) {
-      item.result = item.source.replace(/\bПолиглот AI\b/g, "Poliglot AI");
+      item.result = item.source.replace(/\bNERIVA\b/g, "NERIVA");
       continue;
     }
     const key = sl;

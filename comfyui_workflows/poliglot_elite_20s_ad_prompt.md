@@ -1,4 +1,4 @@
-# Poliglot AI Elite 20s Ad Prompt
+# NERIVA Elite 20s Ad Prompt
 
 ## XTTS Voice Direction
 
@@ -6,11 +6,11 @@ Young adult female speaker, age 18 or older. Elegant business tone, warm and con
 
 ## 20-Second English Voiceover
 
-Meet Poliglot AI, your private language coach on the web and in Telegram. Practice real conversations, hear clear corrections, improve pronunciation, and watch your progress grow every day. Learn faster, speak with confidence, and make every lesson feel personal. Poliglot AI. Your premium way to master languages.
+Meet NERIVA, your private language coach on the web and in Telegram. Practice real conversations, hear clear corrections, improve pronunciation, and watch your progress grow every day. Learn faster, speak with confidence, and make every lesson feel personal. NERIVA. Your premium way to master languages.
 
 ## Visual Direction
 
-Vertical 9:16 luxury product advertisement. A friendly young adult woman, age 18 or older, wearing an elegant business suit presents the Poliglot AI web version on a laptop or tablet. Show the web app visually: premium dashboard, voice waveform, pronunciation feedback, vocabulary/progress cards, Telegram and web continuity. Use the existing project assets from `web/assets` as brand/product references. Keep the mood elite, clean, modern, confident, and product-first.
+Vertical 9:16 luxury product advertisement. A friendly young adult woman, age 18 or older, wearing an elegant business suit presents the NERIVA web version on a laptop or tablet. Show the web app visually: premium dashboard, voice waveform, pronunciation feedback, vocabulary/progress cards, Telegram and web continuity. Use the existing project assets from `web/assets` as brand/product references. Keep the mood elite, clean, modern, confident, and product-first.
 
 ## Four 5-Second Shot Plan
 

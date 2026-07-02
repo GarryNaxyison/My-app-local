@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a real `Настроить` cookie-settings flow to the Poliglot AI public-site cookie banner.
+**Goal:** Add a real `Настроить` cookie-settings flow to the NERIVA public-site cookie banner.
 
 **Architecture:** Keep `CookieConsentBanner` self-contained in `site-react/src/PublicSiteApp.tsx`, with small helper functions for consent parsing and serialization. Extend the existing CSS block in `site-react/src/styles.css` so the banner keeps its current product visual language while supporting an inline settings panel. Cover the behavior through focused Playwright tests in `site-react/e2e/public-site.spec.ts`.
 

@@ -11,6 +11,8 @@ import (
 type config struct {
 	TelegramBotToken                  string
 	TelegramOpsRecipients             []telegramOpsRecipient
+	BotTransitionOnly                 bool
+	TransitionTargetBot               string
 	OpenRouterAPIKey                  string
 	OpenRouterModel                   string
 	OpenRouterTranslatorModel         string
@@ -97,6 +99,8 @@ func configFromEnv() (config, error) {
 	cfg := config{
 		TelegramBotToken:                  strings.TrimSpace(os.Getenv("TELEGRAM_BOT_TOKEN")),
 		TelegramOpsRecipients:             parseTelegramOpsRecipients(os.Getenv("TELEGRAM_OPS_RECIPIENTS")),
+		BotTransitionOnly:                 envBoolOrDefault("BOT_TRANSITION_ONLY", false),
+		TransitionTargetBot:               strings.TrimPrefix(envOrDefault("TRANSITION_TARGET_BOT", "NERIVAapp_bot"), "@"),
 		OpenRouterAPIKey:                  strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY")),
 		OpenRouterModel:                   envOrDefault("OPENROUTER_MODEL", "google/gemini-3.1-flash"),
 		OpenRouterTranslatorModel:         envOrDefault("OPENROUTER_TRANSLATOR_MODEL", envOrDefault("OPENROUTER_MODEL", "google/gemini-3.1-flash")),
@@ -107,7 +111,7 @@ func configFromEnv() (config, error) {
 		OpenRouterTTSModel:                normalizeOpenRouterTTSModel(envOrDefault("OPENROUTER_TTS_MODEL", "google/gemini-3.1-flash-tts-preview")),
 		OpenRouterTTSVoice:                envOrDefault("OPENROUTER_TTS_VOICE", "Kore"),
 		OpenRouterAppURL:                  envOrDefault("OPENROUTER_APP_URL", "http://localhost"),
-		OpenRouterAppName:                 envOrDefault("OPENROUTER_APP_NAME", "AI Polyglot Coach"),
+		OpenRouterAppName:                 envOrDefault("OPENROUTER_APP_NAME", "NERIVA"),
 		DataPath:                          envOrDefault("DATA_PATH", "english_coach_data.json"),
 		DatabasePath:                      envOrDefault("DATABASE_PATH", "english_coach.sqlite"),
 		AITutorDatabasePath:               envOrDefault("AI_TUTOR_DATABASE_PATH", "ai_tutor_lessons.sqlite"),
@@ -144,7 +148,7 @@ func configFromEnv() (config, error) {
 		WebCookieSecure:                   envBoolOrDefault("WEB_COOKIE_SECURE", false),
 		WebCookieSameSite:                 strings.ToLower(envOrDefault("WEB_COOKIE_SAMESITE", "lax")),
 		WebAppURL:                         envOrDefault("WEB_APP_URL", "https://neriva.ru/app"),
-		WebTelegramLoginBot:               strings.TrimPrefix(envOrDefault("WEB_TELEGRAM_LOGIN_BOT", "Poliglot_AI_bot"), "@"),
+		WebTelegramLoginBot:               strings.TrimPrefix(envOrDefault("WEB_TELEGRAM_LOGIN_BOT", "NERIVAapp_bot"), "@"),
 		WebPaymentReturnURL:               strings.TrimSpace(os.Getenv("WEB_PAYMENT_RETURN_URL")),
 		WebTurnstileSiteKey:               strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SITE_KEY")),
 		WebTurnstileSecretKey:             strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SECRET_KEY")),
@@ -184,7 +188,10 @@ func configFromEnv() (config, error) {
 	if cfg.TelegramBotToken == "" {
 		missing = append(missing, "TELEGRAM_BOT_TOKEN")
 	}
-	if cfg.OpenRouterAPIKey == "" {
+	if cfg.BotTransitionOnly && cfg.TransitionTargetBot == "" {
+		missing = append(missing, "TRANSITION_TARGET_BOT")
+	}
+	if !cfg.BotTransitionOnly && cfg.OpenRouterAPIKey == "" {
 		missing = append(missing, "OPENROUTER_API_KEY")
 	}
 	if len(missing) > 0 {
@@ -305,7 +312,7 @@ func (cfg config) rollyPayWebReturnURL() string {
 	if cfg.WebPaymentReturnURL != "" {
 		return cfg.WebPaymentReturnURL
 	}
-	return "https://poliglotai.ru/app?payment=success&provider=rollypay"
+	return "https://neriva.ru/app?payment=success&provider=rollypay"
 }
 
 func envOrDefault(name string, fallback string) string {

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a bilingual static SEO page cluster for Poliglot AI that positions the product as a full web app first, with Telegram as a companion channel.
+**Goal:** Build a bilingual static SEO page cluster for NERIVA that positions the product as a full web app first, with Telegram as a companion channel.
 
 **Architecture:** Add generated static HTML pages under the public-site source, driven by a single data module. The generator owns page HTML, JSON-LD, language alternates, and sitemap entries so the ten canonical SEO pages stay consistent. The React landing only receives a compact footer/guides link area.
 
@@ -49,17 +49,17 @@ const pages = [
     slug: "ai-english-tutor",
     ruPath: "/ai-english-tutor.html",
     enPath: "/en/ai-english-tutor.html",
-    ruTitle: "AI-репетитор английского онлайн - Poliglot AI",
-    enTitle: "AI English Tutor Online - Poliglot AI",
-    ruH1: "AI-репетитор английского в веб-приложении Poliglot AI",
-    enH1: "AI English tutor inside the Poliglot AI web app",
+    ruTitle: "AI-репетитор английского онлайн - NERIVA",
+    enTitle: "AI English Tutor Online - NERIVA",
+    ruH1: "AI-репетитор английского в веб-приложении NERIVA",
+    enH1: "AI English tutor inside the NERIVA web app",
   },
   {
     slug: "english-speaking-practice",
     ruPath: "/english-speaking-practice.html",
     enPath: "/en/english-speaking-practice.html",
-    ruTitle: "Разговорная практика английского с AI - Poliglot AI",
-    enTitle: "English Speaking Practice With AI - Poliglot AI",
+    ruTitle: "Разговорная практика английского с AI - NERIVA",
+    enTitle: "English Speaking Practice With AI - NERIVA",
     ruH1: "Разговорная практика английского с AI",
     enH1: "English speaking practice with AI",
   },
@@ -67,8 +67,8 @@ const pages = [
     slug: "english-pronunciation-trainer",
     ruPath: "/english-pronunciation-trainer.html",
     enPath: "/en/english-pronunciation-trainer.html",
-    ruTitle: "Тренажер произношения английского с AI - Poliglot AI",
-    enTitle: "English Pronunciation Trainer With AI - Poliglot AI",
+    ruTitle: "Тренажер произношения английского с AI - NERIVA",
+    enTitle: "English Pronunciation Trainer With AI - NERIVA",
     ruH1: "Тренажер произношения английского с AI",
     enH1: "English pronunciation trainer with AI",
   },
@@ -76,8 +76,8 @@ const pages = [
     slug: "english-for-work-and-travel",
     ruPath: "/english-for-work-and-travel.html",
     enPath: "/en/english-for-work-and-travel.html",
-    ruTitle: "Английский для работы и путешествий - Poliglot AI",
-    enTitle: "English for Work and Travel - Poliglot AI",
+    ruTitle: "Английский для работы и путешествий - NERIVA",
+    enTitle: "English for Work and Travel - NERIVA",
     ruH1: "Английский для работы и путешествий",
     enH1: "English for work and travel",
   },
@@ -85,10 +85,10 @@ const pages = [
     slug: "language-learning-web-app",
     ruPath: "/language-learning-web-app.html",
     enPath: "/en/language-learning-web-app.html",
-    ruTitle: "Веб-приложение для изучения языков - Poliglot AI",
-    enTitle: "Language Learning Web App - Poliglot AI",
-    ruH1: "Веб-приложение для изучения языков Poliglot AI",
-    enH1: "Poliglot AI language learning web app",
+    ruTitle: "Веб-приложение для изучения языков - NERIVA",
+    enTitle: "Language Learning Web App - NERIVA",
+    ruH1: "Веб-приложение для изучения языков NERIVA",
+    enH1: "NERIVA language learning web app",
   },
 ] as const;
 
@@ -101,7 +101,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator("html")).toHaveAttribute("lang", "ru");
       await expect(page.locator("h1")).toHaveText(item.ruH1);
       await expect(page.locator("#root")).toHaveCount(0);
-      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /Poliglot AI/);
+      await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /NERIVA/);
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
       await expect(page.locator('link[rel="alternate"][hreflang="ru"]')).toHaveAttribute("href", `https://poliglotai.ru${item.ruPath}`);
       await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://poliglotai.online${item.enPath}`);
@@ -192,7 +192,7 @@ export const russianOrigin = "https://poliglotai.ru";
 export const englishOrigin = "https://poliglotai.online";
 
 export const socialProfileUrls = [
-  "https://www.youtube.com/@PoliglotAI",
+  "https://www.youtube.com/@NERIVA",
   "https://www.instagram.com/poliglotai.online/",
   "https://www.tiktok.com/@poliglotai.online",
 ];
@@ -217,40 +217,40 @@ export const seoPages = [
     slug: "ai-english-tutor",
     ru: {
       path: "/ai-english-tutor.html",
-      title: "AI-репетитор английского онлайн - Poliglot AI",
-      description: "Poliglot AI - веб-приложение с AI-репетитором английского: уроки, практика, исправление ошибок, повторение и прогресс в одном профиле.",
-      h1: "AI-репетитор английского в веб-приложении Poliglot AI",
-      intro: "Poliglot AI помогает заниматься английским в полноценном web app: вы проходите короткие уроки, отвечаете на задания, видите исправления и возвращаетесь к слабым местам.",
+      title: "AI-репетитор английского онлайн - NERIVA",
+      description: "NERIVA - веб-приложение с AI-репетитором английского: уроки, практика, исправление ошибок, повторение и прогресс в одном профиле.",
+      h1: "AI-репетитор английского в веб-приложении NERIVA",
+      intro: "NERIVA помогает заниматься английским в полноценном web app: вы проходите короткие уроки, отвечаете на задания, видите исправления и возвращаетесь к слабым местам.",
       sections: [
         ["Как проходит занятие", "Урок начинается с цели и фразы в контексте. Затем web app просит ответить, проверяет смысл, показывает более естественную версию и сохраняет результат в прогрессе."],
-        ["Почему это не просто чат", "Poliglot AI связывает уроки, roleplay, словарь ошибок, заметки, XP и повторение. Telegram можно использовать для быстрого доступа, но основная учебная среда находится в web app."],
+        ["Почему это не просто чат", "NERIVA связывает уроки, roleplay, словарь ошибок, заметки, XP и повторение. Telegram можно использовать для быстрого доступа, но основная учебная среда находится в web app."],
         ["Кому подходит", "Формат полезен тем, кто хочет регулярно практиковать английский без расписания с преподавателем и видеть, что именно нужно повторить дальше."],
       ],
       faq: [
-        ["Что такое AI-репетитор Poliglot AI?", "Это веб-приложение для изучения английского, где AI ведет урок, проверяет ответ, объясняет ошибку и сохраняет прогресс."],
+        ["Что такое AI-репетитор NERIVA?", "Это веб-приложение для изучения английского, где AI ведет урок, проверяет ответ, объясняет ошибку и сохраняет прогресс."],
         ["Можно ли заниматься бесплатно?", "Да. Free-режим дает стартовые уроки и практику, а Premium и Platinum открывают больше лимитов и голосовые инструменты."],
         ["Нужен ли Telegram?", "Нет. Основной сценарий работает в web app. Telegram остается дополнительным каналом для быстрого запуска и уведомлений."],
         ["Подходит ли для начинающих?", "Да. Маршрут можно использовать для базовой практики, коротких ответов, словаря и повторения ошибок."],
-        ["Заменяет ли это живого преподавателя?", "Нет. Poliglot AI помогает заниматься самостоятельно и чаще практиковаться, но не обещает заменить все задачи живого преподавателя."],
+        ["Заменяет ли это живого преподавателя?", "Нет. NERIVA помогает заниматься самостоятельно и чаще практиковаться, но не обещает заменить все задачи живого преподавателя."],
       ],
     },
     en: {
       path: "/en/ai-english-tutor.html",
-      title: "AI English Tutor Online - Poliglot AI",
-      description: "Poliglot AI is a web app with an AI English tutor for lessons, speaking practice, corrections, review, and progress in one profile.",
-      h1: "AI English tutor inside the Poliglot AI web app",
-      intro: "Poliglot AI helps you study English in a full web app: take short lessons, answer prompts, review corrections, and return to weak spots.",
+      title: "AI English Tutor Online - NERIVA",
+      description: "NERIVA is a web app with an AI English tutor for lessons, speaking practice, corrections, review, and progress in one profile.",
+      h1: "AI English tutor inside the NERIVA web app",
+      intro: "NERIVA helps you study English in a full web app: take short lessons, answer prompts, review corrections, and return to weak spots.",
       sections: [
         ["How a session works", "A lesson starts with a goal and a phrase in context. The web app asks for your answer, checks meaning, shows a more natural version, and saves progress."],
-        ["More than a chat", "Poliglot AI connects lessons, roleplay, mistake review, notes, XP, and repetition. Telegram can help with quick access, while the web app remains the main study workspace."],
+        ["More than a chat", "NERIVA connects lessons, roleplay, mistake review, notes, XP, and repetition. Telegram can help with quick access, while the web app remains the main study workspace."],
         ["Who it helps", "The format is useful when you want regular English practice without scheduling a human tutor and need to see what to review next."],
       ],
       faq: [
-        ["What is the Poliglot AI tutor?", "It is a language learning web app where AI guides a lesson, checks your answer, explains mistakes, and saves progress."],
+        ["What is the NERIVA tutor?", "It is a language learning web app where AI guides a lesson, checks your answer, explains mistakes, and saves progress."],
         ["Can I start for free?", "Yes. Free gives starter lessons and practice, while Premium and Platinum unlock higher limits and voice tools."],
         ["Do I need Telegram?", "No. The main experience works in the web app. Telegram is an optional companion channel for quick starts and notifications."],
         ["Is it good for beginners?", "Yes. You can use it for basic practice, short answers, vocabulary, and mistake review."],
-        ["Does it replace a human teacher?", "No. Poliglot AI helps you practice independently and more often, but it does not claim to replace every role of a human teacher."],
+        ["Does it replace a human teacher?", "No. NERIVA helps you practice independently and more often, but it does not claim to replace every role of a human teacher."],
       ],
     },
   },
@@ -258,17 +258,17 @@ export const seoPages = [
     slug: "english-speaking-practice",
     ru: {
       path: "/english-speaking-practice.html",
-      title: "Разговорная практика английского с AI - Poliglot AI",
-      description: "Разговорная практика английского в Poliglot AI: roleplay, свободные ответы, исправление фраз, заметки, ошибки и повторение в web app.",
+      title: "Разговорная практика английского с AI - NERIVA",
+      description: "Разговорная практика английского в NERIVA: roleplay, свободные ответы, исправление фраз, заметки, ошибки и повторение в web app.",
       h1: "Разговорная практика английского с AI",
-      intro: "Poliglot AI помогает говорить чаще: вы тренируете короткие диалоги, рабочие и бытовые ситуации, получаете исправления и сохраняете полезные фразы.",
+      intro: "NERIVA помогает говорить чаще: вы тренируете короткие диалоги, рабочие и бытовые ситуации, получаете исправления и сохраняете полезные фразы.",
       sections: [
         ["Практика без расписания", "Можно открыть web app и начать короткую сессию в любое время: ответить на вопрос, продолжить roleplay или разобрать фразу."],
         ["Исправления по делу", "AI показывает, где фраза звучит неестественно, предлагает более живой вариант и возвращает слабое место в повторение."],
         ["Один профиль", "Диалоги, заметки, ошибки и прогресс остаются в одном аккаунте. Telegram можно использовать как быстрый дополнительный вход к той же практике."],
       ],
       faq: [
-        ["Можно ли практиковать speaking без преподавателя?", "Да. Poliglot AI дает сценарии, вопросы и исправления, чтобы вы чаще строили ответы на английском."],
+        ["Можно ли практиковать speaking без преподавателя?", "Да. NERIVA дает сценарии, вопросы и исправления, чтобы вы чаще строили ответы на английском."],
         ["Какие темы есть для разговоров?", "Подходят поездки, работа, everyday small talk, экзамены, кафе, отель, аэропорт и другие практические ситуации."],
         ["Сохраняются ли ошибки?", "Да. Слабые места попадают в ошибки, заметки и повторение, чтобы к ним можно было вернуться."],
         ["Можно ли заниматься с телефона?", "Да. Web app работает на телефоне, а Telegram можно использовать для быстрого доступа к коротким задачам."],
@@ -277,17 +277,17 @@ export const seoPages = [
     },
     en: {
       path: "/en/english-speaking-practice.html",
-      title: "English Speaking Practice With AI - Poliglot AI",
-      description: "Practice English speaking with Poliglot AI: roleplay, free answers, corrections, notes, mistakes, and review inside a web app.",
+      title: "English Speaking Practice With AI - NERIVA",
+      description: "Practice English speaking with NERIVA: roleplay, free answers, corrections, notes, mistakes, and review inside a web app.",
       h1: "English speaking practice with AI",
-      intro: "Poliglot AI helps you speak more often: practice short dialogues, work and everyday situations, get corrections, and save useful phrases.",
+      intro: "NERIVA helps you speak more often: practice short dialogues, work and everyday situations, get corrections, and save useful phrases.",
       sections: [
         ["Practice without scheduling", "Open the web app and start a short session whenever you have time: answer a prompt, continue roleplay, or repair a phrase."],
         ["Useful corrections", "AI shows where a phrase sounds unnatural, suggests a better version, and brings the weak spot back for review."],
         ["One profile", "Dialogues, notes, mistakes, and progress stay in one account. Telegram can be used as a quick companion entry to the same practice."],
       ],
       faq: [
-        ["Can I practice speaking without a teacher?", "Yes. Poliglot AI gives scenarios, questions, and corrections so you build English answers more often."],
+        ["Can I practice speaking without a teacher?", "Yes. NERIVA gives scenarios, questions, and corrections so you build English answers more often."],
         ["What topics can I practice?", "Travel, work, everyday small talk, exams, cafes, hotels, airports, and other practical situations are a good fit."],
         ["Are mistakes saved?", "Yes. Weak spots go into mistakes, notes, and review so you can return to them."],
         ["Can I practice on my phone?", "Yes. The web app works on mobile, and Telegram can help with quick short tasks."],
@@ -299,10 +299,10 @@ export const seoPages = [
     slug: "english-pronunciation-trainer",
     ru: {
       path: "/english-pronunciation-trainer.html",
-      title: "Тренажер произношения английского с AI - Poliglot AI",
-      description: "Тренируйте произношение английского в Poliglot AI: voice practice, shadowing, слабые слова, повторение и прогресс в web app.",
+      title: "Тренажер произношения английского с AI - NERIVA",
+      description: "Тренируйте произношение английского в NERIVA: voice practice, shadowing, слабые слова, повторение и прогресс в web app.",
       h1: "Тренажер произношения английского с AI",
-      intro: "Poliglot AI помогает тренировать речь через голосовые ответы, shadowing, слабые слова и повторение фраз в контексте.",
+      intro: "NERIVA помогает тренировать речь через голосовые ответы, shadowing, слабые слова и повторение фраз в контексте.",
       sections: [
         ["Голосовая практика", "Вы произносите фразу, получаете расшифровку, видите слабые слова и повторяете более естественную версию."],
         ["Shadowing и listening", "Короткие аудиоциклы помогают услышать фразу, повторить ее и закрепить произношение без отдельного приложения."],
@@ -318,10 +318,10 @@ export const seoPages = [
     },
     en: {
       path: "/en/english-pronunciation-trainer.html",
-      title: "English Pronunciation Trainer With AI - Poliglot AI",
-      description: "Train English pronunciation with Poliglot AI: voice practice, shadowing, weak words, review, and progress inside a web app.",
+      title: "English Pronunciation Trainer With AI - NERIVA",
+      description: "Train English pronunciation with NERIVA: voice practice, shadowing, weak words, review, and progress inside a web app.",
       h1: "English pronunciation trainer with AI",
-      intro: "Poliglot AI helps train speech through voice answers, shadowing, weak words, and phrase repetition in context.",
+      intro: "NERIVA helps train speech through voice answers, shadowing, weak words, and phrase repetition in context.",
       sections: [
         ["Voice practice", "Say a phrase, get a transcript, see weak words, and repeat a more natural version."],
         ["Shadowing and listening", "Short audio loops help you hear a phrase, repeat it, and reinforce pronunciation without a separate app."],
@@ -340,10 +340,10 @@ export const seoPages = [
     slug: "english-for-work-and-travel",
     ru: {
       path: "/english-for-work-and-travel.html",
-      title: "Английский для работы и путешествий - Poliglot AI",
-      description: "Poliglot AI помогает готовить английский для работы и путешествий: звонки, письма, отель, аэропорт, кафе, roleplay и заметки.",
+      title: "Английский для работы и путешествий - NERIVA",
+      description: "NERIVA помогает готовить английский для работы и путешествий: звонки, письма, отель, аэропорт, кафе, roleplay и заметки.",
       h1: "Английский для работы и путешествий",
-      intro: "Poliglot AI превращает рабочие и туристические ситуации в короткие тренировки внутри web app: фразы, roleplay, фото-перевод и повторение.",
+      intro: "NERIVA превращает рабочие и туристические ситуации в короткие тренировки внутри web app: фразы, roleplay, фото-перевод и повторение.",
       sections: [
         ["Рабочие сценарии", "Можно тренировать созвоны, письма, self-intro, уточнение сроков и деловые фразы, которые нужны до реальной встречи."],
         ["Поездки без паники", "Отель, аэропорт, кафе, транспорт и врач превращаются в практические диалоги и заметки для быстрого повторения."],
@@ -359,10 +359,10 @@ export const seoPages = [
     },
     en: {
       path: "/en/english-for-work-and-travel.html",
-      title: "English for Work and Travel - Poliglot AI",
-      description: "Use Poliglot AI to prepare English for work and travel: calls, emails, hotels, airports, cafes, roleplay, and notes.",
+      title: "English for Work and Travel - NERIVA",
+      description: "Use NERIVA to prepare English for work and travel: calls, emails, hotels, airports, cafes, roleplay, and notes.",
       h1: "English for work and travel",
-      intro: "Poliglot AI turns work and travel situations into short web app practice: phrases, roleplay, photo translation, and review.",
+      intro: "NERIVA turns work and travel situations into short web app practice: phrases, roleplay, photo translation, and review.",
       sections: [
         ["Work scenarios", "Practice calls, emails, self-intros, deadline questions, and useful business phrases before the real meeting."],
         ["Travel without panic", "Hotels, airports, cafes, transport, and doctor visits become practical dialogues and notes for quick review."],
@@ -381,10 +381,10 @@ export const seoPages = [
     slug: "language-learning-web-app",
     ru: {
       path: "/language-learning-web-app.html",
-      title: "Веб-приложение для изучения языков - Poliglot AI",
-      description: "Poliglot AI - web app для изучения языков: AI-уроки, speaking, произношение, словарь ошибок, заметки, прогресс и тарифы.",
-      h1: "Веб-приложение для изучения языков Poliglot AI",
-      intro: "Poliglot AI - полноценное web app для изучения языков с AI-уроками, speaking-практикой, произношением, ошибками, заметками и прогрессом.",
+      title: "Веб-приложение для изучения языков - NERIVA",
+      description: "NERIVA - web app для изучения языков: AI-уроки, speaking, произношение, словарь ошибок, заметки, прогресс и тарифы.",
+      h1: "Веб-приложение для изучения языков NERIVA",
+      intro: "NERIVA - полноценное web app для изучения языков с AI-уроками, speaking-практикой, произношением, ошибками, заметками и прогрессом.",
       sections: [
         ["Учебное пространство", "В одном профиле собраны уроки, roleplay, словарь ошибок, заметки, прогресс, тарифы и ежедневные лимиты."],
         ["Web app как основной продукт", "Большой экран удобен для длинных сессий, просмотра прогресса, тарифов и управления профилем. Telegram дополняет этот сценарий короткой практикой."],
@@ -400,10 +400,10 @@ export const seoPages = [
     },
     en: {
       path: "/en/language-learning-web-app.html",
-      title: "Language Learning Web App - Poliglot AI",
-      description: "Poliglot AI is a language learning web app with AI lessons, speaking, pronunciation, mistakes, notes, progress, and plans.",
-      h1: "Poliglot AI language learning web app",
-      intro: "Poliglot AI is a full language learning web app with AI lessons, speaking practice, pronunciation, mistakes, notes, and progress.",
+      title: "Language Learning Web App - NERIVA",
+      description: "NERIVA is a language learning web app with AI lessons, speaking, pronunciation, mistakes, notes, progress, and plans.",
+      h1: "NERIVA language learning web app",
+      intro: "NERIVA is a full language learning web app with AI lessons, speaking practice, pronunciation, mistakes, notes, and progress.",
       sections: [
         ["Study workspace", "One profile brings together lessons, roleplay, mistake review, notes, progress, plans, and daily limits."],
         ["Web app first", "A larger screen helps with longer sessions, progress, pricing, and profile control. Telegram adds quick companion practice."],
@@ -480,7 +480,7 @@ function buildJsonLd(page, language) {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         logo: `${origin}/assets/brand-logo-mini.png`,
         sameAs: socialProfileUrls,
@@ -488,7 +488,7 @@ function buildJsonLd(page, language) {
       {
         "@type": "WebSite",
         "@id": websiteId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         inLanguage: language,
         publisher: { "@id": organizationId },
@@ -496,7 +496,7 @@ function buildJsonLd(page, language) {
       {
         "@type": "SoftwareApplication",
         "@id": appId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         applicationCategory: "EducationalApplication",
         operatingSystem: "Web, PWA, Telegram",
         url: canonicalUrl,
@@ -522,7 +522,7 @@ function buildJsonLd(page, language) {
         "@type": "BreadcrumbList",
         "@id": `${canonicalUrl}#breadcrumb`,
         itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Poliglot AI", item: `${origin}/poliglot-ai.html${language === "en" ? "?lang=en" : ""}` },
+          { "@type": "ListItem", position: 1, name: "NERIVA", item: `${origin}/poliglot-ai.html${language === "en" ? "?lang=en" : ""}` },
           { "@type": "ListItem", position: 2, name: copy.h1, item: canonicalUrl },
         ],
       },
@@ -587,9 +587,9 @@ function renderPage(page, language) {
   <body>
     <main class="seo-page">
       <header class="seo-header">
-        <a class="seo-brand" href="${landingHref}" aria-label="Poliglot AI">
+        <a class="seo-brand" href="${landingHref}" aria-label="NERIVA">
           <img src="/assets/brand-logo-mini.png" alt="" />
-          <span>Poliglot AI</span>
+          <span>NERIVA</span>
         </a>
         <nav class="seo-nav" aria-label="${escapeHtml(guidesLabel)}">
           <a href="${landingHref}">${escapeHtml(landingLabel)}</a>
@@ -599,7 +599,7 @@ function renderPage(page, language) {
       </header>
       <article class="seo-article">
         <section class="seo-hero">
-          <p class="seo-eyebrow">Poliglot AI web app</p>
+          <p class="seo-eyebrow">NERIVA web app</p>
           <h1>${escapeHtml(copy.h1)}</h1>
           <p>${escapeHtml(copy.intro)}</p>
           <a data-entry="web-app" class="seo-button" href="/app/">${escapeHtml(appCta)}</a>

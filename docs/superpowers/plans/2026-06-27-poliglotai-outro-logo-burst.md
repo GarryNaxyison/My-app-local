@@ -1,8 +1,8 @@
-# PoliglotAI Outro Logo Burst Implementation Plan
+# NERIVA Outro Logo Burst Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a reusable 1080 x 1920 MP4 outro with the existing PoliglotAI logo and the exact text `PoliglotAI.online`.
+**Goal:** Build a reusable 1080 x 1920 MP4 outro with the existing NERIVA logo and the exact text `NERIVA.online`.
 
 **Architecture:** Add one verifier script and one deterministic generator script. The verifier is the TDD acceptance test: it fails while the MP4 is missing, then passes after the generator renders the video and preview frame. The generator renders PNG frames with Windows `System.Drawing`, then encodes them with `ffmpeg` to H.264 MP4.
 
@@ -111,7 +111,7 @@ $previewSize = (Get-Item $previewFullPath).Length
 Assert-True ($videoSize -gt 100000) "MP4 file is too small to be a rendered outro. Size: $videoSize bytes."
 Assert-True ($previewSize -gt 10000) "Preview PNG is too small to be a rendered frame. Size: $previewSize bytes."
 
-Write-Host "PoliglotAI outro verification passed."
+Write-Host "NERIVA outro verification passed."
 Write-Host "Video: $videoFullPath"
 Write-Host "Duration: $duration"
 Write-Host "Frame rate: $frameRate"
@@ -139,7 +139,7 @@ Run:
 
 ```bash
 git add tools/verify_poliglotai_outro.ps1
-git commit -m "test: add PoliglotAI outro verifier"
+git commit -m "test: add NERIVA outro verifier"
 ```
 
 Expected result: one commit containing only `tools/verify_poliglotai_outro.ps1`.
@@ -238,7 +238,7 @@ if (-not (Test-Path $logoPath)) {
 $logo = [System.Drawing.Image]::FromFile($logoPath)
 $frameCount = [int][Math]::Round($DurationSeconds * $Fps)
 $fontFamily = New-Object System.Drawing.FontFamily("Segoe UI")
-$domainText = "PoliglotAI.online"
+$domainText = "NERIVA.online"
 
 try {
   for ($frame = 0; $frame -lt $frameCount; $frame++) {
@@ -365,7 +365,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Remove-Item -LiteralPath $framesDir -Recurse -Force
 
-Write-Host "Created PoliglotAI outro:"
+Write-Host "Created NERIVA outro:"
 Write-Host $videoPath
 Write-Host $previewPath
 ```
@@ -381,7 +381,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/create_poliglotai_outr
 Expected result:
 
 ```text
-Created PoliglotAI outro:
+Created NERIVA outro:
 ...\assets\video-outro\poliglotai-outro-logo-burst.mp4
 ...\assets\video-outro\poliglotai-outro-logo-burst-preview.png
 ```
@@ -397,7 +397,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify_poliglotai_outr
 Expected result:
 
 ```text
-PoliglotAI outro verification passed.
+NERIVA outro verification passed.
 Video: ...\assets\video-outro\poliglotai-outro-logo-burst.mp4
 Duration: 2.2...
 Frame rate: 30
@@ -409,7 +409,7 @@ Run:
 
 ```bash
 git add tools/create_poliglotai_outro.ps1 assets/video-outro/poliglotai-outro-logo-burst.mp4 assets/video-outro/poliglotai-outro-logo-burst-preview.png
-git commit -m "feat: add PoliglotAI outro video"
+git commit -m "feat: add NERIVA outro video"
 ```
 
 Expected result: one commit containing the generator script, MP4, and preview PNG.
@@ -434,10 +434,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify_poliglotai_outr
 Expected result:
 
 ```text
-Created PoliglotAI outro:
+Created NERIVA outro:
 ...\assets\video-outro\poliglotai-outro-logo-burst.mp4
 ...\assets\video-outro\poliglotai-outro-logo-burst-preview.png
-PoliglotAI outro verification passed.
+NERIVA outro verification passed.
 ```
 
 - [ ] **Step 2: Inspect the final media metadata**

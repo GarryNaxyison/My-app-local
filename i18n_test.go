@@ -121,7 +121,7 @@ func TestOnboardingWelcomeStaysShortAndLocalized(t *testing.T) {
 	t.Run("selected uses localized copy only", func(t *testing.T) {
 		user := userState{InterfaceLanguage: "ru", InterfaceSelected: true}
 		copy := ui(user)
-		want := "Poliglot AI\n\n" + copy.ChooseBotLang + "\n" + copy.ChooseTimezone + "\n" + copy.ChooseLearnLang
+		want := "NERIVA\n\n" + copy.ChooseBotLang + "\n" + copy.ChooseTimezone + "\n" + copy.ChooseLearnLang
 		text := onboardingWelcomeText(user)
 		if text != want {
 			t.Fatalf("selected onboarding welcome = %q, want %q", text, want)

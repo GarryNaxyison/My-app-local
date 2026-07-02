@@ -1,4 +1,8 @@
-neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru {
+poliglotai.ru, www.poliglotai.ru, poliglotai.online, www.poliglotai.online {
+	redir https://neriva.ru{uri} permanent
+}
+
+neriva.ru, www.neriva.ru {
 	@webapp path /app /app/* /login /login/*
 	handle @webapp {
 		reverse_proxy localhost:8080
@@ -35,6 +39,6 @@ neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru {
 	}
 }
 
-api.neriva.ru, api.poliglotai.ru {
+api.neriva.ru, api.poliglotai.ru, api.poliglotai.online {
 	reverse_proxy localhost:8080
 }

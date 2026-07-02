@@ -1,11 +1,11 @@
-# Деплой Poliglot AI на Ubuntu + Caddy + Node.js
+# Деплой NERIVA на Ubuntu + Caddy + Node.js
 
 ## Куда класть файлы
 
 Папка сайта на сервере:
 
 ```bash
-/var/www/poliglotai.ru
+/var/www/neriva.ru
 ```
 
 В эту папку нужно загрузить:
@@ -29,7 +29,7 @@ PHP не нужен. Бот на сайте работает напрямую ч
 Создайте файл:
 
 ```bash
-sudo nano /var/www/poliglotai.ru/.env
+sudo nano /var/www/neriva.ru/.env
 ```
 
 Пример содержимого:
@@ -38,8 +38,8 @@ sudo nano /var/www/poliglotai.ru/.env
 OPENROUTER_API_KEY=sk-or-v1-your-openrouter-key
 OPENROUTER_MODEL=openrouter/auto
 PORT=3000
-SITE_URL=https://poliglotai.ru
-APP_TITLE=Poliglot AI
+SITE_URL=https://neriva.ru
+APP_TITLE=NERIVA
 ```
 
 Файл `.env` нельзя класть в публичный репозиторий и нельзя отдавать как статику. `server.mjs` его не отдает наружу.
@@ -59,7 +59,7 @@ node -v
 ## Проверка вручную
 
 ```bash
-cd /var/www/poliglotai.ru
+cd /var/www/neriva.ru
 node server.mjs
 ```
 
@@ -75,7 +75,7 @@ curl -X POST http://127.0.0.1:3000/api/poliglot-chat \
 ## systemd-сервис
 
 ```bash
-sudo cp /var/www/poliglotai.ru/deploy/poliglot-ai.service.example /etc/systemd/system/poliglot-ai.service
+sudo cp /var/www/neriva.ru/deploy/poliglot-ai.service.example /etc/systemd/system/poliglot-ai.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now poliglot-ai
 sudo systemctl status poliglot-ai
@@ -89,22 +89,22 @@ journalctl -u poliglot-ai -f
 
 ## Caddy
 
-Если Caddy уже обслуживает `poliglotai.ru`, добавьте в ваш существующий `/etc/caddy/Caddyfile` прокси на Node.
+Если Caddy уже обслуживает `neriva.ru`, добавьте в ваш существующий `/etc/caddy/Caddyfile` прокси на Node.
 
 Минимальный вариант:
 
 ```caddyfile
-poliglotai.ru, poliglotai.online {
+neriva.ru, neriva.ru {
     encode zstd gzip
     reverse_proxy 127.0.0.1:3000
 }
 
-www.poliglotai.ru {
-    redir https://poliglotai.ru{uri} permanent
+www.neriva.ru {
+    redir https://neriva.ru{uri} permanent
 }
 
-www.poliglotai.online {
-    redir https://poliglotai.online{uri} permanent
+www.neriva.ru {
+    redir https://neriva.ru{uri} permanent
 }
 ```
 
@@ -118,5 +118,5 @@ sudo systemctl reload caddy
 После этого открывайте:
 
 ```text
-https://poliglotai.ru/bot
+https://neriva.ru/bot
 ```
