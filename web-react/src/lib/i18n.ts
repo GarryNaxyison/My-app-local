@@ -256,7 +256,9 @@ const en: Record<string, string> = {
   available: "Available",
   payment_options: "Payment options",
   payment_window_ready: "Payment window is ready.",
+  pay_yookassa_choose: "Choose in YooKassa",
   pay_card: "Bank card",
+  pay_sbp: "SBP",
   pay_stars: "Telegram Stars",
   amount: "Amount",
   wallet: "Wallet",
@@ -3188,6 +3190,44 @@ const navigationNextFallbacks: Partial<Record<AppLocaleCode, string>> = {
   en: "Next",
 };
 
+const paymentMethodCopyFallbacks: Record<AppLocaleCode, { pay_yookassa_choose: string; pay_sbp: string }> = {
+  ru: { pay_yookassa_choose: "Выбрать в ЮKassa", pay_sbp: "Оплатить через СБП" },
+  en: { pay_yookassa_choose: "Choose in YooKassa", pay_sbp: "SBP" },
+  es: { pay_yookassa_choose: "Elegir en YooKassa", pay_sbp: "Pagar por SBP" },
+  de: { pay_yookassa_choose: "In YooKassa auswählen", pay_sbp: "Per SBP bezahlen" },
+  fr: { pay_yookassa_choose: "Choisir dans YooKassa", pay_sbp: "Payer par SBP" },
+  it: { pay_yookassa_choose: "Scegli in YooKassa", pay_sbp: "Paga con SBP" },
+  zh: { pay_yookassa_choose: "在 YooKassa 中选择", pay_sbp: "通过 SBP 支付" },
+  ja: { pay_yookassa_choose: "YooKassaで選択", pay_sbp: "SBPで支払う" },
+  ko: { pay_yookassa_choose: "YooKassa에서 선택", pay_sbp: "SBP로 결제" },
+  tg: { pay_yookassa_choose: "Дар YooKassa интихоб кунед", pay_sbp: "Бо SBP пардохт" },
+  uz: { pay_yookassa_choose: "YooKassa’da tanlash", pay_sbp: "SBP orqali to'lash" },
+  tt: { pay_yookassa_choose: "YooKassaда сайлау", pay_sbp: "SBP аша түләү" },
+  hy: { pay_yookassa_choose: "Ընտրել YooKassa-ում", pay_sbp: "Վճարել SBP-ով" },
+  kk: { pay_yookassa_choose: "YooKassa ішінде таңдау", pay_sbp: "SBP арқылы төлеу" },
+  ky: { pay_yookassa_choose: "YooKassa ичинде тандоо", pay_sbp: "SBP аркылуу төлөө" },
+  ka: { pay_yookassa_choose: "აირჩიეთ YooKassa-ში", pay_sbp: "გადახდა SBP-ით" },
+  uk: { pay_yookassa_choose: "Вибрати в YooKassa", pay_sbp: "Оплатити через SBP" },
+  pl: { pay_yookassa_choose: "Wybierz w YooKassa", pay_sbp: "Zapłać przez SBP" },
+  ro: { pay_yookassa_choose: "Alege în YooKassa", pay_sbp: "Plătește prin SBP" },
+  pt: { pay_yookassa_choose: "Escolher no YooKassa", pay_sbp: "Pagar por SBP" },
+  ar: { pay_yookassa_choose: "اختر في YooKassa", pay_sbp: "الدفع عبر SBP" },
+  bn: { pay_yookassa_choose: "YooKassa-তে বেছে নিন", pay_sbp: "SBP দিয়ে পেমেন্ট" },
+  cs: { pay_yookassa_choose: "Vybrat v YooKassa", pay_sbp: "Zaplatit přes SBP" },
+  el: { pay_yookassa_choose: "Επιλογή στο YooKassa", pay_sbp: "Πληρωμή μέσω SBP" },
+  hi: { pay_yookassa_choose: "YooKassa में चुनें", pay_sbp: "SBP से भुगतान" },
+  hu: { pay_yookassa_choose: "Választás a YooKassa-ban", pay_sbp: "Fizetés SBP-vel" },
+  id: { pay_yookassa_choose: "Pilih di YooKassa", pay_sbp: "Bayar lewat SBP" },
+  nl: { pay_yookassa_choose: "Kies in YooKassa", pay_sbp: "Betaal via SBP" },
+  sv: { pay_yookassa_choose: "Välj i YooKassa", pay_sbp: "Betala via SBP" },
+  ta: { pay_yookassa_choose: "YooKassa-வில் தேர்வு செய்க", pay_sbp: "SBP மூலம் செலுத்து" },
+  te: { pay_yookassa_choose: "YooKassaలో ఎంచుకోండి", pay_sbp: "SBP ద్వారా చెల్లించండి" },
+  th: { pay_yookassa_choose: "เลือกใน YooKassa", pay_sbp: "ชำระผ่าน SBP" },
+  tl: { pay_yookassa_choose: "Pumili sa YooKassa", pay_sbp: "Magbayad sa SBP" },
+  tr: { pay_yookassa_choose: "YooKassa'da seç", pay_sbp: "SBP ile öde" },
+  vi: { pay_yookassa_choose: "Chọn trong YooKassa", pay_sbp: "Thanh toán qua SBP" },
+};
+
 function isPasswordLikeNavigationLabel(value: string | undefined) {
   return /парол|password|passwort|contrase|mot de passe|senha|jelsz|şifre|sandi|wachtwoord|lösenord|كلمة المرور/i.test(value || "");
 }
@@ -3204,6 +3244,9 @@ function localizedFallbackForEnglishCopy(code: AppLocaleCode, key: string): stri
   if (key === "cancel" || key.endsWith("_cancel")) return cancelFallbacks[code] || cancelFallbacks.en;
   if (!terms) return en[key] || key;
   const keyLabel = readableKeyLabel(key);
+  if (key === "pay_yookassa_choose" || key === "pay_sbp") {
+    return paymentMethodCopyFallbacks[code]?.[key] || paymentMethodCopyFallbacks.en[key];
+  }
   if (key === "payment_options") {
     return target.payment_options && target.payment_options !== en.payment_options ? target.payment_options : target.premium || terms.account;
   }
