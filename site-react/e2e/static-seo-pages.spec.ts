@@ -88,6 +88,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator('a[data-entry="web-app"]').first()).toHaveAttribute("href", "/app/");
       await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html");
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
+      await expect(page.locator('.seo-footer a[href="https://t.me/neriva_app"]')).toBeVisible();
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
       await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://neriva.ru${item.ruPath}`);
@@ -99,6 +100,8 @@ test.describe("static SEO pages", () => {
       const jsonLd = JSON.parse(jsonLdText || "{}");
       const types = jsonLd["@graph"].map((node: { "@type": string }) => node["@type"]);
       expect(types).toEqual(expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "WebPage", "BreadcrumbList", "FAQPage"]));
+      const organizationNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "Organization");
+      expect(organizationNode.sameAs).toContain("https://t.me/neriva_app");
       const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
       expect(faqNode.mainEntity).toHaveLength(5);
       const visibleFaq = await page.locator(".seo-faq__item").evaluateAll((items) =>
@@ -129,6 +132,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator(".seo-page")).toContainText("Telegram");
       await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html?lang=en");
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
+      await expect(page.locator('.seo-footer a[href="https://t.me/neriva_app"]')).toBeVisible();
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", `https://neriva.ru${item.enPath}`);
       await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", item.enTitle);

@@ -138,7 +138,7 @@ test("landing presents the approved English spark hero product site", async ({ p
   const heroSocialLinks = page.locator(".landing-social-proof a");
   await expect(page.locator(".landing-social-proof")).toContainText("Follow Poliglot AI");
   await expect(page.locator(".landing-social-proof")).toContainText("Short lessons, product updates, and learning tips.");
-  await expect(heroSocialLinks).toHaveCount(3);
+  await expect(heroSocialLinks).toHaveCount(4);
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("href", "https://www.youtube.com/@PoliglotAI");
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("target", "_blank");
@@ -147,6 +147,9 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
   await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://www.tiktok.com/@poliglotai.online");
   await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(heroSocialLinks.nth(3)).toHaveAttribute("href", "https://t.me/neriva_app");
+  await expect(heroSocialLinks.nth(3)).toHaveAttribute("aria-label", "Open Neriva on Telegram");
+  await expect(heroSocialLinks.nth(3).locator('img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
 
   const heroCtas = page.locator(".landing-hero .entry-cta");
   await expect(heroCtas).toHaveCount(2);
@@ -265,6 +268,8 @@ test("public footer exposes Poliglot AI social channels", async ({ page }) => {
   await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
   await expect(footerSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
   await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("aria-label", "Open Neriva on Telegram");
+  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"] img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
 
   await page.goto("/poliglot-ai.html?lang=ru");
   const ruFooterSocial = page.locator(".site-footer .site-footer-social");
@@ -272,6 +277,7 @@ test("public footer exposes Poliglot AI social channels", async ({ page }) => {
   await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://t.me/neriva_app"]')).toBeVisible();
 });
 
 test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {

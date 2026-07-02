@@ -29,10 +29,15 @@ const TikTokIcon = ({ className }: SocialIconProps) => (
   </svg>
 );
 
+const TelegramIcon = ({ className }: SocialIconProps) => (
+  <img className={className} src="/assets/social/telegram-logo.png" alt="" loading="lazy" aria-hidden="true" />
+);
+
 export const socialLinks: SocialLink[] = [
   { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
   { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
   { name: "TikTok", href: "https://www.tiktok.com/@poliglotai.online", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+  { name: "Telegram", href: "https://t.me/neriva_app", label: "Open Neriva on Telegram", Icon: TelegramIcon },
 ];
 
 export function SocialIconLinks({ className = "" }: { className?: string }) {

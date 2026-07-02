@@ -5,6 +5,7 @@ export const socialProfileUrls = [
   "https://www.youtube.com/@PoliglotAI",
   "https://www.instagram.com/poliglotai.online/",
   "https://www.tiktok.com/@poliglotai.online",
+  "https://t.me/neriva_app",
 ];
 
 export const legalLinks = {

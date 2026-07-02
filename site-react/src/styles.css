@@ -801,10 +801,15 @@ html[data-site-theme="dark"] .public-nav select option {
   transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
-.social-icon-link svg {
+.social-icon-link svg,
+.social-icon-link img {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+}
+
+.social-icon-link img {
+  display: block;
 }
 
 .social-icon-link span {
@@ -836,6 +841,10 @@ html[data-site-theme="dark"] .public-nav select option {
 .social-icon-link--tiktok {
   color: #ffffff;
   text-shadow: 1px 0 #25f4ee, -1px 0 #fe2c55;
+}
+
+.social-icon-link--telegram {
+  color: #2aabee;
 }
 
 .site-footer-social .social-icon-links {
