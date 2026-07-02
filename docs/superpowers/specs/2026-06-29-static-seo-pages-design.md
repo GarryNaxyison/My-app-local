@@ -4,14 +4,14 @@ Date: 2026-06-29
 
 ## Summary
 
-Poliglot AI needs a small bilingual SEO page cluster that promotes the product as a full language learning web app. Telegram remains a companion channel for quick mobile practice, notifications, voice messages, and synced study state, not the flagship product positioning.
+NERIVA needs a small bilingual SEO page cluster that promotes the product as a full language learning web app. Telegram remains a companion channel for quick mobile practice, notifications, voice messages, and synced study state, not the flagship product positioning.
 
 The first wave adds five focused Russian pages for `poliglotai.ru` and five matching English pages for `poliglotai.online`. These pages are static HTML, generated from a shared content source, and included in the public sitemap. They should be indexable and reachable through normal links, but they must not take visual priority over the main landing page.
 
 ## Goals
 
 - Add search-focused pages for people looking for an AI English tutor, speaking practice, pronunciation training, practical English for work/travel, and a language learning web app.
-- Position Poliglot AI as a web app first.
+- Position NERIVA as a web app first.
 - Provide Russian and English versions with correct canonical and `hreflang` relationships.
 - Keep the main landing focused on the product, pricing, and app entry.
 - Make the SEO pages lightweight, crawlable, maintainable, and covered by focused checks.
@@ -82,37 +82,37 @@ If the same static directory is served by both domains, duplicate host variants 
 
 Search intent: users looking for an online AI English tutor.
 
-Primary message: Poliglot AI guides the learner through lessons, answers, corrections, repetition, progress, and practice inside a web app.
+Primary message: NERIVA guides the learner through lessons, answers, corrections, repetition, progress, and practice inside a web app.
 
 ### English Speaking Practice
 
 Search intent: users looking for speaking practice without scheduling a human tutor.
 
-Primary message: Poliglot AI provides roleplay, free practice, feedback, saved mistakes, and repeatable sessions.
+Primary message: NERIVA provides roleplay, free practice, feedback, saved mistakes, and repeatable sessions.
 
 ### English Pronunciation Trainer
 
 Search intent: users looking for pronunciation, voice, and shadowing practice.
 
-Primary message: Poliglot AI supports voice practice, weak-word feedback, shadowing, listening loops, and progress history.
+Primary message: NERIVA supports voice practice, weak-word feedback, shadowing, listening loops, and progress history.
 
 ### English For Work And Travel
 
 Search intent: users preparing for practical English situations.
 
-Primary message: Poliglot AI helps rehearse travel, work calls, messages, cafes, hotels, airports, and everyday scenarios.
+Primary message: NERIVA helps rehearse travel, work calls, messages, cafes, hotels, airports, and everyday scenarios.
 
 ### Language Learning Web App
 
 Search intent: users comparing language learning apps, AI tutors, and web apps.
 
-Primary message: Poliglot AI is a full web app with lessons, practice, vocabulary, mistakes, notes, progress, subscriptions, and optional Telegram sync.
+Primary message: NERIVA is a full web app with lessons, practice, vocabulary, mistakes, notes, progress, subscriptions, and optional Telegram sync.
 
 ## Page Structure
 
 Each static SEO page should use the same structure:
 
-1. Header with Poliglot AI brand, language switch, compact navigation back to the landing, and primary CTA to `/app/`.
+1. Header with NERIVA brand, language switch, compact navigation back to the landing, and primary CTA to `/app/`.
 2. Hero-like article intro with H1, short value proposition, and app CTA.
 3. Three to five product-specific sections answering the page's search intent.
 4. A concise comparison or "when this helps" section.
@@ -134,7 +134,7 @@ Each page needs language-specific metadata:
 - Open Graph and Twitter metadata;
 - JSON-LD graph containing `Organization`, `WebSite`, `SoftwareApplication`, `Article` or `WebPage`, `BreadcrumbList`, and `FAQPage` where the visible FAQ matches the markup.
 
-The application schema should describe Poliglot AI as an `EducationalApplication` with operating systems `Web, PWA, Telegram`.
+The application schema should describe NERIVA as an `EducationalApplication` with operating systems `Web, PWA, Telegram`.
 
 ## Content Rules
 

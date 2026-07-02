@@ -2,7 +2,7 @@
 
 ## Goal
 
-Host the public Poliglot AI landing as a static React/Vite site on Cloudflare Free while keeping the VPS backend as the origin for the web app, API, and payment callbacks.
+Host the public NERIVA landing as a static React/Vite site on Cloudflare Free while keeping the VPS backend as the origin for the web app, API, and payment callbacks.
 
 ## Recommended Architecture
 

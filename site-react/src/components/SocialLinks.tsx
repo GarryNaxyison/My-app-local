@@ -34,15 +34,15 @@ const TelegramIcon = ({ className }: SocialIconProps) => (
 );
 
 export const socialLinks: SocialLink[] = [
-  { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
-  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai.online", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
-  { name: "Telegram", href: "https://t.me/neriva_app", label: "Open Neriva on Telegram", Icon: TelegramIcon },
+  { name: "YouTube", href: "https://www.youtube.com/@neriva_app", label: "Open NERIVA on YouTube", Icon: YouTubeIcon },
+  { name: "Instagram", href: "https://www.instagram.com/neriva.ru", label: "Open NERIVA on Instagram", Icon: InstagramIcon },
+  { name: "TikTok", href: "https://tiktok.com/@nerivaru", label: "Open NERIVA on TikTok", Icon: TikTokIcon },
+  { name: "Telegram", href: "https://t.me/NERIVAapp_bot", label: "Open NERIVA on Telegram", Icon: TelegramIcon },
 ];
 
 export function SocialIconLinks({ className = "" }: { className?: string }) {
   return (
-    <div className={`social-icon-links ${className}`.trim()} aria-label="Poliglot AI social channels">
+    <div className={`social-icon-links ${className}`.trim()} aria-label="NERIVA social channels">
       {socialLinks.map(({ name, href, label, Icon }) => (
         <a key={name} className={`social-icon-link social-icon-link--${name.toLowerCase()}`} href={href} aria-label={label} title={label} target="_blank" rel="noreferrer">
           <Icon />
@@ -56,7 +56,7 @@ export function LandingSocialProof() {
   return (
     <div className="landing-social-proof">
       <div>
-        <strong>Follow Poliglot AI</strong>
+        <strong>Follow NERIVA</strong>
         <span>Short lessons, product updates, and learning tips.</span>
       </div>
       <SocialIconLinks />

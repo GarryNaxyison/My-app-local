@@ -107,7 +107,7 @@ func configFromEnv() (config, error) {
 		OpenRouterTTSModel:                normalizeOpenRouterTTSModel(envOrDefault("OPENROUTER_TTS_MODEL", "google/gemini-3.1-flash-tts-preview")),
 		OpenRouterTTSVoice:                envOrDefault("OPENROUTER_TTS_VOICE", "Kore"),
 		OpenRouterAppURL:                  envOrDefault("OPENROUTER_APP_URL", "http://localhost"),
-		OpenRouterAppName:                 envOrDefault("OPENROUTER_APP_NAME", "AI Polyglot Coach"),
+		OpenRouterAppName:                 envOrDefault("OPENROUTER_APP_NAME", "NERIVA"),
 		DataPath:                          envOrDefault("DATA_PATH", "english_coach_data.json"),
 		DatabasePath:                      envOrDefault("DATABASE_PATH", "english_coach.sqlite"),
 		AITutorDatabasePath:               envOrDefault("AI_TUTOR_DATABASE_PATH", "ai_tutor_lessons.sqlite"),
@@ -144,7 +144,7 @@ func configFromEnv() (config, error) {
 		WebCookieSecure:                   envBoolOrDefault("WEB_COOKIE_SECURE", false),
 		WebCookieSameSite:                 strings.ToLower(envOrDefault("WEB_COOKIE_SAMESITE", "lax")),
 		WebAppURL:                         envOrDefault("WEB_APP_URL", "https://neriva.ru/app"),
-		WebTelegramLoginBot:               strings.TrimPrefix(envOrDefault("WEB_TELEGRAM_LOGIN_BOT", "Poliglot_AI_bot"), "@"),
+		WebTelegramLoginBot:               strings.TrimPrefix(envOrDefault("WEB_TELEGRAM_LOGIN_BOT", "NERIVAapp_bot"), "@"),
 		WebPaymentReturnURL:               strings.TrimSpace(os.Getenv("WEB_PAYMENT_RETURN_URL")),
 		WebTurnstileSiteKey:               strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SITE_KEY")),
 		WebTurnstileSecretKey:             strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SECRET_KEY")),
@@ -305,7 +305,7 @@ func (cfg config) rollyPayWebReturnURL() string {
 	if cfg.WebPaymentReturnURL != "" {
 		return cfg.WebPaymentReturnURL
 	}
-	return "https://poliglotai.ru/app?payment=success&provider=rollypay"
+	return "https://neriva.ru/app?payment=success&provider=rollypay"
 }
 
 func envOrDefault(name string, fallback string) string {

@@ -15,7 +15,7 @@ type SiteI18nWindow = Window & {
 };
 
 const jsonLdScriptId = "poliglot-seo-jsonld";
-const supportEmail = "supportpoliglotai@gmail.com";
+const supportEmail = "support@neriva.ru";
 
 function isLandingPage() {
   return document.documentElement.dataset.sitePage === "landing" || location.pathname === "/" || location.pathname.endsWith("/poliglot-ai.html");
@@ -89,7 +89,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         logo: absoluteAssetUrl("/assets/brand-logo-mini.png", origin),
         sameAs: [...socialProfileUrls],
@@ -98,7 +98,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
       {
         "@type": "WebSite",
         "@id": websiteId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         inLanguage: language,
         publisher: { "@id": organizationId },
@@ -106,7 +106,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
       {
         "@type": "SoftwareApplication",
         "@id": applicationId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         applicationCategory: "EducationalApplication",
         operatingSystem: "Web, Telegram",
         url: canonicalUrl,

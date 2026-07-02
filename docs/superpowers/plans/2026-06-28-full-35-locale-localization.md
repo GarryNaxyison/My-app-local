@@ -55,7 +55,7 @@ Allowed invariant terms:
 
 ```json
 [
-  "Poliglot AI",
+  "NERIVA",
   "Telegram",
   "AI Tutor",
   "Free",
@@ -71,9 +71,9 @@ Allowed invariant terms:
   "CEFR",
   "OCR",
   "PWA",
-  "@poliglot_ai_bot",
-  "@AsaselD",
-  "supportpoliglotai@gmail.com",
+  "@NERIVAapp_bot",
+  "@NERIVAapp_bot",
+  "support@neriva.ru",
   "poliglotai.ru",
   "poliglotai.online"
 ]
@@ -376,7 +376,7 @@ for (const legalPath of ["/privacy.html", "/terms.html", "/agreement.html", "/co
     await page.goto(`${legalPath}?lang=${code}`);
     await expect(page.locator(".legal-document-shell")).toBeVisible();
     const text = await page.locator(".legal-document-shell").innerText();
-    expect(text).toContain("supportpoliglotai@gmail.com");
+    expect(text).toContain("support@neriva.ru");
     expect(text).toContain("505017471160");
     if (code !== "ru") {
       expect(text).not.toContain("Пользовательское соглашение");
@@ -464,9 +464,9 @@ Add to `i18n_test.go`:
 
 ```go
 var allowedLocalizationTerms = []string{
-	"Poliglot AI", "Telegram", "AI Tutor", "Free", "Premium", "Platinum",
+	"NERIVA", "Telegram", "AI Tutor", "Free", "Premium", "Platinum",
 	"Stars", "TON", "USDT", "RUB", "YooKassa", "SBP", "XP", "CEFR", "OCR", "PWA",
-	"@poliglot_ai_bot", "@AsaselD", "supportpoliglotai@gmail.com",
+	"@NERIVAapp_bot", "@NERIVAapp_bot", "support@neriva.ru",
 }
 
 func stripAllowedLocalizationTerms(text string) string {

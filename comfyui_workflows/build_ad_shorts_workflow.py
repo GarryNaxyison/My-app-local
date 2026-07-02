@@ -29,14 +29,14 @@ MODEL_URLS = {
 }
 
 
-FLUX_PROMPT = """Vertical 9:16 luxury social ad keyframe for Poliglot AI, an AI language learning product.
-Use the project web assets as the product identity lock: Poliglot AI logo, premium web app look, browser/web version, language learning dashboard, pronunciation waveform, progress and practice cards.
-Scene: a warm confident young adult woman, age 18 or older, wearing an elegant business suit, presenting the Poliglot AI web app on a laptop/tablet in a high-end modern office studio.
+FLUX_PROMPT = """Vertical 9:16 luxury social ad keyframe for NERIVA, an AI language learning product.
+Use the project web assets as the product identity lock: NERIVA logo, premium web app look, browser/web version, language learning dashboard, pronunciation waveform, progress and practice cards.
+Scene: a warm confident young adult woman, age 18 or older, wearing an elegant business suit, presenting the NERIVA web app on a laptop/tablet in a high-end modern office studio.
 Premium technology advertisement, cinematic studio lighting, tasteful elite brand mood, clean composition for TikTok/Reels/Shorts, sharp details, product-first.
 No invented UI labels, no fake small text, no watermark, no duplicated logo, no flags, no sensual pose."""
 
 
-WAN_PROMPT = """20-second elite vertical product ad concept for Poliglot AI, generated as a premium 5-second shot in a 4-shot sequence. Smooth cinematic push-in and subtle parallax. A friendly young adult woman, age 18 or older, in a business suit confidently presents the Poliglot AI web version on a laptop/tablet. Show the website/web app visually, premium language-learning dashboard, voice waveform, pronunciation feedback, progress cards, Telegram and web continuity as elegant abstract product visuals. Luxury tech commercial, clean studio lighting, stable logo/product identity, polished social media advertisement, sharp focus, no captions inside the image."""
+WAN_PROMPT = """20-second elite vertical product ad concept for NERIVA, generated as a premium 5-second shot in a 4-shot sequence. Smooth cinematic push-in and subtle parallax. A friendly young adult woman, age 18 or older, in a business suit confidently presents the NERIVA web version on a laptop/tablet. Show the website/web app visually, premium language-learning dashboard, voice waveform, pronunciation feedback, progress cards, Telegram and web continuity as elegant abstract product visuals. Luxury tech commercial, clean studio lighting, stable logo/product identity, polished social media advertisement, sharp focus, no captions inside the image."""
 
 
 NEGATIVE_PROMPT = """minor, underage, childlike, sensual pose, fake letters, unreadable text, random subtitles, watermark, duplicated logo, distorted logo, broken UI, cluttered background, overexposed, low quality, jpeg artifacts, static frozen scene, deformed hands, deformed face, extra limbs, noisy details, blurry product, bad composition"""
@@ -46,7 +46,7 @@ XTTS_SCRIPT_PROMPT = """XTTS voice direction:
 Young adult female speaker, age 18 or older. Elegant business tone, warm and confident, premium English tech advertisement. Clear pronunciation, calm luxury pace, no sensual delivery.
 
 20-second English voiceover:
-"Meet Poliglot AI, your private language coach on the web and in Telegram. Practice real conversations, hear clear corrections, improve pronunciation, and watch your progress grow every day. Learn faster, speak with confidence, and make every lesson feel personal. Poliglot AI. Your premium way to master languages."
+"Meet NERIVA, your private language coach on the web and in Telegram. Practice real conversations, hear clear corrections, improve pronunciation, and watch your progress grow every day. Learn faster, speak with confidence, and make every lesson feel personal. NERIVA. Your premium way to master languages."
 
 Visual beat plan:
 0-5s: premium web app hero on laptop/tablet, presenter enters frame.
@@ -60,17 +60,17 @@ TEST_VARIANTS = [
         "slug": "01_web_hero_presenter",
         "title": "Desktop web app hero + presenter",
         "audio_file": "poliglot_test_01_web_hero_presenter.wav",
-        "voiceover": "Meet Poliglot AI. Your private language coach works beautifully on the web and in Telegram, helping you practice, improve pronunciation, and keep progress moving every day.",
-        "flux_prompt": """Vertical 9:16 luxury ad keyframe for Poliglot AI desktop web app. A warm confident young adult woman, age 18 or older, in an elegant business suit presents the Poliglot AI web version on a laptop in a premium modern office studio. The laptop screen clearly shows a beautiful desktop web interface: sidebar, learning cards, progress panel, practice area, premium dashboard, voice waveform. Use the project web assets as brand identity: logo, dark premium dashboard mood, app background. Elite SaaS advertisement, product-first, clean cinematic lighting, tasteful and expensive, no fake text, no sensual pose.""",
-        "wan_prompt": """5-second vertical luxury SaaS ad shot. Smooth cinematic push-in toward a laptop showing the Poliglot AI desktop web interface while a friendly young adult woman, age 18 or older, in a business suit presents it with confident calm energy. Premium office studio, polished functional UI visible: sidebar, learning cards, progress, practice, voice waveform, stable logo/product identity, no captions inside the image.""",
+        "voiceover": "Meet NERIVA. Your private language coach works beautifully on the web and in Telegram, helping you practice, improve pronunciation, and keep progress moving every day.",
+        "flux_prompt": """Vertical 9:16 luxury ad keyframe for NERIVA desktop web app. A warm confident young adult woman, age 18 or older, in an elegant business suit presents the NERIVA web version on a laptop in a premium modern office studio. The laptop screen clearly shows a beautiful desktop web interface: sidebar, learning cards, progress panel, practice area, premium dashboard, voice waveform. Use the project web assets as brand identity: logo, dark premium dashboard mood, app background. Elite SaaS advertisement, product-first, clean cinematic lighting, tasteful and expensive, no fake text, no sensual pose.""",
+        "wan_prompt": """5-second vertical luxury SaaS ad shot. Smooth cinematic push-in toward a laptop showing the NERIVA desktop web interface while a friendly young adult woman, age 18 or older, in a business suit presents it with confident calm energy. Premium office studio, polished functional UI visible: sidebar, learning cards, progress, practice, voice waveform, stable logo/product identity, no captions inside the image.""",
     },
     {
         "slug": "02_voice_pronunciation",
         "title": "Mobile web voice practice + pronunciation",
         "audio_file": "poliglot_test_02_voice_pronunciation.wav",
-        "voiceover": "Speak, listen, and improve with instant pronunciation feedback. Poliglot AI helps you hear mistakes clearly and turn every practice session into confident progress.",
-        "flux_prompt": """Vertical 9:16 premium ad keyframe for Poliglot AI mobile web voice practice. A warm confident young adult woman, age 18 or older, in a tailored business suit holds a smartphone with the Poliglot AI mobile web interface clearly visible. The phone screen shows a polished mobile app shell: compact header, voice practice card, microphone control, waveform, pronunciation feedback, progress chip. Luxury tech commercial, high-end studio lighting, functional product UI visible, no fake words, no random subtitles, no sensual pose.""",
-        "wan_prompt": """5-second vertical premium product shot. Slow parallax around the presenter and smartphone, showing the Poliglot AI mobile web interface with voice practice, waveform motion, pronunciation feedback rings, and progress energy. Young adult business presenter, age 18 or older, friendly and professional. Elite language-learning SaaS commercial, stable product identity, sharp polished lighting, no captions inside the image.""",
+        "voiceover": "Speak, listen, and improve with instant pronunciation feedback. NERIVA helps you hear mistakes clearly and turn every practice session into confident progress.",
+        "flux_prompt": """Vertical 9:16 premium ad keyframe for NERIVA mobile web voice practice. A warm confident young adult woman, age 18 or older, in a tailored business suit holds a smartphone with the NERIVA mobile web interface clearly visible. The phone screen shows a polished mobile app shell: compact header, voice practice card, microphone control, waveform, pronunciation feedback, progress chip. Luxury tech commercial, high-end studio lighting, functional product UI visible, no fake words, no random subtitles, no sensual pose.""",
+        "wan_prompt": """5-second vertical premium product shot. Slow parallax around the presenter and smartphone, showing the NERIVA mobile web interface with voice practice, waveform motion, pronunciation feedback rings, and progress energy. Young adult business presenter, age 18 or older, friendly and professional. Elite language-learning SaaS commercial, stable product identity, sharp polished lighting, no captions inside the image.""",
     },
 ]
 
@@ -828,7 +828,7 @@ def apply_variant(workflow: dict, variant: dict) -> dict:
 
 
 def write_test_prompt_pack() -> Path:
-    lines = ["# Poliglot AI 5s Test Ad Variants", ""]
+    lines = ["# NERIVA 5s Test Ad Variants", ""]
     lines.append("Generate these first before building the full 12-clip pack.")
     lines.append("")
     for index, variant in enumerate(TEST_VARIANTS, 1):

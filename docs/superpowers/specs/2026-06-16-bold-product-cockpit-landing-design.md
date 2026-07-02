@@ -10,7 +10,7 @@ The public landing is the React app in `site-react`, not the private `web-react`
 
 The generated static output under `Сайт полиглота для бота/` must be updated only through the `site-react` build, not by manual HTML edits.
 
-The current landing already has user-facing product content for Poliglot AI: AI Tutor, roleplay, pronunciation, photo practice, mistakes, notes, offline decks, web app, PWA, Telegram, Free, Premium, Platinum, and 35 interface languages. The redesign should use these real product capabilities, not invented metrics, institutions, certificates, or fake usage numbers.
+The current landing already has user-facing product content for NERIVA: AI Tutor, roleplay, pronunciation, photo practice, mistakes, notes, offline decks, web app, PWA, Telegram, Free, Premium, Platinum, and 35 interface languages. The redesign should use these real product capabilities, not invented metrics, institutions, certificates, or fake usage numbers.
 
 ## Approved Direction
 
@@ -67,7 +67,7 @@ Iconography:
 
 The header should remain practical and conversion-focused:
 
-- Brand: Poliglot AI with existing logo asset.
+- Brand: NERIVA with existing logo asset.
 - Navigation: product sections, pricing, reviews, Privacy, Terms.
 - Language selector remains available.
 - Theme toggle remains available if it still works reliably after redesign.
@@ -85,7 +85,7 @@ Hero content:
 - One concise supporting paragraph.
 - Two equal CTA buttons:
   - `Открыть Web app` -> `/app/`
-  - `Открыть Telegram` -> `https://t.me/poliglot_ai_bot`
+  - `Открыть Telegram` -> `https://t.me/NERIVAapp_bot`
 - One compact proof row, not a crowded grid.
 - One large code-built product mockup showing an AI Tutor session.
 
@@ -283,7 +283,7 @@ Tests should verify:
 - The landing uses the Bold Product Cockpit direction.
 - The existing hero animation is preserved only in the first block.
 - Later sections are redesigned without hero animation reuse.
-- The page uses code-built designer product mockups based on real Poliglot AI functions.
+- The page uses code-built designer product mockups based on real NERIVA functions.
 - Web app and Telegram are equal primary CTAs.
 - Inter/Inrer is not used.
 - The page remains responsive and readable on mobile.

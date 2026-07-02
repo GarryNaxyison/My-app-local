@@ -129,8 +129,8 @@ const aiRouterTelegramURL = "https://t.me/AiRouterRu_bot";
 const poliglotSocialLinks = [
   { name: "YouTube", href: "https://www.youtube.com/@neriva_app", label: "Open NERIVA on YouTube", Icon: YouTubeIcon },
   { name: "Instagram", href: "https://www.instagram.com/neriva.ru", label: "Open NERIVA on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai.online", label: "Open NERIVA on TikTok", Icon: TikTokIcon },
-  { name: "Telegram", href: "https://t.me/neriva_app", label: "Open NERIVA on Telegram", Icon: TelegramIcon },
+  { name: "TikTok", href: "https://tiktok.com/@nerivaru", label: "Open NERIVA on TikTok", Icon: TikTokIcon },
+  { name: "Telegram", href: "https://t.me/NERIVAapp_bot", label: "Open NERIVA on Telegram", Icon: TelegramIcon },
 ] as const;
 
 const dailyQuestTarget = {
@@ -3797,7 +3797,7 @@ function AuthStandaloneView({
           showPassword: copy("show_password", "Show password"),
         }}
         onSignIn={submitAuth}
-        onResetPassword={() => window.open("https://t.me/AsaselD", "_blank", "noopener,noreferrer")}
+        onResetPassword={() => window.open("https://t.me/NERIVAapp_bot", "_blank", "noopener,noreferrer")}
         onCreateAccount={() => setMode("register")}
         onLoginMode={() => setMode("login")}
       />
@@ -3832,12 +3832,6 @@ function legalDocumentOrigin() {
   const hostname = window.location.hostname.toLowerCase();
   if (hostname === "neriva.ru" || hostname === "www.neriva.ru") {
     return "https://neriva.ru";
-  }
-  if (hostname === "poliglotai.ru" || hostname === "www.poliglotai.ru") {
-    return "https://poliglotai.ru";
-  }
-  if (hostname === "poliglotai.online" || hostname === "www.poliglotai.online") {
-    return "https://poliglotai.online";
   }
   return fallback;
 }
@@ -8535,7 +8529,7 @@ function MetricsView({ activeView, user, copy, selectedAwardLevel, setSelectedAw
 function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, fallback: string) => string }) {
   const [page, setPage] = useState(0);
   const link = user.referral_code ? `${location.origin}/app?ref=${user.referral_code}` : "";
-  const shareTemplate = copy("referral_share", "Join NERIVA with my invite: {link}");
+  const shareTemplate = copy("referral_share", "Join NERIVA with my invite and get a free week of Premium: {link}");
   const shareText = link ? shareTemplate.replace("{link}", link).replace("%s", link) : "";
   const telegramShare = link ? `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(shareText)}` : "";
   const invitees = Array.isArray(user.referral_invitees) ? user.referral_invitees : [];
@@ -8550,7 +8544,7 @@ function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, f
         <h2>{user.referral_code || copy("no_code_yet", "No code yet")}</h2>
         <p>{link || copy("referral_unavailable", "Referral links are available after account setup.")}</p>
         <div className="referral-terms-v2">
-          <div><strong>7</strong><span>{copy("referral_invitee_terms", "days Premium for every invited learner")}</span></div>
+          <div><strong>7</strong><span>{copy("referral_invitee_terms", "free days of Premium for every invited learner")}</span></div>
           <div><strong>7</strong><span>{copy("referral_inviter_terms", "days Premium when the invited learner reaches XP level 3")}</span></div>
           <div><strong>20%</strong><span>{copy("referral_direct_terms", "direct purchase reward")}</span></div>
           <div><strong>5%</strong><span>{copy("referral_indirect_terms", "second-line purchase reward")}</span></div>
@@ -9046,4 +9040,3 @@ function menuAssetUrl(view: ViewId, theme: Theme) {
   if (view === "tutor") return `/app/assets/brand-logo-mini.png?v=${MENU_ASSET_VERSION}`;
   return `/app/assets/icon-${assetSlug(view)}-${theme}.png?v=${MENU_ASSET_VERSION}`;
 }
-

@@ -1,14 +1,14 @@
 [Unit]
-Description=Poliglot AI website and OpenRouter chat
+Description=NERIVA website and OpenRouter chat
 After=network.target
 
 [Service]
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/poliglotai.ru
+WorkingDirectory=/var/www/neriva.ru
 Environment=NODE_ENV=production
-ExecStart=/usr/bin/node /var/www/poliglotai.ru/server.mjs
+ExecStart=/usr/bin/node /var/www/neriva.ru/server.mjs
 Restart=always
 RestartSec=5
 

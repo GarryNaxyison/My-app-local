@@ -35,11 +35,11 @@ test("Cloudflare Pages output contains the static landing, SEO files, and fallba
 
   const maintenanceHtml = await fs.readFile(path.join(outputRoot, "maintenance.html"), "utf8");
   expect(maintenanceHtml).toContain("data-page-kind=\"maintenance\"");
-  expect(maintenanceHtml).toContain("Poliglot AI");
+  expect(maintenanceHtml).toContain("NERIVA");
 
   const notFoundHtml = await fs.readFile(path.join(outputRoot, "404.html"), "utf8");
   expect(notFoundHtml).toContain("data-page-kind=\"not-found\"");
-  expect(notFoundHtml).toContain("Poliglot AI");
+  expect(notFoundHtml).toContain("NERIVA");
 
   const headers = await fs.readFile(path.join(outputRoot, "_headers"), "utf8");
   expect(headers).toContain("/assets/site-react/*");

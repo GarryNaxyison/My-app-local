@@ -1,4 +1,4 @@
-# Poliglot AI Social Links Implementation Plan
+# NERIVA Social Links Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -18,7 +18,7 @@
 - Modify `site-react/src/styles.css`: style the landing social row, shared icon buttons, and footer social links.
 - Modify `site-react/e2e/public-site.spec.ts`: add failing assertions for landing and footer social links.
 - Modify `web-react/src/components/BrandIcons.tsx`: add YouTube, Instagram, and TikTok icon components beside the existing Telegram icon.
-- Modify `web-react/src/App.tsx`: add a local social link model and a `Follow Poliglot AI` card inside `SettingsView`.
+- Modify `web-react/src/App.tsx`: add a local social link model and a `Follow NERIVA` card inside `SettingsView`.
 - Modify `web-react/src/styles/app.css`: style the Settings social card and icon row.
 - Modify `web-react/e2e/web-smoke.spec.ts`: add failing assertions for Settings social links.
 
@@ -35,36 +35,36 @@ In `test("landing presents the approved English spark hero product site", ...)`,
 
 ```ts
   const heroSocialLinks = page.locator(".landing-social-proof a");
-  await expect(page.locator(".landing-social-proof")).toContainText("Follow Poliglot AI");
+  await expect(page.locator(".landing-social-proof")).toContainText("Follow NERIVA");
   await expect(page.locator(".landing-social-proof")).toContainText("Short lessons, product updates, and learning tips.");
   await expect(heroSocialLinks).toHaveCount(3);
-  await expect(heroSocialLinks.nth(0)).toHaveAttribute("href", "https://www.youtube.com/@PoliglotAI");
-  await expect(heroSocialLinks.nth(0)).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("href", "https://www.youtube.com/@NERIVA");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("target", "_blank");
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("rel", "noreferrer");
   await expect(heroSocialLinks.nth(1)).toHaveAttribute("href", "https://www.instagram.com/poliglotai.online/");
-  await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
+  await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
   await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://www.tiktok.com/@poliglotai");
-  await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
 ```
 
 In the same file, add this focused test after the landing hero test:
 
 ```ts
-test("public footer exposes Poliglot AI social channels", async ({ page }) => {
+test("public footer exposes NERIVA social channels", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
   const footerSocial = page.locator(".site-footer .site-footer-social");
   await expect(footerSocial).toBeVisible();
   await expect(footerSocial).toContainText("Social");
-  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
-  await expect(footerSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(footerSocial.locator('a[href="https://www.youtube.com/@NERIVA"]')).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
+  await expect(footerSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
+  await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
 
   await page.goto("/poliglot-ai.html?lang=ru");
   const ruFooterSocial = page.locator(".site-footer .site-footer-social");
   await expect(ruFooterSocial).toContainText("Соцсети");
-  await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@NERIVA"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toBeVisible();
 });
@@ -75,7 +75,7 @@ test("public footer exposes Poliglot AI social channels", async ({ page }) => {
 Run:
 
 ```bash
-npm --prefix site-react run e2e -- public-site.spec.ts -g "landing presents the approved English spark hero product site|public footer exposes Poliglot AI social channels"
+npm --prefix site-react run e2e -- public-site.spec.ts -g "landing presents the approved English spark hero product site|public footer exposes NERIVA social channels"
 ```
 
 Expected: FAIL because `.landing-social-proof` and `.site-footer-social` do not exist yet.
@@ -138,14 +138,14 @@ const TikTokIcon = ({ className }: SocialIconProps) => (
 );
 
 export const socialLinks: SocialLink[] = [
-  { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
-  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+  { name: "YouTube", href: "https://www.youtube.com/@NERIVA", label: "Open NERIVA on YouTube", Icon: YouTubeIcon },
+  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open NERIVA on Instagram", Icon: InstagramIcon },
+  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open NERIVA on TikTok", Icon: TikTokIcon },
 ];
 
 export function SocialIconLinks({ className = "" }: { className?: string }) {
   return (
-    <div className={`social-icon-links ${className}`.trim()} aria-label="Poliglot AI social channels">
+    <div className={`social-icon-links ${className}`.trim()} aria-label="NERIVA social channels">
       {socialLinks.map(({ name, href, label, Icon }) => (
         <a key={name} className={`social-icon-link social-icon-link--${name.toLowerCase()}`} href={href} aria-label={label} target="_blank" rel="noreferrer">
           <Icon />
@@ -160,7 +160,7 @@ export function LandingSocialProof() {
   return (
     <div className="landing-social-proof">
       <div>
-        <strong>Follow Poliglot AI</strong>
+        <strong>Follow NERIVA</strong>
         <span>Short lessons, product updates, and learning tips.</span>
       </div>
       <SocialIconLinks />
@@ -336,7 +336,7 @@ html[data-site-theme="light"] .landing-social-proof .social-icon-link {
 Run:
 
 ```bash
-npm --prefix site-react run e2e -- public-site.spec.ts -g "landing presents the approved English spark hero product site|public footer exposes Poliglot AI social channels"
+npm --prefix site-react run e2e -- public-site.spec.ts -g "landing presents the approved English spark hero product site|public footer exposes NERIVA social channels"
 ```
 
 Expected: PASS.
@@ -376,11 +376,11 @@ In `test("today plan and settings password helper copy stay localized", ...)`, a
 ```ts
   const settingsSocial = page.locator(".settings-social-card-v2");
   await expect(settingsSocial).toBeVisible();
-  await expect(settingsSocial).toContainText("Соцсети Poliglot AI");
+  await expect(settingsSocial).toContainText("Соцсети NERIVA");
   await expect(settingsSocial).toContainText("Короткие уроки, обновления и советы по обучению.");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
-  await expect(settingsSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
+  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@NERIVA"]')).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
+  await expect(settingsSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
+  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
 ```
 
 - [ ] **Step 2: Run RED web app test**
@@ -450,9 +450,9 @@ Add near `const aiRouterTelegramURL`:
 
 ```tsx
 const poliglotSocialLinks = [
-  { name: "YouTube", href: "https://www.youtube.com/@PoliglotAI", label: "Open Poliglot AI on YouTube", Icon: YouTubeIcon },
-  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open Poliglot AI on Instagram", Icon: InstagramIcon },
-  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open Poliglot AI on TikTok", Icon: TikTokIcon },
+  { name: "YouTube", href: "https://www.youtube.com/@NERIVA", label: "Open NERIVA on YouTube", Icon: YouTubeIcon },
+  { name: "Instagram", href: "https://www.instagram.com/poliglotai.online/", label: "Open NERIVA on Instagram", Icon: InstagramIcon },
+  { name: "TikTok", href: "https://www.tiktok.com/@poliglotai", label: "Open NERIVA on TikTok", Icon: TikTokIcon },
 ] as const;
 ```
 
@@ -461,9 +461,9 @@ Inside `SettingsView`, in `.settings-side-stack-v2` after the Telegram section a
 ```tsx
         <section className="v2-panel settings-card-v2 settings-social-card-v2">
           <span className="eyebrow">{copy("social_channels", "Social channels")}</span>
-          <h2>{copy("poliglot_social_title", "Соцсети Poliglot AI")}</h2>
+          <h2>{copy("poliglot_social_title", "Соцсети NERIVA")}</h2>
           <p>{copy("poliglot_social_body", "Короткие уроки, обновления и советы по обучению.")}</p>
-          <div className="settings-social-links-v2" aria-label={copy("poliglot_social_title", "Соцсети Poliglot AI")}>
+          <div className="settings-social-links-v2" aria-label={copy("poliglot_social_title", "Соцсети NERIVA")}>
             {poliglotSocialLinks.map(({ name, href, label, Icon }) => (
               <a key={name} className={`settings-social-link-v2 settings-social-link-v2--${name.toLowerCase()}`} href={href} aria-label={label} target="_blank" rel="noreferrer">
                 <Icon />
@@ -687,7 +687,7 @@ Run:
 
 ```bash
 curl -fsS https://poliglotai.ru/healthz
-curl -fsS https://poliglotai.ru/poliglot-ai.html | grep -E 'Follow Poliglot AI|youtube.com/@PoliglotAI|instagram.com/poliglotai.online|tiktok.com/@poliglotai'
+curl -fsS https://poliglotai.ru/poliglot-ai.html | grep -E 'Follow NERIVA|youtube.com/@NERIVA|instagram.com/poliglotai.online|tiktok.com/@poliglotai'
 curl -fsS https://poliglotai.ru/app/ | grep -E 'assets/.*\.js|assets/.*\.css'
 ```
 

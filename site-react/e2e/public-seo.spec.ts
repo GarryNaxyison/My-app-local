@@ -3,13 +3,13 @@ import { expect, test, type Page } from "@playwright/test";
 const englishAnswerCopy = [
   "Search answers",
   "Answers for search and AI assistants",
-  "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
-  "What is Poliglot AI?",
-  "Poliglot AI is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
+  "Short direct answers about NERIVA for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
+  "What is NERIVA?",
+  "NERIVA is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
   "Can I practice English with an AI tutor in Telegram?",
   "Yes. In Telegram you can start practice, receive tasks, send answers and voice messages, while progress stays synced with the web app.",
   "How is an AI tutor different from a vocabulary app?",
-  "Poliglot AI is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
+  "NERIVA is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
   "Can I practice pronunciation and speaking?",
   "Yes. Voice Coach and shadowing help you practice speech, see weak words, get a score, and repeat a more natural phrase.",
   "Can I translate text from photos?",
@@ -20,9 +20,9 @@ const englishAnswerCopy = [
 
 const englishComparisonCopy = [
   "Compare options",
-  "Poliglot AI compared with the tools people usually search for",
+  "NERIVA compared with the tools people usually search for",
   "See when a vocabulary app, AI tutor, Telegram bot, or web app is the better fit for language practice.",
-  "Poliglot AI vs vocabulary app",
+  "NERIVA vs vocabulary app",
   "Word lists, flashcards, spaced repetition, and isolated meanings.",
   "Context phrases, answers, corrections, weak-spot review, voice, and photo practice.",
   "Best when you need correction and context, not only memorization.",
@@ -70,7 +70,7 @@ test.describe("public landing SEO and AEO metadata", () => {
   test("sets Russian canonical metadata, alternates, JSON-LD, and visible answers", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=ru");
 
-    await expect(page).toHaveTitle("Poliglot AI - AI-репетитор английского и языков в Telegram");
+    await expect(page).toHaveTitle("NERIVA - AI-репетитор английского и языков в Telegram");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       /AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium/,
@@ -105,7 +105,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     );
     const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
     expect(faqNode.mainEntity).toHaveLength(6);
-    expect(faqNode.mainEntity.map((entity: { name: string }) => entity.name)).toContain("Что такое Poliglot AI?");
+    expect(faqNode.mainEntity.map((entity: { name: string }) => entity.name)).toContain("Что такое NERIVA?");
     const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
     expect(comparisonNode.itemListElement).toHaveLength(3);
 
@@ -116,21 +116,21 @@ test.describe("public landing SEO and AEO metadata", () => {
 
     await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
     await expect(page.locator(".answer-card")).toHaveCount(6);
-    await expect(page.locator(".answer-card").filter({ hasText: "Что такое Poliglot AI?" })).toBeVisible();
+    await expect(page.locator(".answer-card").filter({ hasText: "Что такое NERIVA?" })).toBeVisible();
     await expect(page.locator(".comparison-card")).toHaveCount(3);
   });
 
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=en");
 
-    await expect(page).toHaveTitle("Poliglot AI - AI language tutor in Telegram and web app");
+    await expect(page).toHaveTitle("NERIVA - AI language tutor in Telegram and web app");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       /AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans/,
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/poliglot-ai.html?lang=en");
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://neriva.ru/poliglot-ai.html?lang=en");
-    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Poliglot AI - AI language tutor in Telegram and web app");
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "NERIVA - AI language tutor in Telegram and web app");
 
     const jsonLdText = await page.locator("#poliglot-seo-jsonld").textContent();
     const jsonLd = JSON.parse(jsonLdText || "{}");
@@ -151,9 +151,9 @@ test.describe("public landing SEO and AEO metadata", () => {
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
 
-    await expect(page.getByRole("heading", { name: "Poliglot AI compared with the tools people usually search for" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "NERIVA compared with the tools people usually search for" })).toBeVisible();
     await expect(page.locator(".comparison-card")).toHaveCount(3);
-    await expect(page.locator(".comparison-card").filter({ hasText: "Poliglot AI vs vocabulary app" })).toBeVisible();
+    await expect(page.locator(".comparison-card").filter({ hasText: "NERIVA vs vocabulary app" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Answers for search and AI assistants" })).toBeVisible();
     await expect(page.locator(".answer-card").filter({ hasText: "AI language tutor" })).toBeVisible();
 

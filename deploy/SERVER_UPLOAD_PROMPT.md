@@ -3,7 +3,7 @@
 Use this as a persistent instruction for future Codex deploys.
 
 ```text
-Для деплоя PoliglotAI на Ubuntu-сервер используй постоянный deploy-upload сервис, а не временный upload route.
+Для деплоя NERIVA на Ubuntu-сервер используй постоянный deploy-upload сервис, а не временный upload route.
 
 Сервер: root@186.246.45.123.
 Upload endpoint: https://neriva.ru/__codex_deploy_upload/<filename>

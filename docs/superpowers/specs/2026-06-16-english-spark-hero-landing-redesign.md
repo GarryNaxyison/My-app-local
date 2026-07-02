@@ -2,7 +2,7 @@
 
 ## Goal
 
-Rework the public Poliglot AI landing into an English-first product site that keeps the older full-screen React Sparkles hero as the first-screen visual anchor, fixes pricing and dark-theme regressions, and replaces the sticky header with a burger drawer.
+Rework the public NERIVA landing into an English-first product site that keeps the older full-screen React Sparkles hero as the first-screen visual anchor, fixes pricing and dark-theme regressions, and replaces the sticky header with a burger drawer.
 
 ## Confirmed Scope
 

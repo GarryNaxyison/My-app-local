@@ -67,7 +67,7 @@ const englishLandingCopyThatMustLocalize = [
   "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.",
   "Pronunciation",
   "Voice practice shows which words sound weak and gives a better sentence to repeat right away.",
-  "Follow Poliglot AI",
+  "Follow NERIVA",
   "Short lessons, product updates, and learning tips.",
   "AI Tutor Cockpit",
   "Photograph a menu, sign, or task and turn it into a learning scenario.",
@@ -136,19 +136,19 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(page.locator(".hero-proof")).toContainText("35 languages");
   await expect(page.locator(".hero-proof")).toContainText("A1-C2");
   const heroSocialLinks = page.locator(".landing-social-proof a");
-  await expect(page.locator(".landing-social-proof")).toContainText("Follow Poliglot AI");
+  await expect(page.locator(".landing-social-proof")).toContainText("Follow NERIVA");
   await expect(page.locator(".landing-social-proof")).toContainText("Short lessons, product updates, and learning tips.");
   await expect(heroSocialLinks).toHaveCount(4);
-  await expect(heroSocialLinks.nth(0)).toHaveAttribute("href", "https://www.youtube.com/@PoliglotAI");
-  await expect(heroSocialLinks.nth(0)).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("href", "https://www.youtube.com/@neriva_app");
+  await expect(heroSocialLinks.nth(0)).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("target", "_blank");
   await expect(heroSocialLinks.nth(0)).toHaveAttribute("rel", "noreferrer");
-  await expect(heroSocialLinks.nth(1)).toHaveAttribute("href", "https://www.instagram.com/poliglotai.online/");
-  await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://www.tiktok.com/@poliglotai.online");
-  await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
-  await expect(heroSocialLinks.nth(3)).toHaveAttribute("href", "https://t.me/neriva_app");
-  await expect(heroSocialLinks.nth(3)).toHaveAttribute("aria-label", "Open Neriva on Telegram");
+  await expect(heroSocialLinks.nth(1)).toHaveAttribute("href", "https://www.instagram.com/neriva.ru");
+  await expect(heroSocialLinks.nth(1)).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
+  await expect(heroSocialLinks.nth(2)).toHaveAttribute("href", "https://tiktok.com/@nerivaru");
+  await expect(heroSocialLinks.nth(2)).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
+  await expect(heroSocialLinks.nth(3)).toHaveAttribute("href", "https://t.me/NERIVAapp_bot");
+  await expect(heroSocialLinks.nth(3)).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
   await expect(heroSocialLinks.nth(3).locator('img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
 
   const heroCtas = page.locator(".landing-hero .entry-cta");
@@ -163,9 +163,9 @@ test("landing presents the approved English spark hero product site", async ({ p
     links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
   );
   expect(telegramEntryHrefs).toEqual([
-    "https://t.me/poliglot_ai_bot",
-    "https://t.me/poliglot_ai_bot",
-    "https://t.me/poliglot_ai_bot",
+    "https://t.me/NERIVAapp_bot",
+    "https://t.me/NERIVAapp_bot",
+    "https://t.me/NERIVAapp_bot",
   ]);
 
   await expect(page.locator(".skeleton-card")).toHaveCount(2);
@@ -257,27 +257,29 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(footerTermsLink).toHaveAttribute("href", /terms\.html(\?.*)?$/);
 });
 
-test("public footer exposes Poliglot AI social channels", async ({ page }) => {
+test("public footer exposes NERIVA social channels", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
   const footerSocial = page.locator(".site-footer .site-footer-social");
   await expect(footerSocial).toBeVisible();
   await expect(footerSocial).toContainText("Social");
-  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("aria-label", "Open Poliglot AI on YouTube");
-  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("target", "_blank");
-  await expect(footerSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toHaveAttribute("rel", "noreferrer");
-  await expect(footerSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toHaveAttribute("aria-label", "Open Poliglot AI on Instagram");
-  await expect(footerSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open Poliglot AI on TikTok");
-  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("aria-label", "Open Neriva on Telegram");
-  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"] img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
+  await expect(footerSocial.locator("a")).toHaveCount(4);
+  await expect(footerSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
+  await expect(footerSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
+  await expect(footerSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
+  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
+  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("target", "_blank");
+  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"] img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
 
   await page.goto("/poliglot-ai.html?lang=ru");
   const ruFooterSocial = page.locator(".site-footer .site-footer-social");
   await expect(ruFooterSocial).toContainText("Соцсети");
-  await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@PoliglotAI"]')).toBeVisible();
-  await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/poliglotai.online/"]')).toBeVisible();
-  await expect(ruFooterSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toBeVisible();
-  await expect(ruFooterSocial.locator('a[href="https://t.me/neriva_app"]')).toBeVisible();
+  await expect(ruFooterSocial.locator("a")).toHaveCount(4);
+  await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toBeVisible();
 });
 
 test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {
@@ -706,7 +708,7 @@ test("landing localizes core product copy across all 35 interface locales", asyn
       expect(landingText).not.toContain("Practice speaking before the moment matters");
       expect(landingText).not.toContain("Real situations where the language has to work today");
       expect(landingText).not.toContain("Start free");
-      expect(localizedLanding.socialProofText).not.toContain("Follow Poliglot AI");
+      expect(localizedLanding.socialProofText).not.toContain("Follow NERIVA");
       for (const englishCopy of englishLandingCopyThatMustLocalize) {
         expect(landingText).not.toContain(englishCopy);
       }
@@ -743,8 +745,8 @@ test("privacy and terms keep contacts and both themes readable", async ({ page }
     expect(selectColors.optionColor).not.toBe(selectColors.optionBackground);
 
     const text = await page.locator("body").innerText();
-    expect(text).toContain("@AsaselD");
-    expect(text).toContain("@poliglot_ai_bot");
+    expect(text).toContain("@NERIVAapp_bot");
+    expect(text).toContain("@NERIVAapp_bot");
     expect(text).toContain("35");
 
     for (const theme of ["dark", "light"] as const) {
@@ -798,10 +800,10 @@ test("privacy and terms keep contacts and both themes readable", async ({ page }
 test("privacy Russian contact grid keeps Telegram bot visible", async ({ page }) => {
   await page.goto("/privacy.html?lang=ru");
 
-  const botContact = page.locator('.legal-contact-grid a[href="https://t.me/poliglot_ai_bot"]');
+  const botContact = page.locator('.legal-contact-grid a[href="https://t.me/NERIVAapp_bot"]');
   await expect(botContact).toBeVisible();
   await expect(botContact.locator("small")).toHaveText("Telegram bot");
-  await expect(botContact).toContainText("@poliglot_ai_bot");
+  await expect(botContact).toContainText("@NERIVAapp_bot");
 });
 
 test("legal document package exposes operator details and cookie opt-in", async ({ page }) => {
@@ -812,7 +814,7 @@ test("legal document package exposes operator details and cookie opt-in", async 
     await expect(page.locator(".legal-page")).toBeVisible();
     await expect(page.locator(".legal-document-shell")).toContainText("Самозанятый Чебан Денис Игоревич");
     await expect(page.locator(".legal-document-shell")).toContainText("ИНН 505017471160");
-    await expect(page.locator(".legal-document-shell")).toContainText("supportpoliglotai@gmail.com");
+    await expect(page.locator(".legal-document-shell")).toContainText("support@neriva.ru");
     await expect(page.locator(".legal-aside a[href*='privacy.html']")).toBeVisible();
     await expect(page.locator(".legal-aside a[href*='terms.html']")).toBeVisible();
     await expect(page.locator(".legal-aside a[href*='agreement.html']")).toBeVisible();

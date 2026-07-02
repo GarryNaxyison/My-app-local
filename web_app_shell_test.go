@@ -173,8 +173,6 @@ func TestReactFrontendLegalLinksFollowCurrentDomain(t *testing.T) {
 		`window.location.hostname`,
 		`neriva.ru`,
 		`www.neriva.ru`,
-		`poliglotai.ru`,
-		`poliglotai.online`,
 		`legalDocumentOrigin()`,
 	} {
 		if !strings.Contains(source, want) {
@@ -739,8 +737,8 @@ func TestPrivacyPolicyAssetCoversTwentyLocalesAndBotConsent(t *testing.T) {
 		}
 		for _, want := range []string{
 			"poliglotai.online",
-			"@AsaselD",
-			"@poliglot_ai_bot",
+			"@NERIVAapp_bot",
+			"@NERIVAapp_bot",
 			"Telegram ID",
 			"\u041f\u041e\u041b\u0418\u0422\u0418\u041a\u0410 \u041e\u0411\u0420\u0410\u0411\u041e\u0422\u041a\u0418 \u041f\u0415\u0420\u0421\u041e\u041d\u0410\u041b\u042c\u041d\u042b\u0425 \u0414\u0410\u041d\u041d\u042b\u0425",
 		} {

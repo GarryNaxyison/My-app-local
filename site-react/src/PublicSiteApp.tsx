@@ -290,7 +290,7 @@ const demoScreens = [
   {
     tab: "Урок",
     avatar: "AI",
-    intro: "Сначала Poliglot AI дает фразу, смысл, пример и короткий next step.",
+    intro: "Сначала NERIVA дает фразу, смысл, пример и короткий next step.",
     label: "Урок",
     output: "I would like to book a table for tonight.",
     hint: "Фраза сразу попадает в маршрут и повторение.",
@@ -405,11 +405,11 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
 
   return (
     <header className="public-nav public-nav--drawer">
-      <a className="public-brand" href="/poliglot-ai.html" aria-label="Poliglot AI">
+      <a className="public-brand" href="/poliglot-ai.html" aria-label="NERIVA">
         <span className="public-brand__logo">
           <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
         </span>
-        <strong>Poliglot AI</strong>
+        <strong>NERIVA</strong>
       </a>
       <div className="public-nav__actions">
         <select data-site-language-select aria-label="Language" />
@@ -454,7 +454,7 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
             <Laptop size={18} />
             Web app
           </a>
-          <a href="https://t.me/poliglot_ai_bot" onClick={() => setIsOpen(false)}>
+          <a href="https://t.me/NERIVAapp_bot" onClick={() => setIsOpen(false)}>
             <MessageCircle size={18} />
             Telegram
           </a>
@@ -467,11 +467,11 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
 function SiteNav({ page, theme, onThemeToggle }: { page: PageId; theme: SiteTheme; onThemeToggle: () => void }) {
   return (
     <header className="public-nav">
-      <a className="public-brand" href="/poliglot-ai.html" aria-label="Poliglot AI">
+      <a className="public-brand" href="/poliglot-ai.html" aria-label="NERIVA">
         <span className="public-brand__logo">
           <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
         </span>
-        <strong>Poliglot AI</strong>
+        <strong>NERIVA</strong>
       </a>
       <nav aria-label="Основная навигация">
         <a href="/poliglot-ai.html#features" data-i18n="nav_features">
@@ -527,7 +527,7 @@ function LandingPage() {
               <a className="hero-action hero-action--primary" href="/app/">
                 Начать бесплатно <ArrowRight size={18} />
               </a>
-              <a className="hero-action hero-action--secondary" href="https://t.me/poliglot_ai_bot">
+              <a className="hero-action hero-action--secondary" href="https://t.me/NERIVAapp_bot">
                 Открыть Telegram
               </a>
             </div>
@@ -597,7 +597,7 @@ function LandingPage() {
               <div className="demo-message">
                 <div className="demo-avatar">{activeDemo.avatar}</div>
                 <div>
-                  <strong>Poliglot AI</strong>
+                  <strong>NERIVA</strong>
                   <p>{activeDemo.intro}</p>
                 </div>
               </div>
@@ -619,11 +619,11 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="course-strip" aria-label="Курсы Poliglot AI">
+      <section className="course-strip" aria-label="Курсы NERIVA">
         <div className="course-strip__intro">
           <span className="eyebrow">AI Tutor</span>
           <h2>Маршруты под цель, а не бесконечная лента упражнений</h2>
-          <p>Выберите режим для поездки, работы, экзамена или речи. Poliglot AI собирает урок, диалог, голос, фото и повторение в один управляемый цикл.</p>
+          <p>Выберите режим для поездки, работы, экзамена или речи. NERIVA собирает урок, диалог, голос, фото и повторение в один управляемый цикл.</p>
         </div>
         <div className="course-cards">
           {courseRoutes.map(([title, body, badge], index) => (
@@ -653,15 +653,15 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="landing-band cockpit-section" aria-label="Как Poliglot AI ведет занятие">
+      <section className="landing-band cockpit-section" aria-label="Как NERIVA ведет занятие">
         <div className="cockpit-shell">
           <div className="cockpit-copy">
             <span className="eyebrow">AI Tutor</span>
             <h2>Каждое занятие заканчивается понятным следующим шагом</h2>
             <p>
-              Poliglot AI не оставляет вас один на один с упражнением. Он объясняет фразу, дает попробовать ее в диалоге, разбирает голос или фото и возвращает к ошибкам, пока слабое место не станет привычным.
+              NERIVA не оставляет вас один на один с упражнением. Он объясняет фразу, дает попробовать ее в диалоге, разбирает голос или фото и возвращает к ошибкам, пока слабое место не станет привычным.
             </p>
-            <div className="cockpit-kpis" aria-label="Ключевые показатели Poliglot AI">
+            <div className="cockpit-kpis" aria-label="Ключевые показатели NERIVA">
               <span>
                 <strong>35</strong>
                 языков интерфейса
@@ -730,7 +730,7 @@ function LandingPage() {
         <div className="section-copy">
           <span className="eyebrow">Сценарии</span>
           <h2>Ситуации, ради которых язык нужен уже сегодня</h2>
-          <p>В аэропорту, на созвоне, перед экзаменом или в обычном разговоре Poliglot AI дает не теорию ради теории, а короткую практику с фразами, голосом, фото и разбором ошибок.</p>
+          <p>В аэропорту, на созвоне, перед экзаменом или в обычном разговоре NERIVA дает не теорию ради теории, а короткую практику с фразами, голосом, фото и разбором ошибок.</p>
         </div>
         <div className="scenario-grid">
           {scenarioCards.map((scenario, index) => (
@@ -791,7 +791,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="device-flow" aria-label="Связка устройств Poliglot AI">
+      <section className="device-flow" aria-label="Связка устройств NERIVA">
         <div className="device-flow__copy">
           <span className="eyebrow">Web + mobile + Telegram</span>
           <h2>Один профиль для web, mobile и Telegram</h2>
@@ -884,7 +884,7 @@ function LandingPage() {
       <section className="start-panel">
         <div>
           <span className="eyebrow">Первый маршрут</span>
-          <h2>Откройте Poliglot AI и начните говорить с разбором ошибок уже сегодня</h2>
+          <h2>Откройте NERIVA и начните говорить с разбором ошибок уже сегодня</h2>
         </div>
         <a className="hero-action hero-action--primary" href="/app/">
           Начать бесплатно <ArrowRight size={18} />
@@ -950,12 +950,12 @@ function PlanCard({ name, label, oldPrice, price, body, limits, included, locked
 }
 
 function ensurePrivacyBotContact(html: string) {
-  let next = html.replace("<small>Telegram bot</small>@poliglot_ai_bot", "<small>Telegram bot</small><strong data-no-translate>@poliglot_ai_bot</strong>");
-  next = next.replace(/<small>Telegram bot<\/small>\s*<\/a>/g, "<small>Telegram bot</small><strong data-no-translate>@poliglot_ai_bot</strong></a>");
-  if (!/<a href="https:\/\/t\.me\/poliglot_ai_bot"[^>]*>[\s\S]*?@poliglot_ai_bot[\s\S]*?<\/a>/.test(next)) {
+  let next = html.replace("<small>Telegram bot</small>@NERIVAapp_bot", "<small>Telegram bot</small><strong data-no-translate>@NERIVAapp_bot</strong>");
+  next = next.replace(/<small>Telegram bot<\/small>\s*<\/a>/g, "<small>Telegram bot</small><strong data-no-translate>@NERIVAapp_bot</strong></a>");
+  if (!/<a href="https:\/\/t\.me\/NERIVAapp_bot"[^>]*>[\s\S]*?@NERIVAapp_bot[\s\S]*?<\/a>/.test(next)) {
     next = next.replace(
       /(<div class="legal-contact-grid">[\s\S]*?)(<\/div>)/,
-      '$1<a href="https://t.me/poliglot_ai_bot"><small>Telegram bot</small><strong data-no-translate>@poliglot_ai_bot</strong></a>$2',
+      '$1<a href="https://t.me/NERIVAapp_bot"><small>Telegram bot</small><strong data-no-translate>@NERIVAapp_bot</strong></a>$2',
     );
   }
   return next;
@@ -965,22 +965,22 @@ const legalPageMetaV2: Record<LegalPageId, { title: string; badge: string; descr
   privacy: {
     title: "Политика обработки персональных данных",
     badge: "Защита данных",
-    description: "Как Poliglot AI обрабатывает данные пользователей сайта, веб-приложения и Telegram-бота.",
+    description: "Как NERIVA обрабатывает данные пользователей сайта, веб-приложения и Telegram-бота.",
   },
   terms: {
     title: "Условия использования",
     badge: "Правила сервиса",
-    description: "Правила использования сайта, веб-приложения и Telegram-бота Poliglot AI.",
+    description: "Правила использования сайта, веб-приложения и Telegram-бота NERIVA.",
   },
   agreement: {
     title: "Пользовательское соглашение",
     badge: "Публичная оферта",
-    description: "Публичное пользовательское соглашение для сайта, веб-приложения и Telegram-бота Poliglot AI.",
+    description: "Публичное пользовательское соглашение для сайта, веб-приложения и Telegram-бота NERIVA.",
   },
   consent: {
     title: "Согласие на обработку персональных данных",
     badge: "152-ФЗ",
-    description: "Отдельное согласие пользователя на обработку персональных данных в Poliglot AI.",
+    description: "Отдельное согласие пользователя на обработку персональных данных в NERIVA.",
   },
 };
 
@@ -998,8 +998,8 @@ const legalOperatorNoticeHtmlV2 = `
     <span><small>Оператор</small><strong>Самозанятый Чебан Денис Игоревич</strong></span>
     <span><small>ИНН</small><strong>ИНН 505017471160</strong></span>
     <span><small>Адрес</small><strong>г. Щёлково, ул. Сиреневая, 9к1, кв. 9</strong></span>
-    <a href="mailto:supportpoliglotai@gmail.com"><small>Email</small><strong>supportpoliglotai@gmail.com</strong></a>
-    <a href="https://t.me/poliglot_ai_bot"><small>Telegram bot</small><strong>@poliglot_ai_bot</strong></a>
+    <a href="mailto:support@neriva.ru"><small>Email</small><strong>support@neriva.ru</strong></a>
+    <a href="https://t.me/NERIVAapp_bot"><small>Telegram bot</small><strong>@NERIVAapp_bot</strong></a>
   </div>
 </section>`;
 
@@ -1029,7 +1029,7 @@ function LegalPageV2({ page }: { page: LegalPageId }) {
       <section className="legal-layout">
         <aside className="legal-aside">
           <a href="/poliglot-ai.html">
-            <Sparkles size={16} /> Poliglot AI
+            <Sparkles size={16} /> NERIVA
           </a>
           <a href="/privacy.html" className={page === "privacy" ? "is-active" : undefined}>
             <ShieldCheck size={16} /> <span data-legal-nav="privacy">Политика</span>
@@ -1209,8 +1209,8 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
   const title = isPrivacy ? "Политика обработки персональных данных" : "Условия использования";
   const badge = isPrivacy ? "Защита данных" : "Правила сервиса";
   const description = isPrivacy
-    ? "Как Poliglot AI обрабатывает Telegram ID, username и технические данные для работы сайта, PWA и Telegram-бота."
-    : "Правила использования сайта, веб-приложения и Telegram-бота Poliglot AI.";
+    ? "Как NERIVA обрабатывает Telegram ID, username и технические данные для работы сайта, PWA и Telegram-бота."
+    : "Правила использования сайта, веб-приложения и Telegram-бота NERIVA.";
   const sourceHtml = isPrivacy ? ensurePrivacyBotContact(privacyDocumentHtml) : termsDocumentHtml;
   const html = expandLegalLanguageCopy(sourceHtml);
 
@@ -1236,7 +1236,7 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
       <section className="legal-layout">
         <aside className="legal-aside">
           <a href="/poliglot-ai.html">
-            <Sparkles size={16} /> Poliglot AI
+            <Sparkles size={16} /> NERIVA
           </a>
           <a href="/privacy.html" className={isPrivacy ? "is-active" : undefined}>
             <ShieldCheck size={16} /> Политика
@@ -1257,9 +1257,9 @@ function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
   return (
     <footer className="site-footer">
       <div>
-        <strong>Poliglot AI</strong>
+        <strong>NERIVA</strong>
         <p>AI Tutor for lessons, roleplay, voice, photo practice, and mistake review across web app and Telegram.</p>
-        <span>© 2026 Poliglot AI. All rights reserved.</span>
+        <span>© 2026 NERIVA. All rights reserved.</span>
       </div>
       <nav>
         <strong>Navigation</strong>
@@ -1292,9 +1292,9 @@ function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
       <address>
         <strong>Contacts</strong>
         <a href="/app/">neriva.ru/app</a>
-        <a href="https://t.me/poliglot_ai_bot">@poliglot_ai_bot</a>
-        <a href="https://t.me/AsaselD">@AsaselD</a>
-        <a href="mailto:supportpoliglotai@gmail.com">supportpoliglotai@gmail.com</a>
+        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
+        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
+        <a href="mailto:support@neriva.ru">support@neriva.ru</a>
       </address>
     </footer>
   );
@@ -1304,9 +1304,9 @@ function SiteFooter() {
   return (
     <footer className="site-footer">
       <div>
-        <strong>Poliglot AI</strong>
+        <strong>NERIVA</strong>
         <p>Premium AI-репетитор для уроков, диалогов, голоса, фото-перевода и словаря ошибок в web app, PWA и Telegram.</p>
-        <span>© 2026 Poliglot AI. Все права защищены.</span>
+        <span>© 2026 NERIVA. Все права защищены.</span>
       </div>
       <nav>
         <strong>Навигация</strong>
@@ -1324,9 +1324,9 @@ function SiteFooter() {
       <address>
         <strong>Контакты</strong>
         <a href="/app/">neriva.ru/app</a>
-        <a href="https://t.me/poliglot_ai_bot">@poliglot_ai_bot</a>
-        <a href="https://t.me/AsaselD">@AsaselD</a>
-        <a href="mailto:supportpoliglotai@gmail.com">supportpoliglotai@gmail.com</a>
+        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
+        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
+        <a href="mailto:support@neriva.ru">support@neriva.ru</a>
       </address>
     </footer>
   );

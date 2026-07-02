@@ -1,15 +1,15 @@
 (function () {
   const policy = {
   "ru": {
-    "title": "ПОЛИТИКА ОБРАБОТКИ ПЕРСОНАЛЬНЫХ ДАННЫХ (PoliglotAI)",
+    "title": "ПОЛИТИКА ОБРАБОТКИ ПЕРСОНАЛЬНЫХ ДАННЫХ (NERIVA)",
     "updated": "Обновлено 27 мая 2026",
-    "intro": "Настоящая Политика действует в отношении сервиса PoliglotAI, доступного через сайты poliglotai.ru, poliglotai.online и Telegram-бот @poliglot_ai_bot. Сервис представляет собой единую систему независимо от способа доступа. Используя сервис, Пользователь подтверждает согласие с данной Политикой.",
+    "intro": "Настоящая Политика действует в отношении сервиса NERIVA, доступного через сайты neriva.ru, neriva.ru и Telegram-бот @NERIVAapp_bot. Сервис представляет собой единую систему независимо от способа доступа. Используя сервис, Пользователь подтверждает согласие с данной Политикой.",
     "sections": [
       [
         "general",
         "1. Общие положения",
         [
-          "Настоящая Политика действует в отношении сервиса PoliglotAI, доступного через сайты poliglotai.ru, poliglotai.online и Telegram-бот @poliglot_ai_bot.",
+          "Настоящая Политика действует в отношении сервиса NERIVA, доступного через сайты neriva.ru, neriva.ru и Telegram-бот @NERIVAapp_bot.",
           "Сервис представляет собой единую систему, независимо от способа доступа.",
           "Используя сервис, Пользователь подтверждает согласие с данной Политикой."
         ]
@@ -18,7 +18,7 @@
         "operator",
         "2. Оператор персональных данных",
         [
-          "Оператором персональных данных является владелец сервиса PoliglotAI (далее — “Оператор”)."
+          "Оператором персональных данных является владелец сервиса NERIVA (далее — “Оператор”)."
         ]
       ],
       [
@@ -104,23 +104,23 @@
         "contacts",
         "11. Контакты",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "en": {
-    "title": "PERSONAL DATA PROCESSING POLICY (PoliglotAI)",
+    "title": "PERSONAL DATA PROCESSING POLICY (NERIVA)",
     "updated": "Updated 27 May 2026",
-    "intro": "This Policy applies to PoliglotAI on poliglotai.ru, poliglotai.online, and the Telegram bot @poliglot_ai_bot. The service is a single system regardless of access method. By using it, the User agrees to this Policy.",
+    "intro": "This Policy applies to NERIVA on neriva.ru, neriva.ru, and the Telegram bot @NERIVAapp_bot. The service is a single system regardless of access method. By using it, the User agrees to this Policy.",
     "sections": [
       [
         "general",
         "1. General provisions",
         [
-          "This Policy applies to PoliglotAI on poliglotai.ru, poliglotai.online, and the Telegram bot @poliglot_ai_bot.",
+          "This Policy applies to NERIVA on neriva.ru, neriva.ru, and the Telegram bot @NERIVAapp_bot.",
           "The service is a single system regardless of access method.",
           "By using the service, the User agrees to this Policy."
         ]
@@ -129,7 +129,7 @@
         "operator",
         "2. Data operator",
         [
-          "The personal data operator is the owner of the PoliglotAI service (the “Operator”)."
+          "The personal data operator is the owner of the NERIVA service (the “Operator”)."
         ]
       ],
       [
@@ -215,23 +215,23 @@
         "contacts",
         "11. Contacts",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "es": {
-    "title": "POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES (PoliglotAI)",
+    "title": "POLÍTICA DE TRATAMIENTO DE DATOS PERSONALES (NERIVA)",
     "updated": "Actualizado el 27 de mayo de 2026",
-    "intro": "Esta Política se aplica a PoliglotAI en poliglotai.ru, poliglotai.online y al bot de Telegram @poliglot_ai_bot. El servicio es un sistema único sin importar el modo de acceso. Al usarlo, el Usuario acepta esta Política.",
+    "intro": "Esta Política se aplica a NERIVA en neriva.ru, neriva.ru y al bot de Telegram @NERIVAapp_bot. El servicio es un sistema único sin importar el modo de acceso. Al usarlo, el Usuario acepta esta Política.",
     "sections": [
       [
         "general",
         "1. Disposiciones generales",
         [
-          "Esta Política se aplica al servicio PoliglotAI en poliglotai.ru, poliglotai.online y al bot de Telegram @poliglot_ai_bot.",
+          "Esta Política se aplica al servicio NERIVA en neriva.ru, neriva.ru y al bot de Telegram @NERIVAapp_bot.",
           "El servicio funciona como un sistema único sin importar el modo de acceso.",
           "Al usar el servicio, el Usuario acepta esta Política."
         ]
@@ -240,7 +240,7 @@
         "operator",
         "2. Operador de datos",
         [
-          "El operador de datos personales es el propietario del servicio PoliglotAI."
+          "El operador de datos personales es el propietario del servicio NERIVA."
         ]
       ],
       [
@@ -305,23 +305,23 @@
         "contacts",
         "11. Contactos",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "de": {
-    "title": "RICHTLINIE ZUR VERARBEITUNG PERSONENBEZOGENER DATEN (PoliglotAI)",
+    "title": "RICHTLINIE ZUR VERARBEITUNG PERSONENBEZOGENER DATEN (NERIVA)",
     "updated": "Aktualisiert am 27. Mai 2026",
-    "intro": "Diese Richtlinie gilt für PoliglotAI auf poliglotai.ru, poliglotai.online und den Telegram-Bot @poliglot_ai_bot. Der Dienst ist unabhängig vom Zugang eine einheitliche Plattform. Mit der Nutzung stimmt der Nutzer dieser Richtlinie zu.",
+    "intro": "Diese Richtlinie gilt für NERIVA auf neriva.ru, neriva.ru und den Telegram-Bot @NERIVAapp_bot. Der Dienst ist unabhängig vom Zugang eine einheitliche Plattform. Mit der Nutzung stimmt der Nutzer dieser Richtlinie zu.",
     "sections": [
       [
         "general",
         "1. Allgemeine Bestimmungen",
         [
-          "Diese Richtlinie gilt für PoliglotAI auf poliglotai.ru, poliglotai.online und für den Telegram-Bot @poliglot_ai_bot.",
+          "Diese Richtlinie gilt für NERIVA auf neriva.ru, neriva.ru und für den Telegram-Bot @NERIVAapp_bot.",
           "Der Dienst ist unabhängig vom Zugang eine einheitliche Plattform.",
           "Mit der Nutzung stimmt der Nutzer dieser Richtlinie zu."
         ]
@@ -330,7 +330,7 @@
         "operator",
         "2. Datenbetreiber",
         [
-          "Betreiber personenbezogener Daten ist der Eigentümer des Dienstes PoliglotAI."
+          "Betreiber personenbezogener Daten ist der Eigentümer des Dienstes NERIVA."
         ]
       ],
       [
@@ -395,23 +395,23 @@
         "contacts",
         "11. Kontakte",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "fr": {
-    "title": "POLITIQUE DE TRAITEMENT DES DONNÉES PERSONNELLES (PoliglotAI)",
+    "title": "POLITIQUE DE TRAITEMENT DES DONNÉES PERSONNELLES (NERIVA)",
     "updated": "Mise à jour le 27 mai 2026",
-    "intro": "La présente Politique s’applique à PoliglotAI sur poliglotai.ru, poliglotai.online et au bot Telegram @poliglot_ai_bot. Le service constitue un système unique, quel que soit le mode d’accès. En l’utilisant, l’Utilisateur accepte cette Politique.",
+    "intro": "La présente Politique s’applique à NERIVA sur neriva.ru, neriva.ru et au bot Telegram @NERIVAapp_bot. Le service constitue un système unique, quel que soit le mode d’accès. En l’utilisant, l’Utilisateur accepte cette Politique.",
     "sections": [
       [
         "general",
         "1. Dispositions générales",
         [
-          "La présente Politique s'applique à PoliglotAI sur poliglotai.ru, poliglotai.online et au bot Telegram @poliglot_ai_bot.",
+          "La présente Politique s'applique à NERIVA sur neriva.ru, neriva.ru et au bot Telegram @NERIVAapp_bot.",
           "Le service constitue un système unique quel que soit le mode d'accès.",
           "En utilisant le service, l'Utilisateur accepte cette Politique."
         ]
@@ -420,7 +420,7 @@
         "operator",
         "2. Responsable du traitement",
         [
-          "L'opérateur des données personnelles est le propriétaire du service PoliglotAI."
+          "L'opérateur des données personnelles est le propriétaire du service NERIVA."
         ]
       ],
       [
@@ -485,23 +485,23 @@
         "contacts",
         "11. Contacts",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "it": {
-    "title": "POLITICA DI TRATTAMENTO DEI DATI PERSONALI (PoliglotAI)",
+    "title": "POLITICA DI TRATTAMENTO DEI DATI PERSONALI (NERIVA)",
     "updated": "Aggiornata il 27 maggio 2026",
-    "intro": "La presente Politica si applica a PoliglotAI su poliglotai.ru, poliglotai.online e al bot Telegram @poliglot_ai_bot. Il servizio è un sistema unico indipendentemente dal metodo di accesso. Usandolo, l’Utente accetta questa Politica.",
+    "intro": "La presente Politica si applica a NERIVA su neriva.ru, neriva.ru e al bot Telegram @NERIVAapp_bot. Il servizio è un sistema unico indipendentemente dal metodo di accesso. Usandolo, l’Utente accetta questa Politica.",
     "sections": [
       [
         "general",
         "1. Disposizioni generali",
         [
-          "La presente Politica si applica a PoliglotAI su poliglotai.ru, poliglotai.online e al bot Telegram @poliglot_ai_bot.",
+          "La presente Politica si applica a NERIVA su neriva.ru, neriva.ru e al bot Telegram @NERIVAapp_bot.",
           "Il servizio è un sistema unico indipendentemente dal metodo di accesso.",
           "Usando il servizio, l'Utente accetta questa Politica."
         ]
@@ -510,7 +510,7 @@
         "operator",
         "2. Titolare del trattamento",
         [
-          "Il titolare del trattamento è il proprietario del servizio PoliglotAI."
+          "Il titolare del trattamento è il proprietario del servizio NERIVA."
         ]
       ],
       [
@@ -575,23 +575,23 @@
         "contacts",
         "11. Contatti",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "zh": {
-    "title": "个人数据处理政策 (PoliglotAI)",
+    "title": "个人数据处理政策 (NERIVA)",
     "updated": "更新日期：2026年5月27日",
-    "intro": "本政策适用于 poliglotai.ru、poliglotai.online 以及 Telegram 机器人 @poliglot_ai_bot 上的 PoliglotAI。无论访问方式如何，服务均为统一系统。使用服务即表示用户同意本政策。",
+    "intro": "本政策适用于 neriva.ru、neriva.ru 以及 Telegram 机器人 @NERIVAapp_bot 上的 NERIVA。无论访问方式如何，服务均为统一系统。使用服务即表示用户同意本政策。",
     "sections": [
       [
         "general",
         "1. 一般条款",
         [
-          "本政策适用于 poliglotai.ru、poliglotai.online 以及 Telegram 机器人 @poliglot_ai_bot 上的 PoliglotAI 服务。",
+          "本政策适用于 neriva.ru、neriva.ru 以及 Telegram 机器人 @NERIVAapp_bot 上的 NERIVA 服务。",
           "无论访问方式如何，服务均为统一系统。",
           "使用服务即表示用户同意本政策。"
         ]
@@ -600,7 +600,7 @@
         "operator",
         "2. 数据运营者",
         [
-          "个人数据运营者为 PoliglotAI 服务所有者。"
+          "个人数据运营者为 NERIVA 服务所有者。"
         ]
       ],
       [
@@ -665,23 +665,23 @@
         "contacts",
         "11. 联系方式",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "ja": {
-    "title": "個人データ処理ポリシー (PoliglotAI)",
+    "title": "個人データ処理ポリシー (NERIVA)",
     "updated": "2026年5月27日更新",
-    "intro": "本ポリシーは、poliglotai.ru、poliglotai.online、およびTelegramボット @poliglot_ai_bot のPoliglotAIに適用されます。サービスはアクセス方法にかかわらず単一のシステムです。利用によりユーザーは本ポリシーに同意します。",
+    "intro": "本ポリシーは、neriva.ru、neriva.ru、およびTelegramボット @NERIVAapp_bot のNERIVAに適用されます。サービスはアクセス方法にかかわらず単一のシステムです。利用によりユーザーは本ポリシーに同意します。",
     "sections": [
       [
         "general",
         "1. 一般規定",
         [
-          "本ポリシーは poliglotai.ru、poliglotai.online、Telegram ボット @poliglot_ai_bot の PoliglotAI に適用されます。",
+          "本ポリシーは neriva.ru、neriva.ru、Telegram ボット @NERIVAapp_bot の NERIVA に適用されます。",
           "アクセス方法にかかわらず、サービスは一つのシステムです。",
           "サービスを利用することで、ユーザーは本ポリシーに同意します。"
         ]
@@ -690,7 +690,7 @@
         "operator",
         "2. データ管理者",
         [
-          "個人データの運営者は PoliglotAI サービスの所有者です。"
+          "個人データの運営者は NERIVA サービスの所有者です。"
         ]
       ],
       [
@@ -755,23 +755,23 @@
         "contacts",
         "11. 連絡先",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "ko": {
-    "title": "개인정보 처리 정책 (PoliglotAI)",
+    "title": "개인정보 처리 정책 (NERIVA)",
     "updated": "2026년 5월 27일 업데이트",
-    "intro": "본 정책은 poliglotai.ru, poliglotai.online 및 Telegram 봇 @poliglot_ai_bot의 PoliglotAI에 적용됩니다. 서비스는 접속 방식과 관계없이 하나의 시스템입니다. 사용자는 서비스를 이용함으로써 본 정책에 동의합니다.",
+    "intro": "본 정책은 neriva.ru, neriva.ru 및 Telegram 봇 @NERIVAapp_bot의 NERIVA에 적용됩니다. 서비스는 접속 방식과 관계없이 하나의 시스템입니다. 사용자는 서비스를 이용함으로써 본 정책에 동의합니다.",
     "sections": [
       [
         "general",
         "1. 일반 조항",
         [
-          "본 정책은 poliglotai.ru, poliglotai.online 및 Telegram 봇 @poliglot_ai_bot의 PoliglotAI 서비스에 적용됩니다.",
+          "본 정책은 neriva.ru, neriva.ru 및 Telegram 봇 @NERIVAapp_bot의 NERIVA 서비스에 적용됩니다.",
           "서비스는 접근 방식과 관계없이 하나의 시스템입니다.",
           "서비스를 이용하면 사용자는 본 정책에 동의합니다."
         ]
@@ -780,7 +780,7 @@
         "operator",
         "2. 데이터 운영자",
         [
-          "개인정보 처리 운영자는 PoliglotAI 서비스의 소유자입니다."
+          "개인정보 처리 운영자는 NERIVA 서비스의 소유자입니다."
         ]
       ],
       [
@@ -845,109 +845,109 @@
         "contacts",
         "11. 연락처",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "tg": {
-    "title": "СИЁСАТИ КОРКАРДИ МАЪЛУМОТИ ШАХСӢ (PoliglotAI)",
+    "title": "СИЁСАТИ КОРКАРДИ МАЪЛУМОТИ ШАХСӢ (NERIVA)",
     "updated": "Навсозӣ: 27 майи 2026",
-    "intro": "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад.",
+    "intro": "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад.",
     "sections": [
       [
         "general",
         "1. Муқаррароти умумӣ",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "operator",
         "2. Оператори маълумот",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "data",
         "3. Маълумоти коркардшаванда",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "sources",
         "4. Манбаъҳои маълумот",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "purposes",
         "5. Ҳадафҳо",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "storage",
         "6. Нигоҳдорӣ ва интиқол",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "protection",
         "7. Муҳофизат",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "retention",
         "8. Муҳлати нигоҳдорӣ",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "rights",
         "9. Ҳуқуқҳои корбар",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "consent",
         "10. Розигӣ",
         [
-          "Ин Сиёсат ба PoliglotAI дар poliglotai.ru, poliglotai.online ва боти Telegram @poliglot_ai_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
+          "Ин Сиёсат ба NERIVA дар neriva.ru, neriva.ru ва боти Telegram @NERIVAapp_bot татбиқ мешавад. Сервис новобаста аз роҳи дастрасӣ як низоми ягона аст. Бо истифода аз сервис, Корбар ба ин Сиёсат розӣ мешавад."
         ]
       ],
       [
         "contacts",
         "11. Тамос",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "uz": {
-    "title": "SHAXSIY MA’LUMOTLARNI QAYTA ISHLASH SIYOSATI (PoliglotAI)",
+    "title": "SHAXSIY MA’LUMOTLARNI QAYTA ISHLASH SIYOSATI (NERIVA)",
     "updated": "2026-yil 27-mayda yangilangan",
-    "intro": "Ushbu Siyosat poliglotai.ru, poliglotai.online va Telegram boti @poliglot_ai_bot orqali ishlaydigan PoliglotAI xizmatiga taalluqlidir. Xizmat kirish usulidan qat’i nazar yagona tizimdir. Foydalanish orqali Foydalanuvchi ushbu Siyosatga rozilik bildiradi.",
+    "intro": "Ushbu Siyosat neriva.ru, neriva.ru va Telegram boti @NERIVAapp_bot orqali ishlaydigan NERIVA xizmatiga taalluqlidir. Xizmat kirish usulidan qat’i nazar yagona tizimdir. Foydalanish orqali Foydalanuvchi ushbu Siyosatga rozilik bildiradi.",
     "sections": [
       [
         "general",
         "1. Umumiy qoidalar",
         [
-          "Ushbu Siyosat poliglotai.ru, poliglotai.online va Telegram boti @poliglot_ai_bot orqali ishlaydigan PoliglotAI xizmatiga taalluqlidir.",
+          "Ushbu Siyosat neriva.ru, neriva.ru va Telegram boti @NERIVAapp_bot orqali ishlaydigan NERIVA xizmatiga taalluqlidir.",
           "Xizmat kirish usulidan qat'i nazar yagona tizimdir.",
           "Foydalanish orqali Foydalanuvchi ushbu Siyosatga rozilik bildiradi."
         ]
@@ -956,7 +956,7 @@
         "operator",
         "2. Ma’lumotlar operatori",
         [
-          "Shaxsiy ma'lumotlar operatori PoliglotAI xizmati egasidir."
+          "Shaxsiy ma'lumotlar operatori NERIVA xizmati egasidir."
         ]
       ],
       [
@@ -1021,453 +1021,453 @@
         "contacts",
         "11. Aloqa",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "tt": {
-    "title": "ШӘХСИ МӘГЪЛҮМАТЛАРНЫ ЭШКӘРТҮ СӘЯСӘТЕ (PoliglotAI)",
+    "title": "ШӘХСИ МӘГЪЛҮМАТЛАРНЫ ЭШКӘРТҮ СӘЯСӘТЕ (NERIVA)",
     "updated": "2026 елның 27 маенда яңартылды",
-    "intro": "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә.",
+    "intro": "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә.",
     "sections": [
       [
         "general",
         "1. Гомуми нигезләмәләр",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "operator",
         "2. Мәгълүмат операторы",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "data",
         "3. Эшкәртелә торган мәгълүмат",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "sources",
         "4. Мәгълүмат чыганаклары",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "purposes",
         "5. Максатлар",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "storage",
         "6. Саклау һәм тапшыру",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "protection",
         "7. Саклау чаралары",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "retention",
         "8. Саклау вакыты",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "rights",
         "9. Кулланучы хокуклары",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "consent",
         "10. Ризалык",
         [
-          "Әлеге Сәясәт poliglotai.ru, poliglotai.online һәм Telegram-бот @poliglot_ai_bot аша эшләүче PoliglotAI сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
+          "Әлеге Сәясәт neriva.ru, neriva.ru һәм Telegram-бот @NERIVAapp_bot аша эшләүче NERIVA сервисына кагыла. Сервис керү ысулына карамастан бердәм система булып тора. Сервистан файдалану белән Кулланучы әлеге Сәясәт белән килешә."
         ]
       ],
       [
         "contacts",
         "11. Контактлар",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "hy": {
-    "title": "ԱՆՁՆԱԿԱՆ ՏՎՅԱԼՆԵՐԻ ՄՇԱԿՄԱՆ ՔԱՂԱՔԱԿԱՆՈՒԹՅՈՒՆ (PoliglotAI)",
+    "title": "ԱՆՁՆԱԿԱՆ ՏՎՅԱԼՆԵՐԻ ՄՇԱԿՄԱՆ ՔԱՂԱՔԱԿԱՆՈՒԹՅՈՒՆ (NERIVA)",
     "updated": "Թարմացվել է 2026 թվականի մայիսի 27-ին",
-    "intro": "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։",
+    "intro": "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։",
     "sections": [
       [
         "general",
         "1. Ընդհանուր դրույթներ",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "operator",
         "2. Տվյալների օպերատոր",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "data",
         "3. Մշակվող տվյալներ",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "sources",
         "4. Տվյալների աղբյուրներ",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "purposes",
         "5. Նպատակներ",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "storage",
         "6. Պահպանում և փոխանցում",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "protection",
         "7. Պաշտպանություն",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "retention",
         "8. Պահպանման ժամկետ",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "rights",
         "9. Օգտատիրոջ իրավունքներ",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "consent",
         "10. Համաձայնություն",
         [
-          "Սույն Քաղաքականությունը վերաբերում է PoliglotAI ծառայությանը poliglotai.ru, poliglotai.online կայքերում և Telegram բոտում՝ @poliglot_ai_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
+          "Սույն Քաղաքականությունը վերաբերում է NERIVA ծառայությանը neriva.ru, neriva.ru կայքերում և Telegram բոտում՝ @NERIVAapp_bot։ Ծառայությունը մեկ միասնական համակարգ է՝ անկախ մուտքի եղանակից։ Օգտագործելով ծառայությունը՝ Օգտատերը համաձայնում է սույն Քաղաքականությանը։"
         ]
       ],
       [
         "contacts",
         "11. Կոնտակտներ",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "kk": {
-    "title": "ЖЕКЕ ДЕРЕКТЕРДІ ӨҢДЕУ САЯСАТЫ (PoliglotAI)",
+    "title": "ЖЕКЕ ДЕРЕКТЕРДІ ӨҢДЕУ САЯСАТЫ (NERIVA)",
     "updated": "2026 жылғы 27 мамырда жаңартылды",
-    "intro": "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі.",
+    "intro": "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі.",
     "sections": [
       [
         "general",
         "1. Жалпы ережелер",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "operator",
         "2. Деректер операторы",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "data",
         "3. Өңделетін деректер",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "sources",
         "4. Деректер көздері",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "purposes",
         "5. Мақсаттар",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "storage",
         "6. Сақтау және беру",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "protection",
         "7. Қорғау",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "retention",
         "8. Сақтау мерзімі",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "rights",
         "9. Пайдаланушы құқықтары",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "consent",
         "10. Келісім",
         [
-          "Осы Саясат poliglotai.ru, poliglotai.online сайттарындағы және @poliglot_ai_bot Telegram-ботындағы PoliglotAI сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
+          "Осы Саясат neriva.ru, neriva.ru сайттарындағы және @NERIVAapp_bot Telegram-ботындағы NERIVA сервисіне қолданылады. Сервис қол жеткізу тәсіліне қарамастан біртұтас жүйе болып табылады. Сервисті пайдалану арқылы Пайдаланушы осы Саясатпен келіседі."
         ]
       ],
       [
         "contacts",
         "11. Байланыс",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "ky": {
-    "title": "ЖЕКЕ МААЛЫМАТТАРДЫ ИШТЕТҮҮ САЯСАТЫ (PoliglotAI)",
+    "title": "ЖЕКЕ МААЛЫМАТТАРДЫ ИШТЕТҮҮ САЯСАТЫ (NERIVA)",
     "updated": "2026-жылдын 27-майында жаңыртылды",
-    "intro": "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот.",
+    "intro": "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот.",
     "sections": [
       [
         "general",
         "1. Жалпы жоболор",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "operator",
         "2. Маалымат оператору",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "data",
         "3. Иштетилген маалыматтар",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "sources",
         "4. Маалымат булактары",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "purposes",
         "5. Максаттар",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "storage",
         "6. Сактоо жана берүү",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "protection",
         "7. Коргоо",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "retention",
         "8. Сактоо мөөнөтү",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "rights",
         "9. Колдонуучунун укуктары",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "consent",
         "10. Макулдук",
         [
-          "Бул Саясат poliglotai.ru, poliglotai.online сайттарындагы жана @poliglot_ai_bot Telegram ботундагы PoliglotAI сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
+          "Бул Саясат neriva.ru, neriva.ru сайттарындагы жана @NERIVAapp_bot Telegram ботундагы NERIVA сервисине колдонулат. Сервис кирүү ыкмасына карабастан бирдиктүү система болуп саналат. Сервисти колдонуу менен Колдонуучу ушул Саясатка макул болот."
         ]
       ],
       [
         "contacts",
         "11. Байланыш",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "ka": {
-    "title": "პერსონალური მონაცემების დამუშავების პოლიტიკა (PoliglotAI)",
+    "title": "პერსონალური მონაცემების დამუშავების პოლიტიკა (NERIVA)",
     "updated": "განახლდა 2026 წლის 27 მაისს",
-    "intro": "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას.",
+    "intro": "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას.",
     "sections": [
       [
         "general",
         "1. ზოგადი დებულებები",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "operator",
         "2. მონაცემთა ოპერატორი",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "data",
         "3. დამუშავებული მონაცემები",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "sources",
         "4. მონაცემთა წყაროები",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "purposes",
         "5. მიზნები",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "storage",
         "6. შენახვა და გადაცემა",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "protection",
         "7. დაცვა",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "retention",
         "8. შენახვის ვადა",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "rights",
         "9. მომხმარებლის უფლებები",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "consent",
         "10. თანხმობა",
         [
-          "ეს პოლიტიკა ვრცელდება PoliglotAI სერვისზე poliglotai.ru, poliglotai.online და Telegram ბოტში @poliglot_ai_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
+          "ეს პოლიტიკა ვრცელდება NERIVA სერვისზე neriva.ru, neriva.ru და Telegram ბოტში @NERIVAapp_bot. სერვისი არის ერთიანი სისტემა, წვდომის მეთოდის მიუხედავად. სერვისის გამოყენებით მომხმარებელი ეთანხმება ამ პოლიტიკას."
         ]
       ],
       [
         "contacts",
         "11. კონტაქტები",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "uk": {
-    "title": "ПОЛІТИКА ОБРОБКИ ПЕРСОНАЛЬНИХ ДАНИХ (PoliglotAI)",
+    "title": "ПОЛІТИКА ОБРОБКИ ПЕРСОНАЛЬНИХ ДАНИХ (NERIVA)",
     "updated": "Оновлено 27 травня 2026",
-    "intro": "Ця Політика діє щодо сервісу PoliglotAI, доступного через сайти poliglotai.ru, poliglotai.online і Telegram-бот @poliglot_ai_bot. Сервіс є єдиною системою незалежно від способу доступу. Використовуючи сервіс, Користувач погоджується з цією Політикою.",
+    "intro": "Ця Політика діє щодо сервісу NERIVA, доступного через сайти neriva.ru, neriva.ru і Telegram-бот @NERIVAapp_bot. Сервіс є єдиною системою незалежно від способу доступу. Використовуючи сервіс, Користувач погоджується з цією Політикою.",
     "sections": [
       [
         "general",
         "1. Загальні положення",
         [
-          "Ця Політика діє щодо сервісу PoliglotAI на poliglotai.ru, poliglotai.online і Telegram-бота @poliglot_ai_bot.",
+          "Ця Політика діє щодо сервісу NERIVA на neriva.ru, neriva.ru і Telegram-бота @NERIVAapp_bot.",
           "Сервіс є єдиною системою незалежно від способу доступу.",
           "Використовуючи сервіс, Користувач погоджується з цією Політикою."
         ]
@@ -1476,7 +1476,7 @@
         "operator",
         "2. Оператор даних",
         [
-          "Оператором персональних даних є власник сервісу PoliglotAI."
+          "Оператором персональних даних є власник сервісу NERIVA."
         ]
       ],
       [
@@ -1541,23 +1541,23 @@
         "contacts",
         "11. Контакти",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "pl": {
-    "title": "POLITYKA PRZETWARZANIA DANYCH OSOBOWYCH (PoliglotAI)",
+    "title": "POLITYKA PRZETWARZANIA DANYCH OSOBOWYCH (NERIVA)",
     "updated": "Zaktualizowano 27 maja 2026",
-    "intro": "Niniejsza Polityka dotyczy PoliglotAI w serwisach poliglotai.ru, poliglotai.online oraz w bocie Telegram @poliglot_ai_bot. Usługa jest jednym systemem niezależnie od sposobu dostępu. Korzystając z usługi, Użytkownik akceptuje tę Politykę.",
+    "intro": "Niniejsza Polityka dotyczy NERIVA w serwisach neriva.ru, neriva.ru oraz w bocie Telegram @NERIVAapp_bot. Usługa jest jednym systemem niezależnie od sposobu dostępu. Korzystając z usługi, Użytkownik akceptuje tę Politykę.",
     "sections": [
       [
         "general",
         "1. Postanowienia ogólne",
         [
-          "Niniejsza Polityka dotyczy PoliglotAI na poliglotai.ru, poliglotai.online oraz bota Telegram @poliglot_ai_bot.",
+          "Niniejsza Polityka dotyczy NERIVA na neriva.ru, neriva.ru oraz bota Telegram @NERIVAapp_bot.",
           "Usługa jest jednym systemem niezależnie od sposobu dostępu.",
           "Korzystając z usługi, Użytkownik akceptuje tę Politykę."
         ]
@@ -1566,7 +1566,7 @@
         "operator",
         "2. Operator danych",
         [
-          "Operatorem danych osobowych jest właściciel usługi PoliglotAI."
+          "Operatorem danych osobowych jest właściciel usługi NERIVA."
         ]
       ],
       [
@@ -1631,23 +1631,23 @@
         "contacts",
         "11. Kontakt",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "ro": {
-    "title": "POLITICA DE PRELUCRARE A DATELOR CU CARACTER PERSONAL (PoliglotAI)",
+    "title": "POLITICA DE PRELUCRARE A DATELOR CU CARACTER PERSONAL (NERIVA)",
     "updated": "Actualizat la 27 mai 2026",
-    "intro": "Această Politică se aplică serviciului PoliglotAI disponibil prin poliglotai.ru, poliglotai.online și botul Telegram @poliglot_ai_bot. Serviciul este un sistem unic indiferent de metoda de acces. Prin utilizare, Utilizatorul acceptă această Politică.",
+    "intro": "Această Politică se aplică serviciului NERIVA disponibil prin neriva.ru, neriva.ru și botul Telegram @NERIVAapp_bot. Serviciul este un sistem unic indiferent de metoda de acces. Prin utilizare, Utilizatorul acceptă această Politică.",
     "sections": [
       [
         "general",
         "1. Dispoziții generale",
         [
-          "Această Politică se aplică serviciului PoliglotAI pe poliglotai.ru, poliglotai.online și botului Telegram @poliglot_ai_bot.",
+          "Această Politică se aplică serviciului NERIVA pe neriva.ru, neriva.ru și botului Telegram @NERIVAapp_bot.",
           "Serviciul este un sistem unic indiferent de metoda de acces.",
           "Prin utilizare, Utilizatorul acceptă această Politică."
         ]
@@ -1656,7 +1656,7 @@
         "operator",
         "2. Operatorul datelor",
         [
-          "Operatorul datelor personale este proprietarul serviciului PoliglotAI."
+          "Operatorul datelor personale este proprietarul serviciului NERIVA."
         ]
       ],
       [
@@ -1721,23 +1721,23 @@
         "contacts",
         "11. Contacte",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
   },
   "pt": {
-    "title": "POLÍTICA DE TRATAMENTO DE DADOS PESSOAIS (PoliglotAI)",
+    "title": "POLÍTICA DE TRATAMENTO DE DADOS PESSOAIS (NERIVA)",
     "updated": "Atualizada em 27 de maio de 2026",
-    "intro": "Esta Política aplica-se ao PoliglotAI em poliglotai.ru, poliglotai.online e ao bot do Telegram @poliglot_ai_bot. O serviço é um sistema único independentemente do método de acesso. Ao utilizar o serviço, o Utilizador aceita esta Política.",
+    "intro": "Esta Política aplica-se ao NERIVA em neriva.ru, neriva.ru e ao bot do Telegram @NERIVAapp_bot. O serviço é um sistema único independentemente do método de acesso. Ao utilizar o serviço, o Utilizador aceita esta Política.",
     "sections": [
       [
         "general",
         "1. Disposições gerais",
         [
-          "Esta Política aplica-se ao PoliglotAI em poliglotai.ru, poliglotai.online e ao bot do Telegram @poliglot_ai_bot.",
+          "Esta Política aplica-se ao NERIVA em neriva.ru, neriva.ru e ao bot do Telegram @NERIVAapp_bot.",
           "O serviço é um sistema único independentemente do método de acesso.",
           "Ao utilizar o serviço, o Utilizador aceita esta Política."
         ]
@@ -1746,7 +1746,7 @@
         "operator",
         "2. Operador dos dados",
         [
-          "O operador dos dados pessoais é o proprietário do serviço PoliglotAI."
+          "O operador dos dados pessoais é o proprietário do serviço NERIVA."
         ]
       ],
       [
@@ -1811,9 +1811,9 @@
         "contacts",
         "11. Contactos",
         [
-          "Email: supportpoliglotai@gmail.com",
-          "Telegram: @AsaselD",
-          "Bot: @poliglot_ai_bot"
+          "Email: support@neriva.ru",
+          "Telegram: @NERIVAapp_bot",
+          "Bot: @NERIVAapp_bot"
         ]
       ]
     ]
@@ -1838,9 +1838,9 @@
 
   function renderContactGrid(blocks) {
     const values = blocks.map((item) => String(item).replace(/^[^:]+:\s*/, ""));
-    const email = values[0] || "supportpoliglotai@gmail.com";
-    const admin = values[1] || "@AsaselD";
-    const bot = values[2] || "@poliglot_ai_bot";
+    const email = values[0] || "support@neriva.ru";
+    const admin = values[1] || "@NERIVAapp_bot";
+    const bot = values[2] || "@NERIVAapp_bot";
     return '<div class="legal-contact-grid">' +
       '<a href="mailto:' + escapeHTML(email) + '"><small>Email</small>' + escapeHTML(email) + '</a>' +
       '<a href="https://t.me/' + escapeHTML(admin.replace(/^@/, "")) + '"><small>Telegram</small>' + escapeHTML(admin) + '</a>' +
@@ -1868,7 +1868,7 @@
     const locale = currentLocale();
     const entry = policy[locale] || policy.ru;
     document.documentElement.lang = locale;
-    document.title = entry.title + " - PoliglotAI";
+    document.title = entry.title + " - NERIVA";
     const shell = document.querySelector("[data-privacy-policy-card]") || document.querySelector(".legal-document-shell");
     if (!shell) return false;
     shell.innerHTML = renderHTML(entry);

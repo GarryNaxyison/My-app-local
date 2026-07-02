@@ -1,4 +1,4 @@
-# Poliglot AI Prompt Registry
+# NERIVA Prompt Registry
 
 Purpose: this is the root project index for prompts that are editable outside the Go binary. Runtime templates live in `app_prompts.json` and are uploaded together with the binary and environment files.
 

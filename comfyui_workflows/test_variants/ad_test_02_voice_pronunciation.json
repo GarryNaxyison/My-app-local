@@ -172,7 +172,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "Vertical 9:16 premium ad keyframe for Poliglot AI mobile web voice practice. A warm confident young adult woman, age 18 or older, in a tailored business suit holds a smartphone with the Poliglot AI mobile web interface clearly visible. The phone screen shows a polished mobile app shell: compact header, voice practice card, microphone control, waveform, pronunciation feedback, progress chip. Luxury tech commercial, high-end studio lighting, functional product UI visible, no fake words, no random subtitles, no sensual pose."
+        "Vertical 9:16 premium ad keyframe for NERIVA mobile web voice practice. A warm confident young adult woman, age 18 or older, in a tailored business suit holds a smartphone with the NERIVA mobile web interface clearly visible. The phone screen shows a polished mobile app shell: compact header, voice practice card, microphone control, waveform, pronunciation feedback, progress chip. Luxury tech commercial, high-end studio lighting, functional product UI visible, no fake words, no random subtitles, no sensual pose."
       ],
       "title": "FLUX keyframe prompt",
       "color": "#232",
@@ -365,7 +365,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "5-second vertical premium product shot. Slow parallax around the presenter and smartphone, showing the Poliglot AI mobile web interface with voice practice, waveform motion, pronunciation feedback rings, and progress energy. Young adult business presenter, age 18 or older, friendly and professional. Elite language-learning SaaS commercial, stable product identity, sharp polished lighting, no captions inside the image."
+        "5-second vertical premium product shot. Slow parallax around the presenter and smartphone, showing the NERIVA mobile web interface with voice practice, waveform motion, pronunciation feedback rings, and progress energy. Young adult business presenter, age 18 or older, friendly and professional. Elite language-learning SaaS commercial, stable product identity, sharp polished lighting, no captions inside the image."
       ],
       "title": "Wan motion prompt",
       "color": "#232",
@@ -1791,7 +1791,7 @@
         "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "XTTS voice direction:\nYoung adult female speaker, age 18 or older. Elegant business tone, warm and confident, premium English tech advertisement. Clear pronunciation, calm luxury pace, no sensual delivery.\n\n5-second English voiceover:\n\"Speak, listen, and improve with instant pronunciation feedback. Poliglot AI helps you hear mistakes clearly and turn every practice session into confident progress.\"\n\nVisual focus:\nMobile web voice practice + pronunciation\n"
+        "XTTS voice direction:\nYoung adult female speaker, age 18 or older. Elegant business tone, warm and confident, premium English tech advertisement. Clear pronunciation, calm luxury pace, no sensual delivery.\n\n5-second English voiceover:\n\"Speak, listen, and improve with instant pronunciation feedback. NERIVA helps you hear mistakes clearly and turn every practice session into confident progress.\"\n\nVisual focus:\nMobile web voice practice + pronunciation\n"
       ],
       "title": "5s script: Mobile web voice practice + pronunciation",
       "color": "#232",

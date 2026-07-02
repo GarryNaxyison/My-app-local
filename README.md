@@ -1,6 +1,6 @@
 # Telegram AI English Coach
 
-Poliglot AI — Telegram-бот и web app для изучения языков с AI-уроками, практикой, голосом, фото-переводом, словарем, ошибками, прогрессом и тарифами Free, Premium и Platinum.
+NERIVA — Telegram-бот и web app для изучения языков с AI-уроками, практикой, голосом, фото-переводом, словарем, ошибками, прогрессом и тарифами Free, Premium и Platinum.
 
 ## Возможности
 

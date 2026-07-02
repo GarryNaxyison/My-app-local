@@ -46,7 +46,7 @@ User-facing copy must resolve from an explicit locale dictionary for every suppo
 
 Allowed untranslated invariant terms:
 
-- Brand and platform names: `Poliglot AI`, `Telegram`, `AI Tutor`.
+- Brand and platform names: `NERIVA`, `Telegram`, `AI Tutor`.
 - Plan and payment names: `Free`, `Premium`, `Platinum`, `Stars`, `TON`, `USDT`, `RUB`, `YooKassa`, `SBP`.
 - Technical labels that users recognize as product/protocol tokens: `XP`, `CEFR`, `OCR`, `PWA`, email addresses, URLs, bot handles, legal identifiers, prices, dates, and exact support contacts.
 

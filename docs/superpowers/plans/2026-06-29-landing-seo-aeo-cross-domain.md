@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add SEO/AEO metadata, JSON-LD, visible answer content, `robots.txt`, and `sitemap.xml` to the current Poliglot AI landing without redesigning it.
+**Goal:** Add SEO/AEO metadata, JSON-LD, visible answer content, `robots.txt`, and `sitemap.xml` to the current NERIVA landing without redesigning it.
 
 **Architecture:** Keep the landing UI in `EnglishSparkLanding`, move reusable SEO/AEO copy into one small content module, and centralize runtime head updates in `seoMetadata.ts`. The Russian domain canonicalizes Russian pages to `poliglotai.ru`; all non-Russian interface languages canonicalize to `poliglotai.online` with `?lang=<code>`.
 
@@ -78,7 +78,7 @@ test.describe("public landing SEO and AEO metadata", () => {
   test("sets Russian canonical metadata, alternates, JSON-LD, and visible answers", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=ru");
 
-    await expect(page).toHaveTitle("Poliglot AI - AI-репетитор английского и языков в Telegram");
+    await expect(page).toHaveTitle("NERIVA - AI-репетитор английского и языков в Telegram");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       /AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium/,
@@ -107,7 +107,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(graphTypes).toEqual(["Organization", "WebSite", "SoftwareApplication", "FAQPage"]);
     const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
     expect(faqNode.mainEntity).toHaveLength(6);
-    expect(faqNode.mainEntity[0].name).toBe("Что такое Poliglot AI?");
+    expect(faqNode.mainEntity[0].name).toBe("Что такое NERIVA?");
 
     await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
     await expect(page.locator(".answer-card")).toHaveCount(6);
@@ -117,14 +117,14 @@ test.describe("public landing SEO and AEO metadata", () => {
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=en");
 
-    await expect(page).toHaveTitle("Poliglot AI - AI language tutor in Telegram and web app");
+    await expect(page).toHaveTitle("NERIVA - AI language tutor in Telegram and web app");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       /AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans/,
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://poliglotai.online/poliglot-ai.html?lang=en");
     await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://poliglotai.online/poliglot-ai.html?lang=en");
-    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "Poliglot AI - AI language tutor in Telegram and web app");
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "NERIVA - AI language tutor in Telegram and web app");
 
     const jsonLdText = await page.locator("#poliglot-seo-jsonld").textContent();
     const jsonLd = JSON.parse(jsonLdText || "{}");
@@ -240,25 +240,25 @@ export const russianSiteOrigin = "https://poliglotai.ru";
 export const internationalSiteOrigin = "https://poliglotai.online";
 
 export const socialProfileUrls = [
-  "https://www.youtube.com/@PoliglotAI",
+  "https://www.youtube.com/@NERIVA",
   "https://www.instagram.com/poliglotai.online/",
   "https://www.tiktok.com/@poliglotai.online",
 ] as const;
 
 export const landingSeoCopy = {
   ru: {
-    title: "Poliglot AI - AI-репетитор английского и языков в Telegram",
+    title: "NERIVA - AI-репетитор английского и языков в Telegram",
     description:
-      "Poliglot AI: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.",
+      "NERIVA: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.",
     sectionEyebrow: "Поисковые ответы",
     sectionTitle: "Ответы для поиска и AI",
     sectionIntro:
-      "Короткие прямые ответы о Poliglot AI для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
+      "Короткие прямые ответы о NERIVA для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
     questions: [
       {
-        question: "Что такое Poliglot AI?",
+        question: "Что такое NERIVA?",
         answer:
-          "Poliglot AI — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле.",
+          "NERIVA — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле.",
       },
       {
         question: "Можно ли учить английский с ИИ в Telegram?",
@@ -268,7 +268,7 @@ export const landingSeoCopy = {
       {
         question: "Чем AI-репетитор отличается от обычного приложения со словами?",
         answer:
-          "Poliglot AI не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение.",
+          "NERIVA не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение.",
       },
       {
         question: "Можно ли тренировать произношение и speaking?",
@@ -288,18 +288,18 @@ export const landingSeoCopy = {
     ],
   },
   en: {
-    title: "Poliglot AI - AI language tutor in Telegram and web app",
+    title: "NERIVA - AI language tutor in Telegram and web app",
     description:
-      "Poliglot AI: AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans in one profile.",
+      "NERIVA: AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans in one profile.",
     sectionEyebrow: "Search answers",
     sectionTitle: "Answers for search and AI assistants",
     sectionIntro:
-      "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
+      "Short direct answers about NERIVA for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.",
     questions: [
       {
-        question: "What is Poliglot AI?",
+        question: "What is NERIVA?",
         answer:
-          "Poliglot AI is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
+          "NERIVA is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.",
       },
       {
         question: "Can I practice English with an AI tutor in Telegram?",
@@ -309,7 +309,7 @@ export const landingSeoCopy = {
       {
         question: "How is an AI tutor different from a vocabulary app?",
         answer:
-          "Poliglot AI is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
+          "NERIVA is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.",
       },
       {
         question: "Can I practice pronunciation and speaking?",
@@ -375,7 +375,7 @@ declare global {
 }
 
 const jsonLdScriptId = "poliglot-seo-jsonld";
-const supportEmail = "supportpoliglotai@gmail.com";
+const supportEmail = "support@neriva.ru";
 
 function currentLandingLanguage() {
   const i18nLanguage = window.poliglotSiteI18n?.currentLanguage?.();
@@ -433,7 +433,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         logo: absoluteAssetUrl("/assets/brand-logo-mini.png", origin),
         sameAs: [...socialProfileUrls],
@@ -442,7 +442,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
       {
         "@type": "WebSite",
         "@id": websiteId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         inLanguage: language,
         publisher: { "@id": organizationId },
@@ -450,7 +450,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
       {
         "@type": "SoftwareApplication",
         "@id": applicationId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         applicationCategory: "EducationalApplication",
         operatingSystem: "Web, Telegram",
         url: canonicalUrl,
@@ -564,20 +564,20 @@ setupLandingSeoMetadata();
 Modify only the `<head>` of `site-react/poliglot-ai.html` so it contains these metadata tags while keeping the existing script order:
 
 ```html
-    <title>Poliglot AI - AI-репетитор английского и языков в Telegram</title>
-    <meta name="description" content="Poliglot AI: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле." />
+    <title>NERIVA - AI-репетитор английского и языков в Telegram</title>
+    <meta name="description" content="NERIVA: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://poliglotai.ru/poliglot-ai.html" />
     <link rel="alternate" hreflang="ru" href="https://poliglotai.ru/poliglot-ai.html" />
     <link rel="alternate" hreflang="en" href="https://poliglotai.online/poliglot-ai.html?lang=en" />
     <link rel="alternate" hreflang="x-default" href="https://poliglotai.online/poliglot-ai.html?lang=en" />
-    <meta property="og:title" content="Poliglot AI - AI-репетитор английского и языков в Telegram" />
+    <meta property="og:title" content="NERIVA - AI-репетитор английского и языков в Telegram" />
     <meta property="og:description" content="AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://poliglotai.ru/poliglot-ai.html" />
     <meta property="og:image" content="https://poliglotai.ru/assets/brand-logo-mini.png" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="Poliglot AI - AI-репетитор английского и языков в Telegram" />
+    <meta name="twitter:title" content="NERIVA - AI-репетитор английского и языков в Telegram" />
     <meta name="twitter:description" content="AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле." />
     <meta name="twitter:image" content="https://poliglotai.ru/assets/brand-logo-mini.png" />
 ```
@@ -752,14 +752,14 @@ In `site-react/public/assets/site-phrases.js`, add these entries near the other 
   "Search answers": {
     "ru": "Поисковые ответы"
   },
-  "Short direct answers about Poliglot AI for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.": {
-    "ru": "Короткие прямые ответы о Poliglot AI для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод."
+  "Short direct answers about NERIVA for people comparing AI tutors, Telegram language bots, speaking practice, voice, and photo translation.": {
+    "ru": "Короткие прямые ответы о NERIVA для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод."
   },
-  "What is Poliglot AI?": {
-    "ru": "Что такое Poliglot AI?"
+  "What is NERIVA?": {
+    "ru": "Что такое NERIVA?"
   },
-  "Poliglot AI is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.": {
-    "ru": "Poliglot AI — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле."
+  "NERIVA is an AI language tutor in a web app and Telegram bot. It combines short lessons, speaking practice, pronunciation, photo translation, mistakes, notes, and progress in one profile.": {
+    "ru": "NERIVA — это AI-репетитор языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле."
   },
   "Can I practice English with an AI tutor in Telegram?": {
     "ru": "Можно ли учить английский с ИИ в Telegram?"
@@ -770,8 +770,8 @@ In `site-react/public/assets/site-phrases.js`, add these entries near the other 
   "How is an AI tutor different from a vocabulary app?": {
     "ru": "Чем AI-репетитор отличается от обычного приложения со словами?"
   },
-  "Poliglot AI is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.": {
-    "ru": "Poliglot AI не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение."
+  "NERIVA is not only a word list. It gives a phrase in context, asks for your answer, corrects the mistake, and brings the weak spot back for review.": {
+    "ru": "NERIVA не ограничивается списком слов: он дает фразу в контексте, просит ответить, исправляет ошибку и возвращает слабое место в повторение."
   },
   "Can I practice pronunciation and speaking?": {
     "ru": "Можно ли тренировать произношение и speaking?"

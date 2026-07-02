@@ -23,7 +23,7 @@ import { LandingSocialProof } from "./components/SocialLinks";
 import { landingSeoCopy } from "./landingSeoContent";
 
 const WEB_APP_HREF = "/app/";
-const TELEGRAM_HREF = "https://t.me/poliglot_ai_bot";
+const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
 
 const heroGoals = [
   ["Travel", "hotel, cafe, airport"],
@@ -47,7 +47,7 @@ const demoScreens = [
   {
     tab: "Lesson",
     avatar: "AI",
-    intro: "Poliglot AI gives the phrase, meaning, example, and one short next step.",
+    intro: "NERIVA gives the phrase, meaning, example, and one short next step.",
     label: "Lesson",
     output: "I would like to book a table for tonight.",
     hint: "The phrase moves straight into your route and review loop.",
@@ -365,7 +365,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
               <div className="demo-message">
                 <div className="demo-avatar">{activeDemo.avatar}</div>
                 <div>
-                  <strong>Poliglot AI</strong>
+                  <strong>NERIVA</strong>
                   <p>{activeDemo.intro}</p>
                 </div>
               </div>
@@ -399,11 +399,11 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         </div>
       </section>
 
-      <section className="course-strip" aria-label="Poliglot AI routes">
+      <section className="course-strip" aria-label="NERIVA routes">
         <div className="course-strip__intro">
           <span className="eyebrow">AI Tutor routes</span>
           <h2>Routes for the goal, not an endless exercise feed</h2>
-          <p>Choose travel, work, exam, or conversation practice. Poliglot AI connects lesson, dialogue, voice, photo, and review into one controlled cycle.</p>
+          <p>Choose travel, work, exam, or conversation practice. NERIVA connects lesson, dialogue, voice, photo, and review into one controlled cycle.</p>
         </div>
         <div className="course-cards">
           {courseRoutes.map(([title, body, badge], index) => (
@@ -433,13 +433,13 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         </div>
       </section>
 
-      <section className="landing-band cockpit-section" aria-label="How Poliglot AI runs a lesson">
+      <section className="landing-band cockpit-section" aria-label="How NERIVA runs a lesson">
         <div className="cockpit-shell">
           <div className="cockpit-copy">
             <span className="eyebrow">AI Tutor cockpit</span>
             <h2>Every session ends with a visible next step</h2>
-            <p>Poliglot AI does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.</p>
-            <div className="cockpit-kpis" aria-label="Poliglot AI product metrics">
+            <p>NERIVA does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.</p>
+            <div className="cockpit-kpis" aria-label="NERIVA product metrics">
               <span>
                 <strong>35</strong>
                 interface languages
@@ -508,7 +508,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         <div className="section-copy">
           <span className="eyebrow">Scenarios</span>
           <h2>Real situations where the language has to work today</h2>
-          <p>At the airport, on a work call, before an exam, or in everyday conversation, Poliglot AI turns practice into a concrete speaking moment.</p>
+          <p>At the airport, on a work call, before an exam, or in everyday conversation, NERIVA turns practice into a concrete speaking moment.</p>
         </div>
         <div className="scenario-grid">
           {scenarioCards.map((scenario, index) => (
@@ -530,7 +530,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         </div>
       </section>
 
-      <section className="device-flow" aria-label="Poliglot AI device flow">
+      <section className="device-flow" aria-label="NERIVA device flow">
         <div className="device-flow__copy">
           <span className="eyebrow">Web + mobile + Telegram</span>
           <h2>One profile for web, mobile, and Telegram</h2>
@@ -555,7 +555,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         <div className="section-copy">
           <span className="eyebrow">Daily loop</span>
           <h2>One short session always ends with the next useful step</h2>
-          <p>Poliglot AI is built around a simple loop: learn, use, review. Every module feeds the same progress profile.</p>
+          <p>NERIVA is built around a simple loop: learn, use, review. Every module feeds the same progress profile.</p>
         </div>
         <div className="daily-steps">
           {dailySteps.map(([num, title, body]) => (

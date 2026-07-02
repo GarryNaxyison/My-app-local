@@ -1,4 +1,4 @@
-# PoliglotAI Logo Burst Outro Design
+# NERIVA Logo Burst Outro Design
 
 Date: 2026-06-27
 
@@ -9,7 +9,7 @@ Create a reusable short vertical MP4 outro for Reels, TikTok, and YouTube Shorts
 Primary visible text:
 
 ```text
-PoliglotAI.online
+NERIVA.online
 ```
 
 ## Approved Direction
@@ -55,7 +55,7 @@ The final video should use this structure:
 - 0.00s to 0.25s: dark background with a quick cyan / blue radial flash.
 - 0.25s to 0.75s: logo enters the center with fast zoom and slight bounce.
 - 0.55s to 1.15s: bright ring or pulse expands behind the logo.
-- 0.75s to 1.35s: `PoliglotAI.online` slides in below the logo with glow.
+- 0.75s to 1.35s: `NERIVA.online` slides in below the logo with glow.
 - 1.35s to 2.20s: stable final frame for readability and editing safety.
 
 ## Layout
@@ -92,7 +92,7 @@ Use local media tooling for verification:
 
 - `ffprobe` confirms width 1080, height 1920, duration near 2.2 seconds, and video codec H.264.
 - `ffmpeg` exports a still frame from the stable final section for visual inspection.
-- The final frame shows the logo and `PoliglotAI.online` clearly.
+- The final frame shows the logo and `NERIVA.online` clearly.
 - The MP4 plays without audio and is suitable for importing into mobile video editors.
 
 The Playwright MCP browser is not required for this artifact. In this environment, Chromium remote debugging was blocked by system policy during startup, so media verification should rely on `ffmpeg` / `ffprobe` and exported preview frames.
@@ -100,8 +100,8 @@ The Playwright MCP browser is not required for this artifact. In this environmen
 ## Acceptance Criteria
 
 - A reusable vertical MP4 outro exists at `assets/video-outro/poliglotai-outro-logo-burst.mp4`.
-- The video uses the existing PoliglotAI logo, not a placeholder.
-- The visible text is exactly `PoliglotAI.online`.
+- The video uses the existing NERIVA logo, not a placeholder.
+- The visible text is exactly `NERIVA.online`.
 - The animation follows the approved Logo Burst direction.
 - The final readable hold lasts at least 0.7 seconds.
 - Verification commands and results are reported before claiming the asset is complete.

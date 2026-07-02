@@ -70,12 +70,12 @@ function inlineMaintenanceHtml() {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Технические работы - Poliglot AI</title>
+    <title>Технические работы - NERIVA</title>
   </head>
   <body>
     <main>
       <h1>Технические работы</h1>
-      <p>Poliglot AI временно недоступен. Попробуйте обновить страницу через пару минут.</p>
+      <p>NERIVA временно недоступен. Попробуйте обновить страницу через пару минут.</p>
       <p>Maintenance is in progress. Please retry in a few minutes.</p>
       <a href="/poliglot-ai.html">На главную</a>
     </main>

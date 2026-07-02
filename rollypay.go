@@ -82,7 +82,7 @@ func (c *rollyPayClient) createPremiumPayment(ctx context.Context, user userStat
 		"payment_currency": "RUB",
 		"order_id":         orderID,
 		"terminal_id":      c.cashboxID,
-		"description":      plan.Title + " - POLIGLOT AI",
+		"description":      plan.Title + " - NERIVA",
 		"customer_id":      strconv.FormatInt(user.TelegramID, 10),
 		"metadata": map[string]any{
 			"telegram_id":        strconv.FormatInt(user.TelegramID, 10),

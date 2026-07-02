@@ -35,7 +35,7 @@ function buildJsonLd(page, language) {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         logo: `${origin}/assets/brand-logo-mini.png`,
         sameAs: socialProfileUrls,
@@ -43,7 +43,7 @@ function buildJsonLd(page, language) {
       {
         "@type": "WebSite",
         "@id": websiteId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         url: `${origin}/`,
         inLanguage: language,
         publisher: { "@id": organizationId },
@@ -51,7 +51,7 @@ function buildJsonLd(page, language) {
       {
         "@type": "SoftwareApplication",
         "@id": appId,
-        name: "Poliglot AI",
+        name: "NERIVA",
         applicationCategory: "EducationalApplication",
         operatingSystem: "Web, PWA, Telegram",
         url: canonicalUrl,
@@ -80,7 +80,7 @@ function buildJsonLd(page, language) {
           {
             "@type": "ListItem",
             position: 1,
-            name: "Poliglot AI",
+            name: "NERIVA",
             item: `${origin}/poliglot-ai.html${language === "en" ? "?lang=en" : ""}`,
           },
           { "@type": "ListItem", position: 2, name: copy.h1, item: canonicalUrl },
@@ -152,9 +152,9 @@ function renderPage(page, language) {
   <body>
     <main class="seo-page">
       <header class="seo-header">
-        <a class="seo-brand" href="${landingHref}" aria-label="Poliglot AI">
+        <a class="seo-brand" href="${landingHref}" aria-label="NERIVA">
           <img src="/assets/brand-logo-mini.png" alt="" />
-          <span>Poliglot AI</span>
+          <span>NERIVA</span>
         </a>
         <nav class="seo-nav" aria-label="${escapeHtml(guidesLabel)}">
           <a href="${landingHref}">${escapeHtml(landingLabel)}</a>
@@ -164,7 +164,7 @@ function renderPage(page, language) {
       </header>
       <article class="seo-article">
         <section class="seo-hero">
-          <p class="seo-eyebrow">Poliglot AI web app</p>
+          <p class="seo-eyebrow">NERIVA web app</p>
           <h1>${escapeHtml(copy.h1)}</h1>
           <p>${escapeHtml(copy.intro)}</p>
           <p class="seo-companion">${escapeHtml(companionLine)}</p>
@@ -185,7 +185,7 @@ function renderPage(page, language) {
         </section>
       </article>
       <footer class="seo-footer">
-        <nav aria-label="Poliglot AI">
+        <nav aria-label="NERIVA">
           <a data-entry="landing" href="${landingHref}">${escapeHtml(landingLabel)}</a>
           <a data-entry="web-app" href="/app/">${escapeHtml(appCta)}</a>
         </nav>

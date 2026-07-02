@@ -20,7 +20,7 @@ COMPARISON_MODELS = [
     "sd_xl_base_1.0.safetensors",
     "FLUX.1-schnell / FLUX.1-dev candidates require license review before production use",
 ]
-STYLE_PROMPT = "Poliglot AI premium language-learning asset, no text, no pseudo letters, no watermark"
+STYLE_PROMPT = "NERIVA premium language-learning asset, no text, no pseudo letters, no watermark"
 
 INK = "#101827"
 DEEP = "#10243A"

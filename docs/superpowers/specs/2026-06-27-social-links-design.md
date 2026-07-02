@@ -1,12 +1,12 @@
-# Poliglot AI Social Links Design
+# NERIVA Social Links Design
 
 ## Goal
 
-Add YouTube, Instagram, and TikTok links so the landing page shows Poliglot AI as an active public brand and gently sends interested visitors to social content. The primary conversion on the landing page remains the web app or Telegram start flow.
+Add YouTube, Instagram, and TikTok links so the landing page shows NERIVA as an active public brand and gently sends interested visitors to social content. The primary conversion on the landing page remains the web app or Telegram start flow.
 
 ## Channels
 
-- YouTube: https://www.youtube.com/@PoliglotAI
+- YouTube: https://www.youtube.com/@NERIVA
 - Instagram: https://www.instagram.com/poliglotai.online/
 - TikTok: https://www.tiktok.com/@poliglotai.online
 
@@ -14,13 +14,13 @@ Add YouTube, Instagram, and TikTok links so the landing page shows Poliglot AI a
 
 ### Landing Page
 
-Add a compact social proof row to the English landing page near the hero proof area. It should sit below the existing product proof metrics or immediately before the first route section. The row uses the label `Follow Poliglot AI` and three icon links.
+Add a compact social proof row to the English landing page near the hero proof area. It should sit below the existing product proof metrics or immediately before the first route section. The row uses the label `Follow NERIVA` and three icon links.
 
 Duplicate the same destinations in the site footer as a dedicated `Social` column. Legal pages should keep their current footer structure, with social links added in a way that does not push legal links below the fold on common mobile widths.
 
 ### Web App
 
-Add a small `Follow Poliglot AI` card inside `SettingsView`, near the existing Telegram and activation cards. Do not add these links to the main navigation, function ribbon, or core learning surfaces because they are not learning actions.
+Add a small `Follow NERIVA` card inside `SettingsView`, near the existing Telegram and activation cards. Do not add these links to the main navigation, function ribbon, or core learning surfaces because they are not learning actions.
 
 ## Visual Design
 
@@ -43,9 +43,9 @@ Do not hotlink third-party image URLs at runtime. Store the icons as local SVG/R
 
 Each social link opens in a new tab with `target="_blank"` and `rel="noreferrer"`. Links need descriptive accessible labels:
 
-- `Open Poliglot AI on YouTube`
-- `Open Poliglot AI on Instagram`
-- `Open Poliglot AI on TikTok`
+- `Open NERIVA on YouTube`
+- `Open NERIVA on Instagram`
+- `Open NERIVA on TikTok`
 
 The icon buttons should have visible hover, focus, and active states. Keyboard users must be able to tab through the links in a predictable order: YouTube, Instagram, TikTok.
 
@@ -59,17 +59,17 @@ Extend the existing `BrandIcons` pattern in the web app with YouTube, Instagram,
 
 Landing row:
 
-- Label: `Follow Poliglot AI`
+- Label: `Follow NERIVA`
 - Supporting text: `Short lessons, product updates, and learning tips.`
 
 Web app settings card:
 
-- Title: `Follow Poliglot AI`
+- Title: `Follow NERIVA`
 - Body: `Short lessons, updates, and product tips.`
 
 If Russian localization is added in the same implementation, use:
 
-- Title: `Соцсети Poliglot AI`
+- Title: `Соцсети NERIVA`
 - Body: `Короткие уроки, обновления и советы по обучению.`
 
 ## Responsive Behavior

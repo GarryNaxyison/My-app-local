@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rebuild the public React landing as a Bold Product Cockpit page for Poliglot AI while preserving the first-block hero animation, legal links, 35 interface languages, Web app entry, Telegram entry, and pricing contracts.
+**Goal:** Rebuild the public React landing as a Bold Product Cockpit page for NERIVA while preserving the first-block hero animation, legal links, 35 interface languages, Web app entry, Telegram entry, and pricing contracts.
 
 **Architecture:** Keep legal pages and existing public-site shell in `site-react/src/PublicSiteApp.tsx`, but render a new landing component from `site-react/src/BoldProductLanding.tsx`. Scope the redesign styles in `site-react/src/boldLanding.css` and import them after the legacy stylesheet, so the new landing is authoritative without destabilizing legal pages. Rebuild generated static output only through `npm --prefix site-react run build`.
 
@@ -55,7 +55,7 @@ test("landing presents the bold product cockpit without losing public contracts"
   await expect(webEntry).toHaveCount(3);
   await expect(telegramEntry).toHaveCount(3);
   await expect(webEntry.first()).toHaveAttribute("href", "/app/");
-  await expect(telegramEntry.first()).toHaveAttribute("href", "https://t.me/poliglot_ai_bot");
+  await expect(telegramEntry.first()).toHaveAttribute("href", "https://t.me/NERIVAapp_bot");
 
   const ctaShape = await page.locator(".bold-hero .entry-cta").evaluateAll((nodes) =>
     nodes.map((node) => {
@@ -243,14 +243,14 @@ import {
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 
-const telegramUrl = "https://t.me/poliglot_ai_bot";
+const telegramUrl = "https://t.me/NERIVAapp_bot";
 
 const heroScreens = [
   {
     tab: "Урок",
     label: "AI Tutor lesson",
     output: "I would like to book a table for tonight.",
-    note: "Poliglot AI объясняет фразу, проверяет ответ и сохраняет повторение.",
+    note: "NERIVA объясняет фразу, проверяет ответ и сохраняет повторение.",
   },
   {
     tab: "Диалог",
@@ -358,7 +358,7 @@ export function BoldProductLanding() {
 
         <div className="bold-hero__inner">
           <motion.div className="bold-hero__copy" initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
-            <span className="bold-kicker">Poliglot AI</span>
+            <span className="bold-kicker">NERIVA</span>
             <h1>Говорите с AI-репетитором, который помнит ваши ошибки</h1>
             <p>Урок, диалог, голос, фото-перевод, словарь ошибок и прогресс собираются в один профиль для web app и Telegram.</p>
             <div className="entry-cta-row">
@@ -369,7 +369,7 @@ export function BoldProductLanding() {
                 Открыть Telegram <Bot size={18} />
               </a>
             </div>
-            <div className="bold-hero__proof" aria-label="Ключевые факты Poliglot AI">
+            <div className="bold-hero__proof" aria-label="Ключевые факты NERIVA">
               <span>
                 <strong>35</strong>
                 языков интерфейса
@@ -390,7 +390,7 @@ export function BoldProductLanding() {
               <span>Today session</span>
               <strong>84/100</strong>
             </div>
-            <div className="hero-product-tabs" role="tablist" aria-label="Демо Poliglot AI">
+            <div className="hero-product-tabs" role="tablist" aria-label="Демо NERIVA">
               {heroScreens.map((screen, index) => (
                 <button key={screen.tab} type="button" className={activeTab === index ? "is-active" : undefined} onClick={() => setActiveTab(index)}>
                   {screen.tab}
@@ -477,9 +477,9 @@ export function BoldProductLanding() {
         <div className="section-heading">
           <span className="bold-kicker">Mistake memory loop</span>
           <h2>Ошибки не исчезают после урока. Они становятся следующей тренировкой.</h2>
-          <p>Poliglot AI связывает mistakes, weak words, notes, review, spelling и offline decks в один цикл повторения.</p>
+          <p>NERIVA связывает mistakes, weak words, notes, review, spelling и offline decks в один цикл повторения.</p>
         </div>
-        <div className="memory-board" aria-label="Цикл памяти Poliglot AI">
+        <div className="memory-board" aria-label="Цикл памяти NERIVA">
           {memoryNodes.map((node, index) => (
             <span className="memory-node" key={node}>
               <b>{String(index + 1).padStart(2, "0")}</b>
@@ -566,7 +566,7 @@ export function BoldProductLanding() {
 
       <section className="final-cta-section">
         <Sparkles size={26} />
-        <h2>Откройте Poliglot AI там, где вам удобнее начать</h2>
+        <h2>Откройте NERIVA там, где вам удобнее начать</h2>
         <div className="entry-cta-row">
           <a className="entry-cta entry-cta--web" data-entry="web-app" href="/app/">
             Web app <ArrowRight size={18} />

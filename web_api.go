@@ -906,7 +906,7 @@ func (api *webAPI) handleAuthTelegramStatus(w http.ResponseWriter, r *http.Reque
 func (api *webAPI) telegramAuthBotURL(token string) string {
 	botName := strings.TrimPrefix(strings.TrimSpace(api.cfg.WebTelegramLoginBot), "@")
 	if botName == "" {
-		botName = "Poliglot_AI_bot"
+		botName = "NERIVAapp_bot"
 	}
 	values := url.Values{}
 	values.Set("start", webAuthStartPrefix+token)
@@ -4014,7 +4014,7 @@ func bugReportUploadFiles(r *http.Request) []*multipart.FileHeader {
 
 func bugReportCaption(reportID string, user userState, view string, message string, userAgent string) string {
 	parts := []string{
-		"Bug report Poliglot AI",
+		"Bug report NERIVA",
 		"ID: " + reportID,
 		fmt.Sprintf("From: %s (%d)", strings.TrimSpace(user.FirstName), user.TelegramID),
 	}
@@ -4606,8 +4606,8 @@ func (api *webAPI) writeAnonymousSession(w http.ResponseWriter) {
 		"telegram_login_bot":  api.cfg.WebTelegramLoginBot,
 		"web_app_url":         api.cfg.WebAppURL,
 		"support": map[string]string{
-			"telegram": "@AsaselD",
-			"email":    "supportpoliglotai@gmail.com",
+			"telegram": "@NERIVAapp_bot",
+			"email":    "support@neriva.ru",
 		},
 	})
 }

@@ -1,6 +1,6 @@
 # ComfyUI Ad Shorts Workflow
 
-This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Shorts, Reels, and TikTok format.
+This folder contains the disk-conscious ComfyUI chain for NERIVA ads in Shorts, Reels, and TikTok format.
 
 ## Files
 

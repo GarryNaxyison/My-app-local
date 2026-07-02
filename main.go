@@ -101,7 +101,7 @@ func main() {
 		_ = server.Shutdown(shutdownCtx)
 	}()
 
-	log.Printf("AI Polyglot Coach bot started with model %s (translator %s)", cfg.OpenRouterModel, cfg.OpenRouterTranslatorModel)
+	log.Printf("NERIVA bot started with model %s (translator %s)", cfg.OpenRouterModel, cfg.OpenRouterTranslatorModel)
 	go bot.runReminderScheduler(ctx)
 	go bot.runSQLiteBackupScheduler(ctx)
 	if err := bot.run(ctx); err != nil && ctx.Err() == nil {

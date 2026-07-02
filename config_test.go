@@ -25,8 +25,8 @@ func TestLoadConfigUsesNerivaProductionDefaults(t *testing.T) {
 	if got := cfg.rollyPayBotReturnURL(); got != "https://neriva.ru/app" {
 		t.Fatalf("RollyPay bot fallback URL = %q, want Neriva app URL", got)
 	}
-	if got := cfg.rollyPayWebReturnURL(); got != "https://poliglotai.ru/app?payment=success&provider=rollypay" {
-		t.Fatalf("RollyPay web fallback URL = %q, want Poliglot success URL", got)
+	if got := cfg.rollyPayWebReturnURL(); got != "https://neriva.ru/app?payment=success&provider=rollypay" {
+		t.Fatalf("RollyPay web fallback URL = %q, want Neriva success URL", got)
 	}
 }
 

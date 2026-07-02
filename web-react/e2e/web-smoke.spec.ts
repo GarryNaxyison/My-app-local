@@ -104,7 +104,7 @@ const sessionPayload = {
     invited_count: 11,
     referral_balance_kopecks: 30000,
     referral_code: "DEMO22",
-    referral_link: "https://t.me/neriva_app?start=ref_DEMO22",
+    referral_link: "https://t.me/NERIVAapp_bot?start=ref_DEMO22",
     referral_invitees: referralInvitees,
     phrasebook: phrasebookSeed,
   },
@@ -1383,12 +1383,13 @@ test("today plan and settings password helper copy stay localized", async ({ pag
   await expect(settingsSocial).toBeVisible();
   await expect(settingsSocial).toContainText("Соцсети NERIVA");
   await expect(settingsSocial).toContainText("Короткие уроки, обновления и советы по обучению.");
+  await expect(settingsSocial.locator("a")).toHaveCount(4);
   await expect(settingsSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
   await expect(settingsSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
-  await expect(settingsSocial.locator('a[href="https://www.tiktok.com/@poliglotai.online"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
-  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
-  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("target", "_blank");
-  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(settingsSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
+  await expect(settingsSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
+  await expect(settingsSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("rel", "noreferrer");
   await expect(page.locator(".password-card-v2")).toContainText("Смена пароля");
   await page.locator(".password-card-v2 input").nth(0).fill("old-password");
   await page.locator(".password-card-v2 input").nth(1).fill("short");
@@ -1409,10 +1410,12 @@ test("settings social links stay localized in English", async ({ page }) => {
   await expect(settingsSocial).toContainText("Follow NERIVA");
   await expect(settingsSocial).toContainText("Short lessons, updates, and product tips.");
   await expect(settingsSocial).not.toContainText("Соцсети NERIVA");
+  await expect(settingsSocial.locator("a")).toHaveCount(4);
   await expect(settingsSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("target", "_blank");
-  await expect(settingsSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("rel", "noreferrer");
-  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("target", "_blank");
-  await expect(settingsSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(settingsSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("target", "_blank");
+  await expect(settingsSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("rel", "noreferrer");
 });
 
 test("tools spacing and free plan Russian copy stay compact and localized", async ({ page, isMobile }) => {
@@ -1881,7 +1884,7 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
     route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ bot_url: "https://t.me/neriva_app?start=stars_invoice", status: "created", message: "Stars invoice created." }),
+      body: JSON.stringify({ bot_url: "https://t.me/NERIVAapp_bot?start=stars_invoice", status: "created", message: "Stars invoice created." }),
     }),
   );
   await page.unroute("**/api/premium/crypto/payment").catch(() => undefined);

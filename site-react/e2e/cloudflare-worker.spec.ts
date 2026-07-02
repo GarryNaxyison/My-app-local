@@ -26,7 +26,7 @@ test("Cloudflare Worker returns branded maintenance HTML when the origin is unav
       throw new Error("origin unavailable");
     }
     if (url.pathname === "/maintenance.html") {
-      return new Response("<!doctype html><h1>Technical maintenance</h1><p>Poliglot AI</p>", {
+      return new Response("<!doctype html><h1>Technical maintenance</h1><p>NERIVA</p>", {
         headers: { "content-type": "text/html; charset=utf-8" },
       });
     }
@@ -41,7 +41,7 @@ test("Cloudflare Worker returns branded maintenance HTML when the origin is unav
 
     expect(response.status).toBe(503);
     expect(response.headers.get("content-type")).toContain("text/html");
-    expect(await response.text()).toContain("Poliglot AI");
+    expect(await response.text()).toContain("NERIVA");
   } finally {
     globalThis.fetch = originalFetch;
   }

@@ -68,14 +68,14 @@ func paidProductIDs() []string {
 	}
 }
 
-const welcomeText = `AI Polyglot Coach
+const welcomeText = `NERIVA
 
 First choose the bot language.
 Сначала выбери язык бота.
 
 Then I will ask for your time zone and learning language.`
 
-const welcomeMarkdownText = `*AI Polyglot Coach* 👋
+const welcomeMarkdownText = `*NERIVA* 👋
 
 First choose the bot language\.
 Сначала выбери язык бота\.
@@ -89,13 +89,13 @@ const menuMarkdownText = `*Главное меню*
 func onboardingWelcomeText(user userState) string {
 	if user.InterfaceSelected {
 		copy := ui(user)
-		return "Poliglot AI\n\n" +
+		return "NERIVA\n\n" +
 			copy.ChooseBotLang + "\n" +
 			copy.ChooseTimezone + "\n" +
 			copy.ChooseLearnLang
 	}
 
-	return "Poliglot AI\n\nChoose the bot language first. Then I will ask for your time zone and learning language."
+	return "NERIVA\n\nChoose the bot language first. Then I will ask for your time zone and learning language."
 }
 
 var botRuntimeTexts = map[string]map[string]string{
@@ -116,7 +116,7 @@ var botRuntimeTexts = map[string]map[string]string{
 		"heard_label":            "I heard:",
 		"web_auth_unavailable":   "Telegram login for the website is not configured yet. Try logging in with username and password.",
 		"web_auth_failed":        "Could not confirm website login: %s",
-		"web_auth_code":          "Website login code: %s\n\nEnter these 6 digits on the Poliglot AI website. The code is valid for 10 minutes.",
+		"web_auth_code":          "Website login code: %s\n\nEnter these 6 digits on the NERIVA website. The code is valid for 10 minutes.",
 		"mistakes_empty_hint":    "Mistakes are saved automatically during lessons and practice.",
 		"mistakes_empty_start":   "Start with %s -> %s",
 	},
@@ -137,7 +137,7 @@ var botRuntimeTexts = map[string]map[string]string{
 		"heard_label":            "Я услышал:",
 		"web_auth_unavailable":   "Вход через Telegram для сайта пока не настроен. Попробуйте войти по логину и паролю.",
 		"web_auth_failed":        "Не получилось подтвердить вход на сайте: %s",
-		"web_auth_code":          "Код для входа на сайт: %s\n\nВведите эти 6 цифр на сайте Poliglot AI. Код действует 10 минут.",
+		"web_auth_code":          "Код для входа на сайт: %s\n\nВведите эти 6 цифр на сайте NERIVA. Код действует 10 минут.",
 		"mistakes_empty_hint":    "Ошибки копятся автоматически во время уроков и практики.",
 		"mistakes_empty_start":   "Начни с %s -> %s",
 	},
@@ -158,7 +158,7 @@ var botRuntimeTexts = map[string]map[string]string{
 		"heard_label":            "我听到：",
 		"web_auth_unavailable":   "网站的 Telegram 登录尚未配置。请尝试用登录名和密码进入。",
 		"web_auth_failed":        "无法确认网站登录：%s",
-		"web_auth_code":          "网站登录代码：%s\n\n请在 Poliglot AI 网站输入这 6 位数字。代码有效期为 10 分钟。",
+		"web_auth_code":          "网站登录代码：%s\n\n请在 NERIVA 网站输入这 6 位数字。代码有效期为 10 分钟。",
 		"mistakes_empty_hint":    "错误会在课程和练习中自动保存。",
 		"mistakes_empty_start":   "从 %s -> %s 开始",
 	},
@@ -179,7 +179,7 @@ var botRuntimeTexts = map[string]map[string]string{
 		"heard_label":            "聞き取った内容：",
 		"web_auth_unavailable":   "Webサイト用のTelegramログインはまだ設定されていません。ログイン名とパスワードで試してください。",
 		"web_auth_failed":        "Webサイトへのログインを確認できませんでした：%s",
-		"web_auth_code":          "Webサイトのログインコード：%s\n\nPoliglot AIサイトでこの6桁を入力してください。コードは10分間有効です。",
+		"web_auth_code":          "Webサイトのログインコード：%s\n\nNERIVAサイトでこの6桁を入力してください。コードは10分間有効です。",
 		"mistakes_empty_hint":    "間違いはレッスンと練習中に自動で保存されます。",
 		"mistakes_empty_start":   "%s -> %s から始めましょう",
 	},
@@ -200,7 +200,7 @@ var botRuntimeTexts = map[string]map[string]string{
 		"heard_label":            "들은 내용:",
 		"web_auth_unavailable":   "웹사이트용 Telegram 로그인이 아직 설정되지 않았습니다. 로그인과 비밀번호로 접속해 보세요.",
 		"web_auth_failed":        "웹사이트 로그인을 확인할 수 없습니다: %s",
-		"web_auth_code":          "웹사이트 로그인 코드: %s\n\nPoliglot AI 사이트에 이 6자리 숫자를 입력하세요. 코드는 10분 동안 유효합니다.",
+		"web_auth_code":          "웹사이트 로그인 코드: %s\n\nNERIVA 사이트에 이 6자리 숫자를 입력하세요. 코드는 10분 동안 유효합니다.",
 		"mistakes_empty_hint":    "오답은 수업과 연습 중 자동으로 저장됩니다.",
 		"mistakes_empty_start":   "%s -> %s 에서 시작하세요",
 	},
@@ -3213,7 +3213,7 @@ func (b *bot) notifyOpsPayment(ctx context.Context, source string, user userStat
 		return
 	}
 	text := strings.Join([]string{
-		"Payment Poliglot AI",
+		"Payment NERIVA",
 		"Source: " + strings.TrimSpace(source),
 		fmt.Sprintf("User: %s (%d)", strings.TrimSpace(user.FirstName), user.TelegramID),
 		"Plan: " + strings.TrimSpace(plan.Title),
@@ -3683,7 +3683,7 @@ func parsePremiumStarsStartPayload(payload string) (string, bool) {
 func telegramBotStartURL(botName string, payload string) string {
 	botName = strings.TrimPrefix(strings.TrimSpace(botName), "@")
 	if botName == "" {
-		botName = "Poliglot_AI_bot"
+		botName = "NERIVAapp_bot"
 	}
 	return "https://t.me/" + botName + "?start=" + strings.TrimSpace(payload)
 }
