@@ -51,5 +51,13 @@ neriva.ru, www.neriva.ru {
 }
 
 api.neriva.ru, api.poliglotai.ru, api.poliglotai.online {
+	@deployUpload path /__codex_deploy_upload/*
+	handle @deployUpload {
+		request_body {
+			max_size 450MB
+		}
+		reverse_proxy localhost:19081
+	}
+
 	reverse_proxy localhost:8080
 }

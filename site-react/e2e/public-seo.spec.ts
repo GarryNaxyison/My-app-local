@@ -36,6 +36,12 @@ const englishComparisonCopy = [
   "Best when quick mobile practice and deeper desktop study should stay synced.",
 ] as const;
 
+const englishDailyLoopCopy = [
+  "Daily loop",
+  "One short session always ends with the next useful step",
+  "NERIVA is built around a simple loop: learn, use, review. Every module feeds the same progress profile.",
+] as const;
+
 async function selectLandingLanguage(page: Page, code: string) {
   const languageSelect = page.locator("[data-site-language-select]").first();
   await languageSelect.selectOption(code);
@@ -207,6 +213,28 @@ test.describe("public landing SEO and AEO metadata", () => {
 
       const sectionText = await page.locator(".comparison-section").innerText();
       for (const englishCopy of englishComparisonCopy) {
+        expect(sectionText).not.toContain(englishCopy);
+      }
+    }
+  });
+
+  test("localizes the daily loop section across every interface language", async ({ page }) => {
+    await page.goto("/poliglot-ai.html?lang=en");
+
+    const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
+      options.map((option) => (option as HTMLOptionElement).value),
+    );
+    expect(languageCodes).toHaveLength(35);
+
+    for (const code of languageCodes) {
+      await selectLandingLanguage(page, code);
+
+      if (code === "en") {
+        continue;
+      }
+
+      const sectionText = await page.locator(".daily-loop-section").innerText();
+      for (const englishCopy of englishDailyLoopCopy) {
         expect(sectionText).not.toContain(englishCopy);
       }
     }

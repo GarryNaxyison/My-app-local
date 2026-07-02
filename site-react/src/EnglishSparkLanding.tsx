@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Activity,
@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { LandingSocialProof } from "./components/SocialLinks";
-import { landingSeoCopy } from "./landingSeoContent";
+import { landingSeoCopy, normalizeLandingLanguage, type LandingLanguageCode } from "./landingSeoContent";
+import { translateLandingText } from "./landingLocalizedText";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
@@ -269,10 +270,100 @@ type EnglishSparkLandingProps = {
   siteTheme?: "dark" | "light";
 };
 
+type LandingComparisonCopy = {
+  title: string;
+  alternativeLabel: string;
+  alternative: string;
+  productLabel: string;
+  product: string;
+  verdict: string;
+};
+
+type LandingQuestionCopy = {
+  question: string;
+  answer: string;
+};
+
+type RuntimeLandingSeoCopy = {
+  title: string;
+  description: string;
+  sectionEyebrow: string;
+  sectionTitle: string;
+  sectionIntro: string;
+  comparisonEyebrow: string;
+  comparisonTitle: string;
+  comparisonIntro: string;
+  comparisons: LandingComparisonCopy[];
+  questions: LandingQuestionCopy[];
+};
+
+function currentLandingLanguage(): LandingLanguageCode {
+  if (typeof window === "undefined") {
+    return "ru";
+  }
+  const requested = new URLSearchParams(window.location.search).get("lang");
+  const stored = window.localStorage.getItem("poliglot_site_language");
+  return normalizeLandingLanguage(requested || stored || document.documentElement.lang || "ru");
+}
+
+function useLandingLanguage(): LandingLanguageCode {
+  const [language, setLanguage] = useState<LandingLanguageCode>(() => currentLandingLanguage());
+
+  useEffect(() => {
+    const syncLanguage = () => setLanguage(currentLandingLanguage());
+    const timers = [0, 120, 320, 700, 1200].map((delay) => window.setTimeout(syncLanguage, delay));
+    window.addEventListener("poliglot-language-change", syncLanguage);
+    window.addEventListener("storage", syncLanguage);
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener("poliglot-language-change", syncLanguage);
+      window.removeEventListener("storage", syncLanguage);
+    };
+  }, []);
+
+  return language;
+}
+
+function localizedLandingSeoCopy(language: LandingLanguageCode): RuntimeLandingSeoCopy {
+  if (language === "en") {
+    return {
+      ...landingSeoCopy.en,
+      comparisons: landingSeoCopy.en.comparisons.map((item) => ({ ...item })),
+      questions: landingSeoCopy.en.questions.map((item) => ({ ...item })),
+    };
+  }
+  const t = (text: string) => translateLandingText(text, language);
+  const source = landingSeoCopy.en;
+  return {
+    ...source,
+    sectionEyebrow: t(source.sectionEyebrow),
+    sectionTitle: t(source.sectionTitle),
+    sectionIntro: t(source.sectionIntro),
+    comparisonEyebrow: t(source.comparisonEyebrow),
+    comparisonTitle: t(source.comparisonTitle),
+    comparisonIntro: t(source.comparisonIntro),
+    comparisons: source.comparisons.map((item) => ({
+      title: t(item.title),
+      alternativeLabel: t(item.alternativeLabel),
+      alternative: t(item.alternative),
+      productLabel: t(item.productLabel),
+      product: t(item.product),
+      verdict: t(item.verdict),
+    })),
+    questions: source.questions.map((item) => ({
+      question: t(item.question),
+      answer: t(item.answer),
+    })),
+  };
+}
+
 export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingProps) {
+  const landingLanguage = useLandingLanguage();
   const [activeTab, setActiveTab] = useState(0);
   const activeDemo = demoScreens[activeTab] ?? demoScreens[0];
   const activeLabel = activeDemo.tab;
+  const seoCopy = useMemo(() => localizedLandingSeoCopy(landingLanguage), [landingLanguage]);
+  const t = (text: string) => translateLandingText(text, landingLanguage);
 
   return (
     <main className="english-spark-landing">
@@ -553,9 +644,9 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
 
       <section className="spark-section daily-loop-section">
         <div className="section-copy">
-          <span className="eyebrow">Daily loop</span>
-          <h2>One short session always ends with the next useful step</h2>
-          <p>NERIVA is built around a simple loop: learn, use, review. Every module feeds the same progress profile.</p>
+          <span className="eyebrow">{t("Daily loop")}</span>
+          <h2>{t("One short session always ends with the next useful step")}</h2>
+          <p>{t("NERIVA is built around a simple loop: learn, use, review. Every module feeds the same progress profile.")}</p>
         </div>
         <div className="daily-steps">
           {dailySteps.map(([num, title, body]) => (
@@ -667,12 +758,12 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
 
       <section id="compare" className="spark-section comparison-section" aria-labelledby="comparison-section-heading">
         <div className="section-copy">
-          <span className="eyebrow">{landingSeoCopy.en.comparisonEyebrow}</span>
-          <h2 id="comparison-section-heading">{landingSeoCopy.en.comparisonTitle}</h2>
-          <p>{landingSeoCopy.en.comparisonIntro}</p>
+          <span className="eyebrow">{seoCopy.comparisonEyebrow}</span>
+          <h2 id="comparison-section-heading">{seoCopy.comparisonTitle}</h2>
+          <p>{seoCopy.comparisonIntro}</p>
         </div>
         <div className="comparison-grid">
-          {landingSeoCopy.en.comparisons.map((item, index) => (
+          {seoCopy.comparisons.map((item, index) => (
             <article className="comparison-card" id={`comparison-${index + 1}`} key={item.title}>
               <h3>{item.title}</h3>
               <div className="comparison-card__rows">
@@ -696,12 +787,12 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
 
       <section className="spark-section answer-section" aria-labelledby="answer-section-heading">
         <div className="section-copy">
-          <span className="eyebrow">{landingSeoCopy.en.sectionEyebrow}</span>
-          <h2 id="answer-section-heading">{landingSeoCopy.en.sectionTitle}</h2>
-          <p>{landingSeoCopy.en.sectionIntro}</p>
+          <span className="eyebrow">{seoCopy.sectionEyebrow}</span>
+          <h2 id="answer-section-heading">{seoCopy.sectionTitle}</h2>
+          <p>{seoCopy.sectionIntro}</p>
         </div>
         <div className="answer-grid">
-          {landingSeoCopy.en.questions.map((item) => (
+          {seoCopy.questions.map((item) => (
             <article className="answer-card" key={item.question}>
               <h3>{item.question}</h3>
               <p>{item.answer}</p>

@@ -7,8 +7,8 @@ const pages = [
     enPath: "/en/ai-english-tutor.html",
     ruTitle: "AI-репетитор английского онлайн - NERIVA",
     enTitle: "AI English Tutor Online - NERIVA",
-    ruH1: "AI-репетитор английского в веб-приложении NERIVA",
-    enH1: "AI English tutor inside the NERIVA web app",
+    ruH1: "AI-репетитор английского в NERIVA",
+    enH1: "AI English tutor in NERIVA",
   },
   {
     slug: "english-speaking-practice",

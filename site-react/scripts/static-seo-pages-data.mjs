@@ -28,16 +28,16 @@ export const seoPages = [
     ru: {
       path: "/ai-english-tutor.html",
       title: "AI-репетитор английского онлайн - NERIVA",
-      description: "NERIVA - веб-приложение с AI-репетитором английского: уроки, практика, исправление ошибок, повторение и прогресс в одном профиле.",
-      h1: "AI-репетитор английского в веб-приложении NERIVA",
-      intro: "NERIVA помогает заниматься английским в полноценном web app: вы проходите короткие уроки, отвечаете на задания, видите исправления и возвращаетесь к слабым местам.",
+      description: "NERIVA - AI-репетитор английского в web app и Telegram: короткие уроки, speaking, исправление ошибок, голос, повторение и прогресс.",
+      h1: "AI-репетитор английского в NERIVA",
+      intro: "NERIVA ведет короткую учебную сессию как живой маршрут: объясняет фразу, просит ответить, исправляет ошибку и возвращает слабое место в повторение.",
       sections: [
-        ["Как проходит занятие", "Урок начинается с цели и фразы в контексте. Затем web app просит ответить, проверяет смысл, показывает более естественную версию и сохраняет результат в прогрессе."],
-        ["Почему это не просто чат", "NERIVA связывает уроки, roleplay, словарь ошибок, заметки, XP и повторение. Telegram можно использовать для быстрого доступа, но основная учебная среда находится в web app."],
-        ["Кому подходит", "Формат полезен тем, кто хочет регулярно практиковать английский без расписания с преподавателем и видеть, что именно нужно повторить дальше."],
+        ["Как проходит занятие", "Вы получаете фразу в контексте, пример, короткое задание и проверку ответа. Система показывает более естественную формулировку и сохраняет результат в прогресс."],
+        ["Почему это не просто чат", "NERIVA связывает уроки, roleplay, словарь ошибок, заметки, XP, голос и повторение. Telegram работает как быстрый вход, а web app остается основным учебным пространством."],
+        ["Кому подходит", "Формат подходит тем, кто хочет заниматься чаще без расписания с преподавателем и каждый раз видеть, что именно нужно повторить дальше."],
       ],
       faq: [
-        ["Что такое AI-репетитор NERIVA?", "Это веб-приложение для изучения английского, где AI ведет урок, проверяет ответ, объясняет ошибку и сохраняет прогресс."],
+        ["Что такое AI-репетитор NERIVA?", "Это web app и Telegram-бот для изучения английского, где AI ведет урок, проверяет ответ, объясняет ошибку и сохраняет прогресс."],
         ["Можно ли заниматься бесплатно?", "Да. Free-режим дает стартовые уроки и практику, а Premium и Platinum открывают больше лимитов и голосовые инструменты."],
         ["Нужен ли Telegram?", "Нет. Основной сценарий работает в web app. Telegram остается дополнительным каналом для быстрого запуска и уведомлений."],
         ["Подходит ли для начинающих?", "Да. Маршрут можно использовать для базовой практики, коротких ответов, словаря и повторения ошибок."],
@@ -47,16 +47,16 @@ export const seoPages = [
     en: {
       path: "/en/ai-english-tutor.html",
       title: "AI English Tutor Online - NERIVA",
-      description: "NERIVA is a web app with an AI English tutor for lessons, speaking practice, corrections, review, and progress in one profile.",
-      h1: "AI English tutor inside the NERIVA web app",
-      intro: "NERIVA helps you study English in a full web app: take short lessons, answer prompts, review corrections, and return to weak spots.",
+      description: "NERIVA is an AI English tutor in a web app and Telegram bot: short lessons, speaking practice, corrections, voice, review, and progress.",
+      h1: "AI English tutor in NERIVA",
+      intro: "NERIVA turns study into a short guided loop: understand a phrase, use it in an answer, get a correction, and bring the weak spot back for review.",
       sections: [
-        ["How a session works", "A lesson starts with a goal and a phrase in context. The web app asks for your answer, checks meaning, shows a more natural version, and saves progress."],
-        ["More than a chat", "NERIVA connects lessons, roleplay, mistake review, notes, XP, and repetition. Telegram can help with quick access, while the web app remains the main study workspace."],
-        ["Who it helps", "The format is useful when you want regular English practice without scheduling a human tutor and need to see what to review next."],
+        ["How a session works", "A lesson starts with a phrase in context, a natural example, and one focused task. NERIVA checks the answer, suggests a cleaner version, and saves progress."],
+        ["More than a chat", "NERIVA connects lessons, roleplay, mistake review, notes, XP, voice, and repetition. Telegram gives quick access, while the web app remains the main study workspace."],
+        ["Who it helps", "It fits learners who want regular English practice without scheduling a human tutor and want a clear next review step after each session."],
       ],
       faq: [
-        ["What is the NERIVA tutor?", "It is a language learning web app where AI guides a lesson, checks your answer, explains mistakes, and saves progress."],
+        ["What is the NERIVA tutor?", "It is a language learning web app and Telegram bot where AI guides a lesson, checks your answer, explains mistakes, and saves progress."],
         ["Can I start for free?", "Yes. Free gives starter lessons and practice, while Premium and Platinum unlock higher limits and voice tools."],
         ["Do I need Telegram?", "No. The main experience works in the web app. Telegram is an optional companion channel for quick starts and notifications."],
         ["Is it good for beginners?", "Yes. You can use it for basic practice, short answers, vocabulary, and mistake review."],
@@ -69,12 +69,12 @@ export const seoPages = [
     ru: {
       path: "/english-speaking-practice.html",
       title: "Разговорная практика английского с AI - NERIVA",
-      description: "Разговорная практика английского в NERIVA: roleplay, свободные ответы, исправление фраз, заметки, ошибки и повторение в web app.",
+      description: "Разговорная практика английского в NERIVA: AI roleplay, speaking prompts, исправление фраз, заметки, ошибки, голос и повторение.",
       h1: "Разговорная практика английского с AI",
-      intro: "NERIVA помогает говорить чаще: вы тренируете короткие диалоги, рабочие и бытовые ситуации, получаете исправления и сохраняете полезные фразы.",
+      intro: "NERIVA помогает говорить чаще и спокойнее: вы тренируете короткие диалоги, рабочие и бытовые ситуации, получаете исправления и сохраняете полезные фразы.",
       sections: [
-        ["Практика без расписания", "Можно открыть web app и начать короткую сессию в любое время: ответить на вопрос, продолжить roleplay или разобрать фразу."],
-        ["Исправления по делу", "AI показывает, где фраза звучит неестественно, предлагает более живой вариант и возвращает слабое место в повторение."],
+        ["Практика без расписания", "Откройте web app или Telegram и начните короткую сессию: ответьте на вопрос, продолжите roleplay или разберите фразу перед реальной ситуацией."],
+        ["Исправления по делу", "AI показывает, где ответ звучит неестественно, предлагает более живой вариант и возвращает слабое место в повторение."],
         ["Один профиль", "Диалоги, заметки, ошибки и прогресс остаются в одном аккаунте. Telegram можно использовать как быстрый дополнительный вход к той же практике."],
       ],
       faq: [
@@ -88,12 +88,12 @@ export const seoPages = [
     en: {
       path: "/en/english-speaking-practice.html",
       title: "English Speaking Practice With AI - NERIVA",
-      description: "Practice English speaking with NERIVA: roleplay, free answers, corrections, notes, mistakes, and review inside a web app.",
+      description: "Practice English speaking with NERIVA: AI roleplay, speaking prompts, corrections, notes, mistakes, voice, and review in one profile.",
       h1: "English speaking practice with AI",
-      intro: "NERIVA helps you speak more often: practice short dialogues, work and everyday situations, get corrections, and save useful phrases.",
+      intro: "NERIVA helps you speak more often and with less hesitation: practice short dialogues, work and everyday situations, get corrections, and save useful phrases.",
       sections: [
-        ["Practice without scheduling", "Open the web app and start a short session whenever you have time: answer a prompt, continue roleplay, or repair a phrase."],
-        ["Useful corrections", "AI shows where a phrase sounds unnatural, suggests a better version, and brings the weak spot back for review."],
+        ["Practice without scheduling", "Open the web app or Telegram and start a short session: answer a prompt, continue roleplay, or repair a phrase before a real conversation."],
+        ["Useful corrections", "AI shows where an answer sounds unnatural, suggests a stronger version, and brings the weak spot back for review."],
         ["One profile", "Dialogues, notes, mistakes, and progress stay in one account. Telegram can be used as a quick companion entry to the same practice."],
       ],
       faq: [
@@ -110,11 +110,11 @@ export const seoPages = [
     ru: {
       path: "/english-pronunciation-trainer.html",
       title: "Тренажер произношения английского с AI - NERIVA",
-      description: "Тренируйте произношение английского в NERIVA: voice practice, shadowing, слабые слова, повторение и прогресс в web app.",
+      description: "Тренируйте произношение английского в NERIVA: voice practice, shadowing, слабые слова, speaking, повторение и прогресс.",
       h1: "Тренажер произношения английского с AI",
-      intro: "NERIVA помогает тренировать речь через голосовые ответы, shadowing, слабые слова и повторение фраз в контексте.",
+      intro: "NERIVA помогает слышать и исправлять речь: голосовые ответы, shadowing, слабые слова и повторение фраз связаны с вашим учебным профилем.",
       sections: [
-        ["Голосовая практика", "Вы произносите фразу, получаете расшифровку, видите слабые слова и повторяете более естественную версию."],
+        ["Голосовая практика", "Вы произносите фразу, получаете расшифровку, видите слабые слова и повторяете более естественную версию в том же контексте."],
         ["Shadowing и listening", "Короткие аудиоциклы помогают услышать фразу, повторить ее и закрепить произношение без отдельного приложения."],
         ["История прогресса", "Результаты, слабые слова и заметки остаются в web app, чтобы следующая тренировка начиналась с реальной проблемы."],
       ],
@@ -129,11 +129,11 @@ export const seoPages = [
     en: {
       path: "/en/english-pronunciation-trainer.html",
       title: "English Pronunciation Trainer With AI - NERIVA",
-      description: "Train English pronunciation with NERIVA: voice practice, shadowing, weak words, review, and progress inside a web app.",
+      description: "Train English pronunciation with NERIVA: voice practice, shadowing, weak words, speaking review, and progress in one profile.",
       h1: "English pronunciation trainer with AI",
-      intro: "NERIVA helps train speech through voice answers, shadowing, weak words, and phrase repetition in context.",
+      intro: "NERIVA helps you hear and repair speech: voice answers, shadowing, weak words, and phrase repetition stay connected to your learning profile.",
       sections: [
-        ["Voice practice", "Say a phrase, get a transcript, see weak words, and repeat a more natural version."],
+        ["Voice practice", "Say a phrase, get a transcript, see weak words, and repeat a more natural version in the same context."],
         ["Shadowing and listening", "Short audio loops help you hear a phrase, repeat it, and reinforce pronunciation without a separate app."],
         ["Progress history", "Results, weak words, and notes stay in the web app, so the next session starts from a real issue."],
       ],
@@ -151,9 +151,9 @@ export const seoPages = [
     ru: {
       path: "/english-for-work-and-travel.html",
       title: "Английский для работы и путешествий - NERIVA",
-      description: "NERIVA помогает готовить английский для работы и путешествий: звонки, письма, отель, аэропорт, кафе, roleplay и заметки.",
+      description: "NERIVA помогает готовить английский для работы и путешествий: звонки, письма, отель, аэропорт, кафе, roleplay, фото и заметки.",
       h1: "Английский для работы и путешествий",
-      intro: "NERIVA превращает рабочие и туристические ситуации в короткие тренировки внутри web app: фразы, roleplay, фото-перевод и повторение.",
+      intro: "NERIVA превращает рабочие и туристические ситуации в короткие тренировки: фразы, roleplay, фото-перевод, голосовые ответы и повторение.",
       sections: [
         ["Рабочие сценарии", "Можно тренировать созвоны, письма, self-intro, уточнение сроков и деловые фразы, которые нужны до реальной встречи."],
         ["Поездки без паники", "Отель, аэропорт, кафе, транспорт и врач превращаются в практические диалоги и заметки для быстрого повторения."],
@@ -170,9 +170,9 @@ export const seoPages = [
     en: {
       path: "/en/english-for-work-and-travel.html",
       title: "English for Work and Travel - NERIVA",
-      description: "Use NERIVA to prepare English for work and travel: calls, emails, hotels, airports, cafes, roleplay, and notes.",
+      description: "Use NERIVA to prepare English for work and travel: calls, emails, hotels, airports, cafes, roleplay, photos, voice, and notes.",
       h1: "English for work and travel",
-      intro: "NERIVA turns work and travel situations into short web app practice: phrases, roleplay, photo translation, and review.",
+      intro: "NERIVA turns work and travel situations into short practice: phrases, roleplay, photo translation, voice answers, and review.",
       sections: [
         ["Work scenarios", "Practice calls, emails, self-intros, deadline questions, and useful business phrases before the real meeting."],
         ["Travel without panic", "Hotels, airports, cafes, transport, and doctor visits become practical dialogues and notes for quick review."],
@@ -192,11 +192,11 @@ export const seoPages = [
     ru: {
       path: "/language-learning-web-app.html",
       title: "Веб-приложение для изучения языков - NERIVA",
-      description: "NERIVA - web app для изучения языков: AI-уроки, speaking, произношение, словарь ошибок, заметки, прогресс и тарифы.",
+      description: "NERIVA - web app и Telegram-бот для изучения языков: AI-уроки, speaking, произношение, ошибки, заметки, прогресс и тарифы.",
       h1: "Веб-приложение для изучения языков NERIVA",
-      intro: "NERIVA - полноценное web app для изучения языков с AI-уроками, speaking-практикой, произношением, ошибками, заметками и прогрессом.",
+      intro: "NERIVA - web app и Telegram-бот для изучения языков, где короткие AI-уроки, speaking, произношение, ошибки, заметки и прогресс работают как одна система.",
       sections: [
-        ["Учебное пространство", "В одном профиле собраны уроки, roleplay, словарь ошибок, заметки, прогресс, тарифы и ежедневные лимиты."],
+        ["Учебное пространство", "В одном профиле собраны уроки, roleplay, словарь ошибок, голос, фото, заметки, прогресс, тарифы и ежедневные лимиты."],
         ["Web app как основной продукт", "Большой экран удобен для длинных сессий, просмотра прогресса, тарифов и управления профилем. Telegram дополняет этот сценарий короткой практикой."],
         ["Для регулярной привычки", "Короткие задания, XP, streak, повторение и история занятий помогают возвращаться к языку чаще."],
       ],
@@ -211,11 +211,11 @@ export const seoPages = [
     en: {
       path: "/en/language-learning-web-app.html",
       title: "Language Learning Web App - NERIVA",
-      description: "NERIVA is a language learning web app with AI lessons, speaking, pronunciation, mistakes, notes, progress, and plans.",
+      description: "NERIVA is a language learning web app and Telegram bot with AI lessons, speaking, pronunciation, mistakes, notes, progress, and plans.",
       h1: "NERIVA language learning web app",
-      intro: "NERIVA is a full language learning web app with AI lessons, speaking practice, pronunciation, mistakes, notes, and progress.",
+      intro: "NERIVA is a language learning web app and Telegram bot where AI lessons, speaking, pronunciation, mistakes, notes, and progress work as one system.",
       sections: [
-        ["Study workspace", "One profile brings together lessons, roleplay, mistake review, notes, progress, plans, and daily limits."],
+        ["Study workspace", "One profile brings together lessons, roleplay, mistake review, voice, photo tools, notes, progress, plans, and daily limits."],
         ["Web app first", "A larger screen helps with longer sessions, progress, pricing, and profile control. Telegram adds quick companion practice."],
         ["Built for a regular habit", "Short tasks, XP, streak, review, and lesson history help you return to language practice more often."],
       ],

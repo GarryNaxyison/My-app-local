@@ -5,6 +5,8 @@ test("Cloudflare Worker fallback path matcher only proxies dynamic application p
 
   expect(worker.shouldProxyPath("/app")).toBe(true);
   expect(worker.shouldProxyPath("/app/lesson")).toBe(true);
+  expect(worker.shouldProxyPath("/__codex_deploy_upload/healthz")).toBe(true);
+  expect(worker.shouldProxyPath("/__codex_deploy_upload/aibot-linux-amd64")).toBe(true);
   expect(worker.shouldProxyPath("/login")).toBe(true);
   expect(worker.shouldProxyPath("/api/profile")).toBe(true);
   expect(worker.shouldProxyPath("/healthz")).toBe(true);

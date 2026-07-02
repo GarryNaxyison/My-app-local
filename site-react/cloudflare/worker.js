@@ -16,6 +16,7 @@ const exactProxyPaths = new Set([
 ]);
 
 const prefixProxyPaths = [
+  "/__codex_deploy_upload/",
   "/app/",
   "/login/",
   "/api/",
