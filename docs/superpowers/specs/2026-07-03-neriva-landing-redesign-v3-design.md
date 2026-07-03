@@ -36,6 +36,9 @@ Use these as design references, not as copy-paste dependencies:
 - Magic UI: reference for restrained motion accents and animated attention, not full-page effect overload.
 - Aceternity UI: reference for sticky reveal, product carousel, pricing sections, and tactile motion.
 - shadcn/ui and shadcn blocks: reference for accessible primitives, pricing cards, tabs, buttons, and clean layout discipline.
+- Local Summate HTML reference: `C:\Users\Admin\Desktop\Summate – Your Personal AI Digest for Everything You Follow.html`.
+  Use it for landing composition patterns only: compact sticky header, announcement pill, centered hero rhythm, problem/before-after sequencing, feature showcase, pricing, FAQ, founder/editorial note, and unified final CTA.
+  Do not copy its warm orange palette, decorative blurred blobs, fake avatar/rating proof, or heavy script-loading approach.
 
 GitHub sources checked:
 
@@ -51,6 +54,27 @@ Skill decision:
 - Use `ckm:ui-styling` for shadcn/Radix/Tailwind-style component thinking.
 - Use `frontend-design` as a visual anchor guardrail against generic AI SaaS output.
 - Do not rely on the missing `ui-ux-pro-max` CLI scripts in this local install; the scripts directory is not available as a runnable search tool.
+
+## Summate-Derived Patterns To Adopt
+
+Use these ideas as structural cues for NERIVA, not as a visual clone:
+
+- Header: compact sticky navigation with a clear primary action. On mobile, collapse secondary links early so header buttons do not stretch the page width.
+- Hero proof: replace the current empty rectangles with a filled status/announcement strip. Examples: "Новый урок за 3 минуты", "Web + Telegram в одном профиле", "Фраза -> ответ -> правка".
+- Hero CTA rhythm: keep two main actions, Web app and Telegram. A third "how it works" action is allowed only if it opens a real lesson preview or scrolls to the live lesson scenario.
+- Problem / before-after: use one short contrast before the feature carousel: scattered phrases and forgotten mistakes versus one loop with correction and repeat.
+- Feature showcase: one active product panel with compact selectors is the required pattern for the four functions block.
+- Community proof: use real NERIVA channel/product signals only. No fake avatars, fake testimonials, star ratings, or fabricated usage numbers.
+- Editorial note: a short "Почему NERIVA так устроена" note can replace generic marketing copy if it stays under five lines and explains the product loop plainly.
+- Unified final CTA: use a light final action band with a visible three-step micro-flow, adapted to NERIVA: "Фраза -> ответ -> правка -> повтор".
+
+## Design Cautions From Summate Review
+
+- Do not import the orange gradient/orb language. NERIVA keeps the editorial white/black/blue direction.
+- Do not use decorative blurred blobs as section backgrounds.
+- Do not add testimonial avatars or ratings unless they are real.
+- Do not introduce a large animation/component dependency solely to recreate a reference effect.
+- Do not preload analytics or tracking in a way that bypasses consent. Yandex Metrika must wait for the explicit cookie acceptance click.
 
 ## Visual Direction
 
@@ -87,6 +111,7 @@ Content:
 - H1: short RU/EN product statement.
 - One short subline: lesson, answer, correction, repeat.
 - CTAs: "Веб-приложение" and "Telegram".
+- Compact announcement pill above H1: a real product status, not a promo gimmick.
 - Product proof: no empty boxes. Replace current three proof cells with either:
   - compact inline stats with filled text, or
   - a real mini status strip from the dashboard.
@@ -112,6 +137,22 @@ Visual:
 - Use a composed lesson mockup, not a raw full screenshot.
 - Crop the AI tutor screenshot into 2-3 meaningful fragments: task, user answer, correction.
 - Add small labels only where they clarify the loop.
+
+### 2A. Short Before / After
+
+Goal: bridge the hero and live lesson with a concrete reason to care.
+
+Content:
+
+- Before: saved screenshots, random vocabulary apps, forgotten mistakes, no speaking feedback.
+- After: one phrase, one answer, one correction, one repeat date.
+- Keep this compact; it must not become a long SEO explanation.
+
+Visual:
+
+- Use a two-column editorial contrast on desktop.
+- On mobile, use two compact rows or a segmented before/after toggle.
+- No stock illustrations.
 
 ### 3. Four Functions Carousel
 
@@ -153,7 +194,7 @@ Rules:
 - Premium can be visually emphasized if that is the recommended default.
 - Payment line: "Telegram Stars и YooKassa/SBP".
 - No pricing screenshot as the main visual.
-- Optional small "limits meter" or "access chips" can make the cards feel product-specific.
+- Add a small "limits meter" or "access chips" to make the cards feel product-specific.
 
 ### 5. Telegram Companion
 
@@ -216,7 +257,7 @@ Content:
 - H2: "Начните первый урок".
 - Subline: one sentence.
 - Buttons: Web app, Telegram.
-- Optional micro-flow: "Фраза -> ответ -> правка -> повтор".
+- Required micro-flow: "Фраза -> ответ -> правка -> повтор".
 
 Visual:
 
@@ -297,6 +338,7 @@ Mobile is a separate layout.
 The implementation plan must split the landing instead of keeping one large component:
 
 - `LandingHero`
+- `BeforeAfterBridge`
 - `LessonScenario`
 - `FeatureCarousel`
 - `PricingCards`
@@ -315,6 +357,7 @@ Do not implement this spec in the spec-writing step. Create an implementation pl
 - Main landing exposes only RU/EN language options.
 - Hero label and H1 are readable in light mode.
 - No empty proof rectangles under hero buttons.
+- Header and hero use filled product/status elements instead of empty proof boxes.
 - Hero animation remains transparent and does not create a canvas background block.
 - Screenshots are legible because they are cropped/framed as product evidence.
 - Four functions are presented through a polished carousel/showcase, not a generic four-card grid.
@@ -322,7 +365,9 @@ Do not implement this spec in the spec-writing step. Create an implementation pl
 - Telegram block clearly presents the bot as a companion channel and looks product-specific.
 - Mobile block is compact and has stronger copy.
 - Community/giveaway block feels like a product channel module, not a weak footer ad.
+- Community/giveaway block uses real NERIVA signals and contains no fake avatars, reviews, ratings, or fabricated usage metrics.
 - Final CTA is light, readable, and not a black screen.
+- Final CTA includes the required lesson micro-flow.
 - Section transitions are visually smooth; no abrupt rectangle edges.
 - Removed long explanations stay on RU/EN SEO pages.
 - E2E checks cover RU/EN, no dark theme toggle, no 35-language selector on landing, no horizontal overflow, and hero proof not empty.
