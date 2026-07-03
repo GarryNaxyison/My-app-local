@@ -86,14 +86,14 @@ const curatedRussianLandingCopy = [
 ] as const;
 
 const currentRussianLandingCopy = [
-  "NERIVA: \u041f\u043e\u0442\u0440\u0435\u043d\u0438\u0440\u0443\u0439\u0442\u0435 \u0440\u0435\u0447\u044c \u0434\u043e \u0432\u0430\u0436\u043d\u043e\u0433\u043e \u043c\u043e\u043c\u0435\u043d\u0442\u0430",
-  "\u0416\u0438\u0432\u043e\u0439 \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u0439 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u0430",
-  "\u041a\u0430\u0436\u0434\u0430\u044f \u0441\u0435\u0441\u0441\u0438\u044f \u0437\u0430\u043a\u0430\u043d\u0447\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u043c \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u043c \u0448\u0430\u0433\u043e\u043c",
-  "\u0427\u0435\u0442\u044b\u0440\u0435 \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u0430, \u043e\u0434\u0438\u043d \u0443\u0447\u0435\u0431\u043d\u044b\u0439 \u043f\u0440\u043e\u0444\u0438\u043b\u044c",
-  "\u041e\u043f\u043b\u0430\u0442\u0430 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430 \u0447\u0435\u0440\u0435\u0437 Telegram Stars \u0438 YooKassa/SBP.",
-  "\u0420\u043e\u0437\u044b\u0433\u0440\u044b\u0448\u0438 Premium-\u043a\u043b\u044e\u0447\u0435\u0439",
-  "\u0412\u043e\u043f\u0440\u043e\u0441\u044b \u043f\u0435\u0440\u0435\u0434 \u0441\u0442\u0430\u0440\u0442\u043e\u043c",
-  "\u0417\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u0435 \u0446\u0438\u043a\u043b \u0438 \u043d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0440\u0432\u044b\u0439 \u0443\u0440\u043e\u043a \u0441\u0435\u0433\u043e\u0434\u043d\u044f",
+  "NERIVA \u043f\u043e\u043c\u043e\u0433\u0430\u0435\u0442 \u0433\u043e\u0432\u043e\u0440\u0438\u0442\u044c \u0443\u0432\u0435\u0440\u0435\u043d\u043d\u0435\u0435",
+  "\u0416\u0438\u0432\u043e\u0439 \u0443\u0440\u043e\u043a",
+  "\u041e\u0442\u0432\u0435\u0442\u0438\u043b\u0438, \u0443\u0432\u0438\u0434\u0435\u043b\u0438 \u043e\u0448\u0438\u0431\u043a\u0443, \u043f\u043e\u0432\u0442\u043e\u0440\u0438\u043b\u0438",
+  "\u0427\u0435\u0442\u044b\u0440\u0435 \u0444\u0443\u043d\u043a\u0446\u0438\u0438 \u0432 \u043e\u0434\u043d\u043e\u043c \u043f\u0440\u043e\u0444\u0438\u043b\u0435",
+  "\u041e\u043f\u043b\u0430\u0442\u0430 \u0447\u0435\u0440\u0435\u0437 Telegram Stars \u0438 YooKassa/SBP.",
+  "\u0420\u043e\u0437\u044b\u0433\u0440\u044b\u0448\u0438 \u0438 \u043d\u043e\u0432\u043e\u0441\u0442\u0438 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u0430",
+  "\u041f\u0435\u0440\u0435\u0434 \u0441\u0442\u0430\u0440\u0442\u043e\u043c",
+  "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0440\u0432\u044b\u0439 \u0443\u0440\u043e\u043a \u0441\u0435\u0433\u043e\u0434\u043d\u044f",
   "\u0412\u0435\u0431-\u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435",
 ] as const;
 
@@ -144,8 +144,8 @@ test("landing presents the approved light product-first site", async ({ page }) 
   expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.68);
   expect(heroHeight).toBeLessThanOrEqual(viewportHeight * 1.08);
 
-  await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
-  await expect(page.locator(".hero-proof")).toContainText("35 interface languages");
+  await expect(page.locator("h1")).toContainText("helps you speak with more confidence");
+  await expect(page.locator(".hero-proof")).toContainText("35 languages");
   await expect(page.locator(".hero-proof")).toContainText("A1-C2");
 
   const heroCtas = page.locator(".landing-hero .entry-cta");
@@ -176,18 +176,18 @@ test("landing presents the approved light product-first site", async ({ page }) 
   await page.evaluate(() => window.scrollTo(0, 0));
 
   await expect(page.locator(".lesson-scenario")).toBeVisible();
-  await expect(page.locator(".lesson-scenario")).toContainText("Every session ends with a visible next step");
+  await expect(page.locator(".lesson-scenario")).toContainText("Practice, get corrected, repeat");
   await expect(page.locator(".lesson-scenario")).toContainText("Hotel check-in");
   await expect(page.locator(".feature-panel")).toHaveCount(4);
-  await expect(page.locator(".feature-panel", { hasText: "Voice Coach" })).toContainText("weak words");
-  await expect(page.locator(".feature-panel", { hasText: "Photo Practice" })).toContainText("menu or sign");
+  await expect(page.locator(".feature-panel", { hasText: "Voice" })).toContainText("weak words");
+  await expect(page.locator(".feature-panel", { hasText: "Photo" })).toContainText("menu");
 
   await expect(page.locator(".plan-card")).toHaveCount(3);
   await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("0 ₽");
   await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText("300 ₽");
   await expect(page.locator(".plan-card", { hasText: "Platinum" })).toContainText("590 ₽");
-  await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText("Daily speaking plan");
-  await expect(page.locator(".plan-card", { hasText: "Platinum" })).toContainText("Intensive preparation");
+  await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText("Daily practice");
+  await expect(page.locator(".plan-card", { hasText: "Platinum" })).toContainText("Intensive");
   await expect(page.locator(".plan-card s, .plan-card del")).toHaveCount(2);
   const oldPriceDecorations = await page.locator(".plan-card s, .plan-card del").evaluateAll((nodes) =>
     nodes.map((node) => {
@@ -206,7 +206,7 @@ test("landing presents the approved light product-first site", async ({ page }) 
   await expect(page.locator(".payment-methods")).not.toContainText(/crypto|blockchain|RollyPay/i);
 
   await expect(page.locator(".community-section")).toBeVisible();
-  await expect(page.locator(".community-section")).toContainText("Premium key giveaways");
+  await expect(page.locator(".community-section")).toContainText("Giveaways");
   await expect(page.locator(".telegram-panel")).toContainText("Telegram");
   await expect(page.locator(".landing-faq")).toBeVisible();
   await expect(page.locator(".landing-faq__item")).toHaveCount(4);
@@ -502,7 +502,7 @@ test("landing keeps a short product flow below the hero", async ({ page }) => {
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
 
   await expect(page.locator(".lesson-scenario")).toBeVisible();
-  await expect(page.locator(".lesson-scenario")).toContainText("NERIVA explains a phrase");
+  await expect(page.locator(".lesson-scenario")).toContainText("NERIVA turns a real situation");
   await expect(page.locator(".lesson-scenario")).toContainText("Hotel check-in");
   await expect(page.locator(".lesson-scenario img")).toHaveCount(1);
   await page.locator(".lesson-scenario img").scrollIntoViewIfNeeded();
@@ -587,14 +587,44 @@ test("landing hero keeps the animation while product screenshots remain primary"
   await expect(page.locator('.landing-hero img[src="/assets/product/mobile-home-progress.png"]')).toBeVisible();
 });
 
+test("landing startup is localized, lean, and theme-aware", async ({ page, request }) => {
+  const html = await (await request.get("/poliglot-ai.html")).text();
+  expect(html).not.toContain("/assets/site-phrases.js");
+  expect(html).not.toContain("/assets/legal-documents-i18n.js");
+
+  await keepCookieBannerHidden(page);
+  await page.goto("/poliglot-ai.html?lang=ru");
+  await expect(page.locator("h1")).toContainText("NERIVA помогает говорить увереннее");
+  await expect(page.locator(".hero-lead")).toContainText("Короткий урок");
+  await expect(page.locator(".final-cta-section")).toContainText("Начните первый урок сегодня");
+  await expect(page.locator(".final-cta-section")).toContainText("Быстрый старт");
+
+  const lightColors = await page.locator(".english-spark-landing").evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { background: style.backgroundColor, color: style.color };
+  });
+
+  await page.locator(".nav-theme-toggle").first().click();
+  await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "dark");
+  await expect(page.locator(".landing-hero__matter .generative-art-scene")).toHaveAttribute("data-hero-preset", "dark");
+  const darkColors = await page.locator(".english-spark-landing").evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { background: style.backgroundColor, color: style.color };
+  });
+
+  expect(darkColors.background).not.toBe(lightColors.background);
+  expect(darkColors.color).not.toBe(lightColors.color);
+});
+
 test("product-first landing stays readable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/poliglot-ai.html?lang=en");
 
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
-  await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
+  await expect(page.locator("h1")).toContainText("helps you speak with more confidence");
   await expect(page.locator(".landing-hero .entry-cta")).toHaveCount(2);
-  await expect(page.locator(".hero-proof")).toBeVisible();
+  await expect(page.locator(".hero-proof")).toBeHidden();
   await expect(page.locator(".lesson-scenario")).toBeVisible();
   await expect(page.locator(".feature-panel")).toHaveCount(4);
   await expect(page.locator(".landing-faq__item")).toHaveCount(4);
@@ -603,8 +633,9 @@ test("product-first landing stays readable on mobile", async ({ page }) => {
 
   const heroHeight = await page.locator(".landing-hero").evaluate((node) => node.getBoundingClientRect().height);
   const viewportHeight = await page.evaluate(() => window.innerHeight);
-  expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.76);
-  expect(heroHeight).toBeLessThanOrEqual(viewportHeight * 1.45);
+  expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.62);
+  expect(heroHeight).toBeLessThanOrEqual(viewportHeight * 1.12);
+  await expect(page.locator(".mobile-landing-rail")).toBeVisible();
 
   const overflow = await page.evaluate(() => {
     const documentOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 2 || document.body.scrollWidth > document.body.clientWidth + 2;

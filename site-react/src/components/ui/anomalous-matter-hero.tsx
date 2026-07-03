@@ -9,6 +9,7 @@ type GenerativeArtSceneProps = {
   particleColor?: string;
   animate?: boolean;
   variant?: HeroShaderVariant;
+  transparentBackdrop?: boolean;
 };
 
 const shaderPresets = {
@@ -46,7 +47,14 @@ const shaderPresets = {
   },
 } as const;
 
-export function GenerativeArtScene({ className = "", color = "#6bdcff", particleColor = "#ffffff", animate = false, variant = "dark" }: GenerativeArtSceneProps) {
+export function GenerativeArtScene({
+  className = "",
+  color = "#6bdcff",
+  particleColor = "#ffffff",
+  animate = false,
+  variant = "dark",
+  transparentBackdrop = false,
+}: GenerativeArtSceneProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const lightRef = useRef<THREE.PointLight | null>(null);
 
@@ -68,6 +76,7 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.15));
     renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
+    renderer.setClearColor(0x000000, 0);
     currentMount.appendChild(renderer.domElement);
 
     const backdropGeometry = new THREE.PlaneGeometry(2, 2);
@@ -161,7 +170,9 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
     });
     const backdrop = new THREE.Mesh(backdropGeometry, backdropMaterial);
     backdrop.renderOrder = -10;
-    scene.add(backdrop);
+    if (!transparentBackdrop) {
+      scene.add(backdrop);
+    }
 
     const particleCount = preset.particleCount;
     const particlePositions = new Float32Array(particleCount * 3);
@@ -399,7 +410,7 @@ export function GenerativeArtScene({ className = "", color = "#6bdcff", particle
         currentMount.removeChild(renderer.domElement);
       }
     };
-  }, [animate, color, particleColor, variant]);
+  }, [animate, color, particleColor, transparentBackdrop, variant]);
 
   return <div ref={mountRef} className={`generative-art-scene ${className}`} data-hero-preset={variant} aria-hidden="true" />;
 }

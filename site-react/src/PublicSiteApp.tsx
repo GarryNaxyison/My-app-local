@@ -35,6 +35,7 @@ import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { personalDataConsentDocumentHtml, privacyDocumentHtml, termsDocumentHtml, userAgreementDocumentHtml } from "./legacyLegalContent";
 import { EnglishSparkLanding } from "./EnglishSparkLanding";
+import { getLandingContent, normalizeLandingLocale, type LandingLocale } from "./landingContent";
 import { staticSeoGuideLinks } from "./landingSeoContent";
 import { SiteFooterSocial } from "./components/SocialLinks";
 
@@ -384,24 +385,49 @@ function useSiteTheme() {
   return [theme, setTheme] as const;
 }
 
+function useSiteLanguage() {
+  const [language, setLanguage] = useState<LandingLocale>(() => normalizeLandingLocale(getInitialSiteLanguage()));
+
+  useEffect(() => {
+    const sync = () => {
+      const nextLanguage = normalizeLandingLocale(window.poliglotSiteI18n?.currentLanguage?.() || getInitialSiteLanguage());
+      document.documentElement.lang = nextLanguage;
+      localStorage.setItem("poliglot_site_language", nextLanguage);
+      setLanguage(nextLanguage);
+    };
+
+    sync();
+    window.addEventListener("poliglot-language-change", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("poliglot-language-change", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  return language;
+}
+
 export function PublicSiteApp() {
   const page = getPage();
   const [theme, setTheme] = useSiteTheme();
+  const language = useSiteLanguage();
   useLegacySiteI18n(page, theme);
+  const landingCopy = getLandingContent(language);
 
   return (
     <div className="public-shell">
-      <SiteNavDrawer page={page} theme={theme} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      {page === "landing" ? <EnglishSparkLanding siteTheme={theme} /> : <LegalPageV2 page={page} />}
-      <SiteFooterEnglish showSeoGuides={page === "landing"} />
+      <SiteNavDrawer page={page} theme={theme} copy={landingCopy.nav} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
+      {page === "landing" ? <EnglishSparkLanding siteTheme={theme} language={language} /> : <LegalPageV2 page={page} />}
+      <SiteFooterEnglish showSeoGuides={page === "landing"} copy={landingCopy.nav} language={language} />
       <CookieConsentBanner />
     </div>
   );
 }
 
-function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: SiteTheme; onThemeToggle: () => void }) {
+function SiteNavDrawer({ page, theme, copy, onThemeToggle }: { page: PageId; theme: SiteTheme; copy: ReturnType<typeof getLandingContent>["nav"]; onThemeToggle: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
-  const themeLabel = theme === "dark" ? "Use light theme" : "Use dark theme";
+  const themeLabel = theme === "dark" ? copy.light : copy.dark;
 
   return (
     <header className="public-nav public-nav--drawer">
@@ -418,31 +444,31 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
         </button>
         <button className="nav-burger" type="button" aria-expanded={isOpen} aria-controls="public-nav-drawer" onClick={() => setIsOpen((value) => !value)}>
           {isOpen ? <X size={20} /> : <Menu size={20} />}
-          <span>Menu</span>
+          <span>{copy.menu}</span>
         </button>
       </div>
       <div className={isOpen ? "nav-drawer is-open" : "nav-drawer"} id="public-nav-drawer" aria-hidden={!isOpen}>
         <nav aria-label="Primary navigation">
           <a href="/poliglot-ai.html#features" onClick={() => setIsOpen(false)}>
-            Features
+            {copy.features}
           </a>
           <a href="/poliglot-ai.html#pricing" onClick={() => setIsOpen(false)}>
-            Pricing
+            {copy.pricing}
           </a>
           <a href="/poliglot-ai.html#faq" onClick={() => setIsOpen(false)}>
-            FAQ
+            {copy.faq}
           </a>
           <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" onClick={() => setIsOpen(false)}>
-            <span data-legal-nav="privacy">Privacy</span>
+            <span data-legal-nav="privacy">{copy.privacy}</span>
           </a>
           <a className={page === "terms" ? "is-active" : undefined} href="/terms.html" onClick={() => setIsOpen(false)}>
-            <span data-legal-nav="terms">Terms</span>
+            <span data-legal-nav="terms">{copy.terms}</span>
           </a>
           <a className={page === "agreement" ? "is-active" : undefined} href="/agreement.html" onClick={() => setIsOpen(false)}>
-            <span data-legal-nav="agreement">User Agreement</span>
+            <span data-legal-nav="agreement">{copy.agreement}</span>
           </a>
           <a className={page === "consent" ? "is-active" : undefined} href="/consent.html" onClick={() => setIsOpen(false)}>
-            <span data-legal-nav="consent">Personal data processing consent</span>
+            <span data-legal-nav="consent">{copy.consent}</span>
           </a>
         </nav>
         <div className="nav-drawer__actions">
@@ -452,11 +478,11 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
           </button>
           <a href="/app/" onClick={() => setIsOpen(false)}>
             <Laptop size={18} />
-            Web app
+            {copy.webApp}
           </a>
           <a href="https://t.me/NERIVAapp_bot" onClick={() => setIsOpen(false)}>
             <MessageCircle size={18} />
-            Telegram
+            {copy.telegram}
           </a>
         </div>
       </div>
@@ -1263,8 +1289,8 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
   );
 }
 
-function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
-  const isRussian = getInitialSiteLanguage() === "ru";
+function SiteFooterEnglish({ showSeoGuides, copy, language }: { showSeoGuides: boolean; copy: ReturnType<typeof getLandingContent>["nav"]; language: LandingLocale }) {
+  const isRussian = language === "ru";
   const guideLocale = isRussian ? "ru" : "en";
   return (
     <footer className="site-footer">
@@ -1274,11 +1300,11 @@ function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
         <span>© 2026 NERIVA. All rights reserved.</span>
       </div>
       <nav>
-        <strong>Navigation</strong>
-        <a href="/poliglot-ai.html#features">Features</a>
-        <a href="/poliglot-ai.html#pricing">Pricing</a>
-        <a href="/poliglot-ai.html#faq">FAQ</a>
-        <a href="/app/">Web app</a>
+        <strong>{isRussian ? "Навигация" : "Navigation"}</strong>
+        <a href="/poliglot-ai.html#features">{copy.features}</a>
+        <a href="/poliglot-ai.html#pricing">{copy.pricing}</a>
+        <a href="/poliglot-ai.html#faq">{copy.faq}</a>
+        <a href="/app/">{copy.webApp}</a>
       </nav>
       <SiteFooterSocial title={isRussian ? "Соцсети" : "Social"} />
       {showSeoGuides ? (
@@ -1295,11 +1321,11 @@ function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
         </nav>
       ) : null}
       <nav>
-        <strong>Documents</strong>
-        <a href="/privacy.html"><span data-legal-nav="privacy">Privacy</span></a>
-        <a href="/terms.html"><span data-legal-nav="terms">Terms</span></a>
-        <a href="/agreement.html"><span data-legal-nav="agreement">User Agreement</span></a>
-        <a href="/consent.html"><span data-legal-nav="consent">Personal data processing consent</span></a>
+        <strong>{isRussian ? "Документы" : "Documents"}</strong>
+        <a href="/privacy.html"><span data-legal-nav="privacy">{copy.privacy}</span></a>
+        <a href="/terms.html"><span data-legal-nav="terms">{copy.terms}</span></a>
+        <a href="/agreement.html"><span data-legal-nav="agreement">{copy.agreement}</span></a>
+        <a href="/consent.html"><span data-legal-nav="consent">{copy.consent}</span></a>
       </nav>
       <address>
         <strong>Contacts</strong>

@@ -11,219 +11,134 @@ import {
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SocialIconLinks } from "./components/SocialLinks";
-import { landingSeoCopy } from "./landingSeoContent";
+import { getLandingContent, type LandingContent, type LandingLocale } from "./landingContent";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
 
+type ProductImageKey = keyof LandingContent["images"];
 type ProductImage = {
   src: string;
-  alt: string;
+  altKey: ProductImageKey;
 };
 
 const productImages = {
-  dashboard: {
-    src: "/assets/product/dashboard-progress.png",
-    alt: "NERIVA web app dashboard with level, progress, XP, and streak status",
-  },
-  mobileHome: {
-    src: "/assets/product/mobile-home-progress.png",
-    alt: "NERIVA mobile dashboard with today progress",
-  },
-  aiTutor: {
-    src: "/assets/product/ai-tutor-lesson-correction.png",
-    alt: "AI tutor lesson with a corrected hotel check-in answer",
-  },
-  mistakes: {
-    src: "/assets/product/mistakes-review.png",
-    alt: "Mistakes list with corrected English phrases and audio review",
-  },
-  voice: {
-    src: "/assets/product/voice-pronunciation-score.png",
-    alt: "Pronunciation practice with score and weak words",
-  },
-  photo: {
-    src: "/assets/product/photo-translation.png",
-    alt: "Photo translation screen with OCR result and practice prompt",
-  },
-  notes: {
-    src: "/assets/product/notes-phrasebook.png",
-    alt: "Phrasebook and notes with saved useful phrases",
-  },
-  premium: {
-    src: "/assets/product/premium-plans.png",
-    alt: "Free Premium and Platinum plan limits in the web app",
-  },
-  telegram: {
-    src: "/assets/product/telegram-app-light.png",
-    alt: "NERIVA Telegram bot menu in light theme",
-  },
-  mobileLesson: {
-    src: "/assets/product/mobile-lesson-correction.png",
-    alt: "Mobile AI tutor lesson correction",
-  },
-  mobileMistakes: {
-    src: "/assets/product/mobile-mistakes.png",
-    alt: "Mobile mistakes review screen",
-  },
-  mobileVoice: {
-    src: "/assets/product/mobile-voice-pronunciation.png",
-    alt: "Mobile voice pronunciation practice",
-  },
+  dashboard: { src: "/assets/product/dashboard-progress.png", altKey: "dashboard" },
+  mobileHome: { src: "/assets/product/mobile-home-progress.png", altKey: "mobileHome" },
+  aiTutor: { src: "/assets/product/ai-tutor-lesson-correction.png", altKey: "aiTutor" },
+  mistakes: { src: "/assets/product/mistakes-review.png", altKey: "mistakes" },
+  voice: { src: "/assets/product/voice-pronunciation-score.png", altKey: "voice" },
+  photo: { src: "/assets/product/photo-translation.png", altKey: "photo" },
+  notes: { src: "/assets/product/notes-phrasebook.png", altKey: "notes" },
+  premium: { src: "/assets/product/premium-plans.png", altKey: "premium" },
+  telegram: { src: "/assets/product/telegram-app-light.png", altKey: "telegram" },
+  mobileLesson: { src: "/assets/product/mobile-lesson-correction.png", altKey: "mobileLesson" },
+  mobileMistakes: { src: "/assets/product/mobile-mistakes.png", altKey: "mobileMistakes" },
+  mobileVoice: { src: "/assets/product/mobile-voice-pronunciation.png", altKey: "mobileVoice" },
 } satisfies Record<string, ProductImage>;
 
-const features = [
-  {
-    icon: BrainCircuit,
-    title: "AI Tutor",
-    body: "Guided lessons turn a phrase into an answer, a correction, and a next action.",
-    image: productImages.aiTutor,
-  },
-  {
-    icon: Mic,
-    title: "Voice Coach",
-    body: "Pronunciation practice highlights weak words, rhythm, and the next sentence to repeat.",
-    image: productImages.voice,
-  },
-  {
-    icon: Camera,
-    title: "Photo Practice",
-    body: "A menu or sign becomes translation, context, notes, and a short practice loop.",
-    image: productImages.photo,
-  },
-  {
-    icon: Repeat2,
-    title: "Mistake Review",
-    body: "Saved mistakes, weak words, and corrected phrases return when they are useful.",
-    image: productImages.mistakes,
-  },
-] as const;
-
-type LandingPlan = {
-  name: string;
-  label: string;
-  oldPrice?: string;
-  price: string;
-  body: string;
-  limits: readonly string[];
-  featured?: boolean;
-};
-
-const plans: readonly LandingPlan[] = [
-  {
-    name: "Free",
-    label: "Try the loop",
-    price: "0 ₽",
-    body: "Basic text practice for trying lessons, word training, notes, and progress without payment.",
-    limits: ["5 lessons per day", "15 practice messages", "Basic notes and phrasebook"],
-  },
-  {
-    name: "Premium",
-    label: "Daily speaking plan",
-    oldPrice: "1000 ₽",
-    price: "300 ₽",
-    body: "The main plan for daily progress with AI Tutor, roleplay, pronunciation, voice checks, and photo tools.",
-    limits: ["50 lessons per day", "200 practice messages", "20 voice checks up to 30 seconds"],
-    featured: true,
-  },
-  {
-    name: "Platinum",
-    label: "Intensive preparation",
-    oldPrice: "2000 ₽",
-    price: "590 ₽",
-    body: "Higher limits for travel, work, exam preparation, and longer AI-dialogue sessions.",
-    limits: ["100 lessons per day", "500 practice messages", "60 voice checks up to 30 seconds"],
-  },
-] as const;
-
-const shortFaq = landingSeoCopy.en.questions.slice(0, 4);
+const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
+const featureImages = [productImages.aiTutor, productImages.voice, productImages.photo, productImages.mistakes] as const;
 
 type EnglishSparkLandingProps = {
   siteTheme?: "dark" | "light";
+  language?: LandingLocale;
 };
 
-function ProductShot({ image, className = "" }: { image: ProductImage; className?: string }) {
+function ProductShot({ image, alt, className = "" }: { image: ProductImage; alt: string; className?: string }) {
   return (
     <figure className={`product-shot ${className}`.trim()}>
-      <img src={image.src} alt={image.alt} loading="lazy" />
+      <img src={image.src} alt={alt} loading="lazy" />
     </figure>
   );
 }
 
-export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLandingProps) {
+export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: EnglishSparkLandingProps) {
+  const copy = getLandingContent(language);
+  const heroVariant = siteTheme === "dark" ? "dark" : "light";
+  const heroColor = siteTheme === "dark" ? "#7bdcff" : "#002fa7";
+  const heroParticleColor = siteTheme === "dark" ? "#f5d27a" : "#002fa7";
+  const imgAlt = (image: ProductImage) => copy.images[image.altKey];
+
   return (
     <main className="english-spark-landing" data-visual-anchor="swiss-editorial">
       <section className="landing-hero" data-hero-preset={siteTheme}>
         <div className="landing-hero__matter" aria-hidden="true">
-          <GenerativeArtScene animate variant="light" color="#002fa7" particleColor="#002fa7" />
+          <GenerativeArtScene
+            animate
+            transparentBackdrop
+            variant={heroVariant}
+            color={heroColor}
+            particleColor={heroParticleColor}
+          />
         </div>
         <div className="landing-hero__inner">
           <div className="landing-hero__copy">
-            <span className="eyebrow">AI tutor in web app and Telegram</span>
-            <h1>NERIVA: Practice speaking before the moment matters</h1>
-            <p className="hero-lead">
-              NERIVA combines lessons, practice, listening, vocabulary, translator tools and pronunciation scoring. Learn in Telegram or the web app, get structured tasks, voice feedback and visible progress.
-            </p>
+            <span className="eyebrow">{copy.hero.eyebrow}</span>
+            <h1>{copy.hero.title}</h1>
+            <p className="hero-lead">{copy.hero.lead}</p>
             <div className="hero-actions">
               <a className="entry-cta hero-action hero-action--primary" data-entry="web-app" href={WEB_APP_HREF}>
-                Web app <ArrowRight size={18} />
+                {copy.nav.webApp} <ArrowRight size={18} />
               </a>
               <a className="entry-cta hero-action hero-action--secondary" data-entry="telegram" href={TELEGRAM_HREF}>
-                Telegram <MessageCircle size={18} />
+                {copy.nav.telegram} <MessageCircle size={18} />
               </a>
             </div>
             <div className="hero-proof" aria-label="NERIVA product status">
-              <span>
-                <strong>35 interface languages</strong>
-                curated landing layer
-              </span>
-              <span>
-                <strong>A1-C2</strong>
-                lesson levels
-              </span>
-              <span>
-                <strong>Free, Premium, Platinum</strong>
-                clear daily limits
-              </span>
+              {copy.hero.proof.map(([title, body]) => (
+                <span key={title}>
+                  <strong>{title}</strong>
+                  {body}
+                </span>
+              ))}
             </div>
           </div>
 
+          <div className="mobile-landing-rail" aria-label="NERIVA mobile quick view">
+            {copy.mobile.rail.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+
           <div className="hero-product-frame" aria-label="NERIVA product screenshots">
-            <ProductShot image={productImages.dashboard} className="product-shot--desktop" />
-            <ProductShot image={productImages.mobileHome} className="product-shot--phone" />
+            <ProductShot image={productImages.dashboard} alt={imgAlt(productImages.dashboard)} className="product-shot--desktop" />
+            <ProductShot image={productImages.mobileHome} alt={imgAlt(productImages.mobileHome)} className="product-shot--phone" />
           </div>
         </div>
       </section>
 
       <section className="lesson-scenario" aria-label="How NERIVA runs a short lesson">
         <div className="lesson-scenario__copy">
-          <span className="eyebrow">Live product scenario</span>
-          <h2>Every session ends with a visible next step</h2>
-          <p>NERIVA explains a phrase, asks for an answer, checks it, saves the mistake, and gives a repeatable prompt for the next review.</p>
+          <span className="eyebrow">{copy.scenario.eyebrow}</span>
+          <h2>{copy.scenario.title}</h2>
+          <p>{copy.scenario.body}</p>
           <div className="lesson-scenario__tags" aria-label="Lesson flow">
-            <span className="lesson-scenario__tag">phrase</span>
-            <span className="lesson-scenario__tag">answer</span>
-            <span className="lesson-scenario__tag">correction</span>
-            <span className="lesson-scenario__tag">review</span>
+            {copy.scenario.tags.map((tag) => (
+              <span className="lesson-scenario__tag" key={tag}>
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
         <div className="scenario-shot" aria-label="AI Tutor lesson example">
-          <ProductShot image={productImages.aiTutor} />
+          <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} />
           <div className="scenario-shot__caption">
-            <span>Hotel check-in</span>
-            <strong>Correction, explanation, audio sample, and the user's answer in one lesson.</strong>
+            <span>{copy.scenario.captionLabel}</span>
+            <strong>{copy.scenario.caption}</strong>
           </div>
         </div>
       </section>
 
       <section id="features" className="spark-section modules-section">
         <div className="section-copy">
-          <span className="eyebrow">Product modules</span>
-          <h2>Four tools, one learning profile</h2>
+          <span className="eyebrow">{copy.features.eyebrow}</span>
+          <h2>{copy.features.title}</h2>
         </div>
         <div className="feature-grid">
-          {features.map((feature) => {
-            const Icon = feature.icon;
+          {copy.features.items.map((feature, index) => {
+            const Icon = featureIcons[index] ?? BrainCircuit;
+            const image = featureImages[index] ?? productImages.aiTutor;
             return (
               <article className="feature-panel" key={feature.title}>
                 <div className="feature-panel__copy">
@@ -231,7 +146,7 @@ export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLanding
                   <h3>{feature.title}</h3>
                   <p>{feature.body}</p>
                 </div>
-                <ProductShot image={feature.image} />
+                <ProductShot image={image} alt={imgAlt(image)} />
               </article>
             );
           })}
@@ -240,29 +155,29 @@ export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLanding
 
       <section className="spark-section notes-section" aria-label="Notes and phrasebook">
         <div className="section-copy">
-          <span className="eyebrow">Notes / Phrasebook</span>
-          <h2>Saved phrases stay useful after the lesson</h2>
-          <p>Notes, saved translations, weak words, and phrasebook examples keep the practice from disappearing after one chat.</p>
+          <span className="eyebrow">{copy.notes.eyebrow}</span>
+          <h2>{copy.notes.title}</h2>
+          <p>{copy.notes.body}</p>
         </div>
-        <ProductShot image={productImages.notes} />
+        <ProductShot image={productImages.notes} alt={imgAlt(productImages.notes)} />
       </section>
 
       <section id="pricing" className="pricing-section">
         <div className="section-copy">
-          <span className="eyebrow">Pricing</span>
-          <h2>Start free, then unlock the daily practice limits you actually need</h2>
-          <p className="pricing-lead">Payment is available through Telegram Stars and YooKassa/SBP.</p>
+          <span className="eyebrow">{copy.pricing.eyebrow}</span>
+          <h2>{copy.pricing.title}</h2>
+          <p className="pricing-lead">{copy.pricing.lead}</p>
         </div>
         <div className="pricing-layout">
           <div className="pricing-grid">
-            {plans.map((plan) => (
-              <article className={plan.featured ? "plan-card is-featured" : "plan-card"} key={plan.name}>
+            {copy.pricing.plans.map((plan, index) => (
+              <article className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name}>
                 <span className="plan-label">{plan.label}</span>
                 <h3>{plan.name}</h3>
                 <div className="price-line">
                   {plan.oldPrice ? <s>{plan.oldPrice}</s> : null}
                   <strong>{plan.price}</strong>
-                  {plan.oldPrice ? <small>per month</small> : <small>starter access</small>}
+                  <small>{plan.period}</small>
                 </div>
                 <p>{plan.body}</p>
                 <ul>
@@ -273,31 +188,32 @@ export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLanding
                     </li>
                   ))}
                 </ul>
-                <a href={WEB_APP_HREF}>Choose plan</a>
+                <a href={WEB_APP_HREF}>{copy.pricing.choose}</a>
               </article>
             ))}
           </div>
-          <ProductShot image={productImages.premium} className="product-shot--pricing" />
+          <ProductShot image={productImages.premium} alt={imgAlt(productImages.premium)} className="product-shot--pricing" />
         </div>
         <div className="payment-methods" aria-label="Payment methods">
-          <span>Telegram Stars</span>
-          <span>YooKassa/SBP</span>
+          {copy.pricing.methods.map((method) => (
+            <span key={method}>{method}</span>
+          ))}
         </div>
       </section>
 
       <section className="spark-section telegram-section">
         <div className="section-copy">
-          <span className="eyebrow">Telegram</span>
-          <h2>Telegram is the quick entry, not a second product</h2>
-          <p>Use the bot for fast starts, voice, photos, reminders, and the same learning profile that continues in the web app.</p>
+          <span className="eyebrow">{copy.telegram.eyebrow}</span>
+          <h2>{copy.telegram.title}</h2>
+          <p>{copy.telegram.body}</p>
         </div>
         <div className="telegram-panel">
-          <ProductShot image={productImages.telegram} />
+          <ProductShot image={productImages.telegram} alt={imgAlt(productImages.telegram)} />
           <div className="telegram-panel__copy">
             <BookOpen size={22} />
-            <strong>Lesson, practice, pronunciation, mistakes, progress, and Premium are one tap away.</strong>
+            <strong>{copy.telegram.note}</strong>
             <a className="entry-cta" data-entry="telegram" href={TELEGRAM_HREF}>
-              Open Telegram <ArrowRight size={18} />
+              {copy.telegram.cta} <ArrowRight size={18} />
             </a>
           </div>
         </div>
@@ -305,28 +221,28 @@ export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLanding
 
       <section className="spark-section mobile-section">
         <div className="section-copy">
-          <span className="eyebrow">Mobile web app</span>
-          <h2>Short practice fits the phone screen</h2>
-          <p>Dashboard, lesson correction, mistakes, and pronunciation keep the same loop on mobile.</p>
+          <span className="eyebrow">{copy.mobile.eyebrow}</span>
+          <h2>{copy.mobile.title}</h2>
+          <p>{copy.mobile.body}</p>
         </div>
         <div className="mobile-strip" aria-label="Mobile web app screenshots">
-          <ProductShot image={productImages.mobileLesson} />
-          <ProductShot image={productImages.mobileMistakes} />
-          <ProductShot image={productImages.mobileVoice} />
+          <ProductShot image={productImages.mobileLesson} alt={imgAlt(productImages.mobileLesson)} />
+          <ProductShot image={productImages.mobileMistakes} alt={imgAlt(productImages.mobileMistakes)} />
+          <ProductShot image={productImages.mobileVoice} alt={imgAlt(productImages.mobileVoice)} />
         </div>
       </section>
 
       <section className="spark-section community-section">
         <div className="section-copy">
-          <span className="eyebrow">Community</span>
-          <h2>Premium key giveaways and product updates in the NERIVA channels</h2>
-          <p>Follow the community for short lessons, product updates, and monthly Premium key giveaways.</p>
+          <span className="eyebrow">{copy.community.eyebrow}</span>
+          <h2>{copy.community.title}</h2>
+          <p>{copy.community.body}</p>
         </div>
         <div className="community-panel">
           <div>
             <Star size={22} />
-            <strong>Follow NERIVA</strong>
-            <span>Short lessons, product updates, and learning tips.</span>
+            <strong>{copy.community.follow}</strong>
+            <span>{copy.community.note}</span>
           </div>
           <SocialIconLinks />
         </div>
@@ -334,11 +250,11 @@ export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLanding
 
       <section id="faq" className="spark-section landing-faq">
         <div className="section-copy">
-          <span className="eyebrow">FAQ</span>
-          <h2>Questions before starting</h2>
+          <span className="eyebrow">{copy.faq.eyebrow}</span>
+          <h2>{copy.faq.title}</h2>
         </div>
         <div className="landing-faq__grid">
-          {shortFaq.map((item) => (
+          {copy.faq.items.map((item) => (
             <article className="landing-faq__item" key={item.question}>
               <h3>{item.question}</h3>
               <p>{item.answer}</p>
@@ -348,16 +264,22 @@ export function EnglishSparkLanding({ siteTheme = "light" }: EnglishSparkLanding
       </section>
 
       <section className="final-cta-section">
-        <Repeat2 size={32} />
-        <h2>Open the loop and run the first lesson today</h2>
-        <p>Use the web app for a full session or Telegram for a fast practice check.</p>
-        <div>
-          <a className="entry-cta" data-entry="web-app" href={WEB_APP_HREF}>
-            Web app <ArrowRight size={18} />
-          </a>
-          <a className="entry-cta" data-entry="telegram" href={TELEGRAM_HREF}>
-            Telegram <ArrowRight size={18} />
-          </a>
+        <div className="final-cta-section__copy">
+          <Repeat2 size={32} />
+          <h2>{copy.finalCta.title}</h2>
+          <p>{copy.finalCta.body}</p>
+          <div>
+            <a className="entry-cta" data-entry="web-app" href={WEB_APP_HREF}>
+              {copy.nav.webApp} <ArrowRight size={18} />
+            </a>
+            <a className="entry-cta" data-entry="telegram" href={TELEGRAM_HREF}>
+              {copy.nav.telegram} <ArrowRight size={18} />
+            </a>
+          </div>
+        </div>
+        <div className="final-cta-visual" aria-label={copy.finalCta.visualLabel}>
+          <strong>{copy.finalCta.visualLabel}</strong>
+          <span>{copy.finalCta.visualBody}</span>
         </div>
       </section>
     </main>
