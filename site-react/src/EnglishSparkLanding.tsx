@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -30,7 +31,6 @@ const productImages = {
   voice: { src: "/assets/product/voice-pronunciation-score.png", altKey: "voice" },
   photo: { src: "/assets/product/photo-translation.png", altKey: "photo" },
   notes: { src: "/assets/product/notes-phrasebook.png", altKey: "notes" },
-  premium: { src: "/assets/product/premium-plans.png", altKey: "premium" },
   telegram: { src: "/assets/product/telegram-app-light.png", altKey: "telegram" },
   mobileLesson: { src: "/assets/product/mobile-lesson-correction.png", altKey: "mobileLesson" },
   mobileMistakes: { src: "/assets/product/mobile-mistakes.png", altKey: "mobileMistakes" },
@@ -38,10 +38,8 @@ const productImages = {
 } satisfies Record<string, ProductImage>;
 
 const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
-const featureImages = [productImages.aiTutor, productImages.voice, productImages.photo, productImages.mistakes] as const;
 
 type EnglishSparkLandingProps = {
-  siteTheme?: "dark" | "light";
   language?: LandingLocale;
 };
 
@@ -53,27 +51,29 @@ function ProductShot({ image, alt, className = "" }: { image: ProductImage; alt:
   );
 }
 
-export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: EnglishSparkLandingProps) {
+export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProps) {
   const copy = getLandingContent(language);
-  const heroVariant = siteTheme === "dark" ? "dark" : "light";
-  const heroColor = siteTheme === "dark" ? "#7bdcff" : "#002fa7";
-  const heroParticleColor = siteTheme === "dark" ? "#f5d27a" : "#002fa7";
+  const [activeFeature, setActiveFeature] = useState(0);
+  const active = copy.features.items[activeFeature] ?? copy.features.items[0];
+  const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
+  const activeImage = productImages[active.imageKey] ?? productImages.aiTutor;
   const imgAlt = (image: ProductImage) => copy.images[image.altKey];
 
   return (
     <main className="english-spark-landing" data-visual-anchor="swiss-editorial">
-      <section className="landing-hero" data-hero-preset={siteTheme}>
+      <section className="landing-hero" data-hero-preset="light">
         <div className="landing-hero__matter" aria-hidden="true">
           <GenerativeArtScene
             animate
             transparentBackdrop
-            variant={heroVariant}
-            color={heroColor}
-            particleColor={heroParticleColor}
+            variant="light"
+            color="#002fa7"
+            particleColor="#002fa7"
           />
         </div>
         <div className="landing-hero__inner">
           <div className="landing-hero__copy">
+            <span className="hero-announcement">{copy.hero.announcement}</span>
             <span className="eyebrow">{copy.hero.eyebrow}</span>
             <h1>{copy.hero.title}</h1>
             <p className="hero-lead">{copy.hero.lead}</p>
@@ -95,16 +95,33 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
             </div>
           </div>
 
-          <div className="mobile-landing-rail" aria-label="NERIVA mobile quick view">
-            {copy.mobile.rail.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </div>
-
           <div className="hero-product-frame" aria-label="NERIVA product screenshots">
             <ProductShot image={productImages.dashboard} alt={imgAlt(productImages.dashboard)} className="product-shot--desktop" />
             <ProductShot image={productImages.mobileHome} alt={imgAlt(productImages.mobileHome)} className="product-shot--phone" />
           </div>
+        </div>
+      </section>
+
+      <section className="before-after-bridge" aria-label="Before and after NERIVA">
+        <div className="section-copy">
+          <span className="eyebrow">{copy.beforeAfter.eyebrow}</span>
+          <h2>{copy.beforeAfter.title}</h2>
+        </div>
+        <div className="before-after-bridge__grid">
+          <article>
+            <span>01</span>
+            <h3>{copy.beforeAfter.beforeTitle}</h3>
+            <ul>
+              {copy.beforeAfter.before.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </article>
+          <article className="is-after">
+            <span>02</span>
+            <h3>{copy.beforeAfter.afterTitle}</h3>
+            <ul>
+              {copy.beforeAfter.after.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </article>
         </div>
       </section>
 
@@ -114,11 +131,7 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
           <h2>{copy.scenario.title}</h2>
           <p>{copy.scenario.body}</p>
           <div className="lesson-scenario__tags" aria-label="Lesson flow">
-            {copy.scenario.tags.map((tag) => (
-              <span className="lesson-scenario__tag" key={tag}>
-                {tag}
-              </span>
-            ))}
+            {copy.scenario.tags.map((tag) => <span className="lesson-scenario__tag" key={tag}>{tag}</span>)}
           </div>
         </div>
         <div className="scenario-shot" aria-label="AI Tutor lesson example">
@@ -135,31 +148,38 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
           <span className="eyebrow">{copy.features.eyebrow}</span>
           <h2>{copy.features.title}</h2>
         </div>
-        <div className="feature-grid">
-          {copy.features.items.map((feature, index) => {
-            const Icon = featureIcons[index] ?? BrainCircuit;
-            const image = featureImages[index] ?? productImages.aiTutor;
-            return (
-              <article className="feature-panel" key={feature.title}>
-                <div className="feature-panel__copy">
-                  <Icon size={22} />
-                  <h3>{feature.title}</h3>
-                  <p>{feature.body}</p>
-                </div>
-                <ProductShot image={image} alt={imgAlt(image)} />
-              </article>
-            );
-          })}
+        <div className="feature-carousel">
+          <div className="feature-carousel__tabs" role="tablist" aria-label={copy.features.title}>
+            {copy.features.items.map((feature, index) => {
+              const Icon = featureIcons[index] ?? BrainCircuit;
+              return (
+                <button
+                  className={index === activeFeature ? "feature-carousel__tab is-active" : "feature-carousel__tab"}
+                  key={feature.title}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === activeFeature}
+                  onClick={() => setActiveFeature(index)}
+                >
+                  <Icon size={18} />
+                  <span>{feature.title}</span>
+                  <small>{feature.short}</small>
+                </button>
+              );
+            })}
+          </div>
+          <div className="feature-carousel__viewport">
+            <article className="feature-panel" role="tabpanel">
+              <div className="feature-panel__copy">
+                <ActiveIcon size={26} />
+                <span>{active.stat}</span>
+                <h3>{active.title}</h3>
+                <p>{active.body}</p>
+              </div>
+              <ProductShot image={activeImage} alt={imgAlt(activeImage)} />
+            </article>
+          </div>
         </div>
-      </section>
-
-      <section className="spark-section notes-section" aria-label="Notes and phrasebook">
-        <div className="section-copy">
-          <span className="eyebrow">{copy.notes.eyebrow}</span>
-          <h2>{copy.notes.title}</h2>
-          <p>{copy.notes.body}</p>
-        </div>
-        <ProductShot image={productImages.notes} alt={imgAlt(productImages.notes)} />
       </section>
 
       <section id="pricing" className="pricing-section">
@@ -168,36 +188,34 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
           <h2>{copy.pricing.title}</h2>
           <p className="pricing-lead">{copy.pricing.lead}</p>
         </div>
-        <div className="pricing-layout">
-          <div className="pricing-grid">
-            {copy.pricing.plans.map((plan, index) => (
-              <article className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name}>
-                <span className="plan-label">{plan.label}</span>
-                <h3>{plan.name}</h3>
-                <div className="price-line">
-                  {plan.oldPrice ? <s>{plan.oldPrice}</s> : null}
-                  <strong>{plan.price}</strong>
-                  <small>{plan.period}</small>
-                </div>
-                <p>{plan.body}</p>
-                <ul>
-                  {plan.limits.map((item) => (
-                    <li key={item}>
-                      <CheckCircle size={16} />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <a href={WEB_APP_HREF}>{copy.pricing.choose}</a>
-              </article>
-            ))}
-          </div>
-          <ProductShot image={productImages.premium} alt={imgAlt(productImages.premium)} className="product-shot--pricing" />
+        <div className="pricing-grid">
+          {copy.pricing.plans.map((plan, index) => (
+            <article className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name}>
+              <span className="plan-label">{plan.label}</span>
+              <h3>{plan.name}</h3>
+              <div className="price-line">
+                {plan.oldPrice ? <s>{plan.oldPrice}</s> : null}
+                <strong>{plan.price}</strong>
+                <small>{plan.period}</small>
+              </div>
+              <p>{plan.body}</p>
+              <ul>
+                {plan.limits.map((item) => (
+                  <li key={item}>
+                    <CheckCircle size={16} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="plan-access" aria-label={`${plan.name} access`}>
+                {plan.access.map((item) => <span key={item}>{item}</span>)}
+              </div>
+              <a href={WEB_APP_HREF}>{copy.pricing.choose}</a>
+            </article>
+          ))}
         </div>
         <div className="payment-methods" aria-label="Payment methods">
-          {copy.pricing.methods.map((method) => (
-            <span key={method}>{method}</span>
-          ))}
+          {copy.pricing.methods.map((method) => <span key={method}>{method}</span>)}
         </div>
       </section>
 
@@ -212,6 +230,9 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
           <div className="telegram-panel__copy">
             <BookOpen size={22} />
             <strong>{copy.telegram.note}</strong>
+            <div className="telegram-panel__chips">
+              {copy.telegram.chips.map((chip) => <span key={chip}>{chip}</span>)}
+            </div>
             <a className="entry-cta" data-entry="telegram" href={TELEGRAM_HREF}>
               {copy.telegram.cta} <ArrowRight size={18} />
             </a>
@@ -243,6 +264,9 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
             <Star size={22} />
             <strong>{copy.community.follow}</strong>
             <span>{copy.community.note}</span>
+            <div className="community-panel__chips">
+              {copy.community.chips.map((chip) => <small key={chip}>{chip}</small>)}
+            </div>
           </div>
           <SocialIconLinks />
         </div>
@@ -280,6 +304,9 @@ export function EnglishSparkLanding({ siteTheme = "light", language = "en" }: En
         <div className="final-cta-visual" aria-label={copy.finalCta.visualLabel}>
           <strong>{copy.finalCta.visualLabel}</strong>
           <span>{copy.finalCta.visualBody}</span>
+          <ol>
+            {copy.finalCta.flow.map((step) => <li key={step}>{step}</li>)}
+          </ol>
         </div>
       </section>
     </main>

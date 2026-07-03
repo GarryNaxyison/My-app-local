@@ -115,7 +115,7 @@ test.describe("public landing SEO and AEO metadata", () => {
 
     await expect(page.locator(".landing-faq h2")).toBeVisible();
     await expect(page.locator(".landing-faq__item")).toHaveCount(4);
-    await expect(page.locator(".landing-faq__item").filter({ hasText: "Что такое NERIVA?" })).toBeVisible();
+    await expect(page.locator(".landing-faq__item").filter({ hasText: "Можно начать бесплатно?" })).toBeVisible();
     await expect(page.locator(".comparison-card")).toHaveCount(0);
     await expect(page.locator(".answer-card")).toHaveCount(0);
   });
@@ -162,13 +162,13 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(webEntryHrefs.every((href) => href === "/app/")).toBe(true);
   });
 
-  test("localizes visible AEO answers across every interface language", async ({ page }) => {
+  test("localizes visible AEO answers across landing languages", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=en");
 
     const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
       options.map((option) => (option as HTMLOptionElement).value),
     );
-    expect(languageCodes).toHaveLength(35);
+    expect(languageCodes).toEqual(["ru", "en"]);
 
     for (const code of languageCodes) {
       await selectLandingLanguage(page, code);
@@ -186,13 +186,13 @@ test.describe("public landing SEO and AEO metadata", () => {
     }
   });
 
-  test("keeps comparison answers off the main landing across every interface language", async ({ page }) => {
+  test("keeps comparison answers off the main landing across landing languages", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=en");
 
     const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
       options.map((option) => (option as HTMLOptionElement).value),
     );
-    expect(languageCodes).toHaveLength(35);
+    expect(languageCodes).toEqual(["ru", "en"]);
 
     for (const code of languageCodes) {
       await selectLandingLanguage(page, code);

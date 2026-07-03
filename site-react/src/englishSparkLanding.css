@@ -6,8 +6,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  min-height: 72px;
-  padding: 12px clamp(18px, 4vw, 56px);
+  min-height: 68px;
+  padding: 10px clamp(18px, 4vw, 56px);
   border-bottom: 1px solid #d9dde5;
   background: rgba(255, 255, 255, 0.96);
   color: #05070a;
@@ -65,7 +65,7 @@
 }
 
 .public-nav--drawer select {
-  max-width: 150px;
+  width: 118px;
 }
 
 .nav-burger:hover,
@@ -136,19 +136,6 @@
   overflow-x: clip;
 }
 
-html[data-site-theme="dark"] .english-spark-landing {
-  --landing-ink: #f5f7fb;
-  --landing-muted: #aeb8c7;
-  --landing-line: #2b3444;
-  --landing-soft-line: #202838;
-  --landing-accent: #7aa7ff;
-  --landing-surface: #070a10;
-  --landing-band: #0f1420;
-  --landing-card: #111827;
-  background: var(--landing-surface);
-  color: var(--landing-ink);
-}
-
 .english-spark-landing *,
 .english-spark-landing *::before,
 .english-spark-landing *::after {
@@ -156,6 +143,7 @@ html[data-site-theme="dark"] .english-spark-landing {
 }
 
 .landing-hero,
+.before-after-bridge,
 .spark-section,
 .pricing-section,
 .lesson-scenario,
@@ -163,9 +151,19 @@ html[data-site-theme="dark"] .english-spark-landing {
   border-bottom: 1px solid var(--landing-line);
 }
 
+.landing-hero__inner,
+.before-after-bridge,
+.spark-section,
+.pricing-section,
+.lesson-scenario,
+.final-cta-section {
+  width: min(1240px, calc(100% - 36px));
+  margin: 0 auto;
+}
+
 .english-spark-landing .landing-hero {
   position: relative;
-  min-height: calc(100svh - 72px) !important;
+  min-height: calc(86svh - 68px) !important;
   display: grid;
   align-items: stretch;
   padding: clamp(20px, 4vw, 42px) 0 0 !important;
@@ -179,6 +177,7 @@ html[data-site-theme="dark"] .english-spark-landing {
   inset: 0 0 0 auto !important;
   z-index: 0;
   width: min(62vw, 860px);
+  background: transparent !important;
   opacity: 0.24 !important;
   pointer-events: none;
   mix-blend-mode: multiply !important;
@@ -189,32 +188,17 @@ html[data-site-theme="dark"] .english-spark-landing {
 .english-spark-landing .landing-hero__matter canvas {
   width: 100% !important;
   height: 100% !important;
-}
-
-html[data-site-theme="dark"] .english-spark-landing .landing-hero__matter {
-  opacity: 0.86 !important;
-  mix-blend-mode: screen !important;
-  filter: saturate(1.08) contrast(1.04) !important;
-}
-
-.landing-hero__inner,
-.spark-section,
-.pricing-section,
-.lesson-scenario,
-.final-cta-section {
-  width: min(1240px, calc(100% - 36px));
-  margin: 0 auto;
+  background: transparent !important;
 }
 
 .english-spark-landing .landing-hero__inner {
   position: relative;
   z-index: 1;
-  width: min(1240px, calc(100% - 36px)) !important;
-  margin: 0 auto !important;
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(520px, 1.05fr) !important;
-  gap: clamp(28px, 5vw, 74px) !important;
+  grid-template-columns: minmax(0, 0.94fr) minmax(500px, 1.06fr);
+  gap: clamp(28px, 5vw, 74px);
   align-items: center;
+  min-height: auto !important;
   padding: 0 !important;
 }
 
@@ -224,11 +208,13 @@ html[data-site-theme="dark"] .english-spark-landing .landing-hero__matter {
   padding: 0 0 clamp(20px, 4vw, 48px);
 }
 
+.hero-announcement,
 .eyebrow {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
-  margin: 0 0 18px;
+  margin: 0 0 14px;
+  border-radius: 999px;
   color: var(--landing-accent);
   font-size: 0.78rem;
   font-weight: 900;
@@ -236,18 +222,29 @@ html[data-site-theme="dark"] .english-spark-landing .landing-hero__matter {
 }
 
 .english-spark-landing .eyebrow {
+  border: 0 !important;
+  padding: 0 !important;
   color: var(--landing-accent) !important;
+  -webkit-text-fill-color: var(--landing-accent) !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-html[data-site-theme="light"] .english-spark-landing .pricing-section .eyebrow,
-html[data-site-theme="light"] .english-spark-landing .community-section .eyebrow,
-html[data-site-theme="dark"] .english-spark-landing .pricing-section .eyebrow,
-html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow {
-  color: var(--landing-accent) !important;
+.hero-announcement {
+  border: 1px solid var(--landing-line);
+  padding: 0 11px;
+  color: #05070a;
+  background: #ffffff;
+}
+
+.eyebrow {
+  width: 100%;
+  margin-bottom: 18px;
 }
 
 .landing-hero h1,
 .section-copy h2,
+.lesson-scenario h2,
 .final-cta-section h2 {
   margin: 0;
   color: var(--landing-ink);
@@ -256,21 +253,24 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
 }
 
 .english-spark-landing .landing-hero h1 {
-  max-width: 12ch !important;
+  max-width: 13ch !important;
   color: #05070a !important;
-  font-size: clamp(3.7rem, 5.8vw, 5.35rem) !important;
+  -webkit-text-fill-color: #05070a !important;
+  font-size: clamp(3.55rem, 5.8vw, 5.3rem) !important;
   line-height: 0.92 !important;
 }
 
 .english-spark-landing .hero-lead {
-  max-width: 680px;
+  max-width: 620px;
   margin: 18px 0 0;
   color: var(--landing-muted) !important;
+  -webkit-text-fill-color: var(--landing-muted) !important;
   font-size: clamp(1rem, 1.4vw, 1.12rem);
   line-height: 1.55;
 }
 
-.hero-actions {
+.hero-actions,
+.final-cta-section__copy > div {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -291,6 +291,7 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   background: #ffffff;
   font-weight: 900;
   line-height: 1;
+  text-decoration: none;
 }
 
 .hero-action--primary,
@@ -323,29 +324,38 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   border-left: 1px solid var(--landing-line);
 }
 
-.english-spark-landing .hero-proof span {
+.hero-proof span {
   min-width: 0;
   display: grid;
   gap: 6px;
-  padding: 10px 12px;
-  border-right: 1px solid var(--landing-line) !important;
-  border-bottom: 1px solid var(--landing-line) !important;
-  color: var(--landing-muted) !important;
-  background: #ffffff !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
+  padding: 12px;
+  border-right: 1px solid var(--landing-line);
+  border-bottom: 1px solid var(--landing-line);
+  color: var(--landing-muted);
+  background: #ffffff;
   font-size: 0.84rem;
   line-height: 1.3;
 }
 
+.hero-proof strong {
+  color: var(--landing-ink);
+  font-size: 0.96rem;
+}
+
+.english-spark-landing .hero-proof span {
+  color: var(--landing-muted) !important;
+  -webkit-text-fill-color: var(--landing-muted) !important;
+  background: #ffffff !important;
+}
+
 .english-spark-landing .hero-proof strong {
   color: var(--landing-ink) !important;
-  font-size: 0.96rem;
+  -webkit-text-fill-color: var(--landing-ink) !important;
 }
 
 .hero-product-frame {
   position: relative;
-  min-height: 470px;
+  min-height: 420px;
   display: grid;
   align-items: end;
   padding: 0 0 16px;
@@ -381,6 +391,12 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   align-self: end;
 }
 
+.product-shot--desktop img {
+  max-height: 545px;
+  object-fit: cover;
+  object-position: left top;
+}
+
 .product-shot--phone {
   position: absolute;
   right: 4%;
@@ -391,8 +407,66 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   box-shadow: 0 18px 54px rgba(5, 7, 10, 0.16);
 }
 
-.mobile-landing-rail {
-  display: none;
+.before-after-bridge,
+.lesson-scenario,
+.spark-section,
+.pricing-section,
+.final-cta-section {
+  padding: clamp(56px, 9vw, 118px) 0;
+}
+
+.before-after-bridge {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(520px, 1.22fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+}
+
+.before-after-bridge__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--landing-line);
+  border-left: 1px solid var(--landing-line);
+}
+
+.before-after-bridge article {
+  min-width: 0;
+  padding: clamp(20px, 3vw, 34px);
+  border-right: 1px solid var(--landing-line);
+  border-bottom: 1px solid var(--landing-line);
+  background: #ffffff;
+}
+
+.before-after-bridge article.is-after {
+  background: var(--landing-band);
+}
+
+.before-after-bridge article > span,
+.feature-panel__copy > span {
+  color: var(--landing-accent);
+  font-weight: 950;
+}
+
+.before-after-bridge h3 {
+  margin: 16px 0;
+  color: var(--landing-ink);
+  font-size: clamp(1.7rem, 3vw, 2.7rem);
+  line-height: 1;
+}
+
+.before-after-bridge ul,
+.plan-card ul,
+.final-cta-visual ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.before-after-bridge li {
+  padding: 10px 0;
+  border-top: 1px solid var(--landing-soft-line);
+  color: var(--landing-muted);
+  font-weight: 760;
 }
 
 .lesson-scenario {
@@ -400,20 +474,14 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   grid-template-columns: minmax(0, 0.78fr) minmax(520px, 1.22fr);
   gap: clamp(28px, 5vw, 72px);
   align-items: center;
-  padding: clamp(56px, 9vw, 118px) 0;
-}
-
-.lesson-scenario__copy,
-.section-copy {
-  min-width: 0;
 }
 
 .lesson-scenario h2,
 .section-copy h2,
 .final-cta-section h2 {
-  font-size: clamp(2.4rem, 5.6vw, 5.1rem);
+  font-size: clamp(2.35rem, 5.4vw, 5rem);
   line-height: 0.94;
-  max-width: 850px;
+  max-width: 860px;
 }
 
 .lesson-scenario p,
@@ -434,16 +502,27 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   font-size: 1.05rem;
 }
 
-.lesson-scenario__tags {
+.lesson-scenario__tags,
+.payment-methods,
+.telegram-panel__chips,
+.community-panel__chips,
+.plan-access {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 28px;
+}
+
+.lesson-scenario__tags,
+.payment-methods {
+  margin-top: 20px;
 }
 
 .lesson-scenario__tag,
 .plan-label,
-.payment-methods span {
+.payment-methods span,
+.telegram-panel__chips span,
+.community-panel__chips small,
+.plan-access span {
   display: inline-flex;
   align-items: center;
   min-height: 30px;
@@ -456,21 +535,15 @@ html[data-site-theme="dark"] .english-spark-landing .community-section .eyebrow 
   font-weight: 900;
 }
 
-html[data-site-theme="light"] .english-spark-landing .lesson-scenario__tag,
-html[data-site-theme="light"] .english-spark-landing .plan-label,
-html[data-site-theme="light"] .english-spark-landing .payment-methods span,
-html[data-site-theme="dark"] .english-spark-landing .lesson-scenario__tag,
-html[data-site-theme="dark"] .english-spark-landing .plan-label,
-html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
-  border-color: var(--landing-line) !important;
-  color: var(--landing-accent) !important;
-  -webkit-text-fill-color: var(--landing-accent) !important;
-  background: #ffffff !important;
-}
-
 .scenario-shot {
   display: grid;
   gap: 14px;
+}
+
+.scenario-shot .product-shot img {
+  max-height: 430px;
+  object-fit: cover;
+  object-position: left top;
 }
 
 .scenario-shot__caption {
@@ -490,35 +563,77 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   color: var(--landing-ink);
 }
 
-.spark-section,
-.pricing-section,
-.final-cta-section {
-  padding: clamp(56px, 9vw, 118px) 0;
-}
-
 .modules-section,
 .telegram-section,
-.landing-faq {
+.landing-faq,
+.community-section,
+.final-cta-section {
   background: #ffffff;
 }
 
-.feature-grid {
+.feature-carousel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(260px, 0.34fr) minmax(0, 0.66fr);
   gap: 18px;
   margin-top: clamp(28px, 5vw, 54px);
+}
+
+.feature-carousel__tabs {
+  display: grid;
+  gap: 8px;
+}
+
+.feature-carousel__tab {
+  min-height: 74px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-areas: "icon title" "icon short";
+  gap: 4px 12px;
+  align-items: center;
+  border: 1px solid var(--landing-line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--landing-ink);
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.feature-carousel__tab svg {
+  grid-area: icon;
+  color: var(--landing-accent);
+}
+
+.feature-carousel__tab span {
+  grid-area: title;
+  font-weight: 950;
+}
+
+.feature-carousel__tab small {
+  grid-area: short;
+  color: var(--landing-muted);
+  font-weight: 800;
+}
+
+.feature-carousel__tab.is-active {
+  border-color: var(--landing-accent);
+  box-shadow: inset 0 0 0 1px var(--landing-accent);
+}
+
+.feature-carousel__viewport {
+  min-width: 0;
 }
 
 .feature-panel {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(190px, 0.46fr) minmax(0, 0.54fr);
-  gap: 16px;
+  grid-template-columns: minmax(220px, 0.4fr) minmax(0, 0.6fr);
+  gap: 18px;
   align-items: stretch;
   border: 1px solid var(--landing-line);
   border-radius: 8px;
-  padding: 16px;
-  background: #ffffff;
+  padding: 18px;
+  background: var(--landing-band);
 }
 
 .feature-panel__copy {
@@ -526,12 +641,13 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  justify-content: flex-end;
 }
 
 .feature-panel svg,
 .community-panel svg,
 .telegram-panel__copy svg,
-.final-cta-section > svg {
+.final-cta-section svg {
   color: var(--landing-accent);
 }
 
@@ -550,37 +666,22 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   line-height: 1.5;
 }
 
-.feature-panel .product-shot {
-  align-self: stretch;
-}
-
 .feature-panel .product-shot img {
   height: 100%;
-  min-height: 210px;
+  max-height: 430px;
   object-fit: cover;
   object-position: left top;
 }
 
-.notes-section {
-  display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(520px, 1.28fr);
-  gap: clamp(28px, 5vw, 72px);
-  align-items: center;
+.pricing-section {
   background: var(--landing-band);
-}
-
-.pricing-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-  gap: 18px;
-  margin-top: clamp(28px, 5vw, 54px);
-  align-items: stretch;
 }
 
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  margin-top: clamp(28px, 5vw, 54px);
 }
 
 .plan-card {
@@ -605,8 +706,7 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   margin-top: 18px;
 }
 
-.price-line s,
-.price-line del {
+.price-line s {
   color: #8b94a3;
   text-decoration-thickness: 2px;
 }
@@ -624,8 +724,6 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   display: grid;
   gap: 10px;
   margin: 20px 0;
-  padding: 0;
-  list-style: none;
 }
 
 .plan-card li {
@@ -643,23 +741,14 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   color: var(--landing-accent);
 }
 
+.plan-access {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
 .plan-card a {
   width: 100%;
-  margin-top: auto;
-}
-
-.product-shot--pricing img {
-  height: 100%;
-  min-height: 460px;
-  object-fit: cover;
-  object-position: left top;
-}
-
-.payment-methods {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .telegram-panel {
@@ -672,7 +761,7 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
 
 .telegram-panel .product-shot img {
   height: 100%;
-  min-height: 520px;
+  max-height: 560px;
   object-fit: cover;
   object-position: left top;
 }
@@ -716,10 +805,6 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   width: min(100%, 390px);
   margin: 0 auto;
   border-color: #05070a;
-}
-
-.community-section {
-  background: #ffffff;
 }
 
 .community-panel {
@@ -801,8 +886,8 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   gap: clamp(20px, 5vw, 64px);
   align-items: center;
   justify-items: stretch;
-  background: #05070a;
-  color: #ffffff;
+  background: #ffffff !important;
+  color: #05070a;
 }
 
 .final-cta-section__copy {
@@ -811,42 +896,18 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   justify-items: start;
 }
 
-.final-cta-section__copy > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 22px;
-}
-
-.final-cta-section h2,
-.final-cta-section p,
-.final-cta-visual {
-  color: #ffffff;
-}
-
-.final-cta-section p {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.final-cta-section .hero-action--secondary,
-.final-cta-section a[data-entry="telegram"] {
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.46);
-  background: transparent;
-}
-
 .final-cta-visual {
   min-height: 240px;
   display: grid;
   align-content: end;
   gap: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  border: 1px solid var(--landing-line);
   border-radius: 8px;
   padding: clamp(18px, 3vw, 30px);
   background:
-    linear-gradient(135deg, rgba(122, 167, 255, 0.28), transparent 48%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 24px),
-    rgba(255, 255, 255, 0.05);
+    repeating-linear-gradient(90deg, #d9dde5 0 1px, transparent 1px 24px),
+    #f7f7f8;
+  color: #05070a;
 }
 
 .final-cta-visual strong {
@@ -855,8 +916,26 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
 }
 
 .final-cta-visual span {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--landing-muted);
   line-height: 1.45;
+}
+
+.final-cta-visual ol {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.final-cta-visual li {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--landing-line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--landing-accent);
+  font-weight: 900;
 }
 
 .site-footer {
@@ -864,135 +943,15 @@ html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
   color: #05070a;
 }
 
-html[data-site-theme="light"] .english-spark-landing .landing-hero,
-html[data-site-theme="dark"] .english-spark-landing .landing-hero {
-  background: #ffffff !important;
-  color: #05070a !important;
-}
-
-html[data-site-theme="light"] .english-spark-landing .landing-hero h1,
-html[data-site-theme="dark"] .english-spark-landing .landing-hero h1 {
-  color: #05070a !important;
-}
-
-html[data-site-theme="light"] .english-spark-landing .landing-hero .hero-lead,
-html[data-site-theme="dark"] .english-spark-landing .landing-hero .hero-lead {
-  color: #5c6675 !important;
-}
-
 .site-footer p,
 .site-footer span,
-.site-footer a {
+.site-footer a,
+.seo-guides a {
   color: #5c6675;
 }
 
 .site-footer strong {
   color: #05070a;
-}
-
-html[data-site-theme="dark"] .public-nav--drawer,
-html[data-site-theme="dark"] .nav-drawer,
-html[data-site-theme="dark"] .nav-burger,
-html[data-site-theme="dark"] .nav-drawer__actions a,
-html[data-site-theme="dark"] .nav-drawer__actions button,
-html[data-site-theme="dark"] .public-nav--drawer .nav-theme-toggle,
-html[data-site-theme="dark"] .public-nav--drawer select {
-  border-color: #2b3444;
-  background: #070a10;
-  color: #f5f7fb;
-}
-
-html[data-site-theme="dark"] .public-nav--drawer {
-  background: rgba(7, 10, 16, 0.94);
-}
-
-html[data-site-theme="dark"] .public-nav--drawer .public-brand {
-  color: #f5f7fb;
-}
-
-html[data-site-theme="dark"] .public-nav--drawer .public-brand__logo,
-html[data-site-theme="dark"] .social-icon-link,
-html[data-site-theme="dark"] .product-shot,
-html[data-site-theme="dark"] .feature-panel,
-html[data-site-theme="dark"] .plan-card,
-html[data-site-theme="dark"] .landing-faq__item,
-html[data-site-theme="dark"] .community-panel,
-html[data-site-theme="dark"] .telegram-panel__copy {
-  border-color: var(--landing-line);
-  background: var(--landing-card) !important;
-}
-
-html[data-site-theme="dark"] .english-spark-landing .landing-hero {
-  background: var(--landing-surface) !important;
-  color: var(--landing-ink) !important;
-}
-
-html[data-site-theme="dark"] .english-spark-landing .landing-hero h1,
-html[data-site-theme="dark"] .english-spark-landing .landing-hero .hero-lead {
-  background: transparent !important;
-  color: var(--landing-ink) !important;
-}
-
-html[data-site-theme="dark"] .english-spark-landing .hero-lead,
-html[data-site-theme="dark"] .lesson-scenario p,
-html[data-site-theme="dark"] .section-copy p,
-html[data-site-theme="dark"] .plan-card p,
-html[data-site-theme="dark"] .landing-faq__item p,
-html[data-site-theme="dark"] .telegram-panel__copy span,
-html[data-site-theme="dark"] .community-panel span {
-  color: var(--landing-muted) !important;
-}
-
-html[data-site-theme="dark"] .english-spark-landing .hero-proof span,
-html[data-site-theme="dark"] .english-spark-landing .lesson-scenario__tag,
-html[data-site-theme="dark"] .english-spark-landing .plan-label,
-html[data-site-theme="dark"] .english-spark-landing .payment-methods span {
-  border-color: var(--landing-line) !important;
-  background: var(--landing-card) !important;
-  color: var(--landing-accent) !important;
-}
-
-html[data-site-theme="dark"] .english-spark-landing .hero-proof strong,
-html[data-site-theme="dark"] .lesson-scenario h2,
-html[data-site-theme="dark"] .section-copy h2,
-html[data-site-theme="dark"] .feature-panel h3,
-html[data-site-theme="dark"] .plan-card h3,
-html[data-site-theme="dark"] .landing-faq__item h3,
-html[data-site-theme="dark"] .price-line strong,
-html[data-site-theme="dark"] .telegram-panel__copy strong,
-html[data-site-theme="dark"] .community-panel strong {
-  color: var(--landing-ink) !important;
-}
-
-html[data-site-theme="dark"] .hero-action--secondary,
-html[data-site-theme="dark"] .entry-cta,
-html[data-site-theme="dark"] .plan-card a {
-  border-color: var(--landing-line);
-  color: var(--landing-ink);
-  background: var(--landing-card);
-}
-
-html[data-site-theme="dark"] .hero-action--primary,
-html[data-site-theme="dark"] .telegram-panel .entry-cta,
-html[data-site-theme="dark"] .plan-card a,
-html[data-site-theme="dark"] .final-cta-section a[data-entry="web-app"] {
-  border-color: var(--landing-accent);
-  color: #05070a;
-  background: var(--landing-accent);
-}
-
-html[data-site-theme="dark"] .site-footer {
-  background: #070a10;
-  color: #f5f7fb;
-}
-
-html[data-site-theme="dark"] .site-footer strong,
-html[data-site-theme="dark"] .site-footer a:hover {
-  color: #f5f7fb;
-}
-
-.seo-guides a {
-  color: #5c6675;
 }
 
 .seo-guides a:hover {
@@ -1013,15 +972,11 @@ html[data-site-theme="dark"] .site-footer a:hover {
 
 @media (max-width: 1180px) {
   .english-spark-landing .landing-hero__inner,
+  .before-after-bridge,
   .lesson-scenario,
-  .notes-section,
-  .pricing-layout,
+  .feature-carousel,
   .telegram-panel {
-    grid-template-columns: 1fr !important;
-  }
-
-  .landing-hero__copy {
-    padding-bottom: 18px;
+    grid-template-columns: 1fr;
   }
 
   .hero-product-frame {
@@ -1040,11 +995,12 @@ html[data-site-theme="dark"] .site-footer a:hover {
 
 @media (max-width: 860px) {
   .public-nav--drawer {
+    min-height: 62px;
     padding: 10px 14px;
   }
 
   .public-nav--drawer select {
-    max-width: 104px;
+    width: 96px;
   }
 
   .nav-burger span {
@@ -1056,6 +1012,7 @@ html[data-site-theme="dark"] .site-footer a:hover {
   }
 
   .landing-hero__inner,
+  .before-after-bridge,
   .spark-section,
   .pricing-section,
   .lesson-scenario,
@@ -1069,33 +1026,25 @@ html[data-site-theme="dark"] .site-footer a:hover {
   }
 
   .english-spark-landing .landing-hero__matter {
-    top: 236px !important;
+    top: 204px !important;
     right: -56vw !important;
     bottom: auto !important;
     left: auto !important;
     width: 112vw !important;
-    height: 390px !important;
-    opacity: 0.16 !important;
+    height: 360px !important;
+    opacity: 0.14 !important;
     mix-blend-mode: multiply !important;
   }
 
-  html[data-site-theme="dark"] .english-spark-landing .landing-hero__matter {
-    right: -70vw !important;
-    opacity: 0.66 !important;
-    mix-blend-mode: screen !important;
-  }
-
   .english-spark-landing .landing-hero__inner {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .english-spark-landing .landing-hero h1 {
     max-width: 13ch !important;
-    font-size: clamp(2.35rem, 10.5vw, 3.65rem) !important;
-    line-height: 0.96 !important;
+    font-size: clamp(2.22rem, 10vw, 3.3rem) !important;
+    line-height: 0.98 !important;
   }
 
   .english-spark-landing .hero-lead {
@@ -1105,11 +1054,16 @@ html[data-site-theme="dark"] .site-footer a:hover {
   }
 
   .hero-proof,
-  .feature-grid,
+  .before-after-bridge__grid,
   .pricing-grid,
   .mobile-strip,
-  .landing-faq__grid {
+  .landing-faq__grid,
+  .final-cta-section {
     grid-template-columns: 1fr;
+  }
+
+  .hero-proof {
+    display: none;
   }
 
   .hero-product-frame {
@@ -1121,36 +1075,7 @@ html[data-site-theme="dark"] .site-footer a:hover {
     display: none;
   }
 
-  .mobile-landing-rail {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 2px 0 8px;
-    scrollbar-width: none;
-  }
-
-  .mobile-landing-rail::-webkit-scrollbar {
-    display: none;
-  }
-
-  .mobile-landing-rail span {
-    flex: 0 0 auto;
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--landing-line);
-    border-radius: 8px;
-    padding: 0 10px;
-    color: var(--landing-accent);
-    background: var(--landing-card);
-    font-size: 0.78rem;
-    font-weight: 900;
-  }
-
-  .hero-proof {
-    display: none;
-  }
-
+  .before-after-bridge,
   .lesson-scenario,
   .spark-section,
   .pricing-section,
@@ -1166,14 +1091,31 @@ html[data-site-theme="dark"] .site-footer a:hover {
     line-height: 1;
   }
 
+  .feature-carousel__tabs {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .feature-carousel__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .feature-carousel__tab {
+    flex: 0 0 min(245px, 76vw);
+    scroll-snap-align: start;
+  }
+
   .feature-panel {
     grid-template-columns: 1fr;
   }
 
   .feature-panel .product-shot img,
-  .product-shot--pricing img,
-  .telegram-panel .product-shot img {
-    min-height: 0;
+  .telegram-panel .product-shot img,
+  .scenario-shot .product-shot img {
+    max-height: none;
     height: auto;
     object-fit: contain;
   }
@@ -1187,10 +1129,6 @@ html[data-site-theme="dark"] .site-footer a:hover {
     flex-direction: column;
   }
 
-  .final-cta-section {
-    grid-template-columns: 1fr;
-  }
-
   .final-cta-visual {
     min-height: 160px;
   }
@@ -1198,6 +1136,7 @@ html[data-site-theme="dark"] .site-footer a:hover {
 
 @media (max-width: 440px) {
   .landing-hero__inner,
+  .before-after-bridge,
   .spark-section,
   .pricing-section,
   .lesson-scenario,
@@ -1207,43 +1146,27 @@ html[data-site-theme="dark"] .site-footer a:hover {
 
   .hero-actions,
   .final-cta-section__copy > div {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .english-spark-landing .hero-actions {
-    align-items: center !important;
-    flex-direction: row !important;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
+    width: 100%;
   }
 
   .entry-cta,
   .plan-card a {
     width: auto;
-    min-height: 48px;
     min-width: 0;
-    padding: 0 14px;
-    font-size: 0.92rem;
-  }
-
-  .hero-actions .entry-cta,
-  .final-cta-section__copy .entry-cta {
-    flex: 1 1 0;
-    width: auto !important;
-  }
-
-  .english-spark-landing .hero-actions .entry-cta {
-    max-width: none;
-  }
-
-  .product-shot--phone {
-    margin-top: -32px;
+    min-height: 46px;
+    padding: 0 12px;
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
   .plan-card,
   .landing-faq__item,
   .feature-panel,
-  .telegram-panel__copy {
+  .telegram-panel__copy,
+  .before-after-bridge article {
     padding: 16px;
   }
 
@@ -1251,8 +1174,7 @@ html[data-site-theme="dark"] .site-footer a:hover {
     font-size: 1.65rem;
   }
 
-  .mobile-section,
-  .notes-section {
-    display: none;
+  .final-cta-visual ol {
+    grid-template-columns: 1fr 1fr;
   }
 }

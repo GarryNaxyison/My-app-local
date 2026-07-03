@@ -412,20 +412,37 @@ export function PublicSiteApp() {
   const page = getPage();
   const [theme, setTheme] = useSiteTheme();
   const language = useSiteLanguage();
-  useLegacySiteI18n(page, theme);
+  const effectiveTheme = page === "landing" ? "light" : theme;
+
+  useEffect(() => {
+    if (page === "landing") {
+      document.documentElement.dataset.siteTheme = "light";
+    }
+  }, [page]);
+
+  useLegacySiteI18n(page, effectiveTheme);
   const landingCopy = getLandingContent(language);
 
   return (
     <div className="public-shell">
-      <SiteNavDrawer page={page} theme={theme} copy={landingCopy.nav} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
-      {page === "landing" ? <EnglishSparkLanding siteTheme={theme} language={language} /> : <LegalPageV2 page={page} />}
+      <SiteNavDrawer page={page} theme={effectiveTheme} copy={landingCopy.nav} showThemeToggle={page !== "landing"} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
+      {page === "landing" ? <EnglishSparkLanding language={language} /> : <LegalPageV2 page={page} />}
       <SiteFooterEnglish showSeoGuides={page === "landing"} copy={landingCopy.nav} language={language} />
       <CookieConsentBanner />
     </div>
   );
 }
 
-function SiteNavDrawer({ page, theme, copy, onThemeToggle }: { page: PageId; theme: SiteTheme; copy: ReturnType<typeof getLandingContent>["nav"]; onThemeToggle: () => void }) {
+function LandingLanguageOptions() {
+  return (
+    <>
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+    </>
+  );
+}
+
+function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { page: PageId; theme: SiteTheme; copy: ReturnType<typeof getLandingContent>["nav"]; showThemeToggle: boolean; onThemeToggle: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const themeLabel = theme === "dark" ? copy.light : copy.dark;
 
@@ -438,10 +455,14 @@ function SiteNavDrawer({ page, theme, copy, onThemeToggle }: { page: PageId; the
         <strong>NERIVA</strong>
       </a>
       <div className="public-nav__actions">
-        <select data-site-language-select aria-label="Language" />
-        <button className="nav-theme-toggle" type="button" onClick={onThemeToggle} aria-label={themeLabel}>
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+        <select data-site-language-select aria-label="Language">
+          {page === "landing" ? <LandingLanguageOptions /> : null}
+        </select>
+        {showThemeToggle ? (
+          <button className="nav-theme-toggle" type="button" onClick={onThemeToggle} aria-label={themeLabel}>
+            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        ) : null}
         <button className="nav-burger" type="button" aria-expanded={isOpen} aria-controls="public-nav-drawer" onClick={() => setIsOpen((value) => !value)}>
           {isOpen ? <X size={20} /> : <Menu size={20} />}
           <span>{copy.menu}</span>
@@ -472,10 +493,12 @@ function SiteNavDrawer({ page, theme, copy, onThemeToggle }: { page: PageId; the
           </a>
         </nav>
         <div className="nav-drawer__actions">
-          <button type="button" onClick={onThemeToggle}>
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-            {themeLabel}
-          </button>
+          {showThemeToggle ? (
+            <button type="button" onClick={onThemeToggle}>
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              {themeLabel}
+            </button>
+          ) : null}
           <a href="/app/" onClick={() => setIsOpen(false)}>
             <Laptop size={18} />
             {copy.webApp}

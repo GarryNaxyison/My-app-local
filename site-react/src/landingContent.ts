@@ -1,42 +1,14 @@
-export const landingLocaleCodes = [
-  "ru",
-  "en",
-  "es",
-  "de",
-  "fr",
-  "it",
-  "zh",
-  "ja",
-  "ko",
-  "tg",
-  "uz",
-  "tt",
-  "hy",
-  "kk",
-  "ky",
-  "ka",
-  "uk",
-  "pl",
-  "ro",
-  "pt",
-  "ar",
-  "bn",
-  "cs",
-  "el",
-  "hi",
-  "hu",
-  "id",
-  "nl",
-  "sv",
-  "ta",
-  "te",
-  "th",
-  "tl",
-  "tr",
-  "vi",
-] as const;
+export const landingLocaleCodes = ["ru", "en"] as const;
 
 export type LandingLocale = (typeof landingLocaleCodes)[number];
+
+export type LandingFeature = {
+  title: string;
+  short: string;
+  body: string;
+  stat: string;
+  imageKey: keyof LandingContent["images"];
+};
 
 export type LandingContent = {
   nav: {
@@ -57,7 +29,16 @@ export type LandingContent = {
     eyebrow: string;
     title: string;
     lead: string;
+    announcement: string;
     proof: readonly [string, string][];
+  };
+  beforeAfter: {
+    eyebrow: string;
+    title: string;
+    beforeTitle: string;
+    before: readonly string[];
+    afterTitle: string;
+    after: readonly string[];
   };
   scenario: {
     eyebrow: string;
@@ -70,12 +51,7 @@ export type LandingContent = {
   features: {
     eyebrow: string;
     title: string;
-    items: readonly { title: string; body: string }[];
-  };
-  notes: {
-    eyebrow: string;
-    title: string;
-    body: string;
+    items: readonly LandingFeature[];
   };
   pricing: {
     eyebrow: string;
@@ -91,6 +67,7 @@ export type LandingContent = {
       period: string;
       body: string;
       limits: readonly string[];
+      access: readonly string[];
     }[];
   };
   telegram: {
@@ -99,6 +76,7 @@ export type LandingContent = {
     body: string;
     note: string;
     cta: string;
+    chips: readonly string[];
   };
   mobile: {
     eyebrow: string;
@@ -112,6 +90,7 @@ export type LandingContent = {
     body: string;
     follow: string;
     note: string;
+    chips: readonly string[];
   };
   faq: {
     eyebrow: string;
@@ -123,8 +102,21 @@ export type LandingContent = {
     body: string;
     visualLabel: string;
     visualBody: string;
+    flow: readonly string[];
   };
-  images: Record<string, string>;
+  images: {
+    dashboard: string;
+    mobileHome: string;
+    aiTutor: string;
+    mistakes: string;
+    voice: string;
+    photo: string;
+    notes: string;
+    telegram: string;
+    mobileLesson: string;
+    mobileMistakes: string;
+    mobileVoice: string;
+  };
 };
 
 const english: LandingContent = {
@@ -144,40 +136,68 @@ const english: LandingContent = {
   },
   hero: {
     eyebrow: "AI tutor in web app and Telegram",
-    title: "NERIVA helps you speak with more confidence",
-    lead: "One short lesson gives you a phrase, your answer, a correction and the next repeat. Use the web app for a full session or Telegram for a quick check.",
+    title: "NERIVA turns practice into a short lesson loop",
+    lead: "Take one phrase, answer it, get a clear correction, then repeat the weak point tomorrow.",
+    announcement: "New lesson in 3 minutes",
     proof: [
-      ["35 languages", "Interface and landing"],
-      ["A1-C2", "Levels for daily practice"],
-      ["Free, Premium, Platinum", "Clear daily limits"],
+      ["Web + Telegram", "One learning profile"],
+      ["Phrase -> answer", "No random drills"],
+      ["Correction -> repeat", "Mistakes return on time"],
     ],
+  },
+  beforeAfter: {
+    eyebrow: "Before / After",
+    title: "Less collecting. More speaking.",
+    beforeTitle: "Before",
+    before: ["saved screenshots", "forgotten vocabulary", "no speaking feedback"],
+    afterTitle: "After",
+    after: ["one phrase", "one correction", "one repeat date"],
   },
   scenario: {
     eyebrow: "Live lesson",
-    title: "Practice, get corrected, repeat",
-    body: "NERIVA turns a real situation into a small loop: understand the phrase, answer, see the fix, save the weak point.",
-    tags: ["phrase", "answer", "correction", "review"],
+    title: "A real answer becomes the next exercise",
+    body: "Example: you need to check in at a hotel. NERIVA gives the phrase, reads your answer, explains the mistake and saves the weak words.",
+    tags: ["Phrase", "Answer", "Correction", "Repeat"],
     captionLabel: "Hotel check-in",
-    caption: "A correction, explanation, audio sample and your answer stay in one lesson.",
+    caption: "The task, your answer, the fix and audio stay in one lesson.",
   },
   features: {
-    eyebrow: "Core tools",
-    title: "Four tools in one profile",
+    eyebrow: "Four functions",
+    title: "One active tool at a time, one profile underneath",
     items: [
-      { title: "AI Tutor", body: "Short guided lessons with a clear next step." },
-      { title: "Voice", body: "Pronunciation score, weak words and shadowing." },
-      { title: "Photo", body: "Translate a menu, sign or task and practice it." },
-      { title: "Mistakes", body: "Saved errors return when it is time to repeat." },
+      {
+        title: "AI Tutor",
+        short: "lesson",
+        body: "A small task, your answer and a human-readable explanation.",
+        stat: "answer checked",
+        imageKey: "aiTutor",
+      },
+      {
+        title: "Voice",
+        short: "pronunciation",
+        body: "Score, weak words and shadowing for phrases you actually need.",
+        stat: "weak words",
+        imageKey: "voice",
+      },
+      {
+        title: "Photo",
+        short: "OCR",
+        body: "Translate a menu, sign or assignment and turn it into practice.",
+        stat: "text extracted",
+        imageKey: "photo",
+      },
+      {
+        title: "Mistakes",
+        short: "review",
+        body: "Saved errors come back as repeat prompts instead of disappearing.",
+        stat: "repeat planned",
+        imageKey: "mistakes",
+      },
     ],
-  },
-  notes: {
-    eyebrow: "Notes / Phrasebook",
-    title: "Useful phrases do not disappear",
-    body: "Save phrases, translations and weak words. Return to them when they matter.",
   },
   pricing: {
     eyebrow: "Pricing",
-    title: "Start free. Upgrade when you need more practice.",
+    title: "Start free. Add limits when practice becomes regular.",
     lead: "Payment works through Telegram Stars and YooKassa/SBP.",
     methods: ["Telegram Stars", "YooKassa/SBP"],
     choose: "Choose plan",
@@ -187,8 +207,9 @@ const english: LandingContent = {
         label: "Try it",
         price: "0 ₽",
         period: "starter access",
-        body: "Basic text practice, notes and progress.",
+        body: "For checking the lesson loop without paying.",
         limits: ["5 lessons a day", "15 practice messages", "Basic phrasebook"],
+        access: ["text practice", "notes", "progress"],
       },
       {
         name: "Premium",
@@ -196,8 +217,9 @@ const english: LandingContent = {
         oldPrice: "1000 ₽",
         price: "300 ₽",
         period: "per month",
-        body: "The main plan for AI Tutor, voice and photo tools.",
+        body: "The main plan for AI Tutor, voice, photo and saved mistakes.",
         limits: ["50 lessons a day", "200 practice messages", "20 voice checks"],
+        access: ["AI Tutor", "Voice", "Photo", "Mistakes"],
       },
       {
         name: "Platinum",
@@ -207,44 +229,48 @@ const english: LandingContent = {
         period: "per month",
         body: "Higher limits for travel, work and exam preparation.",
         limits: ["100 lessons a day", "500 practice messages", "60 voice checks"],
+        access: ["higher limits", "voice intensive", "photo practice"],
       },
     ],
   },
   telegram: {
-    eyebrow: "Telegram",
-    title: "Quick practice without opening a second product",
+    eyebrow: "Telegram companion",
+    title: "Quick practice without a second product",
     body: "Start a task, send voice or photo, get a reminder and continue the same profile in the web app.",
-    note: "Lesson, voice, photo, mistakes and Premium are one tap away.",
+    note: "Lesson, voice, photo, mistakes and Premium open in one tap.",
     cta: "Open Telegram",
+    chips: ["Voice", "Photo", "Reminder"],
   },
   mobile: {
     eyebrow: "Mobile web app",
-    title: "Phone sessions stay short",
-    body: "Dashboard, lesson, mistakes and voice practice are compact on mobile.",
+    title: "A short check-in, not a long scroll",
+    body: "Progress, lesson, mistakes and voice practice stay compact on the phone.",
     rail: ["Progress", "Lesson", "Voice"],
   },
   community: {
     eyebrow: "Community",
-    title: "Giveaways and product updates",
-    body: "Follow NERIVA for short lessons, release notes and Premium key giveaways.",
+    title: "NERIVA channel: lessons, updates and Premium giveaways",
+    body: "Follow real product updates, short practice posts and Premium key giveaways.",
     follow: "Follow NERIVA",
-    note: "Short lessons and product updates.",
+    note: "Short lessons and release notes.",
+    chips: ["mini lesson", "release note", "Premium giveaway"],
   },
   faq: {
     eyebrow: "FAQ",
     title: "Before you start",
     items: [
       { question: "Can I start free?", answer: "Yes. Free is enough to try the lesson loop." },
-      { question: "Do I need Telegram?", answer: "No. The web app works on its own. Telegram is the fast entry." },
-      { question: "Does voice practice work on mobile?", answer: "Yes. You can practise pronunciation from the phone." },
+      { question: "Do I need Telegram?", answer: "No. The web app works on its own. Telegram is the fast channel." },
+      { question: "Does voice work on mobile?", answer: "Yes. You can practise pronunciation from the phone." },
       { question: "Are mistakes saved?", answer: "Yes. Weak phrases return for review." },
     ],
   },
   finalCta: {
     title: "Start the first lesson today",
     body: "Full session in the web app. Quick practice in Telegram.",
-    visualLabel: "Quick start",
-    visualBody: "Choose a phrase, answer, get a correction, repeat tomorrow.",
+    visualLabel: "Lesson loop",
+    visualBody: "Pick a phrase, answer, see the correction and repeat tomorrow.",
+    flow: ["Phrase", "Answer", "Correction", "Repeat"],
   },
   images: {
     dashboard: "NERIVA dashboard with progress, level, XP and streak",
@@ -254,7 +280,6 @@ const english: LandingContent = {
     voice: "Pronunciation score and weak words",
     photo: "Photo translation with OCR result",
     notes: "Phrasebook with saved useful phrases",
-    premium: "Free Premium and Platinum plan limits",
     telegram: "NERIVA Telegram bot in light theme",
     mobileLesson: "Mobile lesson correction",
     mobileMistakes: "Mobile mistakes review",
@@ -263,7 +288,6 @@ const english: LandingContent = {
 };
 
 const russian: LandingContent = {
-  ...english,
   nav: {
     features: "Функции",
     pricing: "Тарифы",
@@ -274,74 +298,130 @@ const russian: LandingContent = {
     consent: "Согласие на обработку персональных данных",
     menu: "Меню",
     light: "Включить светлую тему",
-    dark: "Включить тёмную тему",
+    dark: "Включить темную тему",
     webApp: "Веб-приложение",
     telegram: "Telegram",
   },
   hero: {
     eyebrow: "AI-репетитор в вебе и Telegram",
-    title: "NERIVA помогает говорить увереннее",
-    lead: "Короткий урок: фраза, ваш ответ, исправление и следующий повтор. Веб-приложение для полной сессии, Telegram для быстрой практики.",
+    title: "NERIVA превращает практику в короткий цикл урока",
+    lead: "Берете фразу, отвечаете, получаете понятную правку и завтра повторяете слабое место.",
+    announcement: "Новый урок за 3 минуты",
     proof: [
-      ["35 языков", "Интерфейс и лендинг"],
-      ["A1-C2", "Уровни для ежедневной практики"],
-      ["Free, Premium, Platinum", "Понятные дневные лимиты"],
+      ["Web + Telegram", "Один учебный профиль"],
+      ["Фраза -> ответ", "Без случайных упражнений"],
+      ["Правка -> повтор", "Ошибки возвращаются вовремя"],
     ],
+  },
+  beforeAfter: {
+    eyebrow: "До / После",
+    title: "Меньше складировать. Больше говорить.",
+    beforeTitle: "До",
+    before: ["скриншоты в галерее", "забытые слова", "нет правки речи"],
+    afterTitle: "После",
+    after: ["одна фраза", "одна правка", "дата повтора"],
   },
   scenario: {
     eyebrow: "Живой урок",
-    title: "Ответили, увидели ошибку, повторили",
-    body: "NERIVA берёт реальную ситуацию и ведёт по короткому циклу: понять фразу, ответить, увидеть правку, сохранить слабое место.",
-    tags: ["фраза", "ответ", "правка", "повтор"],
+    title: "Реальный ответ становится следующим упражнением",
+    body: "Пример: нужно заселиться в отель. NERIVA дает фразу, читает ваш ответ, объясняет ошибку и сохраняет слабые слова.",
+    tags: ["Фраза", "Ответ", "Правка", "Повтор"],
     captionLabel: "Заселение в отель",
-    caption: "Исправление, объяснение, аудио и ваш ответ остаются в одном уроке.",
+    caption: "Задание, ваш ответ, правка и аудио остаются в одном уроке.",
   },
   features: {
-    eyebrow: "Главные инструменты",
-    title: "Четыре функции в одном профиле",
+    eyebrow: "Четыре функции",
+    title: "Один активный инструмент, один профиль снизу",
     items: [
-      { title: "AI-репетитор", body: "Короткие уроки с понятным следующим шагом." },
-      { title: "Голос", body: "Оценка произношения, слабые слова и shadowing." },
-      { title: "Фото", body: "Перевод меню, вывески или задания с практикой." },
-      { title: "Ошибки", body: "Сохранённые ошибки возвращаются на повтор." },
+      {
+        title: "AI-репетитор",
+        short: "урок",
+        body: "Небольшое задание, ваш ответ и объяснение человеческим языком.",
+        stat: "ответ проверен",
+        imageKey: "aiTutor",
+      },
+      {
+        title: "Голос",
+        short: "произношение",
+        body: "Оценка, слабые слова и shadowing для фраз, которые вам нужны.",
+        stat: "слабые слова",
+        imageKey: "voice",
+      },
+      {
+        title: "Фото",
+        short: "OCR",
+        body: "Переведите меню, вывеску или задание и сразу потренируйте фразу.",
+        stat: "текст извлечен",
+        imageKey: "photo",
+      },
+      {
+        title: "Ошибки",
+        short: "повтор",
+        body: "Сохраненные ошибки возвращаются как задания на повтор.",
+        stat: "повтор запланирован",
+        imageKey: "mistakes",
+      },
     ],
-  },
-  notes: {
-    eyebrow: "Заметки / Phrasebook",
-    title: "Полезные фразы не теряются",
-    body: "Сохраняйте фразы, переводы и слабые слова. Возвращайтесь к ним, когда они нужны.",
   },
   pricing: {
     ...english.pricing,
     eyebrow: "Тарифы",
-    title: "Начните бесплатно. Расширяйте лимиты, когда понадобится.",
+    title: "Начните бесплатно. Добавьте лимиты, когда учеба станет регулярной.",
     lead: "Оплата через Telegram Stars и YooKassa/SBP.",
     choose: "Выбрать тариф",
     plans: [
-      { ...english.pricing.plans[0], label: "Попробовать", body: "Базовая текстовая практика, заметки и прогресс.", limits: ["5 уроков в день", "15 сообщений практики", "Базовый phrasebook"] },
-      { ...english.pricing.plans[1], label: "Ежедневно", body: "Основной тариф для AI-репетитора, голоса и фото.", limits: ["50 уроков в день", "200 сообщений практики", "20 голосовых проверок"] },
-      { ...english.pricing.plans[2], label: "Интенсив", body: "Больше лимитов для поездки, работы и экзамена.", limits: ["100 уроков в день", "500 сообщений практики", "60 голосовых проверок"] },
+      {
+        name: "Free",
+        label: "Попробовать",
+        price: "0 ₽",
+        period: "стартовый доступ",
+        body: "Чтобы проверить цикл урока без оплаты.",
+        limits: ["5 уроков в день", "15 сообщений практики", "Базовый phrasebook"],
+        access: ["текстовая практика", "заметки", "прогресс"],
+      },
+      {
+        name: "Premium",
+        label: "Ежедневно",
+        oldPrice: "1000 ₽",
+        price: "300 ₽",
+        period: "в месяц",
+        body: "Основной тариф для AI-репетитора, голоса, фото и ошибок.",
+        limits: ["50 уроков в день", "200 сообщений практики", "20 голосовых проверок"],
+        access: ["AI-репетитор", "Голос", "Фото", "Ошибки"],
+      },
+      {
+        name: "Platinum",
+        label: "Интенсив",
+        oldPrice: "2000 ₽",
+        price: "590 ₽",
+        period: "в месяц",
+        body: "Больше лимитов для поездки, работы и экзамена.",
+        limits: ["100 уроков в день", "500 сообщений практики", "60 голосовых проверок"],
+        access: ["больше лимитов", "голос интенсив", "фото практика"],
+      },
     ],
   },
   telegram: {
-    eyebrow: "Telegram",
+    eyebrow: "Telegram-связка",
     title: "Быстрая практика без второго продукта",
     body: "Запустите задание, отправьте голос или фото, получите напоминание и продолжите тот же профиль в веб-приложении.",
     note: "Уроки, голос, фото, ошибки и Premium открываются в один тап.",
     cta: "Открыть Telegram",
+    chips: ["Голос", "Фото", "Напоминание"],
   },
   mobile: {
-    eyebrow: "Мобильная версия",
-    title: "На телефоне всё короче",
-    body: "Прогресс, урок, ошибки и голосовая практика собраны компактно.",
+    eyebrow: "Мобильный веб",
+    title: "Короткая практика с телефона",
+    body: "Прогресс, урок, ошибки и голос собраны компактно.",
     rail: ["Прогресс", "Урок", "Голос"],
   },
   community: {
     eyebrow: "Сообщество",
-    title: "Розыгрыши и новости продукта",
-    body: "Подпишитесь на NERIVA: короткие уроки, обновления и розыгрыши Premium-ключей.",
+    title: "Канал NERIVA: уроки, обновления и розыгрыши Premium",
+    body: "Подпишитесь на реальные обновления продукта, короткие практические посты и розыгрыши Premium-ключей.",
     follow: "Следить за NERIVA",
-    note: "Короткие уроки и обновления.",
+    note: "Короткие уроки и заметки о релизах.",
+    chips: ["мини-урок", "релиз", "розыгрыш Premium"],
   },
   faq: {
     eyebrow: "FAQ",
@@ -356,8 +436,9 @@ const russian: LandingContent = {
   finalCta: {
     title: "Начните первый урок сегодня",
     body: "Полная сессия в веб-приложении. Быстрая практика в Telegram.",
-    visualLabel: "Быстрый старт",
+    visualLabel: "Цикл урока",
     visualBody: "Выберите фразу, ответьте, получите правку и повторите завтра.",
+    flow: ["Фраза", "Ответ", "Правка", "Повтор"],
   },
   images: {
     dashboard: "Дашборд NERIVA с прогрессом, уровнем, XP и streak",
@@ -366,8 +447,7 @@ const russian: LandingContent = {
     mistakes: "Список ошибок и исправленных фраз",
     voice: "Оценка произношения и слабые слова",
     photo: "Фото-перевод с OCR",
-    notes: "Phrasebook с сохранёнными фразами",
-    premium: "Лимиты Free Premium и Platinum",
+    notes: "Phrasebook с сохраненными фразами",
     telegram: "Telegram-бот NERIVA в светлой теме",
     mobileLesson: "Мобильный урок с исправлением",
     mobileMistakes: "Мобильный список ошибок",
@@ -375,175 +455,11 @@ const russian: LandingContent = {
   },
 };
 
-const localeOverrides: Partial<Record<LandingLocale, Partial<LandingContent>>> = {
-  es: { hero: { ...english.hero, title: "NERIVA te ayuda a hablar con más confianza", lead: "Una lección breve: frase, respuesta, corrección y siguiente repaso. Web app para sesiones completas, Telegram para practicar rápido." }, finalCta: { ...english.finalCta, title: "Empieza tu primera lección hoy", body: "Sesión completa en web. Práctica rápida en Telegram.", visualLabel: "Inicio rápido", visualBody: "Elige una frase, responde, corrige y repite mañana." } },
-  de: { hero: { ...english.hero, title: "NERIVA hilft dir, sicherer zu sprechen", lead: "Eine kurze Lektion: Satz, Antwort, Korrektur und nächste Wiederholung. Web app für volle Sitzungen, Telegram für schnelle Praxis." }, finalCta: { ...english.finalCta, title: "Starte heute deine erste Lektion", body: "Volle Sitzung in der Web app. Schnelle Übung in Telegram.", visualLabel: "Schnellstart", visualBody: "Satz wählen, antworten, korrigieren, morgen wiederholen." } },
-  fr: { hero: { ...english.hero, title: "NERIVA vous aide à parler avec plus d'assurance", lead: "Une leçon courte : phrase, réponse, correction et prochaine révision. Web app pour une vraie session, Telegram pour un entraînement rapide." } },
-  it: { hero: { ...english.hero, title: "NERIVA ti aiuta a parlare con più sicurezza", lead: "Una lezione breve: frase, risposta, correzione e prossimo ripasso. Web app per sessioni complete, Telegram per pratica rapida." } },
-  zh: { hero: { ...english.hero, title: "NERIVA 让你开口更有信心", lead: "一节短课包含短语、你的回答、纠正和下一次复习。网页应用适合完整学习，Telegram 适合快速练习。" } },
-  ja: { hero: { ...english.hero, title: "NERIVAで、もっと自信を持って話す", lead: "短いレッスンで、表現、回答、訂正、次の復習まで進みます。Web app はしっかり学習、Telegram はすばやい練習に。" } },
-  ko: { hero: { ...english.hero, title: "NERIVA로 더 자신 있게 말하세요", lead: "짧은 수업 안에 표현, 답변, 교정, 다음 복습이 들어 있습니다. Web app은 전체 학습, Telegram은 빠른 연습용입니다." } },
-  uk: { hero: { ...russian.hero, title: "NERIVA допомагає говорити впевненіше", lead: "Короткий урок: фраза, ваша відповідь, виправлення і наступне повторення. Web app для повної сесії, Telegram для швидкої практики." } },
-  pl: { hero: { ...english.hero, title: "NERIVA pomaga mówić pewniej", lead: "Krótka lekcja: fraza, odpowiedź, poprawka i następna powtórka. Web app do pełnej sesji, Telegram do szybkiej praktyki." } },
-  pt: { hero: { ...english.hero, title: "NERIVA ajuda você a falar com mais confiança", lead: "Uma lição curta: frase, resposta, correção e próxima revisão. Web app para sessão completa, Telegram para prática rápida." } },
-  tr: { hero: { ...english.hero, title: "NERIVA daha güvenli konuşmana yardım eder", lead: "Kısa ders: ifade, cevabın, düzeltme ve sonraki tekrar. Web app tam oturum, Telegram hızlı pratik içindir." } },
-  vi: { hero: { ...english.hero, title: "NERIVA giúp bạn nói tự tin hơn", lead: "Một bài ngắn: cụm từ, câu trả lời, sửa lỗi và lần ôn tiếp theo. Web app cho buổi học đầy đủ, Telegram để luyện nhanh." } },
-};
-
-const spanishFallback: LandingContent = mergeContent(english, {
-  nav: {
-    features: "Funciones",
-    pricing: "Planes",
-    faq: "FAQ",
-    privacy: "Privacidad",
-    terms: "Condiciones",
-    agreement: "Acuerdo de usuario",
-    consent: "Consentimiento de datos",
-    menu: "Menú",
-    light: "Tema claro",
-    dark: "Tema oscuro",
-    webApp: "Web app",
-    telegram: "Telegram",
-  },
-  hero: {
-    eyebrow: "Tutor AI en web app y Telegram",
-    title: "NERIVA te ayuda a hablar con más confianza",
-    lead: "Una lección breve: frase, respuesta, corrección y siguiente repaso. Web app para sesiones completas, Telegram para practicar rápido.",
-    proof: [
-      ["35 idiomas", "Interfaz y landing"],
-      ["A1-C2", "Niveles de práctica"],
-      ["Free, Premium, Platinum", "Límites diarios claros"],
-    ],
-  },
-  scenario: {
-    eyebrow: "Lección real",
-    title: "Practica, corrige y repite",
-    body: "NERIVA convierte una situación real en un ciclo corto: entiende la frase, responde, mira la corrección y guarda el punto débil.",
-    tags: ["frase", "respuesta", "corrección", "repaso"],
-    captionLabel: "Check-in en hotel",
-    caption: "Corrección, explicación, audio y respuesta quedan en una sola lección.",
-  },
-  features: {
-    eyebrow: "Herramientas",
-    title: "Cuatro funciones en un perfil",
-    items: [
-      { title: "Tutor AI", body: "Lecciones cortas con el siguiente paso claro." },
-      { title: "Voz", body: "Puntuación, palabras débiles y shadowing." },
-      { title: "Foto", body: "Traduce menú, señal o tarea y practícalo." },
-      { title: "Errores", body: "Los errores guardados vuelven para repasar." },
-    ],
-  },
-  notes: {
-    eyebrow: "Notas / Phrasebook",
-    title: "Las frases útiles no se pierden",
-    body: "Guarda frases, traducciones y palabras débiles. Vuelve cuando las necesites.",
-  },
-  pricing: {
-    ...english.pricing,
-    eyebrow: "Planes",
-    title: "Empieza gratis. Amplía límites cuando haga falta.",
-    lead: "Pago por Telegram Stars y YooKassa/SBP.",
-    choose: "Elegir plan",
-    plans: [
-      { ...english.pricing.plans[0], label: "Probar", body: "Práctica básica, notas y progreso.", limits: ["5 lecciones al día", "15 mensajes de práctica", "Phrasebook básico"] },
-      { ...english.pricing.plans[1], label: "Diario", body: "El plan principal para tutor AI, voz y foto.", limits: ["50 lecciones al día", "200 mensajes de práctica", "20 revisiones de voz"] },
-      { ...english.pricing.plans[2], label: "Intensivo", body: "Más límites para viaje, trabajo y examen.", limits: ["100 lecciones al día", "500 mensajes de práctica", "60 revisiones de voz"] },
-    ],
-  },
-  telegram: {
-    eyebrow: "Telegram",
-    title: "Práctica rápida sin otro producto",
-    body: "Inicia una tarea, envía voz o foto, recibe recordatorio y sigue el mismo perfil en la web app.",
-    note: "Lección, voz, foto, errores y Premium están a un toque.",
-    cta: "Abrir Telegram",
-  },
-  mobile: {
-    eyebrow: "Mobile web app",
-    title: "En el teléfono todo queda corto",
-    body: "Progreso, lección, errores y voz se muestran de forma compacta.",
-    rail: ["Progreso", "Lección", "Voz"],
-  },
-  community: {
-    eyebrow: "Comunidad",
-    title: "Sorteos y novedades",
-    body: "Sigue NERIVA para lecciones breves, lanzamientos y sorteos de Premium.",
-    follow: "Sigue a NERIVA",
-    note: "Lecciones breves y novedades.",
-  },
-  faq: {
-    eyebrow: "FAQ",
-    title: "Antes de empezar",
-    items: [
-      { question: "¿Puedo empezar gratis?", answer: "Sí. Free basta para probar el ciclo." },
-      { question: "¿Telegram es obligatorio?", answer: "No. La web app funciona sola. Telegram es entrada rápida." },
-      { question: "¿La voz funciona en móvil?", answer: "Sí. Puedes practicar pronunciación desde el teléfono." },
-      { question: "¿Se guardan los errores?", answer: "Sí. Las frases débiles vuelven al repaso." },
-    ],
-  },
-  finalCta: {
-    title: "Empieza tu primera lección hoy",
-    body: "Sesión completa en web. Práctica rápida en Telegram.",
-    visualLabel: "Inicio rápido",
-    visualBody: "Elige una frase, responde, corrige y repite mañana.",
-  },
-});
-
-const genericTitles: Partial<Record<LandingLocale, string>> = {
-  tg: "NERIVA ба шумо кӯмак мекунад, ки боэътимодтар гап занед",
-  uz: "NERIVA ishonchliroq gapirishga yordam beradi",
-  tt: "NERIVA ышанычлырак сөйләшергә ярдәм итә",
-  hy: "NERIVA-ն օգնում է խոսել ավելի վստահ",
-  kk: "NERIVA сенімді сөйлеуге көмектеседі",
-  ky: "NERIVA ишенимдүү сүйлөөгө жардам берет",
-  ka: "NERIVA გეხმარებათ უფრო თავდაჯერებულად საუბარში",
-  ro: "NERIVA te ajută să vorbești mai sigur",
-  ar: "NERIVA يساعدك على التحدث بثقة أكبر",
-  bn: "NERIVA আপনাকে আরও আত্মবিশ্বাসের সঙ্গে বলতে সাহায্য করে",
-  cs: "NERIVA pomáhá mluvit jistěji",
-  el: "Το NERIVA σας βοηθά να μιλάτε με περισσότερη σιγουριά",
-  hi: "NERIVA आपको अधिक आत्मविश्वास से बोलने में मदद करता है",
-  hu: "A NERIVA segít magabiztosabban beszélni",
-  id: "NERIVA membantu Anda berbicara lebih percaya diri",
-  nl: "NERIVA helpt je met meer vertrouwen spreken",
-  sv: "NERIVA hjälper dig att tala tryggare",
-  ta: "NERIVA நீங்கள் நம்பிக்கையுடன் பேச உதவுகிறது",
-  te: "NERIVA మీరు మరింత నమ్మకంగా మాట్లాడటానికి సహాయపడుతుంది",
-  th: "NERIVA ช่วยให้คุณพูดได้มั่นใจขึ้น",
-  tl: "Tinutulungan ka ng NERIVA na magsalita nang mas may kumpiyansa",
-};
-
-function mergeContent(base: LandingContent, patch: Partial<LandingContent> = {}): LandingContent {
-  return {
-    ...base,
-    ...patch,
-    nav: { ...base.nav, ...patch.nav },
-    hero: { ...base.hero, ...patch.hero },
-    scenario: { ...base.scenario, ...patch.scenario },
-    features: { ...base.features, ...patch.features },
-    notes: { ...base.notes, ...patch.notes },
-    pricing: { ...base.pricing, ...patch.pricing },
-    telegram: { ...base.telegram, ...patch.telegram },
-    mobile: { ...base.mobile, ...patch.mobile },
-    community: { ...base.community, ...patch.community },
-    faq: { ...base.faq, ...patch.faq },
-    finalCta: { ...base.finalCta, ...patch.finalCta },
-    images: { ...base.images, ...patch.images },
-  };
-}
-
 export function normalizeLandingLocale(locale: string | null | undefined): LandingLocale {
   const normalized = (locale || "ru").toLowerCase();
-  return landingLocaleCodes.includes(normalized as LandingLocale) ? (normalized as LandingLocale) : "ru";
+  return normalized === "en" ? "en" : "ru";
 }
 
 export function getLandingContent(locale: string | null | undefined): LandingContent {
-  const code = normalizeLandingLocale(locale);
-  if (code === "ru") return russian;
-  if (code === "en") return english;
-
-  const base = genericTitles[code]
-    ? mergeContent(spanishFallback, { hero: { ...spanishFallback.hero, title: genericTitles[code] } })
-    : spanishFallback;
-
-  return mergeContent(base, localeOverrides[code]);
+  return normalizeLandingLocale(locale) === "en" ? english : russian;
 }
