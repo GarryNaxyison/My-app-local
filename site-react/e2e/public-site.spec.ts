@@ -222,7 +222,7 @@ test.skip("landing presents the approved light product-first site", async ({ pag
   await expect(page.locator(".review-card")).toHaveCount(0);
   await expect(page.locator(".landing-hero .seo-guides, .public-nav .seo-guides")).toHaveCount(0);
 
-  await expect(page.locator(".final-cta-section")).toContainText("Web app");
+  await expect(page.locator(".final-cta-section")).toContainText("Browser");
   await expect(page.locator(".final-cta-section")).toContainText("Telegram");
 
   await page.locator(".nav-burger").click();
@@ -232,7 +232,7 @@ test.skip("landing presents the approved light product-first site", async ({ pag
   await expect(page.locator(".nav-drawer")).toContainText("FAQ");
   await expect(page.locator(".nav-drawer")).toContainText("Privacy");
   await expect(page.locator(".nav-drawer")).toContainText("Terms");
-  await expect(page.locator(".nav-drawer")).toContainText("Web app");
+  await expect(page.locator(".nav-drawer")).toContainText("Browser");
   await expect(page.locator(".nav-drawer")).toContainText("Telegram");
 
   const landingCyrillic = await page.locator(".english-spark-landing").evaluate((node) => (node.textContent || "").match(/\p{Script=Cyrillic}+/gu) || []);

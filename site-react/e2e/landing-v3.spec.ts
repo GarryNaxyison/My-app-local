@@ -33,8 +33,8 @@ test("landing v3 hero uses filled product proof and transparent animation", asyn
 
   await expect(page.locator("h1")).toContainText("NERIVA");
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
-  await expect(page.locator(".hero-proof")).toContainText("Web + Telegram");
-  await expect(page.locator(".hero-proof")).toContainText("Phrase");
+  await expect(page.locator(".hero-proof")).toContainText("Browser + Telegram");
+  await expect(page.locator(".hero-proof")).toContainText("Story");
   await expect(page.locator(".hero-proof")).not.toContainText("35 languages");
 
   const heroState = await page.evaluate(() => {
@@ -102,7 +102,8 @@ test("landing v3 mobile is compact with no horizontal overflow", async ({ page }
 
   await expect(page.locator(".landing-hero .entry-cta")).toHaveCount(2);
   await expect(page.locator(".feature-carousel__viewport")).toBeVisible();
-  await expect(page.locator(".mobile-strip .product-shot")).toHaveCount(3);
+  await expect(page.locator(".mobile-carousel__tab")).toHaveCount(4);
+  await expect(page.locator(".mobile-panel")).toHaveCount(1);
 
   const layout = await page.evaluate(() => {
     const heroHeight = document.querySelector(".landing-hero")?.getBoundingClientRect().height || 0;
@@ -115,4 +116,15 @@ test("landing v3 mobile is compact with no horizontal overflow", async ({ page }
 
   expect(layout.heroHeight).toBeLessThanOrEqual(layout.viewportHeight * 1.15);
   expect(layout.overflowX).toBe(0);
+});
+
+test("landing v3 product screenshots open a focused preview", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=en");
+
+  await page.locator(".hero-product-frame .product-shot__button").first().click();
+  await expect(page.locator(".image-preview")).toBeVisible();
+  await expect(page.locator(".image-preview img")).toHaveAttribute("src", "/assets/product/dashboard-progress.png");
+
+  await page.locator(".image-preview__close").click();
+  await expect(page.locator(".image-preview")).toHaveCount(0);
 });

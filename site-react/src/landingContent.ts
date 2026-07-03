@@ -10,6 +10,14 @@ export type LandingFeature = {
   imageKey: keyof LandingContent["images"];
 };
 
+export type LandingMobileExample = {
+  title: string;
+  short: string;
+  body: string;
+  stat: string;
+  imageKey: keyof LandingContent["images"];
+};
+
 export type LandingContent = {
   nav: {
     features: string;
@@ -31,6 +39,7 @@ export type LandingContent = {
     lead: string;
     announcement: string;
     proof: readonly [string, string][];
+    badges: readonly string[];
   };
   beforeAfter: {
     eyebrow: string;
@@ -82,7 +91,7 @@ export type LandingContent = {
     eyebrow: string;
     title: string;
     body: string;
-    rail: readonly string[];
+    items: readonly LandingMobileExample[];
   };
   community: {
     eyebrow: string;
@@ -131,65 +140,66 @@ const english: LandingContent = {
     menu: "Menu",
     light: "Use light theme",
     dark: "Use dark theme",
-    webApp: "Web app",
+    webApp: "Browser",
     telegram: "Telegram",
   },
   hero: {
-    eyebrow: "AI tutor in web app and Telegram",
-    title: "NERIVA turns practice into a short lesson loop",
-    lead: "Take one phrase, answer it, get a clear correction, then repeat the weak point tomorrow.",
+    eyebrow: "AI tutor in browser and Telegram",
+    title: "NERIVA turns every answer into a real lesson",
+    lead: "A strict AI tutor gives a short story, useful chunks, questions, your answer, a correction and a review date. Browser and Telegram keep one learning profile.",
     announcement: "New lesson in 3 minutes",
     proof: [
-      ["Web + Telegram", "One learning profile"],
-      ["Phrase -> answer", "No random drills"],
+      ["Browser + Telegram", "One learning profile"],
+      ["Story -> answer", "Practice starts from context"],
       ["Correction -> repeat", "Mistakes return on time"],
     ],
+    badges: ["CEFR level", "6 chunks", "review date"],
   },
   beforeAfter: {
     eyebrow: "Before / After",
-    title: "Less collecting. More speaking.",
+    title: "More than a vocabulary app: NERIVA closes the loop",
     beforeTitle: "Before",
-    before: ["saved screenshots", "forgotten vocabulary", "no speaking feedback"],
+    before: ["words saved without use", "chat replies forgotten", "no review schedule"],
     afterTitle: "After",
-    after: ["one phrase", "one correction", "one repeat date"],
+    after: ["context lesson", "teacher-style correction", "review on time"],
   },
   scenario: {
     eyebrow: "Live lesson",
-    title: "A real answer becomes the next exercise",
-    body: "Example: you need to check in at a hotel. NERIVA gives the phrase, reads your answer, explains the mistake and saves the weak words.",
-    tags: ["Phrase", "Answer", "Correction", "Repeat"],
+    title: "One micro-lesson has structure, not random chat",
+    body: "Example: hotel check-in. NERIVA builds a level-matched story, pulls useful chunks, asks questions, checks your answer and turns weak phrases into review.",
+    tags: ["Story", "Chunks", "Answer", "Review"],
     captionLabel: "Hotel check-in",
-    caption: "The task, your answer, the fix and audio stay in one lesson.",
+    caption: "The task, answer, correction and review options stay in one lesson.",
   },
   features: {
     eyebrow: "Four functions",
-    title: "One active tool at a time, one profile underneath",
+    title: "Four tools that feed the same learning memory",
     items: [
       {
         title: "AI Tutor",
         short: "lesson",
-        body: "A small task, your answer and a human-readable explanation.",
-        stat: "answer checked",
+        body: "A reusable micro-lesson: story, six useful chunks, questions, production task and review options matched to your level.",
+        stat: "structured lesson",
         imageKey: "aiTutor",
       },
       {
         title: "Voice",
         short: "pronunciation",
-        body: "Score, weak words and shadowing for phrases you actually need.",
-        stat: "weak words",
+        body: "Score, weak words and shadowing for phrases from your real practice, not isolated pronunciation drills.",
+        stat: "speech connected",
         imageKey: "voice",
       },
       {
         title: "Photo",
         short: "OCR",
-        body: "Translate a menu, sign or assignment and turn it into practice.",
-        stat: "text extracted",
+        body: "OCR pulls text from a menu, sign or exercise, then turns it into a usable phrase for practice.",
+        stat: "context captured",
         imageKey: "photo",
       },
       {
         title: "Mistakes",
         short: "review",
-        body: "Saved errors come back as repeat prompts instead of disappearing.",
+        body: "Wrong phrases become review tasks with a date, so mistakes do not disappear after one AI reply.",
         stat: "repeat planned",
         imageKey: "mistakes",
       },
@@ -236,16 +246,45 @@ const english: LandingContent = {
   telegram: {
     eyebrow: "Telegram companion",
     title: "Quick practice without a second product",
-    body: "Start a task, send voice or photo, get a reminder and continue the same profile in the web app.",
+    body: "Start a task, send voice or photo, get a reminder and continue the same profile in the browser.",
     note: "Lesson, voice, photo, mistakes and Premium open in one tap.",
     cta: "Open Telegram",
     chips: ["Voice", "Photo", "Reminder"],
   },
   mobile: {
-    eyebrow: "Mobile web app",
+    eyebrow: "Mobile browser",
     title: "A short check-in, not a long scroll",
     body: "Progress, lesson, mistakes and voice practice stay compact on the phone.",
-    rail: ["Progress", "Lesson", "Voice"],
+    items: [
+      {
+        title: "Progress",
+        short: "today",
+        body: "Open the phone and see level, streak, XP and the next useful task without digging through the app.",
+        stat: "today is clear",
+        imageKey: "mobileHome",
+      },
+      {
+        title: "Lesson",
+        short: "correction",
+        body: "Answer a travel or work phrase, get the correction and keep the same learning profile.",
+        stat: "answer checked",
+        imageKey: "mobileLesson",
+      },
+      {
+        title: "Mistakes",
+        short: "review",
+        body: "Weak phrases return as short repeat tasks, so the phone session has a clear finish.",
+        stat: "repeat planned",
+        imageKey: "mobileMistakes",
+      },
+      {
+        title: "Voice",
+        short: "score",
+        body: "Record a phrase, see weak words and repeat it while the context is still fresh.",
+        stat: "weak words found",
+        imageKey: "mobileVoice",
+      },
+    ],
   },
   community: {
     eyebrow: "Community",
@@ -260,14 +299,14 @@ const english: LandingContent = {
     title: "Before you start",
     items: [
       { question: "Can I start free?", answer: "Yes. Free is enough to try the lesson loop." },
-      { question: "Do I need Telegram?", answer: "No. The web app works on its own. Telegram is the fast channel." },
+      { question: "Do I need Telegram?", answer: "No. The browser version works on its own. Telegram is the fast channel." },
       { question: "Does voice work on mobile?", answer: "Yes. You can practise pronunciation from the phone." },
       { question: "Are mistakes saved?", answer: "Yes. Weak phrases return for review." },
     ],
   },
   finalCta: {
     title: "Start the first lesson today",
-    body: "Full session in the web app. Quick practice in Telegram.",
+    body: "Full session in the browser. Quick practice in Telegram.",
     visualLabel: "Lesson loop",
     visualBody: "Pick a phrase, answer, see the correction and repeat tomorrow.",
     flow: ["Phrase", "Answer", "Correction", "Repeat"],
@@ -299,65 +338,66 @@ const russian: LandingContent = {
     menu: "Меню",
     light: "Включить светлую тему",
     dark: "Включить темную тему",
-    webApp: "Веб-приложение",
+    webApp: "Браузер",
     telegram: "Telegram",
   },
   hero: {
-    eyebrow: "AI-репетитор в вебе и Telegram",
-    title: "NERIVA превращает практику в короткий цикл урока",
-    lead: "Берете фразу, отвечаете, получаете понятную правку и завтра повторяете слабое место.",
+    eyebrow: "AI-репетитор в браузере и Telegram",
+    title: "NERIVA превращает каждый ответ в настоящий урок",
+    lead: "Строгий AI-репетитор дает короткую историю, полезные чанки, вопросы, ваш ответ, правку и дату повтора. Браузер и Telegram ведут один профиль.",
     announcement: "Новый урок за 3 минуты",
     proof: [
-      ["Web + Telegram", "Один учебный профиль"],
-      ["Фраза -> ответ", "Без случайных упражнений"],
+      ["Браузер + Telegram", "Один учебный профиль"],
+      ["История -> ответ", "Практика начинается с контекста"],
       ["Правка -> повтор", "Ошибки возвращаются вовремя"],
     ],
+    badges: ["уровень CEFR", "6 чанков", "дата повтора"],
   },
   beforeAfter: {
     eyebrow: "До / После",
-    title: "Меньше складировать. Больше говорить.",
+    title: "Больше чем словарик: NERIVA закрывает цикл обучения",
     beforeTitle: "До",
-    before: ["скриншоты в галерее", "забытые слова", "нет правки речи"],
+    before: ["слова лежат без дела", "AI-ответы забываются", "нет графика повтора"],
     afterTitle: "После",
-    after: ["одна фраза", "одна правка", "дата повтора"],
+    after: ["урок из контекста", "правка как от преподавателя", "повтор вовремя"],
   },
   scenario: {
     eyebrow: "Живой урок",
-    title: "Реальный ответ становится следующим упражнением",
-    body: "Пример: нужно заселиться в отель. NERIVA дает фразу, читает ваш ответ, объясняет ошибку и сохраняет слабые слова.",
-    tags: ["Фраза", "Ответ", "Правка", "Повтор"],
+    title: "Микро-урок имеет структуру, а не просто чат",
+    body: "Пример: заселение в отель. NERIVA собирает историю под ваш уровень, вытаскивает полезные чанки, задает вопросы, проверяет ответ и превращает слабые фразы в повтор.",
+    tags: ["История", "Чанки", "Ответ", "Повтор"],
     captionLabel: "Заселение в отель",
-    caption: "Задание, ваш ответ, правка и аудио остаются в одном уроке.",
+    caption: "Задание, ответ, правка и варианты повтора остаются в одном уроке.",
   },
   features: {
     eyebrow: "Четыре функции",
-    title: "Один активный инструмент, один профиль снизу",
+    title: "Четыре инструмента кормят одну учебную память",
     items: [
       {
         title: "AI-репетитор",
         short: "урок",
-        body: "Небольшое задание, ваш ответ и объяснение человеческим языком.",
-        stat: "ответ проверен",
+        body: "Переиспользуемый микро-урок: история, шесть полезных чанков, вопросы, production task и варианты повтора под ваш уровень.",
+        stat: "структурный урок",
         imageKey: "aiTutor",
       },
       {
         title: "Голос",
         short: "произношение",
-        body: "Оценка, слабые слова и shadowing для фраз, которые вам нужны.",
-        stat: "слабые слова",
+        body: "Оценка, слабые слова и shadowing для фраз из вашей практики, а не отдельная тренировка ради тренировки.",
+        stat: "речь связана",
         imageKey: "voice",
       },
       {
         title: "Фото",
         short: "OCR",
-        body: "Переведите меню, вывеску или задание и сразу потренируйте фразу.",
-        stat: "текст извлечен",
+        body: "OCR достает текст из меню, вывески или задания и превращает его в фразу для практики.",
+        stat: "контекст пойман",
         imageKey: "photo",
       },
       {
         title: "Ошибки",
         short: "повтор",
-        body: "Сохраненные ошибки возвращаются как задания на повтор.",
+        body: "Неверные фразы становятся заданиями с датой повтора, а не исчезают после одного AI-ответа.",
         stat: "повтор запланирован",
         imageKey: "mistakes",
       },
@@ -404,16 +444,45 @@ const russian: LandingContent = {
   telegram: {
     eyebrow: "Telegram-связка",
     title: "Быстрая практика без второго продукта",
-    body: "Запустите задание, отправьте голос или фото, получите напоминание и продолжите тот же профиль в веб-приложении.",
+    body: "Запустите задание, отправьте голос или фото, получите напоминание и продолжите тот же профиль в браузере.",
     note: "Уроки, голос, фото, ошибки и Premium открываются в один тап.",
     cta: "Открыть Telegram",
     chips: ["Голос", "Фото", "Напоминание"],
   },
   mobile: {
-    eyebrow: "Мобильный веб",
+    eyebrow: "Мобильный браузер",
     title: "Короткая практика с телефона",
     body: "Прогресс, урок, ошибки и голос собраны компактно.",
-    rail: ["Прогресс", "Урок", "Голос"],
+    items: [
+      {
+        title: "Прогресс",
+        short: "сегодня",
+        body: "Открываете телефон и сразу видите уровень, streak, XP и следующее полезное задание.",
+        stat: "день понятен",
+        imageKey: "mobileHome",
+      },
+      {
+        title: "Урок",
+        short: "правка",
+        body: "Отвечаете на фразу для поездки или работы, получаете правку и продолжаете тот же профиль.",
+        stat: "ответ проверен",
+        imageKey: "mobileLesson",
+      },
+      {
+        title: "Ошибки",
+        short: "повтор",
+        body: "Слабые фразы возвращаются короткими заданиями, у мобильной сессии есть понятный финиш.",
+        stat: "повтор запланирован",
+        imageKey: "mobileMistakes",
+      },
+      {
+        title: "Голос",
+        short: "score",
+        body: "Записываете фразу, видите слабые слова и повторяете, пока контекст ещё свежий.",
+        stat: "слабые слова найдены",
+        imageKey: "mobileVoice",
+      },
+    ],
   },
   community: {
     eyebrow: "Сообщество",
@@ -428,14 +497,14 @@ const russian: LandingContent = {
     title: "Перед стартом",
     items: [
       { question: "Можно начать бесплатно?", answer: "Да. Free достаточно, чтобы попробовать цикл урока." },
-      { question: "Telegram обязателен?", answer: "Нет. Веб-приложение работает отдельно. Telegram нужен для быстрого входа." },
+      { question: "Telegram обязателен?", answer: "Нет. Браузерная версия работает отдельно. Telegram нужен для быстрого входа." },
       { question: "Голос работает на телефоне?", answer: "Да. Произношение можно тренировать с телефона." },
       { question: "Ошибки сохраняются?", answer: "Да. Слабые фразы возвращаются на повтор." },
     ],
   },
   finalCta: {
     title: "Начните первый урок сегодня",
-    body: "Полная сессия в веб-приложении. Быстрая практика в Telegram.",
+    body: "Полная сессия в браузере. Быстрая практика в Telegram.",
     visualLabel: "Цикл урока",
     visualBody: "Выберите фразу, ответьте, получите правку и повторите завтра.",
     flow: ["Фраза", "Ответ", "Правка", "Повтор"],

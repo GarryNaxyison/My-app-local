@@ -9,6 +9,7 @@ import {
   Mic,
   Repeat2,
   Star,
+  X,
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
 import { SocialIconLinks } from "./components/SocialLinks";
@@ -38,15 +39,28 @@ const productImages = {
 } satisfies Record<string, ProductImage>;
 
 const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
+const mobileIcons = [Star, BookOpen, Repeat2, Mic] as const;
 
 type EnglishSparkLandingProps = {
   language?: LandingLocale;
 };
 
-function ProductShot({ image, alt, className = "" }: { image: ProductImage; alt: string; className?: string }) {
+function ProductShot({
+  image,
+  alt,
+  className = "",
+  onOpen,
+}: {
+  image: ProductImage;
+  alt: string;
+  className?: string;
+  onOpen: (image: ProductImage, alt: string) => void;
+}) {
   return (
     <figure className={`product-shot ${className}`.trim()}>
-      <img src={image.src} alt={alt} loading="lazy" />
+      <button className="product-shot__button" type="button" onClick={() => onOpen(image, alt)} aria-label={alt}>
+        <img src={image.src} alt={alt} loading="lazy" />
+      </button>
     </figure>
   );
 }
@@ -54,10 +68,16 @@ function ProductShot({ image, alt, className = "" }: { image: ProductImage; alt:
 export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProps) {
   const copy = getLandingContent(language);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [activeMobile, setActiveMobile] = useState(0);
+  const [preview, setPreview] = useState<{ image: ProductImage; alt: string } | null>(null);
   const active = copy.features.items[activeFeature] ?? copy.features.items[0];
   const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
   const activeImage = productImages[active.imageKey] ?? productImages.aiTutor;
+  const activeMobileItem = copy.mobile.items[activeMobile] ?? copy.mobile.items[0];
+  const ActiveMobileIcon = mobileIcons[activeMobile] ?? Star;
+  const activeMobileImage = productImages[activeMobileItem.imageKey] ?? productImages.mobileHome;
   const imgAlt = (image: ProductImage) => copy.images[image.altKey];
+  const openPreview = (image: ProductImage, alt: string) => setPreview({ image, alt });
 
   return (
     <main className="english-spark-landing" data-visual-anchor="swiss-editorial">
@@ -96,8 +116,11 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           </div>
 
           <div className="hero-product-frame" aria-label="NERIVA product screenshots">
-            <ProductShot image={productImages.dashboard} alt={imgAlt(productImages.dashboard)} className="product-shot--desktop" />
-            <ProductShot image={productImages.mobileHome} alt={imgAlt(productImages.mobileHome)} className="product-shot--phone" />
+            <ProductShot image={productImages.dashboard} alt={imgAlt(productImages.dashboard)} className="product-shot--desktop" onOpen={openPreview} />
+            <ProductShot image={productImages.mobileHome} alt={imgAlt(productImages.mobileHome)} className="product-shot--phone" onOpen={openPreview} />
+            <div className="hero-product-frame__badges" aria-hidden="true">
+              {copy.hero.badges.map((badge) => <span key={badge}>{badge}</span>)}
+            </div>
           </div>
         </div>
       </section>
@@ -135,7 +158,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           </div>
         </div>
         <div className="scenario-shot" aria-label="AI Tutor lesson example">
-          <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} />
+          <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
           <div className="scenario-shot__caption">
             <span>{copy.scenario.captionLabel}</span>
             <strong>{copy.scenario.caption}</strong>
@@ -176,7 +199,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 <h3>{active.title}</h3>
                 <p>{active.body}</p>
               </div>
-              <ProductShot image={activeImage} alt={imgAlt(activeImage)} />
+              <ProductShot image={activeImage} alt={imgAlt(activeImage)} onOpen={openPreview} />
             </article>
           </div>
         </div>
@@ -226,7 +249,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <p>{copy.telegram.body}</p>
         </div>
         <div className="telegram-panel">
-          <ProductShot image={productImages.telegram} alt={imgAlt(productImages.telegram)} />
+          <ProductShot image={productImages.telegram} alt={imgAlt(productImages.telegram)} onOpen={openPreview} />
           <div className="telegram-panel__copy">
             <BookOpen size={22} />
             <strong>{copy.telegram.note}</strong>
@@ -246,10 +269,37 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.mobile.title}</h2>
           <p>{copy.mobile.body}</p>
         </div>
-        <div className="mobile-strip" aria-label="Mobile web app screenshots">
-          <ProductShot image={productImages.mobileLesson} alt={imgAlt(productImages.mobileLesson)} />
-          <ProductShot image={productImages.mobileMistakes} alt={imgAlt(productImages.mobileMistakes)} />
-          <ProductShot image={productImages.mobileVoice} alt={imgAlt(productImages.mobileVoice)} />
+        <div className="mobile-carousel">
+          <div className="mobile-carousel__tabs" role="tablist" aria-label={copy.mobile.title}>
+            {copy.mobile.items.map((item, index) => {
+              const Icon = mobileIcons[index] ?? Star;
+              return (
+                <button
+                  className={index === activeMobile ? "mobile-carousel__tab is-active" : "mobile-carousel__tab"}
+                  key={item.title}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === activeMobile}
+                  onClick={() => setActiveMobile(index)}
+                >
+                  <Icon size={18} />
+                  <span>{item.title}</span>
+                  <small>{item.short}</small>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mobile-carousel__viewport">
+            <article className="mobile-panel" role="tabpanel">
+              <div className="mobile-panel__copy">
+                <ActiveMobileIcon size={26} />
+                <span>{activeMobileItem.stat}</span>
+                <h3>{activeMobileItem.title}</h3>
+                <p>{activeMobileItem.body}</p>
+              </div>
+              <ProductShot image={activeMobileImage} alt={imgAlt(activeMobileImage)} onOpen={openPreview} />
+            </article>
+          </div>
         </div>
       </section>
 
@@ -309,6 +359,18 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           </ol>
         </div>
       </section>
+
+      {preview ? (
+        <div className="image-preview" role="dialog" aria-modal="true" aria-label={preview.alt} onClick={() => setPreview(null)}>
+          <button className="image-preview__close" type="button" onClick={() => setPreview(null)} aria-label="Close image preview">
+            <X size={24} />
+          </button>
+          <figure className="image-preview__frame" onClick={(event) => event.stopPropagation()}>
+            <img src={preview.image.src} alt={preview.alt} />
+            <figcaption>{preview.alt}</figcaption>
+          </figure>
+        </div>
+      ) : null}
     </main>
   );
 }
