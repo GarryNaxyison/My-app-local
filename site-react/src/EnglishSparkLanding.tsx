@@ -11,7 +11,7 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
+import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 import { SocialIconLinks } from "./components/SocialLinks";
 import { getLandingContent, type LandingContent, type LandingLocale } from "./landingContent";
 
@@ -25,17 +25,17 @@ type ProductImage = {
 };
 
 const productImages = {
-  dashboard: { src: "/assets/product/dashboard-progress.png", altKey: "dashboard" },
-  mobileHome: { src: "/assets/product/mobile-home-progress.png", altKey: "mobileHome" },
-  aiTutor: { src: "/assets/product/ai-tutor-lesson-correction.png", altKey: "aiTutor" },
-  mistakes: { src: "/assets/product/mistakes-review.png", altKey: "mistakes" },
-  voice: { src: "/assets/product/voice-pronunciation-score.png", altKey: "voice" },
-  photo: { src: "/assets/product/photo-translation.png", altKey: "photo" },
-  notes: { src: "/assets/product/notes-phrasebook.png", altKey: "notes" },
-  telegram: { src: "/assets/product/telegram-app-light.png", altKey: "telegram" },
-  mobileLesson: { src: "/assets/product/mobile-lesson-correction.png", altKey: "mobileLesson" },
-  mobileMistakes: { src: "/assets/product/mobile-mistakes.png", altKey: "mobileMistakes" },
-  mobileVoice: { src: "/assets/product/mobile-voice-pronunciation.png", altKey: "mobileVoice" },
+  dashboard: { src: "/assets/product/dashboard-progress-dark.png", altKey: "dashboard" },
+  mobileHome: { src: "/assets/product/mobile-home-progress-dark.png", altKey: "mobileHome" },
+  aiTutor: { src: "/assets/product/ai-tutor-lesson-correction-dark.png", altKey: "aiTutor" },
+  mistakes: { src: "/assets/product/mistakes-review-dark.png", altKey: "mistakes" },
+  voice: { src: "/assets/product/voice-pronunciation-score-dark.png", altKey: "voice" },
+  photo: { src: "/assets/product/photo-translation-dark.png", altKey: "photo" },
+  notes: { src: "/assets/product/notes-phrasebook-dark.png", altKey: "notes" },
+  telegram: { src: "/assets/product/telegram-app-dark.png", altKey: "telegram" },
+  mobileLesson: { src: "/assets/product/mobile-lesson-correction-dark.png", altKey: "mobileLesson" },
+  mobileMistakes: { src: "/assets/product/mobile-mistakes-dark.png", altKey: "mobileMistakes" },
+  mobileVoice: { src: "/assets/product/mobile-voice-pronunciation-dark.png", altKey: "mobileVoice" },
 } satisfies Record<string, ProductImage>;
 
 const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
@@ -80,16 +80,10 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const openPreview = (image: ProductImage, alt: string) => setPreview({ image, alt });
 
   return (
-    <main className="english-spark-landing" data-visual-anchor="swiss-editorial">
-      <section className="landing-hero" data-hero-preset="light">
+    <main className="english-spark-landing" data-visual-anchor="premium-tech-narrative">
+      <section className="landing-hero" data-hero-preset="dark">
         <div className="landing-hero__matter" aria-hidden="true">
-          <GenerativeArtScene
-            animate
-            transparentBackdrop
-            variant="light"
-            color="#002fa7"
-            particleColor="#002fa7"
-          />
+          <PremiumHeroAnimation />
         </div>
         <div className="landing-hero__inner">
           <div className="landing-hero__copy">

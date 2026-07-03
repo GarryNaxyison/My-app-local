@@ -31,7 +31,7 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
+import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { personalDataConsentDocumentHtml, privacyDocumentHtml, termsDocumentHtml, userAgreementDocumentHtml } from "./legacyLegalContent";
 import { EnglishSparkLanding } from "./EnglishSparkLanding";
@@ -412,11 +412,11 @@ export function PublicSiteApp() {
   const page = getPage();
   const [theme, setTheme] = useSiteTheme();
   const language = useSiteLanguage();
-  const effectiveTheme = page === "landing" ? "light" : theme;
+  const effectiveTheme = page === "landing" ? "dark" : theme;
 
   useEffect(() => {
     if (page === "landing") {
-      document.documentElement.dataset.siteTheme = "light";
+      document.documentElement.dataset.siteTheme = "dark";
     }
   }, [page]);
 
@@ -427,7 +427,7 @@ export function PublicSiteApp() {
     <div className="public-shell">
       <SiteNavDrawer page={page} theme={effectiveTheme} copy={landingCopy.nav} showThemeToggle={page !== "landing"} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
       {page === "landing" ? <EnglishSparkLanding language={language} /> : <LegalPageV2 page={page} />}
-      <SiteFooterEnglish showSeoGuides={page === "landing"} copy={landingCopy.nav} language={language} />
+      <SiteFooterEnglish showSeoGuides={false} copy={landingCopy.nav} language={language} />
       <CookieConsentBanner />
     </div>
   );
@@ -559,7 +559,7 @@ function LandingPage() {
     <main>
       <section className="landing-hero">
         <div className="landing-hero__matter">
-          <GenerativeArtScene animate color="#7bdcff" particleColor="#f5d27a" />
+          <PremiumHeroAnimation />
         </div>
         <div className="landing-hero__veil" aria-hidden="true" />
 

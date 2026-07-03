@@ -15,12 +15,14 @@ test.beforeEach(async ({ page }) => {
   await hideCookieBanner(page);
 });
 
-test("landing v3 is light-only and exposes only Russian and English", async ({ page }) => {
+test("landing v3 uses the premium dark reference and exposes only Russian and English", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
-  await expect(page.locator("html")).toHaveAttribute("data-site-theme", "light");
+  await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");
   await expect(page.locator(".nav-theme-toggle")).toHaveCount(0);
-  await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "light");
+  await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "dark");
+  await expect(page.locator(".english-spark-landing")).toHaveAttribute("data-visual-anchor", "premium-tech-narrative");
+  await expect(page.locator(".seo-guides")).toHaveCount(0);
 
   const optionValues = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
     options.map((option) => (option as HTMLOptionElement).value),
@@ -28,11 +30,12 @@ test("landing v3 is light-only and exposes only Russian and English", async ({ p
   expect(optionValues).toEqual(["ru", "en"]);
 });
 
-test("landing v3 hero uses filled product proof and transparent animation", async ({ page }) => {
+test("landing v3 hero uses filled product proof and transparent dark animation", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
   await expect(page.locator("h1")).toContainText("NERIVA");
-  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
+  await expect(page.locator(".premium-hero-animation__shader")).toHaveCount(1);
+  await expect(page.locator(".premium-hero-animation__three canvas")).toHaveCount(1);
   await expect(page.locator(".hero-proof")).toContainText("Browser + Telegram");
   await expect(page.locator(".hero-proof")).toContainText("Story");
   await expect(page.locator(".hero-proof")).not.toContainText("35 languages");
@@ -50,10 +53,19 @@ test("landing v3 hero uses filled product proof and transparent animation", asyn
     };
   });
 
-  expect(heroState.heroBackground).toBe("rgb(255, 255, 255)");
-  expect(heroState.heroBackgroundImage).toBe("none");
+  expect(heroState.heroBackground).toBe("rgba(0, 0, 0, 0)");
   expect(heroState.matterBackground).toBe("rgba(0, 0, 0, 0)");
   expect(heroState.emptyProofCells).toBe(0);
+
+  const shaderIsNonBlank = await page.locator(".premium-hero-animation__shader").evaluate((canvas) => {
+    const context = (canvas as HTMLCanvasElement).getContext("2d");
+    if (!context) return true;
+    const { width, height } = canvas as HTMLCanvasElement;
+    if (!width || !height) return false;
+    const sample = context.getImageData(Math.floor(width / 2), Math.floor(height / 2), 1, 1).data;
+    return sample[0] + sample[1] + sample[2] > 0;
+  });
+  expect(shaderIsNonBlank).toBe(true);
 });
 
 test("landing v3 uses before-after bridge and a controlled feature carousel", async ({ page }) => {
@@ -73,7 +85,7 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
   await expect(page.locator(".feature-carousel")).toContainText("Mistakes");
 });
 
-test("landing v3 pricing, community and final CTA are product-specific light sections", async ({ page }) => {
+test("landing v3 pricing, community and final CTA are product-specific dark sections", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
   await expect(page.locator(".plan-card")).toHaveCount(3);
@@ -93,7 +105,7 @@ test("landing v3 pricing, community and final CTA are product-specific light sec
   await expect(page.locator(".final-cta-section")).toContainText("Answer");
   await expect(page.locator(".final-cta-section")).toContainText("Correction");
   await expect(page.locator(".final-cta-section")).toContainText("Repeat");
-  await expect(page.locator(".final-cta-section")).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(page.locator(".final-cta-section")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 });
 
 test("landing v3 mobile is compact with no horizontal overflow", async ({ page }) => {
@@ -123,7 +135,7 @@ test("landing v3 product screenshots open a focused preview", async ({ page }) =
 
   await page.locator(".hero-product-frame .product-shot__button").first().click();
   await expect(page.locator(".image-preview")).toBeVisible();
-  await expect(page.locator(".image-preview img")).toHaveAttribute("src", "/assets/product/dashboard-progress.png");
+  await expect(page.locator(".image-preview img")).toHaveAttribute("src", "/assets/product/dashboard-progress-dark.png");
 
   await page.locator(".image-preview__close").click();
   await expect(page.locator(".image-preview")).toHaveCount(0);

@@ -20,7 +20,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
+import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
@@ -397,7 +397,7 @@ export function BoldProductLanding() {
     <main className="bold-landing">
       <section className="bold-hero">
         <div className="bold-hero__matter">
-          <GenerativeArtScene animate color="#7bdcff" particleColor="#f5d27a" />
+          <PremiumHeroAnimation />
         </div>
         <div className="bold-hero__veil" aria-hidden="true" />
 
