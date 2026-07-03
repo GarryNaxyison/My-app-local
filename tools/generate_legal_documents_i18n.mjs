@@ -69,7 +69,7 @@ const documents = {
         id: "data",
         title: "3. Какие данные обрабатываются",
         blocks: [
-          "Оператор может обрабатывать email или логин web-аккаунта, Telegram ID, username, имя в Telegram, выбранные языки, уровень обучения, учебные ответы, сообщения, голосовые записи, изображения, результаты распознавания, переводы, прогресс, платежные статусы и обращения в поддержку.",
+          "3.1. Оператор может обрабатывать следующие данные пользователей Сервиса: уникальный идентификатор Telegram (Telegram ID), имя пользователя (username), имя и фамилию, указанные в профиле Telegram, выбранные для изучения языки, текущий уровень обучения, историю ответов, текстовые сообщения, голосовые записи, загружаемые изображения, результаты распознавания текста и перевода, историю занятий, прогресс обучения, платежные статусы внутри Сервиса и обращения в службу поддержки.",
           "Также могут обрабатываться технические данные: IP-адрес, cookie, локальное хранилище браузера, данные устройства, браузера, операционной системы, времени доступа, источника перехода, событий безопасности и ошибок.",
           "Оператор не просит передавать паспортные данные, медицинские сведения, биометрию, специальные категории персональных данных и полные платежные реквизиты банковских карт.",
         ],
@@ -84,19 +84,19 @@ const documents = {
       },
       {
         id: "cookies",
-        title: "5. Cookie и локальное хранилище",
+        title: "5. Cookie, Local Storage и Яндекс Метрика",
         blocks: [
-          "Сайт и веб-приложение используют необходимые cookie и локальное хранилище для входа, сохранения языка, темы, согласий, сессии, защиты аккаунта и стабильной работы интерфейса.",
-          "После согласия пользователя сайт может использовать Яндекс Метрику для веб-аналитики: просмотра посещаемости, источников переходов, технических параметров браузера и улучшения работы страниц.",
-          "Необязательные аналитические или маркетинговые cookie применяются только после отдельного согласия, если такие технологии включены в текущей версии сайта.",
+          "5.1. Сайт и веб-приложение используют необходимые файлы cookie и локальное хранилище браузера (Local Storage) для обеспечения базовых функций: фиксации сессии, сохранения языковых настроек, выбранной темы интерфейса и статуса предоставленных согласий.",
+          "5.2. С предварительного согласия пользователя (путем активации на куки-баннере) на Сайте может осуществляться обработка данных с использованием метрической программы Яндекс Метрика с целью анализа посещаемости и улучшения работы страниц.",
+          "5.3. В рамках работы Метрики собираются обезличенные технические данные: IP-адрес, файлы cookie, параметры браузера и ОС, источник перехода. Сервис принадлежит ООО «ЯНДЕКС» (119021, Россия, Москва, ул. Льва Толстого, д. 16), которое обрабатывает информацию в соответствии со своими условиями. Данные собираются только после нажатия пользователем кнопки согласия на куки-баннере.",
         ],
       },
       {
         id: "transfer",
-        title: "6. Хранение, передача и инфраструктура",
+        title: "6. Локализация и трансграничная передача",
         blocks: [
-          "Первичный сбор и хранение персональных данных граждан Российской Федерации должны осуществляться с учетом требований российского законодательства о локализации персональных данных.",
-          "Для технической работы сервиса могут использоваться хостинг, Telegram, платежные провайдеры, аналитика, AI-, OCR-, speech-to-text- и text-to-speech-поставщики. Если данные передаются третьим лицам, это делается в пределах целей обработки и необходимых функций сервиса.",
+          "6.1. Локализация: Первичный сбор и запись персональных данных граждан РФ при использовании Telegram-бота и Telegram Mini App осуществляются с использованием инфраструктуры платформы Telegram. Хранение сопутствующих данных Сервиса осуществляется на серверах Оператора.",
+          "6.2. Трансграничная передача: Для генерации ответов ИИ-репетитора, распознавания речи (STT/TTS) и картинок (OCR) Оператор осуществляет трансграничную передачу обезличенных учебных запросов (текст, аудио, изображения) на территорию иностранных государств, где располагаются мощности технологических AI-поставщиков. Пользователь дает согласие на такую передачу при начале использования Сервиса.",
         ],
       },
       {
@@ -142,7 +142,7 @@ const documents = {
         id: "account",
         title: "3. Аккаунт, Telegram и безопасность",
         blocks: [
-          "Для отдельных функций нужен web-аккаунт, Telegram-аккаунт или привязка Telegram к web-профилю. Пользователь отвечает за сохранность логина, пароля, устройства, номера телефона, Telegram-аккаунта и кодов подтверждения.",
+          "3.1. Доступ к единому профилю и сохранению прогресса осуществляется без использования классической регистрации по Email. Авторизация происходит автоматически при запуске Telegram Mini App внутри мессенджера Telegram либо на веб-сайте с помощью ввода одноразового защищенного кода, полученного пользователем внутри официального Telegram-бота @NERIVAapp_bot. Пользователь отвечает за безопасность своего Telegram-аккаунта самостоятельно.",
           "Пользователь передает только собственные данные либо данные, в отношении которых у него есть законное основание и необходимые согласия.",
         ],
       },
@@ -159,7 +159,7 @@ const documents = {
         title: "5. AI-функции и учебные материалы",
         blocks: [
           "AI-ответы, переводы, оценки произношения и учебные рекомендации являются автоматизированными учебными подсказками. Они могут содержать неточности и требуют самостоятельной оценки пользователем.",
-          "Запрещено отправлять через сервис незаконные материалы, персональные данные третьих лиц без основания, вредоносный код, спам, оскорбления и контент, нарушающий права других лиц.",
+          "5.2. Запрещено отправлять через Сервис конфиденциальную информацию, государственные тайны, а также персональные или биометрические данные третьих лиц без их законного согласия. Пользователь самостоятельно несет ответственность за содержание отправляемых ИИ-репетитору текстов, загружаемых фотографий и наговариваемых голосовых сообщений.",
         ],
       },
       {
@@ -216,7 +216,7 @@ const documents = {
         title: "3. Услуги, тарифы и оплата",
         blocks: [
           "Параметры бесплатного доступа, платных тарифов, лимитов, периода действия и стоимости определяются оператором и отображаются в интерфейсе сервиса на момент использования или оплаты.",
-          "Оплата производится в форме предварительной оплаты через доступные платежные инструменты: платежного провайдера, Telegram Stars, YooKassa/СБП или иной доступный способ, если он показан пользователю в интерфейсе.",
+          "3.2. Оплата платных тарифов производится в форме предоплаты в российских рублях через доступные платежные инструменты (ЮKassa, СБП), отображаемые в интерфейсе. При совершении платежей с помощью внутриплатформенного инструмента Telegram Stars, право доступа к функциям Сервиса предоставляется в соответствии с правилами и условиями платформы Telegram, где Telegram Stars признается цифровым продуктом экосистемы Telegram, а не прямым платежом в адрес Оператора.",
           "Оператор вправе изменять стоимость и состав тарифов для будущих периодов. Изменения не ухудшают уже оплаченный период, если иное не требуется законом.",
         ],
       },
@@ -279,8 +279,7 @@ const documents = {
         id: "data",
         title: "2. Состав персональных данных",
         blocks: [
-          "Согласие распространяется на email или логин web-аккаунта, Telegram ID, username, имя в Telegram, настройки языка, уровень обучения, учебные ответы, сообщения, голосовые записи, изображения, результаты распознавания и перевода, историю занятий, прогресс, платежные статусы и обращения в поддержку.",
-          "Согласие также распространяется на технические данные: IP-адрес, cookie, локальное хранилище браузера, сведения об устройстве, браузере, операционной системе, времени доступа, источнике перехода, событиях безопасности и ошибках.",
+          "Согласие распространяется на: уникальный Telegram ID, username, имя в Telegram, языковые настройки, уровень обучения, текстовые сообщения в чате, голосовые записи (образцы голоса для оценки произношения), загружаемые изображения, историю занятий, учебный прогресс, технические данные (cookie, IP-адрес, параметры устройства и браузера). Сервис не собирает и не обрабатывает Email-адреса, номера телефонов и паспортные данные.",
         ],
       },
       {
@@ -300,10 +299,10 @@ const documents = {
       },
       {
         id: "localization",
-        title: "5. Хранение и трансграничная обработка",
+        title: "5. Telegram, хранение и трансграничная передача",
         blocks: [
-          "Первичный сбор и хранение персональных данных граждан Российской Федерации должны осуществляться с учетом требований российского законодательства о локализации персональных данных.",
-          "Зарубежная инфраструктура может использоваться для технической обработки в пределах опубликованных целей, если это необходимо для работы сайта, веб-приложения, Telegram-бота, AI-функций, платежей или поддержки.",
+          "5.1. Пользователь соглашается с тем, что первичный сбор данных происходит через интерфейс мессенджера Telegram.",
+          "5.2. Пользователь дает свое явное и безоговорочное согласие на трансграничную передачу своих обезличенных технических данных, текстов учебных запросов, изображений и голосовых записей на территорию иностранных государств (включая страны ЕС и США) для обеспечения работы хостинга Сервиса и обработки данных зарубежными провайдерами моделей искусственного интеллекта (AI) с целью получения учебных ответов.",
         ],
       },
       {
@@ -378,7 +377,7 @@ const englishDocuments = {
         id: "data",
         title: "3. Data processed",
         blocks: [
-          "The operator may process an email or web account login, Telegram ID, username, Telegram name, selected languages, learning level, learning answers, messages, voice recordings, images, recognition results, translations, progress, payment statuses, and support requests.",
+          "3.1. The operator may process the following Service user data: unique Telegram identifier (Telegram ID), username, first and last name specified in the Telegram profile, selected learning languages, current learning level, answer history, text messages, voice recordings, uploaded images, text recognition and translation results, lesson history, learning progress, payment statuses inside the Service, and support requests.",
           "Technical data may also be processed: IP address, cookies, browser local storage, device data, browser, operating system, access time, referrer, security events, and error data.",
           "The operator does not request passport data, medical data, biometric data, special categories of personal data, or full bank card details.",
         ],
@@ -393,19 +392,19 @@ const englishDocuments = {
       },
       {
         id: "cookies",
-        title: "5. Cookies and local storage",
+        title: "5. Cookies, Local Storage, and Yandex Metrica",
         blocks: [
-          "The website and web app use necessary cookies and local storage for login, language, theme, consent records, session, account protection, and stable interface operation.",
-          "After the user's consent, the website may use Yandex Metrica for web analytics: traffic measurement, referral sources, browser technical parameters, and page improvement.",
-          "Optional analytics or marketing cookies are used only after separate consent if such technologies are enabled in the current version of the site.",
+          "5.1. The website and web app use necessary cookies and browser Local Storage for basic functions: session handling, language preferences, selected interface theme, and the status of provided consents.",
+          "5.2. With the user's prior consent through activation on the cookie banner, the website may process data using Yandex Metrica for traffic analysis and page improvement.",
+          "5.3. When Metrica is active, anonymized technical data may be collected: IP address, cookies, browser and operating system parameters, and traffic source. The service belongs to YANDEX LLC (16 Leo Tolstoy St., Moscow, Russia, 119021), which processes information under its own terms. Data is collected only after the user clicks the consent button on the cookie banner.",
         ],
       },
       {
         id: "transfer",
-        title: "6. Storage, transfer, and infrastructure",
+        title: "6. Localization and cross-border transfer",
         blocks: [
-          "Initial collection and storage of personal data of Russian Federation citizens must be carried out with due regard to Russian personal data localization requirements.",
-          "The service may use hosting, Telegram, payment providers, analytics, AI, OCR, speech-to-text, and text-to-speech providers. If data is transferred to third parties, this is done within the stated purposes and necessary service functions.",
+          "6.1. Localization: initial collection and recording of personal data of Russian Federation citizens when using the Telegram bot and Telegram Mini App are performed through the Telegram platform infrastructure. Related Service data is stored on the operator's servers.",
+          "6.2. Cross-border transfer: to generate AI tutor responses, recognize speech (STT/TTS), and process images (OCR), the operator transfers anonymized learning requests (text, audio, images) to foreign countries where technology AI providers operate their computing resources. The user consents to such transfer when starting to use the Service.",
         ],
       },
       {
@@ -451,7 +450,7 @@ const englishDocuments = {
         id: "account",
         title: "3. Account, Telegram, and security",
         blocks: [
-          "Some functions require a web account, Telegram account, or linking Telegram to the web profile. The user is responsible for protecting the login, password, device, phone number, Telegram account, and confirmation codes.",
+          "3.1. Access to the shared profile and saved progress is provided without classic email registration. Authorization occurs automatically when the Telegram Mini App is opened inside Telegram or on the website by entering a one-time protected code received inside the official Telegram bot @NERIVAapp_bot. The user is independently responsible for the security of their Telegram account.",
           "The user provides only their own data or data for which they have a lawful basis and the necessary consents.",
         ],
       },
@@ -468,7 +467,7 @@ const englishDocuments = {
         title: "5. AI functions and learning materials",
         blocks: [
           "AI answers, translations, pronunciation scores, and learning recommendations are automated learning hints. They may contain inaccuracies and require the user's independent assessment.",
-          "It is prohibited to send illegal materials, third-party personal data without a lawful basis, malware, spam, insults, or content that violates third-party rights through the service.",
+          "5.2. It is prohibited to send confidential information, state secrets, or personal or biometric data of third parties through the Service without their lawful consent. The user is solely responsible for the content of texts sent to the AI tutor, uploaded photos, and dictated voice messages.",
         ],
       },
       {
@@ -525,7 +524,7 @@ const englishDocuments = {
         title: "3. Services, plans, and payment",
         blocks: [
           "Free access, paid plans, limits, access period, and price are determined by the operator and shown in the service interface at the time of use or payment.",
-          "Payment is made as prepayment through available tools: payment provider, Telegram Stars, YooKassa/SBP, or another available method shown in the interface.",
+          "3.2. Paid plans are paid in advance in Russian rubles through the available payment tools shown in the interface (YooKassa, SBP). When payments are made using the Telegram Stars in-platform tool, access rights to Service features are provided under Telegram platform rules and terms, where Telegram Stars are treated as a digital product of the Telegram ecosystem rather than a direct payment to the operator.",
           "The operator may change prices and plan contents for future periods. Changes do not worsen an already paid period unless required by law.",
         ],
       },
@@ -588,8 +587,7 @@ const englishDocuments = {
         id: "data",
         title: "2. Personal data scope",
         blocks: [
-          "Consent covers an email or web account login, Telegram ID, username, Telegram name, language settings, learning level, learning answers, messages, voice recordings, images, recognition and translation results, lesson history, progress, payment statuses, and support requests.",
-          "Consent also covers technical data: IP address, cookies, browser local storage, device, browser, operating system, access time, referrer, security events, and errors.",
+          "Consent covers: unique Telegram ID, username, Telegram name, language settings, learning level, text chat messages, voice recordings (voice samples for pronunciation assessment), uploaded images, lesson history, learning progress, and technical data (cookies, IP address, device and browser parameters). The Service does not collect or process email addresses, phone numbers, or passport data.",
         ],
       },
       {
@@ -609,10 +607,10 @@ const englishDocuments = {
       },
       {
         id: "localization",
-        title: "5. Storage and cross-border processing",
+        title: "5. Telegram, storage, and cross-border transfer",
         blocks: [
-          "Initial collection and storage of personal data of Russian Federation citizens must be carried out with due regard to Russian personal data localization requirements.",
-          "Foreign infrastructure may be used for technical processing within the published purposes if needed for the website, web app, Telegram bot, AI functions, payments, or support.",
+          "5.1. The user agrees that initial data collection takes place through the Telegram messenger interface.",
+          "5.2. The user gives explicit and unconditional consent to the cross-border transfer of anonymized technical data, learning request texts, images, and voice recordings to foreign countries (including EU countries and the United States) to operate Service hosting and process data by foreign artificial intelligence (AI) model providers for the purpose of receiving learning responses.",
         ],
       },
       {
@@ -648,6 +646,11 @@ const immutablePatterns = [
   /505017471160/g,
   /Telegram/g,
   /YooKassa/g,
+  /ЮKassa/g,
+  /СБП/g,
+  /Local Storage/g,
+  /STT\/TTS/g,
+  /ООО «ЯНДЕКС»/g,
   /TON/g,
   /USDT/g,
   /PWA/g,

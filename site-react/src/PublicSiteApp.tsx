@@ -376,7 +376,7 @@ function useLegacySiteI18n(page: PageId, theme: SiteTheme) {
 }
 
 function useSiteTheme() {
-  const [theme, setTheme] = useState<SiteTheme>(() => (localStorage.getItem("poliglot-site-theme") === "light" ? "light" : "dark"));
+  const [theme, setTheme] = useState<SiteTheme>(() => (localStorage.getItem("poliglot-site-theme") === "dark" ? "dark" : "light"));
   useEffect(() => {
     document.documentElement.dataset.siteTheme = theme;
     localStorage.setItem("poliglot-site-theme", theme);
@@ -1076,7 +1076,7 @@ function serializeCookieConsent(analyticsMarketing: boolean) {
 
 function parseCookieConsent(value: string | null): { saved: boolean; analyticsMarketing: boolean } {
   if (!value) return { saved: false, analyticsMarketing: false };
-  if (value === "accepted") return { saved: true, analyticsMarketing: true };
+  if (value === "accepted") return { saved: true, analyticsMarketing: false };
   if (value === "necessary") return { saved: true, analyticsMarketing: false };
 
   try {
@@ -1091,8 +1091,20 @@ function parseCookieConsent(value: string | null): { saved: boolean; analyticsMa
   return { saved: false, analyticsMarketing: false };
 }
 
+function hasSavedAnalyticsConsent() {
+  if (typeof window === "undefined") return false;
+
+  try {
+    return parseCookieConsent(localStorage.getItem(cookieConsentStorageKey)).analyticsMarketing;
+  } catch {
+    return false;
+  }
+}
+
 function loadYandexMetrika(counterId: number) {
   if (typeof window === "undefined" || typeof document === "undefined") return;
+  if (!hasSavedAnalyticsConsent()) return;
+
   const existing = document.querySelector(`script[data-yandex-metrika-id="${counterId}"]`);
   if (existing) return;
 
