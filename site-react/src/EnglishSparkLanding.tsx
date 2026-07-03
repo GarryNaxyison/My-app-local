@@ -6,42 +6,18 @@ import {
   BrainCircuit,
   Camera,
   CheckCircle,
-  ChevronRight,
-  Headphones,
   Languages,
-  Laptop,
   LineChart,
   MessageCircle,
   Mic,
-  Repeat2,
-  ScanText,
-  Smartphone,
   Zap,
 } from "lucide-react";
 import { GenerativeArtScene } from "@/components/ui/anomalous-matter-hero";
-import { LandingSocialProof } from "./components/SocialLinks";
+import { LandingSocialProof, SocialIconLinks } from "./components/SocialLinks";
 import { landingSeoCopy } from "./landingSeoContent";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
-
-const heroGoals = [
-  ["Travel", "hotel, cafe, airport"],
-  ["Work", "calls, emails, small talk"],
-  ["Exam", "vocabulary, grammar, speaking"],
-  ["Conversation", "live answers without memorizing"],
-] as const;
-
-const learningLanguageShowcase = [
-  ["English", "A1-C2", "speaking routes"],
-  ["Espanol", "A1-C2", "travel dialogues"],
-  ["Deutsch", "A1-C2", "work and exams"],
-  ["Francais", "A1-C2", "listening and speech"],
-  ["Italiano", "A1-C2", "real-life scenes"],
-  ["Chinese", "A1-C2", "words and practice"],
-  ["Japanese", "A1-C2", "lessons and review"],
-  ["Korean", "A1-C2", "vocabulary and speech"],
-] as const;
 
 const demoScreens = [
   {
@@ -80,12 +56,6 @@ const demoScreens = [
 
 const demoTabs = demoScreens.map((screen) => screen.tab);
 
-const dailySteps = [
-  ["01", "Learn the phrase", "Get the meaning, grammar hint, natural example, and one focused prompt."],
-  ["02", "Use it in context", "Practice through a short roleplay, voice answer, or photo-based task."],
-  ["03", "Review the weak spot", "Mistakes, notes, weak words, XP, and streak point to the next repetition."],
-] as const;
-
 const modules = [
   {
     icon: BrainCircuit,
@@ -108,104 +78,6 @@ const modules = [
     body: "A menu or sign becomes translation, context, notes, and a short practice loop.",
   },
 ] as const;
-
-const courseRoutes = [
-  ["AI Tutor Core", "A complete A1-C2 route with lessons, practice, review, and XP in one controlled loop.", "A1-C2"],
-  ["Travel & Work", "Roleplay scenes, photo translation, quick phrases, and dialogues for moments outside the classroom.", "role + photo"],
-  ["Voice Coach", "Shadowing, weak words, pronunciation score, and voice history for steady speaking practice.", "voice"],
-] as const;
-
-const cockpitLanes = [
-  {
-    icon: BrainCircuit,
-    title: "AI Tutor",
-    metric: "lesson -> check",
-    body: "Explains a phrase, gives an example, asks for your answer, and shows the next correction.",
-  },
-  {
-    icon: MessageCircle,
-    title: "Roleplay",
-    metric: "context role",
-    body: "Keeps travel, work, exam, or casual speaking scenarios focused without empty replies.",
-  },
-  {
-    icon: Headphones,
-    title: "Voice Coach",
-    metric: "score + weak words",
-    body: "Voice checks, shadowing, and repeat prompts help you hear and fix pronunciation quickly.",
-  },
-  {
-    icon: ScanText,
-    title: "Photo Tools",
-    metric: "text from image",
-    body: "Menus, signs, or tasks become translation, notes, and a practice prompt in context.",
-  },
-  {
-    icon: Repeat2,
-    title: "Mistake Loop",
-    metric: "mistake -> repeat",
-    body: "Mistakes, notes, weak words, XP, and streaks keep weak spots visible until they become easy.",
-  },
-] as const;
-
-const scenarioCards = [
-  {
-    title: "Travel without panic",
-    tag: "Travel",
-    body: "Short hotel, cafe, airport, and doctor phrases are practiced before the moment gets stressful.",
-    modules: ["Roleplay", "Photo", "Phrasebook"],
-    prompt: "Could you help me check in?",
-    image: "/assets/scenarios/travel-ai-tutor.jpg",
-    alt: "Travel practice scene",
-  },
-  {
-    title: "Work calls and messages",
-    tag: "Work",
-    body: "Emails, calls, self-intros, and deadline questions become rehearsals that make speaking easier.",
-    modules: ["AI Tutor", "Review", "Notes"],
-    prompt: "Let me clarify the deadline.",
-    image: "/assets/scenarios/work-ai-tutor.jpg",
-    alt: "Work practice scene",
-  },
-  {
-    title: "Exam and level progress",
-    tag: "Exam",
-    body: "A1-C2 vocabulary, grammar, listening, and speaking stay in a route with visible progress steps.",
-    modules: ["Lesson", "Listening", "Mistakes"],
-    prompt: "I agree with the statement because...",
-    image: "/assets/scenarios/exam-ai-tutor.jpg",
-    alt: "Exam practice scene",
-  },
-  {
-    title: "Everyday conversation",
-    tag: "Speaking",
-    body: "The tutor gives a natural version and a next repetition until your answer sounds more confident.",
-    modules: ["Voice", "Shadowing", "XP"],
-    prompt: "I have been trying to say...",
-    image: "/assets/scenarios/speaking-ai-tutor.jpg",
-    alt: "Speaking practice scene",
-  },
-] as const;
-
-const deviceNodes = [
-  {
-    icon: Laptop,
-    title: "Web app",
-    body: "Use the large screen for longer sessions, pricing, progress, mistake review, and AI Tutor work.",
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile web",
-    body: "Run short lessons, repeat weak words, or practice a phrase when you are away from the desk.",
-  },
-  {
-    icon: MessageCircle,
-    title: "Telegram",
-    body: "Start quickly, receive reminders, send voice, and keep practicing from the same profile.",
-  },
-] as const;
-
-const memoryNodes = ["Mistakes", "Notes", "Weak words", "XP", "Streak", "Offline decks"] as const;
 
 type LandingPlan = {
   name: string;
@@ -244,26 +116,7 @@ const plans: readonly LandingPlan[] = [
   },
 ] as const;
 
-const reviews = [
-  {
-    name: "Anna",
-    role: "Travel practice",
-    avatar: "/assets/testimonials/anna.jpg",
-    text: "I rehearsed check-in, cafe orders, and transport before the trip. The phrases stayed in notes for quick review.",
-  },
-  {
-    name: "Marat",
-    role: "English for work",
-    avatar: "/assets/testimonials/marat.jpg",
-    text: "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.",
-  },
-  {
-    name: "Sofia",
-    role: "Pronunciation",
-    avatar: "/assets/testimonials/sofia.jpg",
-    text: "Voice practice shows which words sound weak and gives a better sentence to repeat right away.",
-  },
-] as const;
+const shortFaq = landingSeoCopy.en.questions.slice(0, 4);
 
 type EnglishSparkLandingProps = {
   siteTheme?: "dark" | "light";
@@ -285,7 +138,7 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         <div className="landing-hero__inner">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.66 }} className="landing-hero__copy">
             <span className="eyebrow">Premium AI tutor for daily practice</span>
-            <h1>Practice speaking before the moment matters</h1>
+            <h1>NERIVA: Practice speaking before the moment matters</h1>
             <p className="hero-lead">Lessons, dialogue, pronunciation, photo translation, mistake review, and progress live in one profile across web, PWA, and Telegram.</p>
             <div className="hero-actions">
               <a className="entry-cta hero-action hero-action--primary" data-entry="web-app" href={WEB_APP_HREF}>
@@ -294,40 +147,6 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
               <a className="entry-cta hero-action hero-action--secondary" data-entry="telegram" href={TELEGRAM_HREF}>
                 Open Telegram
               </a>
-            </div>
-            <div className="hero-goals" aria-label="Learning goals">
-              {heroGoals.map(([goal, note]) => (
-                <a key={goal} href={WEB_APP_HREF}>
-                  <strong>{goal}</strong>
-                  <span>{note}</span>
-                </a>
-              ))}
-            </div>
-            <div className="hero-language-picker" aria-label="Popular learning languages">
-              <h3>Popular learning languages:</h3>
-              <div>
-                {learningLanguageShowcase.map(([language, level, note]) => (
-                  <a key={language} href={WEB_APP_HREF}>
-                    <strong>{language}</strong>
-                    <span>{level}</span>
-                    <small>{note}</small>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div className="hero-path" aria-label="Learning route">
-              <span>
-                <b>1</b> Goal
-              </span>
-              <span>
-                <b>2</b> Lesson
-              </span>
-              <span>
-                <b>3</b> Speech
-              </span>
-              <span>
-                <b>4</b> Review
-              </span>
             </div>
             <div className="hero-proof">
               <span>
@@ -399,179 +218,60 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         </div>
       </section>
 
-      <section className="course-strip" aria-label="NERIVA routes">
-        <div className="course-strip__intro">
-          <span className="eyebrow">AI Tutor routes</span>
-          <h2>Routes for the goal, not an endless exercise feed</h2>
-          <p>Choose travel, work, exam, or conversation practice. NERIVA connects lesson, dialogue, voice, photo, and review into one controlled cycle.</p>
+      <section className="lesson-scenario" aria-label="How NERIVA runs a short lesson">
+        <div className="lesson-scenario__copy">
+          <span className="eyebrow">Live product scenario</span>
+          <h2>Every session ends with a visible next step</h2>
+          <p>NERIVA explains a phrase, asks for an answer, checks it, saves the mistake, and gives a repeatable prompt for the next review.</p>
+          <div className="lesson-scenario__tags" aria-label="Lesson flow">
+            <span className="lesson-scenario__tag">phrase</span>
+            <span className="lesson-scenario__tag">answer</span>
+            <span className="lesson-scenario__tag">correction</span>
+            <span className="lesson-scenario__tag">review</span>
+          </div>
         </div>
-        <div className="course-cards">
-          {courseRoutes.map(([title, body, badge], index) => (
-            <motion.a key={title} href={WEB_APP_HREF} className="course-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.42, delay: index * 0.05 }}>
-              <span>{badge}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-              <b>
-                Start route <ChevronRight size={16} />
-              </b>
-            </motion.a>
-          ))}
-        </div>
-        <div className="course-stats">
-          <span>
-            <strong>A1-C2</strong>
-            learning levels
-          </span>
-          <span>
-            <strong>35</strong>
-            interface languages
-          </span>
-          <span>
-            <strong>1</strong>
-            profile for web, PWA, Telegram
-          </span>
-        </div>
-      </section>
 
-      <section className="landing-band cockpit-section" aria-label="How NERIVA runs a lesson">
-        <div className="cockpit-shell">
-          <div className="cockpit-copy">
-            <span className="eyebrow">AI Tutor cockpit</span>
-            <h2>Every session ends with a visible next step</h2>
-            <p>NERIVA does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.</p>
-            <div className="cockpit-kpis" aria-label="NERIVA product metrics">
+        <div className="lesson-scenario__console" aria-label="AI Tutor lesson example">
+          <div className="cockpit-console__top">
+            <span>Live learning loop</span>
+            <strong>84/100</strong>
+          </div>
+          <div className="cockpit-console__screen">
+            <div className="cockpit-status">
+              <Activity size={18} />
+              <span>AI Tutor is checking the answer</span>
+            </div>
+            <div className="cockpit-dialogue">
+              <p>Say it naturally: "Could you help me check in?"</p>
+              <p>Better: "I have a reservation under my name."</p>
+            </div>
+            <div className="cockpit-metric-grid">
               <span>
-                <strong>35</strong>
-                interface languages
+                <Zap size={17} />
+                XP +12
               </span>
               <span>
-                <strong>A1-C2</strong>
-                level routes
+                <LineChart size={17} />
+                weak word fixed
               </span>
               <span>
-                <strong>1</strong>
-                profile everywhere
+                <Languages size={17} />
+                translation saved
               </span>
             </div>
           </div>
+        </div>
 
-          <div className="cockpit-lanes">
-            {cockpitLanes.map((lane, index) => {
-              const Icon = lane.icon;
-              return (
-                <motion.article key={lane.title} className="cockpit-lane" initial={{ opacity: 0, x: -16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.35 }} transition={{ duration: 0.34, delay: index * 0.04 }}>
-                  <Icon size={20} />
-                  <div>
-                    <strong>{lane.title}</strong>
-                    <p>{lane.body}</p>
-                  </div>
-                  <span>{lane.metric}</span>
-                </motion.article>
-              );
-            })}
-          </div>
-
-          <div className="cockpit-console" aria-label="AI Tutor lesson example">
-            <div className="cockpit-console__top">
-              <span>Live learning loop</span>
-              <strong>84/100</strong>
-            </div>
-            <div className="cockpit-console__screen">
-              <div className="cockpit-status">
-                <Activity size={18} />
-                <span>AI Tutor is checking the answer</span>
-              </div>
-              <div className="cockpit-dialogue">
-                <p>Say it naturally: "Could you help me check in?"</p>
-                <p>Better: "I have a reservation under my name."</p>
-              </div>
-              <div className="cockpit-metric-grid">
-                <span>
-                  <Zap size={17} />
-                  XP +12
-                </span>
-                <span>
-                  <LineChart size={17} />
-                  weak word fixed
-                </span>
-                <span>
-                  <Languages size={17} />
-                  translation saved
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-band scenario-section">
-        <div className="section-copy">
-          <span className="eyebrow">Scenarios</span>
-          <h2>Real situations where the language has to work today</h2>
-          <p>At the airport, on a work call, before an exam, or in everyday conversation, NERIVA turns practice into a concrete speaking moment.</p>
-        </div>
-        <div className="scenario-grid">
-          {scenarioCards.map((scenario, index) => (
-            <motion.article key={scenario.title} className="scenario-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ duration: 0.36, delay: index * 0.05 }}>
-              <figure className="scenario-card__visual">
-                <img src={scenario.image} alt={scenario.alt} loading="lazy" />
-                <span>{scenario.tag}</span>
-              </figure>
-              <h3>{scenario.title}</h3>
-              <p>{scenario.body}</p>
-              <div className="scenario-modules">
-                {scenario.modules.map((module) => (
-                  <span key={module}>{module}</span>
-                ))}
-              </div>
-              <blockquote>{scenario.prompt}</blockquote>
-            </motion.article>
-          ))}
-        </div>
-      </section>
-
-      <section className="device-flow" aria-label="NERIVA device flow">
-        <div className="device-flow__copy">
-          <span className="eyebrow">Web + mobile + Telegram</span>
-          <h2>One profile for web, mobile, and Telegram</h2>
-          <p>Start a longer lesson on desktop, repeat weak words from mobile, and return to Telegram without losing Premium status, progress, notes, or mistake history.</p>
-        </div>
-        <div className="device-flow__grid">
-          {deviceNodes.map((node, index) => {
-            const Icon = node.icon;
-            return (
-              <motion.article key={node.title} className="device-flow__node" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.34, delay: index * 0.05 }}>
-                <Icon size={24} />
-                <h3>{node.title}</h3>
-                <p>{node.body}</p>
-                {index < deviceNodes.length - 1 ? <span className="device-flow__connector" aria-hidden="true" /> : null}
-              </motion.article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="spark-section daily-loop-section">
-        <div className="section-copy">
-          <span className="eyebrow">Daily loop</span>
-          <h2>One short session always ends with the next useful step</h2>
-          <p>NERIVA is built around a simple loop: learn, use, review. Every module feeds the same progress profile.</p>
-        </div>
-        <div className="daily-steps">
-          {dailySteps.map(([num, title, body]) => (
-            <article className="daily-step" key={title}>
-              <strong>{num}</strong>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
+        <figure className="lesson-scenario__media">
+          <img src="/assets/scenarios/speaking-ai-tutor.jpg" alt="Speaking practice lesson preview" loading="lazy" />
+          <figcaption>Speaking practice, voice correction, and saved weak words in one loop.</figcaption>
+        </figure>
       </section>
 
       <section id="features" className="spark-section modules-section">
         <div className="section-copy">
           <span className="eyebrow">Product modules</span>
-          <h2>Lessons, conversation, voice, and photos work as one system</h2>
+          <h2>Four tools, one learning profile</h2>
         </div>
         <div className="module-grid">
           {modules.map((module) => {
@@ -584,47 +284,6 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
               </article>
             );
           })}
-        </div>
-      </section>
-
-      <section className="memory-loop-section">
-        <div className="memory-loop-section__copy">
-          <span className="eyebrow">Review memory</span>
-          <h2>Your weak spots stay visible until they become easy</h2>
-          <p>Review is not a separate folder. It is the connective tissue between lessons, voice, notes, and Telegram practice.</p>
-        </div>
-        <div className="memory-grid">
-          {memoryNodes.map((node) => (
-            <span className="memory-node" key={node}>
-              <Repeat2 size={16} />
-              {node}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="spark-section entry-section">
-        <div className="section-copy">
-          <span className="eyebrow">Two entry points</span>
-          <h2>Use the same profile for deep sessions and quick practice</h2>
-        </div>
-        <div className="entry-grid">
-          <article className="entry-panel">
-            <Laptop size={26} />
-            <h3>Web app</h3>
-            <p>Open the dashboard for deep sessions, progress, pricing, mistakes, and longer AI Tutor work.</p>
-            <a className="entry-cta" data-entry="web-app" href={WEB_APP_HREF}>
-              Open Web app <ChevronRight size={18} />
-            </a>
-          </article>
-          <article className="entry-panel">
-            <Smartphone size={26} />
-            <h3>Telegram</h3>
-            <p>Start quick practice, voice checks, reminders, and weak-word review from the same profile.</p>
-            <a className="entry-cta" data-entry="telegram" href={TELEGRAM_HREF}>
-              Open Telegram <ChevronRight size={18} />
-            </a>
-          </article>
         </div>
       </section>
 
@@ -663,67 +322,31 @@ export function EnglishSparkLanding({ siteTheme = "dark" }: EnglishSparkLandingP
         </div>
       </section>
 
-      <section id="compare" className="spark-section comparison-section" aria-labelledby="comparison-section-heading">
+      <section className="spark-section community-section">
         <div className="section-copy">
-          <span className="eyebrow">{landingSeoCopy.en.comparisonEyebrow}</span>
-          <h2 id="comparison-section-heading">{landingSeoCopy.en.comparisonTitle}</h2>
-          <p>{landingSeoCopy.en.comparisonIntro}</p>
+          <span className="eyebrow">Community</span>
+          <h2>Premium key giveaways and product updates in the NERIVA channels</h2>
+          <p>Follow the community for short lessons, product updates, and monthly Premium key giveaways.</p>
         </div>
-        <div className="comparison-grid">
-          {landingSeoCopy.en.comparisons.map((item, index) => (
-            <article className="comparison-card" id={`comparison-${index + 1}`} key={item.title}>
-              <h3>{item.title}</h3>
-              <div className="comparison-card__rows">
-                <div>
-                  <span>{item.alternativeLabel}</span>
-                  <p>{item.alternative}</p>
-                </div>
-                <div>
-                  <span>{item.productLabel}</span>
-                  <p>{item.product}</p>
-                </div>
-              </div>
-              <p className="comparison-card__verdict">
-                <CheckCircle size={16} />
-                {item.verdict}
-              </p>
-            </article>
-          ))}
+        <div className="community-panel">
+          <div>
+            <strong>Follow NERIVA</strong>
+            <span>Short lessons, product updates, and learning tips.</span>
+          </div>
+          <SocialIconLinks />
         </div>
       </section>
 
-      <section className="spark-section answer-section" aria-labelledby="answer-section-heading">
+      <section id="faq" className="spark-section landing-faq">
         <div className="section-copy">
-          <span className="eyebrow">{landingSeoCopy.en.sectionEyebrow}</span>
-          <h2 id="answer-section-heading">{landingSeoCopy.en.sectionTitle}</h2>
-          <p>{landingSeoCopy.en.sectionIntro}</p>
+          <span className="eyebrow">FAQ</span>
+          <h2>Questions before starting</h2>
         </div>
-        <div className="answer-grid">
-          {landingSeoCopy.en.questions.map((item) => (
-            <article className="answer-card" key={item.question}>
+        <div className="landing-faq__grid">
+          {shortFaq.map((item) => (
+            <article className="landing-faq__item" key={item.question}>
               <h3>{item.question}</h3>
               <p>{item.answer}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="reviews" className="spark-section reviews-section">
-        <div className="section-copy">
-          <span className="eyebrow">User stories</span>
-          <h2>Built for concrete speaking moments</h2>
-        </div>
-        <div className="reviews-grid">
-          {reviews.map((review) => (
-            <article className="review-card" key={review.name}>
-              <div>
-                <img src={review.avatar} alt={review.name} loading="lazy" />
-                <div>
-                  <strong>{review.name}</strong>
-                  <small>{review.role}</small>
-                </div>
-              </div>
-              <p>{review.text}</p>
             </article>
           ))}
         </div>

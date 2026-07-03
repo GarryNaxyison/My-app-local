@@ -12,7 +12,6 @@ const MIRROR_PHRASES_PATHS = [
 const PAGES = ["poliglot-ai.html", "terms.html", "privacy.html"];
 const REACT_SOURCES = [
   path.join(ROOT, "site-react", "src", "PublicSiteApp.tsx"),
-  path.join(ROOT, "site-react", "src", "EnglishSparkLanding.tsx"),
   path.join(ROOT, "site-react", "src", "legacyLegalContent.ts"),
 ];
 const GENERATED_START = "// <public-site-translations-generated>";
@@ -108,6 +107,7 @@ const PROTECTED_PATTERNS = [
 const CURATED_RU_TRANSLATIONS = {
   "Premium AI tutor for daily practice": "Премиум AI-тьютор для ежедневной практики",
   "Practice speaking before the moment matters": "Потренируйте речь до важного момента",
+  "NERIVA: Practice speaking before the moment matters": "NERIVA: Потренируйте речь до важного момента",
   "Lessons, dialogue, pronunciation, photo translation, mistake review, and progress live in one profile across web, PWA, and Telegram.": "Уроки, диалоги, произношение, перевод по фото, разбор ошибок и прогресс хранятся в одном профиле: веб, PWA и Telegram.",
   "Start free": "Начать бесплатно",
   "Open Telegram": "Открыть Telegram",
@@ -153,7 +153,16 @@ const CURATED_RU_TRANSLATIONS = {
   "Shadowing, weak words, pronunciation score, and voice history for steady speaking practice.": "Шэдоуинг, слабые слова, оценка произношения и история голоса для регулярной практики.",
   "profile for web, PWA, Telegram": "профиль для веба, PWA и Telegram",
   "AI Tutor cockpit": "Панель AI Tutor",
+  "Live product scenario": "Живой сценарий продукта",
   "Every session ends with a visible next step": "Каждая сессия заканчивается понятным следующим шагом",
+  "NERIVA explains a phrase, asks for an answer, checks it, saves the mistake, and gives a repeatable prompt for the next review.": "NERIVA объясняет фразу, просит ответить, проверяет ответ, сохраняет ошибку и дает задание для следующего повторения.",
+  "Lesson flow": "Ход занятия",
+  "phrase": "фраза",
+  "answer": "ответ",
+  "correction": "исправление",
+  "review": "повторение",
+  "How NERIVA runs a short lesson": "Как NERIVA проводит короткое занятие",
+  "AI Tutor lesson example": "Пример занятия AI Tutor",
   "NERIVA does not leave you alone with a task. It explains, asks for an answer, checks voice or photo context, and returns to mistakes until the weak spot becomes familiar.": "NERIVA не оставляет вас один на один с заданием: объясняет, просит ответить, проверяет голос или фото и возвращает к ошибкам, пока слабое место не станет понятным.",
   "interface languages": "языков интерфейса",
   "level routes": "маршруты по уровням",
@@ -220,7 +229,10 @@ const CURATED_RU_TRANSLATIONS = {
   "Practice through a short roleplay, voice answer, or photo-based task.": "Отработайте фразу в короткой ролевой сцене, голосовом ответе или задании по фото.",
   "Review the weak spot": "Разберите слабое место",
   "Mistakes, notes, weak words, XP, and streak point to the next repetition.": "Ошибки, заметки, слабые слова, XP и серия подсказывают, что повторять дальше.",
+  "Speaking practice lesson preview": "Превью урока разговорной практики",
+  "Speaking practice, voice correction, and saved weak words in one loop.": "Разговорная практика, исправление голоса и сохраненные слабые слова в одном цикле.",
   "Product modules": "Модули продукта",
+  "Four tools, one learning profile": "Четыре инструмента, один учебный профиль",
   "Lessons, conversation, voice, and photos work as one system": "Уроки, диалоги, голос и фото работают как одна система",
   "Pronunciation practice highlights weak words, rhythm, and the next sentence to repeat.": "Тренировка произношения показывает слабые слова, ритм и следующую фразу для повтора.",
   "Photo Practice": "Практика по фото",
@@ -237,7 +249,8 @@ const CURATED_RU_TRANSLATIONS = {
   "Open Web app": "Открыть веб-приложение",
   "Start quick practice, voice checks, reminders, and weak-word review from the same profile.": "Начинайте быструю практику, проверку голоса, напоминания и повторение слабых слов из одного профиля.",
   "Pricing": "Тарифы",
-  "Start free, then unlock the daily practice limits you actually need": "Начните бесплатно, затем подключите нужные дневные лимиты",  "Payment is available through Telegram Stars and YooKassa/SBP.": "Payment is available through Telegram Stars and YooKassa/SBP.",
+  "Start free, then unlock the daily practice limits you actually need": "Начните бесплатно, затем подключите нужные дневные лимиты",
+  "Payment is available through Telegram Stars and YooKassa/SBP.": "Оплата доступна через Telegram Stars и YooKassa/SBP.",
   "Try the loop": "Попробовать цикл",
   "Basic text practice for trying lessons, word training, notes, and progress without payment.": "Базовая текстовая практика: уроки, слова, заметки и прогресс без оплаты.",
   "Basic notes and phrasebook": "Заметки и разговорник",
@@ -256,15 +269,25 @@ const CURATED_RU_TRANSLATIONS = {
   "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.": "Длинные уроки прохожу в веб-приложении, а слабые слова перед звонками повторяю в Telegram. Один профиль все упрощает.",
   "Pronunciation": "Произношение",
   "Voice practice shows which words sound weak and gives a better sentence to repeat right away.": "Голосовая практика показывает слабые слова и сразу дает более естественную фразу для повтора.",
+  "Community": "Сообщество",
+  "Premium key giveaways and product updates in the NERIVA channels": "Розыгрыши Premium-ключей и обновления продукта в каналах NERIVA",
+  "Follow the community for short lessons, product updates, and monthly Premium key giveaways.": "Следите за сообществом: короткие уроки, обновления продукта и ежемесячные розыгрыши Premium-ключей.",
+  "Short lessons, product updates, and monthly Premium key giveaways.": "Короткие уроки, обновления продукта и ежемесячные розыгрыши Premium-ключей.",
+  "Questions before starting": "Вопросы перед стартом",
   "Open the loop and run the first lesson today": "Запустите цикл и начните первый урок сегодня",
   "Use the web app for a full session or Telegram for a fast practice check.": "Используйте веб-приложение для полноценной сессии или Telegram для быстрой проверки.",
 };
 
 function stripGeneratedBlock(source) {
-  const start = source.indexOf(GENERATED_START);
-  const end = source.indexOf(GENERATED_END);
-  if (start === -1 || end === -1 || end < start) return source;
-  return `${source.slice(0, start).trimEnd()}\n`;
+  let next = source;
+  while (true) {
+    const start = next.indexOf(GENERATED_START);
+    const end = next.indexOf(GENERATED_END, start);
+    if (start === -1 || end === -1 || end < start) break;
+    next = `${next.slice(0, start).trimEnd()}\n${next.slice(end + GENERATED_END.length).trimStart()}`;
+  }
+  next = next.replaceAll(GENERATED_END, "").trimEnd();
+  return next;
 }
 
 function extractGeneratedTranslations(source) {

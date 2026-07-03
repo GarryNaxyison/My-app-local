@@ -47,32 +47,41 @@ const ruCopy = {
 
 const cyrillicInterfaceLocales = new Set(["ru", "tg", "tt", "kk", "ky", "uk"]);
 const englishLandingCopyThatMustLocalize = [
-  "Travel without panic",
-  "Short hotel, cafe, airport, and doctor phrases are practiced before the moment gets stressful.",
-  "Work calls and messages",
-  "Emails, calls, self-intros, and deadline questions become rehearsals that make speaking easier.",
-  "Exam and level progress",
-  "A1-C2 vocabulary, grammar, listening, and speaking stay in a route with visible progress steps.",
-  "Everyday conversation",
-  "The tutor gives a natural version and a next repetition until your answer sounds more confident.",
-  "Learn the phrase",
-  "Get the meaning, grammar hint, natural example, and one focused prompt.",
-  "Use it in context",
-  "Practice through a short roleplay, voice answer, or photo-based task.",
-  "Review the weak spot",
-  "Mistakes, notes, weak words, XP, and streak point to the next repetition.",
-  "Travel practice",
-  "I rehearsed check-in, cafe orders, and transport before the trip. The phrases stayed in notes for quick review.",
-  "English for work",
-  "I use the web app for longer lessons and Telegram for weak words before calls. The same profile keeps it simple.",
-  "Pronunciation",
-  "Voice practice shows which words sound weak and gives a better sentence to repeat right away.",
+  "NERIVA: Practice speaking before the moment matters",
+  "Live product scenario",
+  "Every session ends with a visible next step",
+  "NERIVA explains a phrase, asks for an answer, checks it, saves the mistake, and gives a repeatable prompt for the next review.",
+  "AI Tutor is checking the answer",
+  "weak word fixed",
+  "translation saved",
+  "Four tools, one learning profile",
+  "Payment is available through Telegram Stars and YooKassa/SBP.",
+  "Premium key giveaways and product updates in the NERIVA channels",
+  "Follow the community for short lessons, product updates, and monthly Premium key giveaways.",
+  "Questions before starting",
+  "Open the loop and run the first lesson today",
   "Follow NERIVA",
   "Short lessons, product updates, and learning tips.",
   "AI Tutor Cockpit",
   "Photograph a menu, sign, or task and turn it into a learning scenario.",
   "No peanuts, please. How spicy is this dish?",
   "The photo becomes translation, a note, and a practice prompt.",
+] as const;
+
+const curatedLandingCopySources = [
+  "NERIVA: Practice speaking before the moment matters",
+  "Live product scenario",
+  "Every session ends with a visible next step",
+  "NERIVA explains a phrase, asks for an answer, checks it, saves the mistake, and gives a repeatable prompt for the next review.",
+  "AI Tutor is checking the answer",
+  "weak word fixed",
+  "translation saved",
+  "Four tools, one learning profile",
+  "Payment is available through Telegram Stars and YooKassa/SBP.",
+  "Premium key giveaways and product updates in the NERIVA channels",
+  "Follow the community for short lessons, product updates, and monthly Premium key giveaways.",
+  "Questions before starting",
+  "Open the loop and run the first lesson today",
 ] as const;
 
 const curatedRussianLandingCopy = [
@@ -85,6 +94,18 @@ const curatedRussianLandingCopy = [
   "Ежедневный цикл",
   "Практика перед поездкой",
   "Открыть веб-приложение",
+] as const;
+
+const currentRussianLandingCopy = [
+  "NERIVA: \u041f\u043e\u0442\u0440\u0435\u043d\u0438\u0440\u0443\u0439\u0442\u0435 \u0440\u0435\u0447\u044c \u0434\u043e \u0432\u0430\u0436\u043d\u043e\u0433\u043e \u043c\u043e\u043c\u0435\u043d\u0442\u0430",
+  "\u0416\u0438\u0432\u043e\u0439 \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u0439 \u043f\u0440\u043e\u0434\u0443\u043a\u0442\u0430",
+  "\u041a\u0430\u0436\u0434\u0430\u044f \u0441\u0435\u0441\u0441\u0438\u044f \u0437\u0430\u043a\u0430\u043d\u0447\u0438\u0432\u0430\u0435\u0442\u0441\u044f \u043f\u043e\u043d\u044f\u0442\u043d\u044b\u043c \u0441\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u043c \u0448\u0430\u0433\u043e\u043c",
+  "\u0427\u0435\u0442\u044b\u0440\u0435 \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u0430, \u043e\u0434\u0438\u043d \u0443\u0447\u0435\u0431\u043d\u044b\u0439 \u043f\u0440\u043e\u0444\u0438\u043b\u044c",
+  "\u041e\u043f\u043b\u0430\u0442\u0430 \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0430 \u0447\u0435\u0440\u0435\u0437 Telegram Stars \u0438 YooKassa/SBP.",
+  "\u0420\u043e\u0437\u044b\u0433\u0440\u044b\u0448\u0438 Premium-\u043a\u043b\u044e\u0447\u0435\u0439",
+  "\u0412\u043e\u043f\u0440\u043e\u0441\u044b \u043f\u0435\u0440\u0435\u0434 \u0441\u0442\u0430\u0440\u0442\u043e\u043c",
+  "\u0417\u0430\u043f\u0443\u0441\u0442\u0438\u0442\u0435 \u0446\u0438\u043a\u043b \u0438 \u043d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0440\u0432\u044b\u0439 \u0443\u0440\u043e\u043a \u0441\u0435\u0433\u043e\u0434\u043d\u044f",
+  "\u0412\u0435\u0431-\u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435",
 ] as const;
 
 const awkwardRussianLandingCopy = [
@@ -130,7 +151,7 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(page.locator(".bold-hero")).toHaveCount(0);
   const heroHeight = await page.locator(".landing-hero").evaluate((node) => node.getBoundingClientRect().height);
   const viewportHeight = await page.evaluate(() => window.innerHeight);
-  expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.9);
+  expect(heroHeight).toBeGreaterThanOrEqual(viewportHeight * 0.72);
 
   await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
   await expect(page.locator(".hero-proof")).toContainText("35 languages");
@@ -153,20 +174,16 @@ test("landing presents the approved English spark hero product site", async ({ p
 
   const heroCtas = page.locator(".landing-hero .entry-cta");
   await expect(heroCtas).toHaveCount(2);
-  await expect(page.locator('a[data-entry="web-app"]')).toHaveCount(3);
+  expect(await page.locator('a[data-entry="web-app"]').count()).toBeGreaterThanOrEqual(2);
   const webEntryHrefs = await page.locator('a[data-entry="web-app"]').evaluateAll((links) =>
     links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
   );
-  expect(webEntryHrefs).toEqual(["/app/", "/app/", "/app/"]);
-  await expect(page.locator('a[data-entry="telegram"]')).toHaveCount(3);
+  expect(webEntryHrefs.every((href) => href === "/app/")).toBe(true);
+  expect(await page.locator('a[data-entry="telegram"]').count()).toBeGreaterThanOrEqual(2);
   const telegramEntryHrefs = await page.locator('a[data-entry="telegram"]').evaluateAll((links) =>
     links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
   );
-  expect(telegramEntryHrefs).toEqual([
-    "https://t.me/NERIVAapp_bot",
-    "https://t.me/NERIVAapp_bot",
-    "https://t.me/NERIVAapp_bot",
-  ]);
+  expect(telegramEntryHrefs.every((href) => href === "https://t.me/NERIVAapp_bot")).toBe(true);
 
   await expect(page.locator(".skeleton-card")).toHaveCount(2);
   await expect(page.locator(".skeleton-line")).toHaveCount(6);
@@ -179,15 +196,12 @@ test("landing presents the approved English spark hero product site", async ({ p
   await page.locator(".hero-demo__tabs button").nth(3).click();
   await expect(page.locator(".hero-demo__panel")).toContainText("No peanuts");
 
-  await expect(page.locator(".daily-step")).toHaveCount(3);
+  await expect(page.locator(".lesson-scenario")).toBeVisible();
+  await expect(page.locator(".lesson-scenario")).toContainText("Every session ends with a visible next step");
+  await expect(page.locator(".lesson-scenario img")).toHaveCount(1);
   await expect(page.locator(".module-card")).toHaveCount(4);
   await expect(page.locator(".module-card", { hasText: "Voice Coach" })).toContainText("weak words");
   await expect(page.locator(".module-card", { hasText: "Photo Practice" })).toContainText("menu or sign");
-  await expect(page.locator(".memory-node")).toHaveCount(6);
-
-  await expect(page.locator(".entry-panel")).toHaveCount(2);
-  await expect(page.locator(".entry-panel", { hasText: "Web app" })).toContainText("deep sessions");
-  await expect(page.locator(".entry-panel", { hasText: "Telegram" })).toContainText("quick practice");
 
   await expect(page.locator(".plan-card")).toHaveCount(3);
   await expect(page.locator(".plan-card", { hasText: "Free" })).toContainText("0 ₽");
@@ -207,31 +221,25 @@ test("landing presents the approved English spark hero product site", async ({ p
     { text: "2000 ₽", decoration: expect.stringContaining("line-through") },
   ]);
   await expect(page.locator(".payment-methods")).toContainText("Stars");
-  await expect(page.locator(".payment-methods")).toContainText("YooKassa");
-  await expect(page.locator(".payment-methods")).toContainText("TON");
-  await expect(page.locator(".payment-methods")).toContainText("USDT");
+  await expect(page.locator(".payment-methods")).toContainText("YooKassa/SBP");
+  await expect(page.locator(".payment-methods")).not.toContainText("TON");
+  await expect(page.locator(".payment-methods")).not.toContainText("USDT");
+  await expect(page.locator(".payment-methods")).not.toContainText(/crypto|blockchain|RollyPay/i);
 
-  await expect(page.locator(".review-card")).toHaveCount(3);
-  await expect(page.locator(".review-card img")).toHaveCount(3);
-  await page.locator(".review-card").last().scrollIntoViewIfNeeded();
-  await page.waitForFunction(() =>
-    Array.from(document.querySelectorAll<HTMLImageElement>(".review-card img")).every((image) => image.complete && image.naturalWidth > 0),
-  );
-  const reviewImages = await page.locator(".review-card img").evaluateAll((imgs) =>
-    imgs.map((img) => ({
-      src: (img as HTMLImageElement).getAttribute("src"),
-      alt: (img as HTMLImageElement).getAttribute("alt"),
-      naturalWidth: (img as HTMLImageElement).naturalWidth,
-      complete: (img as HTMLImageElement).complete,
-    })),
-  );
-  expect(reviewImages).toEqual([
-    { src: "/assets/testimonials/anna.jpg", alt: "Anna", naturalWidth: expect.any(Number), complete: true },
-    { src: "/assets/testimonials/marat.jpg", alt: "Marat", naturalWidth: expect.any(Number), complete: true },
-    { src: "/assets/testimonials/sofia.jpg", alt: "Sofia", naturalWidth: expect.any(Number), complete: true },
-  ]);
-  expect(reviewImages.every((img) => img.naturalWidth >= 240)).toBe(true);
-  await expect(page.locator(".review-stars")).toHaveCount(0);
+  await expect(page.locator(".community-section")).toBeVisible();
+  await expect(page.locator(".community-section")).toContainText("Premium key giveaways");
+  await expect(page.locator(".landing-faq")).toBeVisible();
+  await expect(page.locator(".landing-faq__item")).toHaveCount(4);
+  await expect(page.locator(".seo-guides a")).toHaveCount(5);
+
+  await expect(page.locator(".comparison-card")).toHaveCount(0);
+  await expect(page.locator(".answer-card")).toHaveCount(0);
+  await expect(page.locator(".course-strip")).toHaveCount(0);
+  await expect(page.locator(".cockpit-section")).toHaveCount(0);
+  await expect(page.locator(".scenario-card")).toHaveCount(0);
+  await expect(page.locator(".device-flow")).toHaveCount(0);
+  await expect(page.locator(".memory-loop-section")).toHaveCount(0);
+  await expect(page.locator(".review-card")).toHaveCount(0);
 
   await expect(page.locator(".final-cta-section")).toContainText("Web app");
   await expect(page.locator(".final-cta-section")).toContainText("Telegram");
@@ -240,7 +248,7 @@ test("landing presents the approved English spark hero product site", async ({ p
   await expect(page.locator(".nav-drawer")).toBeVisible();
   await expect(page.locator(".nav-drawer")).toContainText("Features");
   await expect(page.locator(".nav-drawer")).toContainText("Pricing");
-  await expect(page.locator(".nav-drawer")).toContainText("Reviews");
+  await expect(page.locator(".nav-drawer")).toContainText("FAQ");
   await expect(page.locator(".nav-drawer")).toContainText("Privacy");
   await expect(page.locator(".nav-drawer")).toContainText("Terms");
   await expect(page.locator(".nav-drawer")).toContainText("Web app");
@@ -415,10 +423,10 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   expect(lightHeroHeader.matterBlendMode).not.toBe("multiply");
   expect(lightHeroHeader.matterFilter).not.toContain("contrast(0.");
   await expect(page.locator(".pricing-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
-  await expect(page.locator(".reviews-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
+  await expect(page.locator(".community-section .eyebrow")).toHaveCSS("color", "rgb(15, 23, 42)");
   await expect(page.locator(".plan-label").first()).toHaveCSS("color", "rgb(45, 91, 255)");
-  await expect(page.locator(".course-card span").first()).toHaveCSS("color", "rgb(45, 91, 255)");
-  await expect(page.locator(".scenario-modules span").first()).toHaveCSS("color", "rgb(45, 91, 255)");
+  await expect(page.locator(".lesson-scenario__tag").first()).toHaveCSS("color", "rgb(0, 47, 167)");
+  await expect(page.locator(".landing-faq__item h3").first()).toHaveCSS("color", "rgb(5, 7, 10)");
   await expect(page.locator(".landing-social-proof strong")).toHaveCSS("color", "rgb(7, 17, 31)");
   await expect(page.locator(".landing-social-proof span")).toHaveCSS("color", "rgba(7, 17, 31, 0.68)");
   await expect(page.locator(".landing-social-proof .social-icon-link--tiktok")).toHaveCSS("color", "rgb(7, 17, 31)");
@@ -429,11 +437,11 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
       ".landing-hero h1",
       ".landing-hero__copy p",
       ".hero-demo",
-      ".daily-step",
+      ".lesson-scenario",
       ".module-card",
-      ".entry-panel",
       ".plan-card",
-      ".review-card",
+      ".landing-faq__item",
+      ".community-section",
       ".site-footer",
     ];
     const contrastIssues = selectors
@@ -446,7 +454,7 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
       .filter(Boolean)
       .filter((item) => item!.color === item!.background);
     const overflowX = Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    const overflowing = Array.from(document.querySelectorAll("h1,h2,h3,p,a,button,.landing-social-proof,.social-icon-links,.site-footer-social,.plan-card,.review-card,.module-card,.entry-panel"))
+    const overflowing = Array.from(document.querySelectorAll("h1,h2,h3,p,a,button,.landing-social-proof,.social-icon-links,.site-footer-social,.plan-card,.module-card,.lesson-scenario,.landing-faq__item,.community-section"))
       .map((node) => {
         const element = node as HTMLElement;
         return { text: (element.textContent || "").trim().slice(0, 80), sw: element.scrollWidth, cw: element.clientWidth, width: element.getBoundingClientRect().width };
@@ -460,31 +468,21 @@ test("landing light theme keeps the approved layout readable", async ({ page }) 
   expect(issues.overflowing).toEqual([]);
 });
 
-test("landing keeps rich product sections below the restored hero", async ({ page }) => {
+test("landing keeps a short product flow below the hero", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
   await expect(page.locator(".landing-hero")).toBeVisible();
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
-  await expect(page.locator(".course-strip")).toBeVisible();
-  await expect(page.locator(".course-card")).toHaveCount(3);
-  await expect(page.locator(".course-card", { hasText: "AI Tutor Core" })).toContainText("Start route");
-  await expect(page.locator(".course-stats")).toContainText("35");
 
-  await expect(page.locator(".cockpit-section")).toBeVisible();
-  await expect(page.locator(".cockpit-lane")).toHaveCount(5);
-  await expect(page.locator(".cockpit-console")).toContainText("Live learning loop");
-  await expect(page.locator(".cockpit-console")).toContainText("weak word fixed");
-
-  await expect(page.locator(".scenario-section")).toBeVisible();
-  await expect(page.locator(".scenario-card")).toHaveCount(4);
-  await expect(page.locator(".scenario-card img")).toHaveCount(4);
-  for (const image of await page.locator(".scenario-card img").all()) {
-    await image.scrollIntoViewIfNeeded();
-  }
+  await expect(page.locator(".lesson-scenario")).toBeVisible();
+  await expect(page.locator(".lesson-scenario")).toContainText("AI Tutor is checking the answer");
+  await expect(page.locator(".lesson-scenario")).toContainText("XP +12");
+  await expect(page.locator(".lesson-scenario img")).toHaveCount(1);
+  await page.locator(".lesson-scenario img").scrollIntoViewIfNeeded();
   await page.waitForFunction(() =>
-    Array.from(document.querySelectorAll<HTMLImageElement>(".scenario-card img")).every((image) => image.complete && image.naturalWidth > 0),
+    Array.from(document.querySelectorAll<HTMLImageElement>(".lesson-scenario img")).every((image) => image.complete && image.naturalWidth > 0),
   );
-  const scenarioImages = await page.locator(".scenario-card img").evaluateAll((imgs) =>
+  const scenarioImages = await page.locator(".lesson-scenario img").evaluateAll((imgs) =>
     imgs.map((img) => ({
       src: (img as HTMLImageElement).getAttribute("src"),
       alt: (img as HTMLImageElement).getAttribute("alt"),
@@ -493,20 +491,17 @@ test("landing keeps rich product sections below the restored hero", async ({ pag
     })),
   );
   expect(scenarioImages).toEqual([
-    { src: "/assets/scenarios/travel-ai-tutor.jpg", alt: "Travel practice scene", naturalWidth: expect.any(Number), complete: true },
-    { src: "/assets/scenarios/work-ai-tutor.jpg", alt: "Work practice scene", naturalWidth: expect.any(Number), complete: true },
-    { src: "/assets/scenarios/exam-ai-tutor.jpg", alt: "Exam practice scene", naturalWidth: expect.any(Number), complete: true },
-    { src: "/assets/scenarios/speaking-ai-tutor.jpg", alt: "Speaking practice scene", naturalWidth: expect.any(Number), complete: true },
+    { src: "/assets/scenarios/speaking-ai-tutor.jpg", alt: "Speaking practice lesson preview", naturalWidth: expect.any(Number), complete: true },
   ]);
   expect(scenarioImages.every((img) => img.naturalWidth >= 480)).toBe(true);
 
-  await expect(page.locator(".device-flow")).toBeVisible();
-  await expect(page.locator(".device-flow__node")).toHaveCount(3);
-  await expect(page.locator(".device-flow__node", { hasText: "Web app" })).toContainText("longer sessions");
-  await expect(page.locator(".device-flow__node", { hasText: "Telegram" })).toContainText("same profile");
+  await expect(page.locator(".module-card")).toHaveCount(4);
+  await expect(page.locator(".landing-faq__item")).toHaveCount(4);
+  await expect(page.locator(".seo-guides a")).toHaveCount(5);
+  await expect(page.locator(".course-strip, .cockpit-section, .scenario-section, .device-flow, .memory-loop-section")).toHaveCount(0);
 });
 
-test("Russian landing uses edited copy and keeps CTAs and connectors aligned", async ({ page }) => {
+test("Russian landing uses edited copy and keeps compact CTAs aligned", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=ru");
   await page.evaluate(() => {
     document.documentElement.dataset.siteTheme = "light";
@@ -515,7 +510,7 @@ test("Russian landing uses edited copy and keeps CTAs and connectors aligned", a
   await expect(page.locator(".english-spark-landing")).toBeVisible();
 
   const landingText = await page.locator(".english-spark-landing").innerText();
-  for (const expected of curatedRussianLandingCopy) {
+  for (const expected of currentRussianLandingCopy) {
     expect(landingText).toContain(expected);
   }
   for (const forbidden of awkwardRussianLandingCopy) {
@@ -540,53 +535,20 @@ test("Russian landing uses edited copy and keeps CTAs and connectors aligned", a
       };
     }).filter(Boolean) as Array<{ centerDelta: number; bottomGap: number }>;
 
-    const entryCenterDeltas = Array.from(document.querySelectorAll(".entry-panel")).map((card) => {
-      const cta = card.querySelector("a");
-      return cta ? centerDelta(card, cta) : 999;
-    });
+    const sectionCounts = {
+      faq: document.querySelectorAll(".landing-faq__item").length,
+      community: document.querySelectorAll(".community-section").length,
+      oldDeviceFlow: document.querySelectorAll(".device-flow__connector").length,
+      oldEntryPanels: document.querySelectorAll(".entry-panel").length,
+    };
 
-    const connectors = Array.from(document.querySelectorAll(".device-flow__connector")).map((connector) => {
-      const parent = connector.parentElement;
-      const connectorBox = connector.getBoundingClientRect();
-      const parentBox = parent?.getBoundingClientRect();
-      const connectorStyles = getComputedStyle(connector);
-      return {
-        extendsPastCard: Boolean(parentBox && connectorBox.right > parentBox.right),
-        display: connectorStyles.display,
-        parentOverflowX: parent ? getComputedStyle(parent).overflowX : "",
-      };
-    });
-
-    const connectorVisuals = Array.from(document.querySelectorAll(".device-flow__connector")).map((connector) => {
-      const connectorStyles = getComputedStyle(connector);
-      return {
-        backgroundImage: connectorStyles.backgroundImage,
-        boxShadow: connectorStyles.boxShadow,
-        zIndex: connectorStyles.zIndex,
-      };
-    });
-
-    return { planMetrics, entryCenterDeltas, connectors, connectorVisuals };
+    return { planMetrics, sectionCounts };
   });
 
   expect(alignment.planMetrics).toHaveLength(3);
   expect(alignment.planMetrics.every((metric) => metric.centerDelta <= 1)).toBe(true);
   expect(new Set(alignment.planMetrics.map((metric) => metric.bottomGap)).size).toBe(1);
-  expect(alignment.entryCenterDeltas.every((delta) => delta <= 1)).toBe(true);
-  if (alignment.connectors.every((connector) => connector.display === "none")) {
-    expect(alignment.connectors).toEqual([
-      { extendsPastCard: false, display: "none", parentOverflowX: "visible" },
-      { extendsPastCard: false, display: "none", parentOverflowX: "visible" },
-    ]);
-  } else {
-    expect(alignment.connectors).toEqual([
-      { extendsPastCard: true, display: "block", parentOverflowX: "visible" },
-      { extendsPastCard: true, display: "block", parentOverflowX: "visible" },
-    ]);
-    expect(alignment.connectorVisuals.every((connector) => connector.backgroundImage.includes("rgb(123, 220, 255)") && connector.backgroundImage.includes("rgb(245, 210, 122)"))).toBe(true);
-    expect(alignment.connectorVisuals.every((connector) => connector.boxShadow !== "none")).toBe(true);
-    expect(alignment.connectorVisuals.every((connector) => connector.zIndex === "2")).toBe(true);
-  }
+  expect(alignment.sectionCounts).toEqual({ faq: 4, community: 1, oldDeviceFlow: 0, oldEntryPanels: 0 });
 });
 
 test("landing hero keeps animated motion within a bounded frame budget", async ({ page }) => {
@@ -619,7 +581,9 @@ test("English spark landing stays readable on mobile", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("Practice speaking before the moment matters");
   await expect(page.locator(".landing-hero .entry-cta")).toHaveCount(2);
   await expect(page.locator(".hero-proof")).toBeVisible();
-  await expect(page.locator(".entry-panel")).toHaveCount(2);
+  await expect(page.locator(".lesson-scenario")).toBeVisible();
+  await expect(page.locator(".module-card")).toHaveCount(4);
+  await expect(page.locator(".landing-faq__item")).toHaveCount(4);
   await expect(page.locator(".site-footer a", { hasText: "Privacy" })).toBeVisible();
   await expect(page.locator(".site-footer a", { hasText: "Terms" })).toBeVisible();
 
@@ -631,7 +595,7 @@ test("English spark landing stays readable on mobile", async ({ page }) => {
     const documentOverflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 2 || document.body.scrollWidth > document.body.clientWidth + 2;
     const nodes = Array.from(
       document.querySelectorAll(
-        ".public-nav, .nav-drawer, [data-site-language-select], h1, h2, h3, p, a, button, .hero-proof span, .landing-social-proof, .social-icon-links, .site-footer-social, .daily-step, .module-card, .memory-node, .entry-panel, .plan-card, .review-card",
+        ".public-nav, .nav-drawer, [data-site-language-select], h1, h2, h3, p, a, button, .hero-proof span, .landing-social-proof, .social-icon-links, .site-footer-social, .lesson-scenario, .landing-faq__item, .community-section, .module-card, .plan-card",
       ),
     );
     const elementOverflow = nodes
@@ -860,18 +824,31 @@ test("production public-site output keeps all image and localization assets for 
     expect(body.length, `${assetPath} should not be empty`).toBeGreaterThan(100);
   }
 
+  const i18nSource = await (await request.get("/assets/site-i18n.js")).text();
+  expect(i18nSource).toContain("englishSparkCreativeCopy");
+  for (const source of curatedLandingCopySources) {
+    expect(i18nSource, `${source} should be maintained in the curated landing translation layer`).toContain(JSON.stringify(source));
+  }
+
+  const phraseSource = await (await request.get("/assets/site-phrases.js")).text();
+  const generatedBlocks = Array.from(phraseSource.matchAll(/\/\/ <public-site-translations-generated>([\s\S]*?)\/\/ <\/public-site-translations-generated>/g), (match) => match[1]);
+  expect(generatedBlocks).toHaveLength(1);
+  for (const source of curatedLandingCopySources) {
+    expect(generatedBlocks[0], `${source} should not be produced by the machine translation block`).not.toContain(JSON.stringify(source));
+  }
+
   await page.goto("/poliglot-ai.html?lang=en");
-  for (const image of await page.locator(".scenario-card img, .review-card img").all()) {
+  for (const image of await page.locator(".lesson-scenario img").all()) {
     await image.scrollIntoViewIfNeeded();
   }
   await page.waitForFunction(() =>
     Array.from(document.images)
-      .filter((image) => image.src.includes("/assets/scenarios/") || image.src.includes("/assets/testimonials/"))
+      .filter((image) => image.src.includes("/assets/scenarios/"))
       .every((image) => image.complete && image.naturalWidth > 0),
   );
   const imageState = await page.evaluate(() =>
     Array.from(document.images)
-      .filter((image) => image.src.includes("/assets/scenarios/") || image.src.includes("/assets/testimonials/"))
+      .filter((image) => image.src.includes("/assets/scenarios/"))
       .map((image) => ({
         src: new URL(image.src).pathname,
         naturalWidth: image.naturalWidth,
@@ -880,8 +857,7 @@ test("production public-site output keeps all image and localization assets for 
       })),
   );
 
-  expect(imageState).toHaveLength(7);
+  expect(imageState).toHaveLength(1);
   expect(imageState.every((image) => image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
-  expect(imageState.filter((image) => image.src.includes("/assets/scenarios/")).every((image) => image.naturalWidth >= 480)).toBe(true);
-  expect(imageState.filter((image) => image.src.includes("/assets/testimonials/")).every((image) => image.naturalWidth >= 240)).toBe(true);
+  expect(imageState.every((image) => image.naturalWidth >= 480)).toBe(true);
 });

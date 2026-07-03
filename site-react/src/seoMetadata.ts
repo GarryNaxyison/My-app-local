@@ -123,31 +123,12 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
         "@id": `${canonicalUrl}#faq`,
         url: canonicalUrl,
         inLanguage: language,
-        mainEntity: copy.questions.map((item) => ({
+        mainEntity: copy.questions.slice(0, 4).map((item) => ({
           "@type": "Question",
           name: item.question,
           acceptedAnswer: {
             "@type": "Answer",
             text: item.answer,
-          },
-        })),
-      },
-      {
-        "@type": "ItemList",
-        "@id": `${canonicalUrl}#comparisons`,
-        name: copy.comparisonTitle,
-        description: copy.comparisonIntro,
-        url: `${canonicalUrl}#compare`,
-        inLanguage: language,
-        itemListElement: copy.comparisons.map((item, index) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          name: item.title,
-          url: `${canonicalUrl}#comparison-${index + 1}`,
-          item: {
-            "@type": "Thing",
-            name: item.title,
-            description: `${item.alternativeLabel}: ${item.alternative} ${item.productLabel}: ${item.product} ${item.verdict}`,
           },
         })),
       },

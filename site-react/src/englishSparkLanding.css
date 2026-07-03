@@ -906,6 +906,250 @@ html[data-site-theme="light"] .english-spark-landing .scenario-modules span {
   border: 1px solid rgba(45, 91, 255, 0.24) !important;
 }
 
+/* Editorial landing split: active short Neriva landing. */
+.english-spark-landing {
+  --editorial-ink: #05070a;
+  --editorial-muted: #4b5563;
+  --editorial-line: rgba(5, 7, 10, 0.14);
+  --editorial-blue: #002fa7;
+  --editorial-soft: #f7f7f8;
+  background: #ffffff;
+  color: var(--editorial-ink);
+}
+
+.english-spark-landing .landing-hero {
+  min-height: max(760px, 82svh);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.76) 56%, rgba(255, 255, 255, 0.92)),
+    #ffffff;
+  color: var(--editorial-ink);
+}
+
+.english-spark-landing .landing-hero__matter {
+  opacity: 0.16;
+  filter: grayscale(1) contrast(1.24);
+}
+
+.english-spark-landing .landing-hero__veil {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.84) 48%, rgba(255, 255, 255, 0.96) 100%),
+    repeating-linear-gradient(90deg, rgba(5, 7, 10, 0.08) 0, rgba(5, 7, 10, 0.08) 1px, transparent 1px, transparent 96px);
+}
+
+.english-spark-landing .landing-hero h1 {
+  max-width: 780px;
+  color: var(--editorial-ink);
+  letter-spacing: 0;
+}
+
+.english-spark-landing .landing-hero__copy > p,
+.english-spark-landing .hero-lead {
+  color: var(--editorial-muted);
+}
+
+.english-spark-landing .hero-demo,
+.english-spark-landing .hero-demo__panel,
+.english-spark-landing .demo-output,
+.english-spark-landing .skeleton-card,
+.lesson-scenario,
+.module-card,
+.plan-card,
+.community-panel,
+.landing-faq__item,
+.final-cta-section {
+  border: 1px solid var(--editorial-line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--editorial-ink);
+  box-shadow: none;
+}
+
+.english-spark-landing .hero-demo {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.english-spark-landing .hero-demo__top,
+.english-spark-landing .hero-demo__top strong,
+.english-spark-landing .demo-message strong,
+.english-spark-landing .demo-output p,
+.daily-step h3,
+.module-card h3,
+.plan-card h3,
+.landing-faq__item h3,
+.community-panel strong,
+.final-cta-section h2 {
+  color: var(--editorial-ink);
+}
+
+.english-spark-landing .hero-demo__top span,
+.english-spark-landing .demo-message p,
+.english-spark-landing .demo-hint,
+.module-card p,
+.plan-card p,
+.plan-card li,
+.landing-faq__item p,
+.community-panel span,
+.final-cta-section p {
+  color: var(--editorial-muted);
+}
+
+.english-spark-landing .hero-demo__tabs button {
+  border-color: var(--editorial-line);
+  color: var(--editorial-muted);
+  background: #ffffff;
+}
+
+.english-spark-landing .hero-demo__tabs button:hover,
+.english-spark-landing .hero-demo__tabs button.is-active {
+  border-color: var(--editorial-blue);
+  color: #ffffff;
+  background: var(--editorial-blue);
+}
+
+.spark-section,
+.pricing-section,
+.final-cta-section,
+.lesson-scenario,
+.community-section,
+.landing-faq {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 82px 24px;
+}
+
+.lesson-scenario {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(320px, 0.82fr) minmax(220px, 0.55fr);
+  gap: 22px;
+  align-items: stretch;
+  margin-top: 0;
+  padding: 24px;
+}
+
+.lesson-scenario__copy h2,
+.english-spark-landing .section-copy h2,
+.final-cta-section h2 {
+  color: var(--editorial-ink);
+  font-size: clamp(2rem, 4.2vw, 4.2rem);
+  line-height: 0.98;
+}
+
+.lesson-scenario__copy p,
+.english-spark-landing .section-copy p {
+  color: var(--editorial-muted);
+}
+
+.lesson-scenario__tags,
+.landing-faq__grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.lesson-scenario__tags {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lesson-scenario__tag,
+.plan-label {
+  width: fit-content;
+  border: 1px solid rgba(0, 47, 167, 0.22);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--editorial-blue);
+  background: rgba(0, 47, 167, 0.07);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.lesson-scenario__console {
+  display: grid;
+}
+
+.lesson-scenario__console .cockpit-console__top,
+.lesson-scenario__console .cockpit-console__screen {
+  border-color: var(--editorial-line);
+  background: var(--editorial-soft);
+  color: var(--editorial-ink);
+}
+
+.lesson-scenario__console .cockpit-status,
+.lesson-scenario__console .cockpit-metric-grid span {
+  color: var(--editorial-ink);
+  background: #ffffff;
+}
+
+.lesson-scenario__console .cockpit-dialogue p {
+  color: var(--editorial-ink);
+  background: #ffffff;
+}
+
+.lesson-scenario__media {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.lesson-scenario__media img {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+  border-radius: 8px;
+  filter: saturate(0.86) contrast(1.04);
+}
+
+.lesson-scenario__media figcaption {
+  color: var(--editorial-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.module-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pricing-section {
+  background: var(--editorial-soft);
+}
+
+.payment-methods span {
+  border-color: var(--editorial-line);
+  color: var(--editorial-ink);
+  background: #ffffff;
+}
+
+.community-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 28px;
+  padding: 22px;
+}
+
+.landing-faq__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.landing-faq__item {
+  padding: 22px;
+}
+
+.landing-faq__item h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.landing-faq__item p {
+  margin: 10px 0 0;
+  line-height: 1.65;
+}
+
+.final-cta-section {
+  margin-bottom: 44px;
+}
+
 .english-spark-landing h1,
 .english-spark-landing h2,
 .english-spark-landing h3,
@@ -948,7 +1192,8 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
 
 @media (max-width: 920px) {
   .english-spark-landing .landing-hero__inner,
-  .memory-loop-section {
+  .memory-loop-section,
+  .lesson-scenario {
     grid-template-columns: 1fr;
   }
 
@@ -1055,6 +1300,7 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .comparison-grid,
   .answer-grid,
   .memory-grid,
+  .landing-faq__grid,
   .course-cards,
   .course-stats,
   .cockpit-kpis,
@@ -1062,6 +1308,16 @@ html[data-site-theme="light"] .english-spark-landing .device-flow__connector {
   .scenario-grid,
   .device-flow__grid {
     grid-template-columns: 1fr;
+  }
+
+  .lesson-scenario,
+  .community-panel {
+    padding: 16px;
+  }
+
+  .community-panel {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .english-spark-landing .course-strip,

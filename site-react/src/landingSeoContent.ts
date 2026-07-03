@@ -51,29 +51,29 @@ export const socialProfileUrls = [
 
 export const staticSeoGuideLinks = [
   {
-    slug: "ai-english-tutor",
-    ru: { href: "/ai-english-tutor.html", label: "AI-репетитор английского" },
-    en: { href: "/en/ai-english-tutor.html", label: "AI English tutor" },
+    slug: "ai-tutor",
+    ru: { href: "/ai-tutor.html", label: "AI-репетитор" },
+    en: { href: "/en/ai-tutor.html", label: "AI tutor" },
   },
   {
-    slug: "english-speaking-practice",
-    ru: { href: "/english-speaking-practice.html", label: "Разговорная практика" },
-    en: { href: "/en/english-speaking-practice.html", label: "Speaking practice" },
+    slug: "speaking-practice",
+    ru: { href: "/speaking-practice.html", label: "Разговорная практика" },
+    en: { href: "/en/speaking-practice.html", label: "Speaking practice" },
   },
   {
-    slug: "english-pronunciation-trainer",
-    ru: { href: "/english-pronunciation-trainer.html", label: "Произношение" },
-    en: { href: "/en/english-pronunciation-trainer.html", label: "Pronunciation trainer" },
+    slug: "pronunciation",
+    ru: { href: "/pronunciation.html", label: "Произношение" },
+    en: { href: "/en/pronunciation.html", label: "Pronunciation" },
   },
   {
-    slug: "english-for-work-and-travel",
-    ru: { href: "/english-for-work-and-travel.html", label: "Работа и поездки" },
-    en: { href: "/en/english-for-work-and-travel.html", label: "Work and travel" },
+    slug: "photo-translation",
+    ru: { href: "/photo-translation.html", label: "Фото-перевод" },
+    en: { href: "/en/photo-translation.html", label: "Photo translation" },
   },
   {
-    slug: "language-learning-web-app",
-    ru: { href: "/language-learning-web-app.html", label: "Web app для языков" },
-    en: { href: "/en/language-learning-web-app.html", label: "Language web app" },
+    slug: "telegram-language-bot",
+    ru: { href: "/telegram-language-bot.html", label: "Telegram-бот" },
+    en: { href: "/en/telegram-language-bot.html", label: "Telegram bot" },
   },
 ] as const;
 

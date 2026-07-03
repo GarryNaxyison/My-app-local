@@ -429,8 +429,8 @@ function SiteNavDrawer({ page, theme, onThemeToggle }: { page: PageId; theme: Si
           <a href="/poliglot-ai.html#pricing" onClick={() => setIsOpen(false)}>
             Pricing
           </a>
-          <a href="/poliglot-ai.html#reviews" onClick={() => setIsOpen(false)}>
-            Reviews
+          <a href="/poliglot-ai.html#faq" onClick={() => setIsOpen(false)}>
+            FAQ
           </a>
           <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" onClick={() => setIsOpen(false)}>
             <span data-legal-nav="privacy">Privacy</span>
@@ -480,7 +480,7 @@ function SiteNav({ page, theme, onThemeToggle }: { page: PageId; theme: SiteThem
         <a href="/poliglot-ai.html#pricing" data-i18n="nav_pricing">
           Тарифы
         </a>
-        <a href="/poliglot-ai.html#reviews">Отзывы</a>
+        <a href="/poliglot-ai.html#faq">FAQ</a>
         <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" data-i18n="nav_policy">
           Политика
         </a>
@@ -1265,7 +1265,7 @@ function SiteFooterEnglish({ showSeoGuides }: { showSeoGuides: boolean }) {
         <strong>Navigation</strong>
         <a href="/poliglot-ai.html#features">Features</a>
         <a href="/poliglot-ai.html#pricing">Pricing</a>
-        <a href="/poliglot-ai.html#reviews">Reviews</a>
+        <a href="/poliglot-ai.html#faq">FAQ</a>
         <a href="/app/">Web app</a>
       </nav>
       <SiteFooterSocial title={isRussian ? "Соцсети" : "Social"} />
@@ -1312,7 +1312,7 @@ function SiteFooter() {
         <strong>Навигация</strong>
         <a href="/poliglot-ai.html#features">Возможности</a>
         <a href="/poliglot-ai.html#pricing">Тарифы</a>
-        <a href="/poliglot-ai.html#reviews">Отзывы</a>
+        <a href="/poliglot-ai.html#faq">FAQ</a>
         <a href="/app/">Приложение</a>
       </nav>
       <SiteFooterSocial title="Соцсети" />

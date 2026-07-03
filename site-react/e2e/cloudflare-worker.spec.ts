@@ -61,7 +61,7 @@ test("Cloudflare Worker serves static pages from the Pages origin", async () => 
   }) as typeof fetch;
 
   try {
-    const response = await worker.default.fetch(new Request("https://neriva.ru/en/ai-english-tutor.html"), {
+    const response = await worker.default.fetch(new Request("https://neriva.ru/en/ai-tutor.html"), {
       STATIC_BASE_URL: "https://neriva.pages.dev",
     });
 
@@ -75,7 +75,7 @@ test("Cloudflare Worker serves static pages from the Pages origin", async () => 
     expect(homeResponse.status).toBe(200);
     expect(await homeResponse.text()).toContain("SEO page");
     expect(requestedUrls).toEqual([
-      "https://neriva.pages.dev/en/ai-english-tutor",
+      "https://neriva.pages.dev/en/ai-tutor",
       "https://neriva.pages.dev/poliglot-ai",
     ]);
   } finally {

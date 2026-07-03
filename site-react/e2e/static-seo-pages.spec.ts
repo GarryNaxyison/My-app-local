@@ -2,49 +2,49 @@ import { expect, test } from "@playwright/test";
 
 const pages = [
   {
-    slug: "ai-english-tutor",
-    ruPath: "/ai-english-tutor.html",
-    enPath: "/en/ai-english-tutor.html",
-    ruTitle: "AI-репетитор английского онлайн - NERIVA",
-    enTitle: "AI English Tutor Online - NERIVA",
-    ruH1: "AI-репетитор английского в веб-приложении NERIVA",
-    enH1: "AI English tutor inside the NERIVA web app",
+    slug: "ai-tutor",
+    ruPath: "/ai-tutor.html",
+    enPath: "/en/ai-tutor.html",
+    ruTitle: "AI-репетитор языков онлайн - NERIVA",
+    enTitle: "AI Language Tutor Online - NERIVA",
+    ruH1: "AI-репетитор NERIVA для коротких уроков и повторения",
+    enH1: "NERIVA AI tutor for short lessons and review",
   },
   {
-    slug: "english-speaking-practice",
-    ruPath: "/english-speaking-practice.html",
-    enPath: "/en/english-speaking-practice.html",
+    slug: "speaking-practice",
+    ruPath: "/speaking-practice.html",
+    enPath: "/en/speaking-practice.html",
     ruTitle: "Разговорная практика английского с AI - NERIVA",
     enTitle: "English Speaking Practice With AI - NERIVA",
     ruH1: "Разговорная практика английского с AI",
     enH1: "English speaking practice with AI",
   },
   {
-    slug: "english-pronunciation-trainer",
-    ruPath: "/english-pronunciation-trainer.html",
-    enPath: "/en/english-pronunciation-trainer.html",
+    slug: "pronunciation",
+    ruPath: "/pronunciation.html",
+    enPath: "/en/pronunciation.html",
     ruTitle: "Тренажер произношения английского с AI - NERIVA",
     enTitle: "English Pronunciation Trainer With AI - NERIVA",
     ruH1: "Тренажер произношения английского с AI",
     enH1: "English pronunciation trainer with AI",
   },
   {
-    slug: "english-for-work-and-travel",
-    ruPath: "/english-for-work-and-travel.html",
-    enPath: "/en/english-for-work-and-travel.html",
-    ruTitle: "Английский для работы и путешествий - NERIVA",
-    enTitle: "English for Work and Travel - NERIVA",
-    ruH1: "Английский для работы и путешествий",
-    enH1: "English for work and travel",
+    slug: "photo-translation",
+    ruPath: "/photo-translation.html",
+    enPath: "/en/photo-translation.html",
+    ruTitle: "Фото-перевод для изучения языков - NERIVA",
+    enTitle: "Photo Translation for Language Learning - NERIVA",
+    ruH1: "Фото-перевод меню, вывесок и заданий в NERIVA",
+    enH1: "Photo translation for menus, signs, and tasks in NERIVA",
   },
   {
-    slug: "language-learning-web-app",
-    ruPath: "/language-learning-web-app.html",
-    enPath: "/en/language-learning-web-app.html",
-    ruTitle: "Веб-приложение для изучения языков - NERIVA",
-    enTitle: "Language Learning Web App - NERIVA",
-    ruH1: "Веб-приложение для изучения языков NERIVA",
-    enH1: "NERIVA language learning web app",
+    slug: "telegram-language-bot",
+    ruPath: "/telegram-language-bot.html",
+    enPath: "/en/telegram-language-bot.html",
+    ruTitle: "Telegram-бот для изучения языков - NERIVA",
+    enTitle: "Telegram Language Bot - NERIVA",
+    ruH1: "Telegram-бот NERIVA как быстрый вход в языковую практику",
+    enH1: "NERIVA Telegram bot for fast language practice",
   },
 ] as const;
 
@@ -55,16 +55,16 @@ const rebrandedPublicPaths = [
   "/terms.html?lang=ru",
   "/agreement.html?lang=ru",
   "/consent.html?lang=ru",
-  "/ai-english-tutor.html",
-  "/english-speaking-practice.html",
-  "/english-pronunciation-trainer.html",
-  "/english-for-work-and-travel.html",
-  "/language-learning-web-app.html",
-  "/en/ai-english-tutor.html",
-  "/en/english-speaking-practice.html",
-  "/en/english-pronunciation-trainer.html",
-  "/en/english-for-work-and-travel.html",
-  "/en/language-learning-web-app.html",
+  "/ai-tutor.html",
+  "/speaking-practice.html",
+  "/pronunciation.html",
+  "/photo-translation.html",
+  "/telegram-language-bot.html",
+  "/en/ai-tutor.html",
+  "/en/speaking-practice.html",
+  "/en/pronunciation.html",
+  "/en/photo-translation.html",
+  "/en/telegram-language-bot.html",
 ] as const;
 
 const legalPaths = new Set(["/privacy.html", "/terms.html", "/agreement.html", "/consent.html"]);
@@ -209,6 +209,21 @@ test.describe("static SEO pages", () => {
       expect(body).toContain(`hreflang="en" href="https://neriva.ru${item.enPath}"`);
       expect(body).toContain(`hreflang="x-default" href="https://neriva.ru${item.enPath}"`);
     }
+    expect(body).not.toMatch(/hreflang="(?!ru|en|x-default)[a-z-]+"/);
+    expect(body).not.toMatch(/https:\/\/neriva\.ru\/(?:es|de|fr|it|zh|ja|ko|pt|pl|uk)\//);
+  });
+
+  test("keeps the static SEO and AEO page cluster Russian and English only", async ({ request }) => {
+    expect(pages).toHaveLength(5);
+
+    for (const item of pages) {
+      await expect.poll(async () => (await request.get(item.ruPath)).status(), { message: `${item.ruPath} should stay available` }).toBe(200);
+      await expect.poll(async () => (await request.get(item.enPath)).status(), { message: `${item.enPath} should stay available` }).toBe(200);
+      for (const locale of ["es", "de", "fr", "pt"] as const) {
+        const response = await request.get(`/${locale}/${item.slug}.html`);
+        expect(response.status(), `/${locale}/${item.slug}.html should not be generated for SEO/AEO`).toBe(404);
+      }
+    }
   });
 
   test("landing exposes SEO guides only outside the primary hero and navigation", async ({ page }) => {
@@ -218,11 +233,11 @@ test.describe("static SEO pages", () => {
     await expect(guideLinks).toHaveCount(5);
     await expect(page.locator(".landing-hero .seo-guides")).toHaveCount(0);
     await expect(page.locator(".public-nav .seo-guides")).toHaveCount(0);
-    await expect(guideLinks.first()).toHaveAttribute("href", "/en/ai-english-tutor.html");
+    await expect(guideLinks.first()).toHaveAttribute("href", "/en/ai-tutor.html");
 
     await page.goto("/poliglot-ai.html?lang=ru");
     const ruGuideLinks = page.locator(".seo-guides a");
     await expect(ruGuideLinks).toHaveCount(5);
-    await expect(ruGuideLinks.first()).toHaveAttribute("href", "/ai-english-tutor.html");
+    await expect(ruGuideLinks.first()).toHaveAttribute("href", "/ai-tutor.html");
   });
 });

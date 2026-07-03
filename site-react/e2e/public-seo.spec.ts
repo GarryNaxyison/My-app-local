@@ -99,25 +99,25 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(jsonLdText).toBeTruthy();
     const jsonLd = JSON.parse(jsonLdText || "{}");
     const graphTypes = jsonLd["@graph"].map((node: { "@type": string }) => node["@type"]);
-    expect(graphTypes).toHaveLength(5);
+    expect(graphTypes).toHaveLength(4);
     expect(graphTypes).toEqual(
-      expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "FAQPage", "ItemList"]),
+      expect.arrayContaining(["Organization", "WebSite", "SoftwareApplication", "FAQPage"]),
     );
     const faqNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "FAQPage");
-    expect(faqNode.mainEntity).toHaveLength(6);
+    expect(faqNode.mainEntity).toHaveLength(4);
     expect(faqNode.mainEntity.map((entity: { name: string }) => entity.name)).toContain("Что такое NERIVA?");
-    const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
-    expect(comparisonNode.itemListElement).toHaveLength(3);
+    expect(jsonLd["@graph"].some((node: { "@type": string }) => node["@type"] === "ItemList")).toBe(false);
 
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/poliglot-ai-og-ru.jpg");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
 
-    await expect(page.getByRole("heading", { name: "Ответы для поиска и AI" })).toBeVisible();
-    await expect(page.locator(".answer-card")).toHaveCount(6);
-    await expect(page.locator(".answer-card").filter({ hasText: "Что такое NERIVA?" })).toBeVisible();
-    await expect(page.locator(".comparison-card")).toHaveCount(3);
+    await expect(page.locator(".landing-faq h2")).toBeVisible();
+    await expect(page.locator(".landing-faq__item")).toHaveCount(4);
+    await expect(page.locator(".landing-faq__item").filter({ hasText: "Что такое NERIVA?" })).toBeVisible();
+    await expect(page.locator(".comparison-card")).toHaveCount(0);
+    await expect(page.locator(".answer-card")).toHaveCount(0);
   });
 
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {
@@ -143,19 +143,17 @@ test.describe("public landing SEO and AEO metadata", () => {
       ]),
     );
 
-    const comparisonNode = jsonLd["@graph"].find((node: { "@type": string }) => node["@type"] === "ItemList");
-    expect(comparisonNode.itemListElement).toHaveLength(3);
+    expect(jsonLd["@graph"].some((node: { "@type": string }) => node["@type"] === "ItemList")).toBe(false);
 
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/poliglot-ai-og-en.jpg");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
 
-    await expect(page.getByRole("heading", { name: "NERIVA compared with the tools people usually search for" })).toBeVisible();
-    await expect(page.locator(".comparison-card")).toHaveCount(3);
-    await expect(page.locator(".comparison-card").filter({ hasText: "NERIVA vs vocabulary app" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Answers for search and AI assistants" })).toBeVisible();
-    await expect(page.locator(".answer-card").filter({ hasText: "AI language tutor" })).toBeVisible();
+    await expect(page.locator(".landing-faq h2")).toBeVisible();
+    await expect(page.locator(".landing-faq__item")).toHaveCount(4);
+    await expect(page.locator(".comparison-card")).toHaveCount(0);
+    await expect(page.locator(".answer-card")).toHaveCount(0);
 
     const webEntryHrefs = await page.locator('a[data-entry="web-app"]').evaluateAll((links) =>
       links.map((link) => (link as HTMLAnchorElement).getAttribute("href")),
@@ -175,20 +173,20 @@ test.describe("public landing SEO and AEO metadata", () => {
     for (const code of languageCodes) {
       await selectLandingLanguage(page, code);
 
-      await expect(page.locator(".answer-card")).toHaveCount(6);
+      await expect(page.locator(".landing-faq__item")).toHaveCount(4);
 
       if (code === "en") {
         continue;
       }
 
-      const sectionText = await page.locator(".answer-section").innerText();
+      const sectionText = await page.locator(".landing-faq").innerText();
       for (const englishCopy of englishAnswerCopy) {
         expect(sectionText).not.toContain(englishCopy);
       }
     }
   });
 
-  test("localizes visible comparison answers across every interface language", async ({ page }) => {
+  test("keeps comparison answers off the main landing across every interface language", async ({ page }) => {
     await page.goto("/poliglot-ai.html?lang=en");
 
     const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
@@ -199,15 +197,10 @@ test.describe("public landing SEO and AEO metadata", () => {
     for (const code of languageCodes) {
       await selectLandingLanguage(page, code);
 
-      await expect(page.locator(".comparison-card")).toHaveCount(3);
-
-      if (code === "en") {
-        continue;
-      }
-
-      const sectionText = await page.locator(".comparison-section").innerText();
+      await expect(page.locator(".comparison-card")).toHaveCount(0);
+      await expect(page.locator(".comparison-section")).toHaveCount(0);
       for (const englishCopy of englishComparisonCopy) {
-        expect(sectionText).not.toContain(englishCopy);
+        await expect(page.locator(".english-spark-landing")).not.toContainText(englishCopy);
       }
     }
   });
