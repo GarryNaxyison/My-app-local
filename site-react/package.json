@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5175",
     "seo:generate": "node scripts/generate-static-seo-pages.mjs",
-    "build": "npm run seo:generate && node ../tools/clean_public_site_bundle.mjs && tsc -b && vite build",
+    "favicons:generate": "node scripts/generate-favicons.mjs",
+    "build": "npm run favicons:generate && npm run seo:generate && node ../tools/clean_public_site_bundle.mjs && tsc -b && vite build",
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4175",
     "e2e": "playwright test"
@@ -25,14 +26,15 @@
     "three": "^0.181.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/vite": "^4.1.17",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^5.1.1",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
-    "vite": "^7.3.0",
-    "@playwright/test": "^1.60.0"
+    "vite": "^7.3.0"
   }
 }
