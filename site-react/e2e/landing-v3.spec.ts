@@ -36,7 +36,7 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
   await page.goto("/poliglot-ai.html?lang=en");
 
   await expect(page.locator("h1")).toContainText("NERIVA");
-  await expect(page.locator(".premium-hero-animation__shader")).toHaveCount(1);
+  await expect(page.locator(".premium-hero-animation__shader")).toHaveCount(0);
   await expect(page.locator(".premium-hero-animation__three canvas")).toHaveCount(1);
   await expect(page.locator(".hero-proof")).toContainText("Browser + Telegram");
   await expect(page.locator(".hero-proof")).toContainText("Story");
@@ -67,15 +67,15 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
   expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(210);
   expect(heroState.emptyProofCells).toBe(0);
 
-  const shaderIsNonBlank = await page.locator(".premium-hero-animation__shader").evaluate((canvas) => {
-    const context = (canvas as HTMLCanvasElement).getContext("2d");
-    if (!context) return true;
-    const { width, height } = canvas as HTMLCanvasElement;
-    if (!width || !height) return false;
-    const sample = context.getImageData(Math.floor(width / 2), Math.floor(height / 2), 1, 1).data;
-    return sample[0] + sample[1] + sample[2] > 0;
+  const heroCanvasState = await page.locator(".premium-hero-animation__three canvas").evaluate((canvas) => {
+    const element = canvas as HTMLCanvasElement;
+    const box = element.getBoundingClientRect();
+    return { width: element.width, height: element.height, boxWidth: box.width, boxHeight: box.height };
   });
-  expect(shaderIsNonBlank).toBe(true);
+  expect(heroCanvasState.width).toBeGreaterThan(100);
+  expect(heroCanvasState.height).toBeGreaterThan(100);
+  expect(heroCanvasState.boxWidth).toBeGreaterThan(100);
+  expect(heroCanvasState.boxHeight).toBeGreaterThan(100);
 });
 
 test("landing v3 uses before-after bridge and a controlled feature carousel", async ({ page }) => {
@@ -138,6 +138,8 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
   await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText("50 lessons");
   await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText("20 voice checks");
   await expect(page.locator(".pricing-section .product-shot--pricing")).toHaveCount(0);
+  await expect(page.locator(".pricing-section")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(page.locator(".payment-methods")).toHaveCount(0);
 
   await expect(page.locator(".telegram-panel")).toContainText("Voice");
   await expect(page.locator(".telegram-panel")).toContainText("Photo");
@@ -186,7 +188,13 @@ test("landing v3 product screenshots open a focused preview", async ({ page }) =
 
   await page.locator(".hero-product-frame .product-shot__button").first().click();
   await expect(page.locator(".image-preview")).toBeVisible();
-  await expect(page.locator(".image-preview img")).toHaveAttribute("src", "/assets/product/dashboard-progress-dark.png");
+  const previewImage = page.locator(".image-preview img");
+  await expect(previewImage).toHaveAttribute("src", "/assets/product/dashboard-progress-dark.png");
+  await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-scale", "1.00");
+
+  await page.locator(".image-preview__frame").hover();
+  await page.mouse.wheel(0, -360);
+  await expect(page.locator(".image-preview")).not.toHaveAttribute("data-preview-scale", "1.00");
 
   await page.locator(".image-preview__close").click();
   await expect(page.locator(".image-preview")).toHaveCount(0);

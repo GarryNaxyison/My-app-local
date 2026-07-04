@@ -199,11 +199,8 @@ test.skip("landing presents the approved light product-first site", async ({ pag
     { text: "1000 ₽", decoration: expect.stringContaining("line-through") },
     { text: "2000 ₽", decoration: expect.stringContaining("line-through") },
   ]);
-  await expect(page.locator(".payment-methods")).toContainText("Stars");
-  await expect(page.locator(".payment-methods")).toContainText("YooKassa/SBP");
-  await expect(page.locator(".payment-methods")).not.toContainText("TON");
-  await expect(page.locator(".payment-methods")).not.toContainText("USDT");
-  await expect(page.locator(".payment-methods")).not.toContainText(/crypto|blockchain|RollyPay/i);
+  await expect(page.locator(".payment-methods")).toHaveCount(0);
+  await expect(page.locator(".pricing-section")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
 
   await expect(page.locator(".community-section")).toBeVisible();
   await expect(page.locator(".community-section")).toContainText("Giveaways");
@@ -637,7 +634,7 @@ test.skip("Russian landing uses edited copy and keeps compact CTAs aligned", asy
 test("landing hero keeps the animation while product screenshots remain primary", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
-  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(2);
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator('.landing-hero img[src="/assets/product/dashboard-progress-dark.png"]')).toBeVisible();
   const viewportWidth = page.viewportSize()?.width ?? 1440;
   const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/mobile-home-progress-dark.png"]');

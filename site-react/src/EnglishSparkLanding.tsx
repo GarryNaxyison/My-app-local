@@ -1,4 +1,4 @@
-import { useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { useEffect, useState, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -116,6 +116,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeMobile, setActiveMobile] = useState(0);
   const [preview, setPreview] = useState<{ image: ProductImage; alt: string } | null>(null);
+  const [previewScale, setPreviewScale] = useState(1);
   const active = copy.features.items[activeFeature] ?? copy.features.items[0];
   const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
   const activeImage = productImages[active.imageKey] ?? productImages.aiTutor;
@@ -123,7 +124,35 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const ActiveMobileIcon = mobileIcons[activeMobile] ?? Star;
   const activeMobileImage = productImages[activeMobileItem.imageKey] ?? productImages.mobileHome;
   const imgAlt = (image: ProductImage) => copy.images[image.altKey];
-  const openPreview = (image: ProductImage, alt: string) => setPreview({ image, alt });
+  const openPreview = (image: ProductImage, alt: string) => {
+    setPreview({ image, alt });
+    setPreviewScale(1);
+  };
+  const closePreview = () => {
+    setPreview(null);
+    setPreviewScale(1);
+  };
+  const zoomPreview = (deltaY: number) => {
+    setPreviewScale((value) => {
+      if (value <= 1 && deltaY !== 0) return 1.16;
+      return Math.min(3, Math.max(1, value + (deltaY < 0 ? 0.16 : -0.16)));
+    });
+  };
+
+  useEffect(() => {
+    if (!preview) return undefined;
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      setPreviewScale((value) => {
+        if (value <= 1 && event.deltaY !== 0) return 1.16;
+        return Math.min(3, Math.max(1, value + (event.deltaY < 0 ? 0.16 : -0.16)));
+      });
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [preview]);
 
   return (
     <main className="english-spark-landing" data-visual-anchor="premium-tech-narrative">
@@ -305,9 +334,6 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </RevealArticle>
           ))}
         </div>
-        <div className="payment-methods" aria-label="Payment methods">
-          {copy.pricing.methods.map((method) => <span key={method}>{method}</span>)}
-        </div>
       </RevealSection>
 
       <RevealSection className="spark-section ecosystem-showcase" aria-label={copy.ecosystem.title}>
@@ -451,11 +477,35 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
       </RevealSection>
 
       {preview ? (
-        <div className="image-preview" role="dialog" aria-modal="true" aria-label={preview.alt} onClick={() => setPreview(null)}>
-          <button className="image-preview__close" type="button" onClick={() => setPreview(null)} aria-label="Close image preview">
+        <div
+          className="image-preview"
+          data-preview-scale={previewScale.toFixed(2)}
+          style={{ "--preview-scale": previewScale } as CSSProperties}
+          role="dialog"
+          aria-modal="true"
+          aria-label={preview.alt}
+          onClick={closePreview}
+          onWheelCapture={(event) => {
+            event.preventDefault();
+            zoomPreview(event.deltaY);
+          }}
+          onWheel={(event) => {
+            event.preventDefault();
+            zoomPreview(event.deltaY);
+          }}
+        >
+          <button className="image-preview__close" type="button" onClick={closePreview} aria-label="Close image preview">
             <X size={24} />
           </button>
-          <figure className="image-preview__frame" onClick={(event) => event.stopPropagation()}>
+          <figure
+            className="image-preview__frame"
+            onClick={(event) => event.stopPropagation()}
+            onWheel={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              zoomPreview(event.deltaY);
+            }}
+          >
             <img src={preview.image.src} alt={preview.alt} />
             <figcaption>{preview.alt}</figcaption>
           </figure>

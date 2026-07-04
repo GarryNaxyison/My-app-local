@@ -360,7 +360,6 @@ html[data-site-theme="dark"] body {
 }
 
 .premium-hero-animation,
-.premium-hero-animation__shader,
 .premium-hero-animation__three,
 .premium-hero-animation__three canvas,
 .landing-hero__matter canvas {
@@ -380,14 +379,9 @@ html[data-site-theme="dark"] body {
     linear-gradient(90deg, rgba(6, 14, 28, 0.04), rgba(10, 22, 42, 0.42));
 }
 
-.premium-hero-animation__shader,
 .premium-hero-animation__three {
   position: absolute;
   inset: 0;
-}
-
-.premium-hero-animation__shader {
-  opacity: 0.72;
 }
 
 .premium-hero-animation__three {
@@ -646,8 +640,7 @@ html[data-site-theme="dark"] body {
 .lesson-scenario__tag,
 .telegram-panel__chips span,
 .community-panel__chips small,
-.plan-access span,
-.payment-methods span {
+.plan-access span {
   display: inline-flex;
   align-items: center;
   min-height: 30px;
@@ -666,6 +659,22 @@ html[data-site-theme="dark"] body {
 .pricing-section,
 .final-cta-section {
   padding: 92px 0;
+}
+
+.pricing-section {
+  background: transparent;
+  box-shadow: none;
+}
+
+html[data-site-theme="dark"] .english-spark-landing .pricing-section,
+html[data-site-theme="light"] .english-spark-landing .pricing-section {
+  background: transparent;
+  box-shadow: none;
+}
+
+.pricing-section::before,
+.pricing-section::after {
+  content: none;
 }
 
 .stitch-metrics {
@@ -833,8 +842,7 @@ html[data-site-theme="dark"] body {
 .lesson-scenario__tags,
 .telegram-panel__chips,
 .community-panel__chips,
-.plan-access,
-.payment-methods {
+.plan-access {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -1445,6 +1453,8 @@ html[data-site-theme="dark"] body {
   border-radius: 26px;
   background: rgba(8, 17, 31, 0.88);
   box-shadow: var(--neriva-shadow);
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .image-preview__frame img {
@@ -1453,6 +1463,10 @@ html[data-site-theme="dark"] body {
   max-height: calc(100svh - 160px);
   object-fit: contain;
   border-radius: 16px;
+  transform: scale(var(--preview-scale, 1));
+  transform-origin: center center;
+  transition: transform 120ms ease;
+  will-change: transform;
 }
 
 .image-preview__frame figcaption {

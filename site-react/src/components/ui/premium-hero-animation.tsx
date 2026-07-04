@@ -13,164 +13,6 @@ type ThreeSceneState = {
   resizeObserver?: ResizeObserver;
 };
 
-function useFluidShader() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const gl = (canvas?.getContext("webgl") || canvas?.getContext("experimental-webgl")) as WebGLRenderingContext | null;
-    if (!canvas || !gl) return undefined;
-
-    const vertexShader = `
-      attribute vec2 a_position;
-      varying vec2 v_texCoord;
-      void main() {
-        v_texCoord = a_position * 0.5 + 0.5;
-        gl_Position = vec4(a_position, 0.0, 1.0);
-      }
-    `;
-
-    const fragmentShader = `
-      precision highp float;
-      uniform float u_time;
-      uniform vec2 u_resolution;
-      uniform vec2 u_mouse;
-      varying vec2 v_texCoord;
-
-      void main() {
-        vec2 uv = v_texCoord;
-        vec2 p = (v_texCoord - 0.5) * 2.0;
-        p.x *= u_resolution.x / u_resolution.y;
-
-        float t = u_time * 0.2;
-        float wave = sin(p.x * 2.0 + t) * 0.5 + 0.5;
-        wave += sin(p.y * 3.0 - t * 1.5) * 0.3;
-
-        vec3 color1 = vec3(0.043, 0.078, 0.133);
-        vec3 color2 = vec3(0.0, 0.196, 0.627);
-        vec3 color3 = vec3(0.239, 0.482, 1.0);
-
-        float noise = sin(p.x * 4.0 + sin(t + p.y * 2.0)) * 0.5 + 0.5;
-        vec3 finalColor = mix(color1, color2, wave * 0.6);
-        finalColor = mix(finalColor, color3, pow(noise, 8.0) * 0.15);
-
-        float dist = length(uv - u_mouse / u_resolution);
-        finalColor += color3 * (1.0 - smoothstep(0.0, 0.4, dist)) * 0.05;
-
-        gl_FragColor = vec4(finalColor, 1.0);
-      }
-    `;
-
-    const compile = (type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
-
-    const vs = compile(gl.VERTEX_SHADER, vertexShader);
-    const fs = compile(gl.FRAGMENT_SHADER, fragmentShader);
-    const program = gl.createProgram();
-    const buffer = gl.createBuffer();
-    if (!vs || !fs || !program || !buffer) return undefined;
-
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    gl.useProgram(program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-
-    const position = gl.getAttribLocation(program, "a_position");
-    gl.enableVertexAttribArray(position);
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-
-    const uTime = gl.getUniformLocation(program, "u_time");
-    const uResolution = gl.getUniformLocation(program, "u_resolution");
-    const uMouse = gl.getUniformLocation(program, "u_mouse");
-    const mouse = { x: 0, y: 0 };
-    let frame = 0;
-    let contextLost = false;
-
-    const syncSize = () => {
-      const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
-      const rect = canvas.getBoundingClientRect();
-      const width = Math.max(1, Math.floor(rect.width * dpr));
-      const height = Math.max(1, Math.floor(rect.height * dpr));
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-      if (!mouse.x && !mouse.y) {
-        mouse.x = width * 0.56;
-        mouse.y = height * 0.58;
-      }
-    };
-
-    const onMouseMove = (event: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const nx = (event.clientX - rect.left) / rect.width;
-      const ny = 1 - (event.clientY - rect.top) / rect.height;
-      mouse.x = nx * canvas.width;
-      mouse.y = ny * canvas.height;
-    };
-
-    const resizeObserver = typeof ResizeObserver !== "undefined" ? new ResizeObserver(syncSize) : undefined;
-    resizeObserver?.observe(canvas);
-    syncSize();
-    window.addEventListener("mousemove", onMouseMove);
-    const onContextLost = (event: Event) => {
-      event.preventDefault();
-      contextLost = true;
-      cancelAnimationFrame(frame);
-    };
-    const onContextRestored = () => {
-      contextLost = false;
-      syncSize();
-      frame = requestAnimationFrame(render);
-    };
-    canvas.addEventListener("webglcontextlost", onContextLost, false);
-    canvas.addEventListener("webglcontextrestored", onContextRestored, false);
-
-    const render = (time: number) => {
-      if (contextLost || gl.isContextLost()) return;
-      syncSize();
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.useProgram(program);
-      if (uTime) gl.uniform1f(uTime, time * 0.001);
-      if (uResolution) gl.uniform2f(uResolution, canvas.width, canvas.height);
-      if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      frame = requestAnimationFrame(render);
-    };
-
-    frame = requestAnimationFrame(render);
-
-    return () => {
-      resizeObserver?.disconnect();
-      window.removeEventListener("mousemove", onMouseMove);
-      canvas.removeEventListener("webglcontextlost", onContextLost);
-      canvas.removeEventListener("webglcontextrestored", onContextRestored);
-      cancelAnimationFrame(frame);
-      if (gl.isContextLost()) return;
-      gl.deleteBuffer(buffer);
-      gl.detachShader(program, vs);
-      gl.detachShader(program, fs);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
-      gl.deleteProgram(program);
-    };
-  }, []);
-
-  return canvasRef;
-}
-
 function useThreeCore() {
   const containerRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef<ThreeSceneState | null>(null);
@@ -286,12 +128,10 @@ function useThreeCore() {
 }
 
 export function PremiumHeroAnimation({ className = "" }: { className?: string }) {
-  const shaderRef = useFluidShader();
   const threeRef = useThreeCore();
 
   return (
     <div className={`premium-hero-animation ${className}`.trim()} aria-hidden="true">
-      <canvas ref={shaderRef} className="premium-hero-animation__shader" />
       <div ref={threeRef} className="premium-hero-animation__three" />
     </div>
   );
