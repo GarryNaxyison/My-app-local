@@ -121,6 +121,40 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
   await expect(page.locator(".methodology-timeline")).toContainText("Review");
 });
 
+test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=en");
+
+  const featurePanel = page.locator(".feature-panel");
+  const initialState = await featurePanel.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      top: Math.round(element.getBoundingClientRect().top),
+      opacity: style.opacity,
+      transform: style.transform,
+      filter: style.filter,
+    };
+  });
+  expect(initialState.top).toBeGreaterThan(900);
+  expect(Number(initialState.opacity)).toBeLessThan(0.05);
+  expect(initialState.transform).not.toBe("none");
+  expect(initialState.filter).toContain("blur");
+
+  await featurePanel.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(850);
+
+  const revealedState = await featurePanel.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      opacity: style.opacity,
+      transform: style.transform,
+      filter: style.filter,
+    };
+  });
+  expect(Number(revealedState.opacity)).toBeGreaterThan(0.95);
+  expect(revealedState.transform).toBe("none");
+  expect(revealedState.filter).toBe("blur(0px)");
+});
+
 test("Russian landing localizes metrics and methodology blocks", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=ru");
 

@@ -48,8 +48,9 @@ type EnglishSparkLandingProps = {
 
 type RevealSectionProps = Omit<ComponentPropsWithoutRef<typeof motion.section>, "children"> & { children: ReactNode };
 type RevealArticleProps = Omit<ComponentPropsWithoutRef<typeof motion.article>, "children"> & { children: ReactNode };
+type RevealBlockProps = Omit<ComponentPropsWithoutRef<typeof motion.div>, "children"> & { children: ReactNode };
 
-const revealViewport = { once: true, amount: 0.18 };
+const revealViewport = { once: true, amount: 0.12, margin: "0px 0px -10% 0px" };
 
 function RevealSection({ children, transition, ...props }: RevealSectionProps) {
   const reduceMotion = useReducedMotion();
@@ -88,6 +89,26 @@ function RevealArticle({ children, transition, ...props }: RevealArticleProps) {
     >
       {children}
     </motion.article>
+  );
+}
+
+function RevealBlock({ children, transition, ...props }: RevealBlockProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <div {...(props as ComponentPropsWithoutRef<"div">)}>{children}</div>;
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={revealViewport}
+      transition={{ duration: 0.66, ease: [0.22, 1, 0.36, 1], ...transition }}
+      {...props}
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -270,8 +291,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
               );
             })}
           </div>
-          <div className="feature-carousel__viewport">
-            <article className="feature-panel" role="tabpanel">
+          <RevealBlock className="feature-carousel__viewport">
+            <RevealArticle className="feature-panel" role="tabpanel">
               <div className="feature-panel__copy">
                 <ActiveIcon size={26} />
                 <span>{active.stat}</span>
@@ -279,8 +300,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 <p>{active.body}</p>
               </div>
               <ProductShot image={activeImage} alt={imgAlt(activeImage)} onOpen={openPreview} />
-            </article>
-          </div>
+            </RevealArticle>
+          </RevealBlock>
         </div>
       </RevealSection>
 
@@ -364,7 +385,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.telegram.title}</h2>
           <p>{copy.telegram.body}</p>
         </div>
-        <div className="telegram-panel">
+        <RevealBlock className="telegram-panel">
           <ProductShot image={productImages.telegram} alt={imgAlt(productImages.telegram)} onOpen={openPreview} />
           <div className="telegram-panel__copy">
             <BookOpen size={22} />
@@ -376,7 +397,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
               {copy.telegram.cta} <ArrowRight size={18} />
             </a>
           </div>
-        </div>
+        </RevealBlock>
       </RevealSection>
 
       <RevealSection className="spark-section mobile-section">
@@ -405,8 +426,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
               );
             })}
           </div>
-          <div className="mobile-carousel__viewport">
-            <article className="mobile-panel" role="tabpanel">
+          <RevealBlock className="mobile-carousel__viewport">
+            <RevealArticle className="mobile-panel" role="tabpanel">
               <div className="mobile-panel__copy">
                 <ActiveMobileIcon size={26} />
                 <span>{activeMobileItem.stat}</span>
@@ -414,8 +435,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 <p>{activeMobileItem.body}</p>
               </div>
               <ProductShot image={activeMobileImage} alt={imgAlt(activeMobileImage)} onOpen={openPreview} />
-            </article>
-          </div>
+            </RevealArticle>
+          </RevealBlock>
         </div>
       </RevealSection>
 
@@ -425,7 +446,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.community.title}</h2>
           <p>{copy.community.body}</p>
         </div>
-        <div className="community-panel">
+        <RevealBlock className="community-panel">
           <div>
             <Star size={22} />
             <strong>{copy.community.follow}</strong>
@@ -435,7 +456,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </div>
           </div>
           <SocialIconLinks />
-        </div>
+        </RevealBlock>
       </RevealSection>
 
       <RevealSection id="faq" className="spark-section landing-faq">
@@ -467,13 +488,13 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </a>
           </div>
         </div>
-        <div className="final-cta-visual" aria-label={copy.finalCta.visualLabel}>
+        <RevealBlock className="final-cta-visual" aria-label={copy.finalCta.visualLabel}>
           <strong>{copy.finalCta.visualLabel}</strong>
           <span>{copy.finalCta.visualBody}</span>
           <ol>
             {copy.finalCta.flow.map((step) => <li key={step}>{step}</li>)}
           </ol>
-        </div>
+        </RevealBlock>
       </RevealSection>
 
       {preview ? (
