@@ -45,11 +45,17 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
   const heroState = await page.evaluate(() => {
     const hero = document.querySelector(".landing-hero") as HTMLElement;
     const matter = document.querySelector(".landing-hero__matter") as HTMLElement;
+    const productFrame = document.querySelector(".hero-product-frame") as HTMLElement;
     const proofCells = Array.from(document.querySelectorAll(".hero-proof span")) as HTMLElement[];
+    const heroBox = hero.getBoundingClientRect();
+    const matterBox = matter.getBoundingClientRect();
+    const productFrameBox = productFrame.getBoundingClientRect();
     return {
       heroBackground: getComputedStyle(hero).backgroundColor,
       heroBackgroundImage: getComputedStyle(hero).backgroundImage,
       matterBackground: getComputedStyle(matter).backgroundColor,
+      matterTopOffset: Math.round(matterBox.top - heroBox.top),
+      productFrameTopOffset: Math.round(productFrameBox.top - heroBox.top),
       proofTexts: proofCells.map((cell) => (cell.textContent || "").trim()),
       emptyProofCells: proofCells.filter((cell) => !(cell.textContent || "").trim()).length,
     };
@@ -57,6 +63,8 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
 
   expect(heroState.heroBackground).toBe("rgba(0, 0, 0, 0)");
   expect(heroState.matterBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(heroState.matterTopOffset).toBeGreaterThanOrEqual(70);
+  expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(210);
   expect(heroState.emptyProofCells).toBe(0);
 
   const shaderIsNonBlank = await page.locator(".premium-hero-animation__shader").evaluate((canvas) => {

@@ -240,7 +240,7 @@ html[data-site-theme="dark"] body {
 .landing-hero__matter {
   position: absolute;
   z-index: 0;
-  inset: 42px 0 -42px;
+  inset: 82px 0 -82px;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -282,7 +282,7 @@ html[data-site-theme="dark"] body {
 .premium-hero-animation__three {
   inset: -34% -2% 34% 34%;
   opacity: 0.98;
-  transform: translateY(-10%);
+  transform: translateY(2%);
   filter: drop-shadow(0 0 68px rgba(61, 123, 255, 0.42));
 }
 
@@ -443,7 +443,7 @@ html[data-site-theme="dark"] body {
   display: grid;
   place-items: center;
   min-height: 620px;
-  transform: translate(48px, 136px) scale(0.92);
+  transform: translate(48px, 184px) scale(0.92);
   transform-origin: center top;
 }
 
@@ -1352,7 +1352,7 @@ html[data-site-theme="dark"] body {
   }
 
   .landing-hero__matter {
-    inset: 34px 0 -34px;
+    inset: 58px 0 -58px;
     width: 100%;
     height: 100%;
     transform: none;
@@ -1361,12 +1361,12 @@ html[data-site-theme="dark"] body {
 
   .premium-hero-animation__three {
     inset: -20% -10% 32% 12%;
-    transform: translateY(-6%);
+    transform: translateY(2%);
   }
 
   .hero-product-frame {
     min-height: 520px;
-    transform: translateY(42px) scale(0.96);
+    transform: translateY(72px) scale(0.96);
   }
 
   .feature-carousel__tabs,
