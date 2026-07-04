@@ -14,7 +14,6 @@ import {
   Laptop,
   LineChart,
   LockKeyhole,
-  Menu,
   MessageCircle,
   MessagesSquare,
   Mic,
@@ -29,7 +28,6 @@ import {
   Trophy,
   Zap,
   WifiOff,
-  X,
 } from "lucide-react";
 import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 import { SparklesCore } from "@/components/ui/sparkles";
@@ -463,9 +461,13 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         ) : null}
-        <button className="nav-burger" type="button" aria-expanded={isOpen} aria-controls="public-nav-drawer" onClick={() => setIsOpen((value) => !value)}>
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-          <span>{copy.menu}</span>
+        <button className="nav-burger" type="button" aria-label={copy.menu} aria-expanded={isOpen} aria-controls="public-nav-drawer" onClick={() => setIsOpen((value) => !value)}>
+          <span className="nav-burger__lines" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+          <span className="nav-burger__label">{copy.menu}</span>
         </button>
       </div>
       <div className={isOpen ? "nav-drawer is-open" : "nav-drawer"} id="public-nav-drawer" aria-hidden={!isOpen}>

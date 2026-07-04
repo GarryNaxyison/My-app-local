@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, type ComponentPropsWithoutRef, type ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
@@ -44,6 +45,51 @@ const mobileIcons = [Star, BookOpen, Repeat2, Mic] as const;
 type EnglishSparkLandingProps = {
   language?: LandingLocale;
 };
+
+type RevealSectionProps = Omit<ComponentPropsWithoutRef<typeof motion.section>, "children"> & { children: ReactNode };
+type RevealArticleProps = Omit<ComponentPropsWithoutRef<typeof motion.article>, "children"> & { children: ReactNode };
+
+const revealViewport = { once: true, amount: 0.18 };
+
+function RevealSection({ children, transition, ...props }: RevealSectionProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <section {...(props as ComponentPropsWithoutRef<"section">)}>{children}</section>;
+  }
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 34, scale: 0.985 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={revealViewport}
+      transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1], ...transition }}
+      {...props}
+    >
+      {children}
+    </motion.section>
+  );
+}
+
+function RevealArticle({ children, transition, ...props }: RevealArticleProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <article {...(props as ComponentPropsWithoutRef<"article">)}>{children}</article>;
+  }
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 26, filter: "blur(10px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={revealViewport}
+      transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1], ...transition }}
+      {...props}
+    >
+      {children}
+    </motion.article>
+  );
+}
 
 function ProductShot({
   image,
@@ -119,40 +165,40 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </section>
 
-      <section className="stitch-metrics" aria-label="NERIVA operating metrics">
-        {copy.metrics.map((metric) => (
-          <article className="stitch-metric-card" key={metric.label}>
+      <RevealSection className="stitch-metrics" aria-label="NERIVA operating metrics">
+        {copy.metrics.map((metric, index) => (
+          <RevealArticle className="stitch-metric-card" key={metric.label} transition={{ delay: index * 0.08 }}>
             <span>{metric.label}</span>
             <strong>{metric.value}</strong>
             <p>{metric.body}</p>
-          </article>
+          </RevealArticle>
         ))}
-      </section>
+      </RevealSection>
 
-      <section className="before-after-bridge" aria-label="Before and after NERIVA">
+      <RevealSection className="before-after-bridge" aria-label="Before and after NERIVA">
         <div className="section-copy">
           <span className="eyebrow">{copy.beforeAfter.eyebrow}</span>
           <h2>{copy.beforeAfter.title}</h2>
         </div>
         <div className="before-after-bridge__grid">
-          <article>
+          <RevealArticle>
             <span>01</span>
             <h3>{copy.beforeAfter.beforeTitle}</h3>
             <ul>
               {copy.beforeAfter.before.map((item) => <li key={item}>{item}</li>)}
             </ul>
-          </article>
-          <article className="is-after">
+          </RevealArticle>
+          <RevealArticle className="is-after" transition={{ delay: 0.08 }}>
             <span>02</span>
             <h3>{copy.beforeAfter.afterTitle}</h3>
             <ul>
               {copy.beforeAfter.after.map((item) => <li key={item}>{item}</li>)}
             </ul>
-          </article>
+          </RevealArticle>
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="lesson-scenario" aria-label="How NERIVA runs a short lesson">
+      <RevealSection className="lesson-scenario" aria-label="How NERIVA runs a short lesson">
         <div className="lesson-scenario__copy">
           <span className="eyebrow">{copy.scenario.eyebrow}</span>
           <h2>{copy.scenario.title}</h2>
@@ -168,9 +214,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             <strong>{copy.scenario.caption}</strong>
           </div>
         </div>
-      </section>
+      </RevealSection>
 
-      <section id="features" className="spark-section modules-section">
+      <RevealSection id="features" className="spark-section modules-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.features.eyebrow}</span>
           <h2>{copy.features.title}</h2>
@@ -207,9 +253,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </article>
           </div>
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="spark-section methodology-timeline" aria-label={copy.methodology.title}>
+      <RevealSection className="spark-section methodology-timeline" aria-label={copy.methodology.title}>
         <div className="section-copy">
           <span className="eyebrow">{copy.methodology.eyebrow}</span>
           <h2>{copy.methodology.title}</h2>
@@ -217,16 +263,16 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
         <div className="methodology-timeline__steps">
           {copy.methodology.steps.map((step) => (
-            <article className="methodology-step" key={step.label}>
+            <RevealArticle className="methodology-step" key={step.label}>
               <span>{step.label}</span>
               <h3>{step.title}</h3>
               <p>{step.body}</p>
-            </article>
+            </RevealArticle>
           ))}
         </div>
-      </section>
+      </RevealSection>
 
-      <section id="pricing" className="pricing-section">
+      <RevealSection id="pricing" className="pricing-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.pricing.eyebrow}</span>
           <h2>{copy.pricing.title}</h2>
@@ -234,7 +280,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
         <div className="pricing-grid">
           {copy.pricing.plans.map((plan, index) => (
-            <article className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name}>
+            <RevealArticle className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name} transition={{ delay: index * 0.08 }}>
               {index === 1 ? <span className="plan-recommendation">Recommended</span> : null}
               <span className="plan-label">{plan.label}</span>
               <h3>{plan.name}</h3>
@@ -256,15 +302,15 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 {plan.access.map((item) => <span key={item}>{item}</span>)}
               </div>
               <a href={WEB_APP_HREF}>{copy.pricing.choose}</a>
-            </article>
+            </RevealArticle>
           ))}
         </div>
         <div className="payment-methods" aria-label="Payment methods">
           {copy.pricing.methods.map((method) => <span key={method}>{method}</span>)}
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="spark-section ecosystem-showcase" aria-label={copy.ecosystem.title}>
+      <RevealSection className="spark-section ecosystem-showcase" aria-label={copy.ecosystem.title}>
         <div className="section-copy">
           <span className="eyebrow">{copy.ecosystem.eyebrow}</span>
           <h2>{copy.ecosystem.title}</h2>
@@ -274,19 +320,19 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           {copy.ecosystem.items.map((item) => {
             const image = productImages[item.imageKey] ?? productImages.dashboard;
             return (
-              <article className="ecosystem-card" key={item.title}>
+              <RevealArticle className="ecosystem-card" key={item.title}>
                 <ProductShot image={image} alt={imgAlt(image)} onOpen={openPreview} />
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.body}</p>
                 </div>
-              </article>
+              </RevealArticle>
             );
           })}
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="spark-section telegram-section">
+      <RevealSection className="spark-section telegram-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.telegram.eyebrow}</span>
           <h2>{copy.telegram.title}</h2>
@@ -305,9 +351,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </a>
           </div>
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="spark-section mobile-section">
+      <RevealSection className="spark-section mobile-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.mobile.eyebrow}</span>
           <h2>{copy.mobile.title}</h2>
@@ -345,9 +391,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </article>
           </div>
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="spark-section community-section">
+      <RevealSection className="spark-section community-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.community.eyebrow}</span>
           <h2>{copy.community.title}</h2>
@@ -364,24 +410,24 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           </div>
           <SocialIconLinks />
         </div>
-      </section>
+      </RevealSection>
 
-      <section id="faq" className="spark-section landing-faq">
+      <RevealSection id="faq" className="spark-section landing-faq">
         <div className="section-copy">
           <span className="eyebrow">{copy.faq.eyebrow}</span>
           <h2>{copy.faq.title}</h2>
         </div>
         <div className="landing-faq__grid">
           {copy.faq.items.map((item) => (
-            <article className="landing-faq__item" key={item.question}>
+            <RevealArticle className="landing-faq__item" key={item.question}>
               <h3>{item.question}</h3>
               <p>{item.answer}</p>
-            </article>
+            </RevealArticle>
           ))}
         </div>
-      </section>
+      </RevealSection>
 
-      <section className="final-cta-section">
+      <RevealSection className="final-cta-section">
         <div className="final-cta-section__copy">
           <Repeat2 size={32} />
           <h2>{copy.finalCta.title}</h2>
@@ -402,7 +448,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             {copy.finalCta.flow.map((step) => <li key={step}>{step}</li>)}
           </ol>
         </div>
-      </section>
+      </RevealSection>
 
       {preview ? (
         <div className="image-preview" role="dialog" aria-modal="true" aria-label={preview.alt} onClick={() => setPreview(null)}>

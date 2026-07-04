@@ -226,14 +226,39 @@ test.skip("landing presents the approved light product-first site", async ({ pag
   await expect(page.locator(".final-cta-section")).toContainText("Telegram");
 
   await page.locator(".nav-burger").click();
-  await expect(page.locator(".nav-drawer")).toBeVisible();
-  await expect(page.locator(".nav-drawer")).toContainText("Features");
-  await expect(page.locator(".nav-drawer")).toContainText("Pricing");
-  await expect(page.locator(".nav-drawer")).toContainText("FAQ");
-  await expect(page.locator(".nav-drawer")).toContainText("Privacy");
-  await expect(page.locator(".nav-drawer")).toContainText("Terms");
-  await expect(page.locator(".nav-drawer")).toContainText("Browser");
-  await expect(page.locator(".nav-drawer")).toContainText("Telegram");
+  const drawer = page.locator(".nav-drawer");
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toContainText("Features");
+  await expect(drawer).toContainText("Pricing");
+  await expect(drawer).toContainText("FAQ");
+  await expect(drawer).toContainText("Privacy");
+  await expect(drawer).toContainText("Terms");
+  await expect(drawer).toContainText("Browser");
+  await expect(drawer).toContainText("Telegram");
+
+  const navLayout = await page.evaluate(() => {
+    const nav = document.querySelector(".public-nav") as HTMLElement;
+    const burger = document.querySelector(".nav-burger") as HTMLElement;
+    const drawerElement = document.querySelector(".nav-drawer") as HTMLElement;
+    const navRect = nav.getBoundingClientRect();
+    const burgerRect = burger.getBoundingClientRect();
+    const drawerRect = drawerElement.getBoundingClientRect();
+    return {
+      navHeight: navRect.height,
+      burgerHeight: burgerRect.height,
+      burgerLines: burger.querySelectorAll(".nav-burger__lines span").length,
+      drawerLeft: drawerRect.left,
+      drawerRight: drawerRect.right,
+      drawerTop: drawerRect.top,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  expect(navLayout.navHeight).toBeLessThanOrEqual(82);
+  expect(navLayout.burgerHeight).toBe(44);
+  expect(navLayout.burgerLines).toBe(3);
+  expect(navLayout.drawerLeft).toBeGreaterThanOrEqual(0);
+  expect(navLayout.drawerRight).toBeLessThanOrEqual(navLayout.viewportWidth);
+  expect(navLayout.drawerTop).toBeGreaterThan(navLayout.burgerHeight);
 
   const landingCyrillic = await page.locator(".english-spark-landing").evaluate((node) => (node.textContent || "").match(/\p{Script=Cyrillic}+/gu) || []);
   expect(landingCyrillic).toEqual([]);
@@ -269,6 +294,36 @@ test("public footer exposes NERIVA social channels", async ({ page }) => {
   await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toBeVisible();
+});
+
+test("landing visual blocks animate without breaking hero and ecosystem alignment", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/poliglot-ai.html?lang=ru");
+
+  for (const index of [1, 2, 3, 0]) {
+    await page.locator(".feature-carousel__tab").nth(index).click();
+    await page.waitForTimeout(80);
+  }
+
+  const heroState = await page.evaluate(() => {
+    const matter = document.querySelector(".landing-hero__matter") as HTMLElement;
+    const canvases = Array.from(document.querySelectorAll(".landing-hero__matter canvas")) as HTMLCanvasElement[];
+    const rect = matter.getBoundingClientRect();
+    return {
+      width: rect.width,
+      height: rect.height,
+      background: getComputedStyle(matter).backgroundImage,
+      nonEmptyCanvases: canvases.filter((canvas) => canvas.width > 10 && canvas.height > 10).length,
+    };
+  });
+  expect(heroState.width).toBeGreaterThan(900);
+  expect(heroState.height).toBeGreaterThan(500);
+  expect(heroState.background).toContain("radial-gradient");
+  expect(heroState.nonEmptyCanvases).toBeGreaterThanOrEqual(1);
+
+  await page.locator(".ecosystem-showcase").scrollIntoViewIfNeeded();
+  const textTops = await page.locator(".ecosystem-card > div").evaluateAll((nodes) => nodes.map((node) => Math.round((node as HTMLElement).getBoundingClientRect().top)));
+  expect(Math.max(...textTops) - Math.min(...textTops)).toBeLessThanOrEqual(3);
 });
 
 test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {
@@ -582,10 +637,10 @@ test.skip("Russian landing uses edited copy and keeps compact CTAs aligned", asy
 test("landing hero keeps the animation while product screenshots remain primary", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
-  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
-  await expect(page.locator('.landing-hero img[src="/assets/product/dashboard-progress.png"]')).toBeVisible();
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(2);
+  await expect(page.locator('.landing-hero img[src="/assets/product/dashboard-progress-dark.png"]')).toBeVisible();
   const viewportWidth = page.viewportSize()?.width ?? 1440;
-  const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/mobile-home-progress.png"]');
+  const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/mobile-home-progress-dark.png"]');
   if (viewportWidth <= 860) {
     await expect(mobileHomeShot).toHaveCount(1);
   } else {
@@ -915,7 +970,7 @@ test("production public-site output keeps all image and localization assets for 
   }
 
   await page.goto("/poliglot-ai.html?lang=en");
-  const heroImage = page.locator('.landing-hero img[src="/assets/product/dashboard-progress.png"]');
+  const heroImage = page.locator('.landing-hero img[src="/assets/product/dashboard-progress-dark.png"]');
   await heroImage.waitFor({ state: "visible" });
   await expect
     .poll(() =>
@@ -938,6 +993,6 @@ test("production public-site output keeps all image and localization assets for 
   );
 
   expect(imageState.length).toBeGreaterThanOrEqual(7);
-  expect(imageState.some((image) => image.src.includes("dashboard-progress.png") && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
-  expect(imageState.some((image) => image.src.includes("telegram-app-light.png"))).toBe(true);
+  expect(imageState.some((image) => image.src.includes("dashboard-progress-dark.png") && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
+  expect(imageState.some((image) => image.src.includes("telegram-app-dark.png"))).toBe(true);
 });

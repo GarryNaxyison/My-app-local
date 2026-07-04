@@ -95,6 +95,7 @@ function useFluidShader() {
     const uMouse = gl.getUniformLocation(program, "u_mouse");
     const mouse = { x: 0, y: 0 };
     let frame = 0;
+    let contextLost = false;
 
     const syncSize = () => {
       const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
@@ -124,8 +125,21 @@ function useFluidShader() {
     resizeObserver?.observe(canvas);
     syncSize();
     window.addEventListener("mousemove", onMouseMove);
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      contextLost = true;
+      cancelAnimationFrame(frame);
+    };
+    const onContextRestored = () => {
+      contextLost = false;
+      syncSize();
+      frame = requestAnimationFrame(render);
+    };
+    canvas.addEventListener("webglcontextlost", onContextLost, false);
+    canvas.addEventListener("webglcontextrestored", onContextRestored, false);
 
     const render = (time: number) => {
+      if (contextLost || gl.isContextLost()) return;
       syncSize();
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.useProgram(program);
@@ -141,7 +155,10 @@ function useFluidShader() {
     return () => {
       resizeObserver?.disconnect();
       window.removeEventListener("mousemove", onMouseMove);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
       cancelAnimationFrame(frame);
+      if (gl.isContextLost()) return;
       gl.deleteBuffer(buffer);
       gl.detachShader(program, vs);
       gl.detachShader(program, fs);
@@ -166,7 +183,7 @@ function useThreeCore() {
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
     camera.position.z = 5;
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(renderer.domElement);
@@ -237,7 +254,9 @@ function useThreeCore() {
       coreGroup.rotation.z += 0.002;
       particles.rotation.y += 0.001;
       core.scale.setScalar(1 + Math.sin(time) * 0.05);
-      renderer.render(scene, camera);
+      if (!renderer.getContext().isContextLost()) {
+        renderer.render(scene, camera);
+      }
       if (stateRef.current) stateRef.current.frame = requestAnimationFrame(animate);
     };
 
