@@ -32,6 +32,20 @@ test("landing v3 uses the premium dark reference and exposes only Russian and En
   expect(optionValues).toEqual(["ru", "en"]);
 });
 
+test("landing v3 Russian copy avoids removed Telegram block and awkward AI wording", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=ru");
+
+  await expect(page.locator("body")).not.toContainText("Быстрая практика без второго продукта");
+  await expect(page.locator("body")).not.toContainText("Запустите задание, отправьте голос или фото");
+  await expect(page.locator("body")).not.toContainText("чанки");
+  await expect(page.locator("body")).not.toContainText("production task");
+  await expect(page.locator("body")).not.toContainText("AI-ответ");
+  await expect(page.locator("body")).not.toContainText("speaking-попытку");
+  await expect(page.locator("body")).not.toContainText("streak");
+  await expect(page.locator("body")).toContainText("Короткий урок с понятным результатом");
+  await expect(page.locator("body")).toContainText("серию занятий");
+});
+
 test("landing v3 hero uses filled product proof and transparent dark animation", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
@@ -63,8 +77,8 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
 
   expect(heroState.heroBackground).toBe("rgba(0, 0, 0, 0)");
   expect(heroState.matterBackground).toBe("rgba(0, 0, 0, 0)");
-  expect(heroState.matterTopOffset).toBeGreaterThanOrEqual(70);
-  expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(210);
+  expect(heroState.matterTopOffset).toBeLessThanOrEqual(24);
+  expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(160);
   expect(heroState.emptyProofCells).toBe(0);
 
   const premiumSurfaceState = await page.locator(".english-spark-landing").evaluate((landing) => {
@@ -151,8 +165,10 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
     };
   });
   expect(Number(revealedState.opacity)).toBeGreaterThan(0.95);
-  expect(revealedState.transform).toBe("none");
-  expect(revealedState.filter).toBe("blur(0px)");
+  const translateY = revealedState.transform === "none" ? 0 : Number(revealedState.transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*([^)]+)\)/)?.[1] ?? 0);
+  expect(Math.abs(translateY)).toBeLessThan(0.5);
+  const blurPx = Number(revealedState.filter.match(/^blur\(([^)]+)px\)$/)?.[1] ?? 0);
+  expect(blurPx).toBeLessThan(0.05);
 });
 
 test("Russian landing localizes metrics and methodology blocks", async ({ page }) => {
@@ -191,9 +207,7 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
   await expect(page.locator(".pricing-section")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(page.locator(".payment-methods")).toHaveCount(0);
 
-  await expect(page.locator(".telegram-panel")).toContainText("Voice");
-  await expect(page.locator(".telegram-panel")).toContainText("Photo");
-  await expect(page.locator(".telegram-panel")).toContainText("Reminder");
+  await expect(page.locator(".telegram-panel")).toHaveCount(0);
 
   await expect(page.locator(".ecosystem-showcase")).toBeVisible();
   await expect(page.locator(".ecosystem-showcase .product-shot")).toHaveCount(3);
@@ -245,6 +259,24 @@ test("landing v3 product screenshots open a focused preview", async ({ page }) =
   await page.locator(".image-preview__frame").hover();
   await page.mouse.wheel(0, -360);
   await expect(page.locator(".image-preview")).not.toHaveAttribute("data-preview-scale", "1.00");
+  await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-pan", "0,0");
+
+  const frameOverflow = await page.locator(".image-preview__frame").evaluate((frame) => {
+    const style = getComputedStyle(frame);
+    return {
+      overflowX: style.overflowX,
+      overflowY: style.overflowY,
+    };
+  });
+  expect(frameOverflow).toEqual({ overflowX: "hidden", overflowY: "hidden" });
+
+  const frameBox = await page.locator(".image-preview__frame").boundingBox();
+  expect(frameBox).not.toBeNull();
+  await page.mouse.move(frameBox!.x + frameBox!.width / 2, frameBox!.y + frameBox!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(frameBox!.x + frameBox!.width / 2 + 90, frameBox!.y + frameBox!.height / 2 + 42);
+  await page.mouse.up();
+  await expect(page.locator(".image-preview")).not.toHaveAttribute("data-preview-pan", "0,0");
 
   await page.locator(".image-preview__close").click();
   await expect(page.locator(".image-preview")).toHaveCount(0);

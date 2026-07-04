@@ -340,7 +340,7 @@ html[data-site-theme="dark"] body {
   min-height: calc(100svh - 72px);
   display: grid;
   align-items: center;
-  padding: 84px 0 94px;
+  padding: 28px 0 86px;
   background: transparent;
   isolation: isolate;
 }
@@ -389,7 +389,7 @@ html[data-site-theme="dark"] body {
 .landing-hero__matter {
   position: absolute;
   z-index: 0;
-  inset: 82px 0 -82px;
+  inset: 0 0 -72px;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -430,10 +430,10 @@ html[data-site-theme="dark"] body {
 }
 
 .premium-hero-animation__three {
-  inset: -34% -2% 34% 34%;
-  opacity: 0.98;
-  transform: translateY(2%);
-  filter: drop-shadow(0 0 68px rgba(61, 123, 255, 0.42));
+  inset: -22% -12% 8% 18%;
+  opacity: 1;
+  transform: translate(-6%, 8%) scale(1.18);
+  filter: drop-shadow(0 0 82px rgba(61, 123, 255, 0.5));
 }
 
 .hero-announcement,
@@ -648,21 +648,13 @@ html[data-site-theme="dark"] .english-spark-landing .final-cta-visual {
   z-index: 3;
   display: grid;
   place-items: center;
-  min-height: 620px;
-  transform: translate(48px, 184px) scale(0.92);
+  min-height: 590px;
+  transform: translate(34px, 150px) scale(0.96);
   transform-origin: center top;
 }
 
 .hero-product-frame::before {
-  content: "";
-  position: absolute;
-  inset: 4% 0 0 2%;
-  border-radius: 34px;
-  background:
-    linear-gradient(135deg, rgba(118, 216, 255, 0.16), transparent 38%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(6, 14, 28, 0.16));
-  border: 1px solid rgba(118, 216, 255, 0.18);
-  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.46), 0 0 72px rgba(61, 123, 255, 0.22);
+  content: none;
 }
 
 .hero-product-frame::after {
@@ -695,31 +687,31 @@ html[data-site-theme="dark"] .english-spark-landing .final-cta-visual {
   height: auto;
   border-radius: 18px;
   background: #0b1422;
-  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.44);
+  box-shadow: 0 24px 74px rgba(0, 0, 0, 0.46);
 }
 
 .product-shot--desktop {
   position: relative;
   z-index: 3;
-  width: min(100%, 690px);
-  padding: 10px;
-  border: 1px solid rgba(118, 216, 255, 0.18);
+  width: min(104%, 760px);
+  padding: 0;
+  border: 0;
   border-radius: 28px;
-  background: linear-gradient(180deg, rgba(6, 14, 28, 0.92), rgba(6, 14, 28, 0.76));
-  box-shadow: 0 34px 90px rgba(0, 0, 0, 0.54), 0 0 38px rgba(61, 123, 255, 0.16);
+  background: transparent;
+  box-shadow: none;
 }
 
 .product-shot--phone {
   position: absolute;
   z-index: 4;
-  right: -6px;
-  bottom: -18px;
-  width: min(34%, 230px);
-  padding: 8px;
-  border: 1px solid rgba(118, 216, 255, 0.22);
+  right: -18px;
+  bottom: -24px;
+  width: min(36%, 260px);
+  padding: 0;
+  border: 0;
   border-radius: 28px;
-  background: rgba(6, 14, 28, 0.9);
-  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.52);
+  background: transparent;
+  box-shadow: none;
 }
 
 .product-shot--phone img {
@@ -952,16 +944,17 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 
 .scenario-shot {
   position: relative;
-  padding: 10px;
-  border: 1px solid var(--neriva-line);
+  padding: 0;
+  border: 0;
   border-radius: 28px;
-  background: rgba(6, 14, 28, 0.74);
-  box-shadow: var(--neriva-shadow);
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .scenario-shot .product-shot img,
 .feature-panel .product-shot img {
-  max-height: 540px;
+  max-height: 570px;
   object-fit: contain;
 }
 
@@ -1522,7 +1515,7 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 .image-preview {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 1000;
   display: grid;
   place-items: center;
   padding: 28px;
@@ -1532,8 +1525,10 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 
 .image-preview__close {
   position: fixed;
+  z-index: 1001;
   top: 22px;
-  right: 22px;
+  right: auto;
+  left: 22px;
   display: grid;
   place-items: center;
   width: 48px;
@@ -1546,6 +1541,7 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 }
 
 .image-preview__frame {
+  box-sizing: border-box;
   width: min(1120px, 100%);
   max-height: calc(100svh - 96px);
   margin: 0;
@@ -1554,8 +1550,15 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   border-radius: 26px;
   background: rgba(8, 17, 31, 0.88);
   box-shadow: var(--neriva-shadow);
-  overflow: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.image-preview__frame:active {
+  cursor: grabbing;
 }
 
 .image-preview__frame img {
@@ -1564,10 +1567,11 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   max-height: calc(100svh - 160px);
   object-fit: contain;
   border-radius: 16px;
-  transform: scale(var(--preview-scale, 1));
+  transform: translate(var(--preview-pan-x, 0), var(--preview-pan-y, 0)) scale(var(--preview-scale, 1));
   transform-origin: center center;
   transition: transform 120ms ease;
   will-change: transform;
+  pointer-events: none;
 }
 
 .image-preview__frame figcaption {

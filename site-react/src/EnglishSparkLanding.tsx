@@ -1,4 +1,5 @@
-import { useEffect, useState, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -138,6 +139,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const [activeMobile, setActiveMobile] = useState(0);
   const [preview, setPreview] = useState<{ image: ProductImage; alt: string } | null>(null);
   const [previewScale, setPreviewScale] = useState(1);
+  const [previewPan, setPreviewPan] = useState({ x: 0, y: 0 });
+  const previewDragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
   const active = copy.features.items[activeFeature] ?? copy.features.items[0];
   const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
   const activeImage = productImages[active.imageKey] ?? productImages.aiTutor;
@@ -148,10 +151,13 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const openPreview = (image: ProductImage, alt: string) => {
     setPreview({ image, alt });
     setPreviewScale(1);
+    setPreviewPan({ x: 0, y: 0 });
   };
   const closePreview = () => {
     setPreview(null);
     setPreviewScale(1);
+    setPreviewPan({ x: 0, y: 0 });
+    previewDragRef.current = null;
   };
   const zoomPreview = (deltaY: number) => {
     setPreviewScale((value) => {
@@ -175,7 +181,48 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
     return () => window.removeEventListener("wheel", onWheel);
   }, [preview]);
 
+  useEffect(() => {
+    if (previewScale <= 1) {
+      setPreviewPan({ x: 0, y: 0 });
+      previewDragRef.current = null;
+    }
+  }, [previewScale]);
+
+  const startPreviewPan = (event: React.PointerEvent<HTMLElement>) => {
+    if (previewScale <= 1) return;
+    event.preventDefault();
+    event.stopPropagation();
+    previewDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: previewPan.x,
+      originY: previewPan.y,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const movePreviewPan = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = previewDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    setPreviewPan({
+      x: Math.round(drag.originX + event.clientX - drag.startX),
+      y: Math.round(drag.originY + event.clientY - drag.startY),
+    });
+  };
+
+  const stopPreviewPan = (event: React.PointerEvent<HTMLElement>) => {
+    const drag = previewDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    previewDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
   return (
+    <>
     <main className="english-spark-landing" data-visual-anchor="premium-tech-narrative">
       <section className="landing-hero" data-hero-preset="dark">
         <div className="landing-hero__matter" aria-hidden="true">
@@ -379,27 +426,6 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </RevealSection>
 
-      <RevealSection className="spark-section telegram-section">
-        <div className="section-copy">
-          <span className="eyebrow">{copy.telegram.eyebrow}</span>
-          <h2>{copy.telegram.title}</h2>
-          <p>{copy.telegram.body}</p>
-        </div>
-        <RevealBlock className="telegram-panel">
-          <ProductShot image={productImages.telegram} alt={imgAlt(productImages.telegram)} onOpen={openPreview} />
-          <div className="telegram-panel__copy">
-            <BookOpen size={22} />
-            <strong>{copy.telegram.note}</strong>
-            <div className="telegram-panel__chips">
-              {copy.telegram.chips.map((chip) => <span key={chip}>{chip}</span>)}
-            </div>
-            <a className="entry-cta" data-entry="telegram" href={TELEGRAM_HREF}>
-              {copy.telegram.cta} <ArrowRight size={18} />
-            </a>
-          </div>
-        </RevealBlock>
-      </RevealSection>
-
       <RevealSection className="spark-section mobile-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.mobile.eyebrow}</span>
@@ -497,11 +523,20 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </RevealBlock>
       </RevealSection>
 
-      {preview ? (
+    </main>
+
+      {preview ? createPortal(
         <div
           className="image-preview"
           data-preview-scale={previewScale.toFixed(2)}
-          style={{ "--preview-scale": previewScale } as CSSProperties}
+          data-preview-pan={`${previewPan.x},${previewPan.y}`}
+          style={
+            {
+              "--preview-scale": previewScale,
+              "--preview-pan-x": `${previewPan.x}px`,
+              "--preview-pan-y": `${previewPan.y}px`,
+            } as CSSProperties
+          }
           role="dialog"
           aria-modal="true"
           aria-label={preview.alt}
@@ -521,6 +556,10 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <figure
             className="image-preview__frame"
             onClick={(event) => event.stopPropagation()}
+            onPointerDown={startPreviewPan}
+            onPointerMove={movePreviewPan}
+            onPointerUp={stopPreviewPan}
+            onPointerCancel={stopPreviewPan}
             onWheel={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -530,8 +569,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             <img src={preview.image.src} alt={preview.alt} />
             <figcaption>{preview.alt}</figcaption>
           </figure>
-        </div>
+        </div>,
+        document.body
       ) : null}
-    </main>
+    </>
   );
 }
