@@ -67,6 +67,22 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
   expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(210);
   expect(heroState.emptyProofCells).toBe(0);
 
+  const premiumSurfaceState = await page.locator(".english-spark-landing").evaluate((landing) => {
+    const surface = landing as HTMLElement;
+    const card = document.querySelector(".hero-proof > span") as HTMLElement;
+    return {
+      backgroundImage: getComputedStyle(surface).backgroundImage,
+      cardAnimation: getComputedStyle(card).animationName,
+      cardBackground: getComputedStyle(card).backgroundImage,
+      cardBackgroundSize: getComputedStyle(card).backgroundSize,
+    };
+  });
+  expect(premiumSurfaceState.backgroundImage).toContain("radial-gradient");
+  expect(premiumSurfaceState.backgroundImage).not.toContain("rgba(255, 255, 255, 0.025) 1px");
+  expect(premiumSurfaceState.cardAnimation).toContain("nerivaBorderOrbit");
+  expect(premiumSurfaceState.cardBackground).toContain("linear-gradient");
+  expect(premiumSurfaceState.cardBackgroundSize).toContain("260%");
+
   const heroCanvasState = await page.locator(".premium-hero-animation__three canvas").evaluate((canvas) => {
     const element = canvas as HTMLCanvasElement;
     const box = element.getBoundingClientRect();
