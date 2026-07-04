@@ -240,7 +240,7 @@ html[data-site-theme="dark"] body {
 .landing-hero__matter {
   position: absolute;
   z-index: 0;
-  inset: 0;
+  inset: 42px 0 -42px;
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -1178,11 +1178,7 @@ html[data-site-theme="dark"] body {
   height: 20px;
 }
 
-.social-icon-link:not(.social-icon-link--telegram) img {
-  filter: grayscale(1) brightness(1.55);
-}
-
-.social-icon-link--telegram img {
+.social-icon-link img {
   filter: none;
 }
 
@@ -1261,6 +1257,10 @@ html[data-site-theme="dark"] body {
   display: grid;
   align-content: start;
   gap: 10px;
+}
+
+.site-footer > div address {
+  margin-top: 18px;
 }
 
 .site-footer strong {
@@ -1352,7 +1352,7 @@ html[data-site-theme="dark"] body {
   }
 
   .landing-hero__matter {
-    inset: 0;
+    inset: 34px 0 -34px;
     width: 100%;
     height: 100%;
     transform: none;
@@ -1580,7 +1580,7 @@ html[data-site-theme="dark"] body {
 
 @media (max-width: 430px) {
   .landing-hero__matter {
-    inset: 0;
+    inset: 22px 0 -22px;
     width: 100%;
     height: 100%;
     opacity: 0.2;

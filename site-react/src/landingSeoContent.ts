@@ -39,6 +39,26 @@ export const staticSeoGuideLinks = [
     ru: { href: "/telegram-language-bot.html", label: "Telegram-бот" },
     en: { href: "/en/telegram-language-bot.html", label: "Telegram bot" },
   },
+  {
+    slug: "ai-english-tutor",
+    ru: { href: "/ai-english-tutor.html", label: "AI-репетитор английского" },
+    en: { href: "/en/ai-english-tutor.html", label: "AI English tutor" },
+  },
+  {
+    slug: "english-speaking-practice",
+    ru: { href: "/english-speaking-practice.html", label: "Разговорный английский" },
+    en: { href: "/en/english-speaking-practice.html", label: "English speaking practice" },
+  },
+  {
+    slug: "english-pronunciation-trainer",
+    ru: { href: "/english-pronunciation-trainer.html", label: "Тренажер произношения" },
+    en: { href: "/en/english-pronunciation-trainer.html", label: "Pronunciation trainer" },
+  },
+  {
+    slug: "language-learning-web-app",
+    ru: { href: "/language-learning-web-app.html", label: "Web app для языков" },
+    en: { href: "/en/language-learning-web-app.html", label: "Language web app" },
+  },
 ] as const;
 
 export const landingSeoCopy = {

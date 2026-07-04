@@ -46,6 +46,42 @@ const pages = [
     ruH1: "Telegram-бот NERIVA как быстрый вход в языковую практику",
     enH1: "NERIVA Telegram bot for fast language practice",
   },
+  {
+    slug: "ai-english-tutor",
+    ruPath: "/ai-english-tutor.html",
+    enPath: "/en/ai-english-tutor.html",
+    ruTitle: "AI-репетитор английского онлайн - NERIVA",
+    enTitle: "AI English Tutor Online - NERIVA",
+    ruH1: "AI-репетитор английского для speaking, слов и ошибок",
+    enH1: "AI English tutor for speaking, vocabulary, and mistakes",
+  },
+  {
+    slug: "english-speaking-practice",
+    ruPath: "/english-speaking-practice.html",
+    enPath: "/en/english-speaking-practice.html",
+    ruTitle: "Практика разговорного английского онлайн - NERIVA",
+    enTitle: "English Speaking Practice Online - NERIVA",
+    ruH1: "Практика разговорного английского онлайн без расписания",
+    enH1: "English speaking practice online without scheduling",
+  },
+  {
+    slug: "english-pronunciation-trainer",
+    ruPath: "/english-pronunciation-trainer.html",
+    enPath: "/en/english-pronunciation-trainer.html",
+    ruTitle: "Тренажер произношения английских слов - NERIVA",
+    enTitle: "English Pronunciation Trainer Online - NERIVA",
+    ruH1: "Тренажер произношения английских слов и фраз",
+    enH1: "English pronunciation trainer for words and phrases",
+  },
+  {
+    slug: "language-learning-web-app",
+    ruPath: "/language-learning-web-app.html",
+    enPath: "/en/language-learning-web-app.html",
+    ruTitle: "Web app для изучения языков - NERIVA",
+    enTitle: "Language Learning Web App - NERIVA",
+    ruH1: "Web app для изучения языков с AI и Telegram",
+    enH1: "Language learning web app with AI and Telegram",
+  },
 ] as const;
 
 const rebrandedPublicPaths = [
@@ -60,11 +96,19 @@ const rebrandedPublicPaths = [
   "/pronunciation.html",
   "/photo-translation.html",
   "/telegram-language-bot.html",
+  "/ai-english-tutor.html",
+  "/english-speaking-practice.html",
+  "/english-pronunciation-trainer.html",
+  "/language-learning-web-app.html",
   "/en/ai-tutor.html",
   "/en/speaking-practice.html",
   "/en/pronunciation.html",
   "/en/photo-translation.html",
   "/en/telegram-language-bot.html",
+  "/en/ai-english-tutor.html",
+  "/en/english-speaking-practice.html",
+  "/en/english-pronunciation-trainer.html",
+  "/en/language-learning-web-app.html",
 ] as const;
 
 const legalPaths = new Set(["/privacy.html", "/terms.html", "/agreement.html", "/consent.html"]);
@@ -122,7 +166,7 @@ test.describe("static SEO pages", () => {
         expect(pageSnapshot, `${path} should expose current support email`).toContain("support@neriva.ru");
         expect(pageSnapshot, `${path} should expose current Telegram app bot`).toContain("@NERIVAapp_bot");
         await expect(page.locator('a[href="mailto:support@neriva.ru"]').first()).toBeVisible();
-        await expect(page.locator('a[href="https://t.me/NERIVAapp_bot"]').first()).toBeVisible();
+        await expect(page.locator('a[href="https://t.me/NERIVAapp_bot"]').filter({ visible: true }).first()).toBeVisible();
       }
     }
   });
@@ -141,7 +185,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
       await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
       await expect(page.locator(".seo-faq__item")).toHaveCount(5);
-      await expect(page.locator(".seo-related a")).toHaveCount(4);
+      await expect(page.locator(".seo-related a")).toHaveCount(pages.length - 1);
       await expect(page.locator('a[data-entry="web-app"]').first()).toHaveAttribute("href", "/app/");
       await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html");
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
@@ -214,7 +258,7 @@ test.describe("static SEO pages", () => {
   });
 
   test("keeps the static SEO and AEO page cluster Russian and English only", async ({ request }) => {
-    expect(pages).toHaveLength(5);
+    expect(pages).toHaveLength(9);
 
     for (const item of pages) {
       await expect.poll(async () => (await request.get(item.ruPath)).status(), { message: `${item.ruPath} should stay available` }).toBe(200);
@@ -230,14 +274,31 @@ test.describe("static SEO pages", () => {
     await page.goto("/poliglot-ai.html?lang=en");
 
     const guideLinks = page.locator(".seo-guides a");
-    await expect(guideLinks).toHaveCount(5);
+    await expect(guideLinks).toHaveCount(pages.length);
     await expect(page.locator(".landing-hero .seo-guides")).toHaveCount(0);
     await expect(page.locator(".public-nav .seo-guides")).toHaveCount(0);
     await expect(guideLinks.first()).toHaveAttribute("href", "/en/ai-tutor.html");
 
     await page.goto("/poliglot-ai.html?lang=ru");
     const ruGuideLinks = page.locator(".seo-guides a");
-    await expect(ruGuideLinks).toHaveCount(5);
+    await expect(ruGuideLinks).toHaveCount(pages.length);
     await expect(ruGuideLinks.first()).toHaveAttribute("href", "/ai-tutor.html");
+  });
+
+  test("landing social links use downloaded color icon assets", async ({ page }) => {
+    await page.goto("/poliglot-ai.html?lang=en");
+
+    const expectedIcons = [
+      "/assets/social/youtube-full-color.svg",
+      "/assets/social/instagram-logo-2022.svg",
+      "/assets/social/tiktok-icon.svg",
+      "/assets/social/telegram-logo.png",
+    ];
+
+    for (const src of expectedIcons) {
+      await expect(page.locator(`.social-icon-link img[src="${src}"]`).first()).toBeVisible();
+      const response = await page.request.get(src);
+      expect(response.ok(), `${src} should be a served downloaded social icon asset`).toBe(true);
+    }
   });
 });

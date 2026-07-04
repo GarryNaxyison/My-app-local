@@ -22,7 +22,9 @@ test("landing v3 uses the premium dark reference and exposes only Russian and En
   await expect(page.locator(".nav-theme-toggle")).toHaveCount(0);
   await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "dark");
   await expect(page.locator(".english-spark-landing")).toHaveAttribute("data-visual-anchor", "premium-tech-narrative");
-  await expect(page.locator(".seo-guides")).toHaveCount(0);
+  await expect(page.locator(".seo-guides")).toHaveCount(1);
+  await expect(page.locator(".landing-hero .seo-guides")).toHaveCount(0);
+  await expect(page.locator(".public-nav .seo-guides")).toHaveCount(0);
 
   const optionValues = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
     options.map((option) => (option as HTMLOptionElement).value),
@@ -93,6 +95,32 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
   await expect(page.locator(".methodology-step")).toHaveCount(3);
   await expect(page.locator(".methodology-timeline")).toContainText("Discovery");
   await expect(page.locator(".methodology-timeline")).toContainText("Review");
+});
+
+test("Russian landing localizes metrics and methodology blocks", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=ru");
+
+  await expect(page.locator(".stitch-metrics")).toContainText("Анализ речи");
+  await expect(page.locator(".stitch-metrics")).toContainText("Глубина маршрута");
+  await expect(page.locator(".stitch-metrics")).toContainText("Браузер и Telegram используют одну учебную память");
+  await expect(page.locator(".stitch-metrics")).not.toContainText("Speech analysis");
+  await expect(page.locator(".stitch-metrics")).not.toContainText("Browser and Telegram share");
+
+  await expect(page.locator(".methodology-timeline")).toContainText("Методика");
+  await expect(page.locator(".methodology-timeline")).toContainText("Диагностика");
+  await expect(page.locator(".methodology-timeline")).toContainText("Правка");
+  await expect(page.locator(".methodology-timeline")).toContainText("Повтор");
+  await expect(page.locator(".methodology-timeline")).not.toContainText("Methodology");
+  await expect(page.locator(".methodology-timeline")).not.toContainText("Discovery");
+});
+
+test("footer keeps contacts in the first column without duplicate Telegram links", async ({ page }) => {
+  await page.goto("/poliglot-ai.html?lang=ru");
+
+  const firstColumn = page.locator(".site-footer > div").first();
+  await expect(firstColumn.locator("address")).toBeVisible();
+  await expect(firstColumn.locator("address")).toContainText("Контакты");
+  await expect(firstColumn.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveCount(1);
 });
 
 test("landing v3 pricing, community and final CTA are product-specific dark sections", async ({ page }) => {

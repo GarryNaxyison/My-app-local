@@ -427,7 +427,7 @@ export function PublicSiteApp() {
     <div className="public-shell">
       <SiteNavDrawer page={page} theme={effectiveTheme} copy={landingCopy.nav} showThemeToggle={page !== "landing"} onThemeToggle={() => setTheme(theme === "dark" ? "light" : "dark")} />
       {page === "landing" ? <EnglishSparkLanding language={language} /> : <LegalPageV2 page={page} />}
-      <SiteFooterEnglish showSeoGuides={false} copy={landingCopy.nav} language={language} />
+      <SiteFooterEnglish showSeoGuides={page === "landing"} copy={landingCopy.nav} language={language} />
       <CookieConsentBanner />
     </div>
   );
@@ -1319,8 +1319,14 @@ function SiteFooterEnglish({ showSeoGuides, copy, language }: { showSeoGuides: b
     <footer className="site-footer">
       <div>
         <strong>NERIVA</strong>
-        <p>AI Tutor for lessons, roleplay, voice, photo practice, and mistake review across web app and Telegram.</p>
+        <p>{isRussian ? "AI-репетитор для уроков, roleplay, голоса, фото-практики и повтора ошибок в браузере и Telegram." : "AI Tutor for lessons, roleplay, voice, photo practice, and mistake review across web app and Telegram."}</p>
         <span>© 2026 NERIVA. All rights reserved.</span>
+        <address>
+          <strong>{isRussian ? "Контакты" : "Contacts"}</strong>
+          <a href="/app/">neriva.ru/app</a>
+          <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
+          <a href="mailto:support@neriva.ru">support@neriva.ru</a>
+        </address>
       </div>
       <nav>
         <strong>{isRussian ? "Навигация" : "Navigation"}</strong>
@@ -1350,13 +1356,6 @@ function SiteFooterEnglish({ showSeoGuides, copy, language }: { showSeoGuides: b
         <a href="/agreement.html"><span data-legal-nav="agreement">{copy.agreement}</span></a>
         <a href="/consent.html"><span data-legal-nav="consent">{copy.consent}</span></a>
       </nav>
-      <address>
-        <strong>Contacts</strong>
-        <a href="/app/">neriva.ru/app</a>
-        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
-        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
-        <a href="mailto:support@neriva.ru">support@neriva.ru</a>
-      </address>
     </footer>
   );
 }
@@ -1368,6 +1367,12 @@ function SiteFooter() {
         <strong>NERIVA</strong>
         <p>Premium AI-репетитор для уроков, диалогов, голоса, фото-перевода и словаря ошибок в web app, PWA и Telegram.</p>
         <span>© 2026 NERIVA. Все права защищены.</span>
+        <address>
+          <strong>Контакты</strong>
+          <a href="/app/">neriva.ru/app</a>
+          <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
+          <a href="mailto:support@neriva.ru">support@neriva.ru</a>
+        </address>
       </div>
       <nav>
         <strong>Навигация</strong>
@@ -1382,13 +1387,6 @@ function SiteFooter() {
         <a href="/privacy.html">Политика обработки данных</a>
         <a href="/terms.html">Условия использования</a>
       </nav>
-      <address>
-        <strong>Контакты</strong>
-        <a href="/app/">neriva.ru/app</a>
-        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
-        <a href="https://t.me/NERIVAapp_bot">@NERIVAapp_bot</a>
-        <a href="mailto:support@neriva.ru">support@neriva.ru</a>
-      </address>
     </footer>
   );
 }
