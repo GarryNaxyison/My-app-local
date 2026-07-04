@@ -247,6 +247,35 @@ test("landing v3 mobile is compact with no horizontal overflow", async ({ page }
   expect(layout.overflowX).toBe(0);
 });
 
+test("landing v3 mobile hero and methodology do not look clipped", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/poliglot-ai.html?lang=ru");
+
+  const layout = await page.evaluate(() => {
+    const hero = document.querySelector(".landing-hero") as HTMLElement;
+    const step = document.querySelector(".methodology-step") as HTMLElement;
+    const label = step.querySelector(":scope > span") as HTMLElement;
+    const dot = getComputedStyle(step, "::before");
+    const heroBox = hero.getBoundingClientRect();
+    const stepBox = step.getBoundingClientRect();
+    const labelBox = label.getBoundingClientRect();
+    const dotLeft = stepBox.left + Number.parseFloat(dot.left);
+    const dotRight = dotLeft + Number.parseFloat(dot.width);
+
+    return {
+      heroLeft: Math.round(heroBox.left),
+      heroRight: Math.round(heroBox.right),
+      viewportWidth: window.innerWidth,
+      labelLeft: Math.round(labelBox.left),
+      dotRight: Math.round(dotRight),
+    };
+  });
+
+  expect(layout.heroLeft).toBe(0);
+  expect(layout.heroRight).toBe(layout.viewportWidth);
+  expect(layout.labelLeft).toBeGreaterThanOrEqual(layout.dotRight + 12);
+});
+
 test("landing v3 product screenshots open a focused preview", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 

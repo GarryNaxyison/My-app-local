@@ -337,6 +337,8 @@ html[data-site-theme="dark"] body {
 }
 
 .landing-hero {
+  width: 100%;
+  max-width: none;
   min-height: calc(100svh - 72px);
   display: grid;
   align-items: center;
@@ -379,6 +381,8 @@ html[data-site-theme="dark"] body {
   grid-template-columns: minmax(0, 0.95fr) minmax(440px, 1.05fr);
   gap: clamp(34px, 6vw, 84px);
   align-items: center;
+  width: min(1280px, calc(100% - 48px));
+  margin: 0 auto;
   padding: 0;
 }
 
@@ -1686,8 +1690,14 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   }
 
   .landing-hero {
+    width: 100%;
+    max-width: none;
     min-height: auto;
     padding: 38px 0 46px;
+  }
+
+  .landing-hero__inner {
+    width: min(100% - 24px, 1280px);
   }
 
   .landing-hero h1 {
@@ -1769,7 +1779,15 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 
   .methodology-step {
     min-height: 176px;
-    padding-left: 34px;
+    padding: 24px 20px 22px 54px;
+  }
+
+  .methodology-timeline__steps::before {
+    left: 26px;
+  }
+
+  .methodology-step::before {
+    left: 20px;
   }
 
   .methodology-step::after {
@@ -1794,7 +1812,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 
   .feature-panel,
   .mobile-panel,
-  .methodology-step,
   .ecosystem-card,
   .telegram-panel,
   .community-panel,
