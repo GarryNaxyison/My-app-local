@@ -71,6 +71,11 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
 test("landing v3 uses before-after bridge and a controlled feature carousel", async ({ page }) => {
   await page.goto("/poliglot-ai.html?lang=en");
 
+  await expect(page.locator(".stitch-metrics")).toBeVisible();
+  await expect(page.locator(".stitch-metric-card")).toHaveCount(3);
+  await expect(page.locator(".stitch-metrics")).toContainText("98%");
+  await expect(page.locator(".stitch-metrics")).toContainText("A1-C2");
+
   await expect(page.locator(".before-after-bridge")).toBeVisible();
   await expect(page.locator(".before-after-bridge")).toContainText("Before");
   await expect(page.locator(".before-after-bridge")).toContainText("After");
@@ -83,6 +88,11 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
   await expect(page.locator(".feature-carousel")).toContainText("Voice");
   await expect(page.locator(".feature-carousel")).toContainText("Photo");
   await expect(page.locator(".feature-carousel")).toContainText("Mistakes");
+
+  await expect(page.locator(".methodology-timeline")).toBeVisible();
+  await expect(page.locator(".methodology-step")).toHaveCount(3);
+  await expect(page.locator(".methodology-timeline")).toContainText("Discovery");
+  await expect(page.locator(".methodology-timeline")).toContainText("Review");
 });
 
 test("landing v3 pricing, community and final CTA are product-specific dark sections", async ({ page }) => {
@@ -96,6 +106,11 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
   await expect(page.locator(".telegram-panel")).toContainText("Voice");
   await expect(page.locator(".telegram-panel")).toContainText("Photo");
   await expect(page.locator(".telegram-panel")).toContainText("Reminder");
+
+  await expect(page.locator(".ecosystem-showcase")).toBeVisible();
+  await expect(page.locator(".ecosystem-showcase .product-shot")).toHaveCount(3);
+  await expect(page.locator(".ecosystem-showcase")).toContainText("Web app");
+  await expect(page.locator(".ecosystem-showcase")).toContainText("Telegram");
 
   await expect(page.locator(".community-section")).toContainText("NERIVA channel");
   await expect(page.locator(".community-section")).not.toContainText("reviews");

@@ -41,6 +41,11 @@ export type LandingContent = {
     proof: readonly [string, string][];
     badges: readonly string[];
   };
+  metrics: readonly {
+    label: string;
+    value: string;
+    body: string;
+  }[];
   beforeAfter: {
     eyebrow: string;
     title: string;
@@ -92,6 +97,26 @@ export type LandingContent = {
     title: string;
     body: string;
     items: readonly LandingMobileExample[];
+  };
+  ecosystem: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    items: readonly {
+      title: string;
+      body: string;
+      imageKey: keyof LandingContent["images"];
+    }[];
+  };
+  methodology: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    steps: readonly {
+      label: string;
+      title: string;
+      body: string;
+    }[];
   };
   community: {
     eyebrow: string;
@@ -155,6 +180,11 @@ const english: LandingContent = {
     ],
     badges: ["CEFR level", "6 chunks", "review date"],
   },
+  metrics: [
+    { label: "Speech analysis", value: "98%", body: "Target clarity for repeat-and-correct practice" },
+    { label: "Route depth", value: "A1-C2", body: "Level-aware lessons, voice and review" },
+    { label: "Profile", value: "1", body: "Browser and Telegram share the same learning memory" },
+  ],
   beforeAfter: {
     eyebrow: "Before / After",
     title: "More than a vocabulary app: NERIVA closes the loop",
@@ -286,6 +316,26 @@ const english: LandingContent = {
       },
     ],
   },
+  ecosystem: {
+    eyebrow: "Ecosystem",
+    title: "Web, mobile and Telegram stay in one loop",
+    body: "The Stitch direction uses a device triptych: the browser for full lessons, mobile web for quick review, and Telegram for fast capture.",
+    items: [
+      { title: "Web app", body: "Full dashboard, lesson correction, pricing and longer sessions.", imageKey: "dashboard" },
+      { title: "Mobile web", body: "Short lesson, review and voice practice from the phone.", imageKey: "mobileHome" },
+      { title: "Telegram", body: "Fast start, reminders, voice, photo and the same profile.", imageKey: "telegram" },
+    ],
+  },
+  methodology: {
+    eyebrow: "Methodology",
+    title: "Discovery, lesson, review",
+    body: "The Stitch screen adds a vertical operating model. In NERIVA it maps to how a weak phrase becomes a timed repeat.",
+    steps: [
+      { label: "Phase 01", title: "Discovery", body: "NERIVA reads the goal, level and context before choosing the task." },
+      { label: "Phase 02", title: "Correction", body: "The answer is checked like a teacher would check a short speaking attempt." },
+      { label: "Phase 03", title: "Review", body: "Weak phrases return through mistakes, notes, voice and Telegram reminders." },
+    ],
+  },
   community: {
     eyebrow: "Community",
     title: "NERIVA channel: lessons, updates and Premium giveaways",
@@ -353,6 +403,7 @@ const russian: LandingContent = {
     ],
     badges: ["уровень CEFR", "6 чанков", "дата повтора"],
   },
+  metrics: english.metrics,
   beforeAfter: {
     eyebrow: "До / После",
     title: "Больше чем словарик: NERIVA закрывает цикл обучения",
@@ -484,6 +535,8 @@ const russian: LandingContent = {
       },
     ],
   },
+  ecosystem: english.ecosystem,
+  methodology: english.methodology,
   community: {
     eyebrow: "Сообщество",
     title: "Канал NERIVA: уроки, обновления и розыгрыши Premium",

@@ -177,6 +177,7 @@ html[data-site-theme="dark"] body {
 }
 
 .landing-hero,
+.stitch-metrics,
 .before-after-bridge,
 .spark-section,
 .pricing-section,
@@ -279,8 +280,9 @@ html[data-site-theme="dark"] body {
 }
 
 .premium-hero-animation__three {
-  inset: -5% -8% -5% 28%;
+  inset: -18% -8% 7% 28%;
   opacity: 0.98;
+  transform: translateY(-8%);
 }
 
 .hero-announcement,
@@ -399,9 +401,12 @@ html[data-site-theme="dark"] body {
 }
 
 .hero-proof span,
+.stitch-metric-card,
 .before-after-bridge article,
 .feature-carousel__tab,
 .feature-panel,
+.methodology-step,
+.ecosystem-card,
 .mobile-carousel__tab,
 .mobile-panel,
 .plan-card,
@@ -436,6 +441,7 @@ html[data-site-theme="dark"] body {
   display: grid;
   place-items: center;
   min-height: 620px;
+  transform: translateY(54px);
 }
 
 .hero-product-frame::before {
@@ -534,6 +540,42 @@ html[data-site-theme="dark"] body {
 .pricing-section,
 .final-cta-section {
   padding: 92px 0;
+}
+
+.stitch-metrics {
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: -36px;
+}
+
+.stitch-metric-card {
+  min-height: 154px;
+  padding: 26px;
+  border-radius: 24px;
+}
+
+.stitch-metric-card span,
+.methodology-step > span {
+  color: var(--neriva-cyan);
+  font: 700 12px "JetBrains Mono", monospace;
+  text-transform: uppercase;
+}
+
+.stitch-metric-card strong {
+  display: block;
+  margin: 12px 0 8px;
+  color: #ffffff;
+  font-family: "Sora", sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 0.95;
+}
+
+.stitch-metric-card p {
+  margin: 0;
+  color: rgba(218, 227, 247, 0.72);
+  line-height: 1.55;
 }
 
 .section-copy {
@@ -759,6 +801,70 @@ html[data-site-theme="dark"] body {
   object-fit: contain;
 }
 
+.methodology-timeline {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.methodology-timeline .section-copy {
+  position: sticky;
+  top: 110px;
+  margin-bottom: 0;
+}
+
+.methodology-timeline__steps {
+  position: relative;
+  display: grid;
+  gap: 26px;
+}
+
+.methodology-timeline__steps::before {
+  content: "";
+  position: absolute;
+  top: 22px;
+  bottom: 22px;
+  left: 15px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(118, 216, 255, 0), rgba(118, 216, 255, 0.48), rgba(118, 216, 255, 0));
+}
+
+.methodology-step {
+  position: relative;
+  min-height: 186px;
+  padding: 28px 28px 28px 42px;
+  border-radius: 24px;
+}
+
+.methodology-step::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 32px;
+  width: 13px;
+  height: 13px;
+  border-radius: 999px;
+  background: var(--neriva-cyan);
+  box-shadow: 0 0 22px rgba(118, 216, 255, 0.72);
+}
+
+.methodology-step h3,
+.ecosystem-card strong {
+  display: block;
+  margin: 12px 0;
+  color: #ffffff;
+  font-family: "Sora", sans-serif;
+  font-size: 24px;
+}
+
+.methodology-step p,
+.ecosystem-card p {
+  margin: 0;
+  color: rgba(218, 227, 247, 0.72);
+  line-height: 1.6;
+}
+
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -766,11 +872,13 @@ html[data-site-theme="dark"] body {
 }
 
 .plan-card {
+  position: relative;
   display: flex;
   min-height: 620px;
   flex-direction: column;
   padding: 28px;
   border-radius: 26px;
+  overflow: hidden;
 }
 
 .plan-card.is-featured {
@@ -812,6 +920,46 @@ html[data-site-theme="dark"] body {
 
 .plan-card a {
   margin-top: auto;
+}
+
+.plan-recommendation {
+  align-self: flex-start;
+  margin: -4px 0 18px;
+  padding: 7px 12px;
+  border: 1px solid rgba(118, 216, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(118, 216, 255, 0.12);
+  color: #ffffff;
+  font: 700 11px "JetBrains Mono", monospace;
+  text-transform: uppercase;
+}
+
+.ecosystem-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.ecosystem-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100%;
+  padding: 18px;
+  border-radius: 26px;
+}
+
+.ecosystem-card .product-shot {
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: rgba(6, 14, 28, 0.82);
+}
+
+.ecosystem-card .product-shot img {
+  max-height: 420px;
+  object-fit: contain;
 }
 
 .telegram-panel {
@@ -1060,6 +1208,7 @@ html[data-site-theme="dark"] body {
   .landing-hero__inner,
   .lesson-scenario,
   .feature-carousel,
+  .methodology-timeline,
   .mobile-carousel,
   .telegram-panel,
   .final-cta-section {
@@ -1076,6 +1225,7 @@ html[data-site-theme="dark"] body {
 
   .hero-product-frame {
     min-height: 520px;
+    transform: translateY(28px);
   }
 
   .feature-carousel__tabs,
@@ -1094,9 +1244,19 @@ html[data-site-theme="dark"] body {
     min-height: 0;
   }
 
+  .methodology-timeline .section-copy {
+    position: static;
+  }
+
+  .stitch-metrics,
+  .ecosystem-showcase__grid,
   .pricing-grid,
   .site-footer {
     grid-template-columns: 1fr;
+  }
+
+  .stitch-metrics {
+    margin-top: 0;
   }
 
   .plan-card.is-featured {
@@ -1107,6 +1267,7 @@ html[data-site-theme="dark"] body {
 @media (max-width: 760px) {
   .public-nav--drawer,
   .landing-hero,
+  .stitch-metrics,
   .before-after-bridge,
   .spark-section,
   .pricing-section,
@@ -1165,6 +1326,7 @@ html[data-site-theme="dark"] body {
 
   .hero-product-frame {
     min-height: 270px;
+    transform: translateY(12px);
   }
 
   .hero-product-frame::before {
@@ -1193,6 +1355,10 @@ html[data-site-theme="dark"] body {
     padding: 58px 0;
   }
 
+  .stitch-metrics {
+    padding: 24px 0 0;
+  }
+
   .feature-carousel__tabs,
   .mobile-carousel__tabs {
     display: flex;
@@ -1211,6 +1377,8 @@ html[data-site-theme="dark"] body {
 
   .feature-panel,
   .mobile-panel,
+  .methodology-step,
+  .ecosystem-card,
   .telegram-panel,
   .community-panel,
   .final-cta-section__copy,

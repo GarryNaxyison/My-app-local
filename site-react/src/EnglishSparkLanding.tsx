@@ -119,6 +119,16 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </section>
 
+      <section className="stitch-metrics" aria-label="NERIVA operating metrics">
+        {copy.metrics.map((metric) => (
+          <article className="stitch-metric-card" key={metric.label}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <p>{metric.body}</p>
+          </article>
+        ))}
+      </section>
+
       <section className="before-after-bridge" aria-label="Before and after NERIVA">
         <div className="section-copy">
           <span className="eyebrow">{copy.beforeAfter.eyebrow}</span>
@@ -199,6 +209,23 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </section>
 
+      <section className="spark-section methodology-timeline" aria-label={copy.methodology.title}>
+        <div className="section-copy">
+          <span className="eyebrow">{copy.methodology.eyebrow}</span>
+          <h2>{copy.methodology.title}</h2>
+          <p>{copy.methodology.body}</p>
+        </div>
+        <div className="methodology-timeline__steps">
+          {copy.methodology.steps.map((step) => (
+            <article className="methodology-step" key={step.label}>
+              <span>{step.label}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section id="pricing" className="pricing-section">
         <div className="section-copy">
           <span className="eyebrow">{copy.pricing.eyebrow}</span>
@@ -208,6 +235,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         <div className="pricing-grid">
           {copy.pricing.plans.map((plan, index) => (
             <article className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name}>
+              {index === 1 ? <span className="plan-recommendation">Recommended</span> : null}
               <span className="plan-label">{plan.label}</span>
               <h3>{plan.name}</h3>
               <div className="price-line">
@@ -233,6 +261,28 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
         <div className="payment-methods" aria-label="Payment methods">
           {copy.pricing.methods.map((method) => <span key={method}>{method}</span>)}
+        </div>
+      </section>
+
+      <section className="spark-section ecosystem-showcase" aria-label={copy.ecosystem.title}>
+        <div className="section-copy">
+          <span className="eyebrow">{copy.ecosystem.eyebrow}</span>
+          <h2>{copy.ecosystem.title}</h2>
+          <p>{copy.ecosystem.body}</p>
+        </div>
+        <div className="ecosystem-showcase__grid">
+          {copy.ecosystem.items.map((item) => {
+            const image = productImages[item.imageKey] ?? productImages.dashboard;
+            return (
+              <article className="ecosystem-card" key={item.title}>
+                <ProductShot image={image} alt={imgAlt(image)} onOpen={openPreview} />
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.body}</p>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
