@@ -7068,7 +7068,6 @@ function ChatWorkView({
   const lessonHasActiveTask = isLesson && Boolean(activeLessonTaskId);
   const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
-  const lessonActionLabel = lessonHasCompletedAnswer ? copy("ai_tutor_next_lesson", "Next lesson") : copy("new_lesson", "New lesson");
   return (
     <div className={cn("chat-workspace", `chat-workspace--${mode}`, isShadowing && !visibleMessages.length && "chat-workspace--single")} data-work-mode={mode}>
       {showOutput ? (
@@ -7103,12 +7102,6 @@ function ChatWorkView({
         </div>
       ) : null}
       <section className="v2-panel composer-panel-v2">
-        {isLesson ? (
-          <Button className="lesson-new-button-v2" type="button" variant="outline" size="sm" onClick={() => void startLesson()} disabled={busy === "lesson"}>
-            {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={15} />}
-            {lessonActionLabel}
-          </Button>
-        ) : null}
         {isShadowing && shadowingTarget ? (
           <div className="task-box-v2">
             <span>{copy("spoken_model", "Spoken model")}</span>

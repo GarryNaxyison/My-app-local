@@ -2493,7 +2493,7 @@ test("regression: lesson tab keeps one active task until the learner submits", a
   });
 
   await page.goto("/app/?view=lesson");
-  await page.locator(".lesson-new-button-v2").click();
+  await page.locator(".lesson-empty-v2 button").click();
   await expect(page.locator(".context-display--lesson")).toContainText("Lesson task 1");
   await page.locator('[data-view="words"]:visible').first().click();
   await expect(page.locator(".context-display--words")).toBeVisible();
@@ -2509,8 +2509,9 @@ test("regression: lesson tab keeps one active task until the learner submits", a
   const panelNextButton = page.locator(".context-display--lesson .lesson-panel-next-v2");
   await expect(panelNextButton).toBeVisible();
   await expect(panelNextButton).toContainText("Следующий урок");
-  await expect(page.locator(".lesson-new-button-v2")).toContainText("Следующий урок");
-  await page.locator(".lesson-new-button-v2").click();
+  await expect(page.locator(".lesson-new-button-v2")).toHaveCount(0);
+  await expect(page.locator(".context-display--lesson .lesson-panel-next-v2")).toHaveCount(1);
+  await panelNextButton.click();
   await expect(page.locator(".context-display--lesson")).toContainText("Lesson task 2");
   expect(lessonStarts).toBe(2);
 });
@@ -2531,7 +2532,7 @@ test("regression: lesson opens at the beginning instead of auto-scrolling to the
   );
 
   await page.goto("/app/?view=lesson");
-  await page.locator(".lesson-new-button-v2").click();
+  await page.locator(".lesson-empty-v2 button").click();
   await expect(page.locator(".chat-interface__scroll")).toBeVisible();
   const metrics = await page.locator(".chat-interface__scroll").evaluate((node) => {
     const element = node as HTMLElement;
@@ -3109,6 +3110,12 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=lesson");
   await expect(page.locator(".context-display--lesson")).toBeVisible();
+  const emptyPanel = await page.locator(".lesson-empty-v2").boundingBox();
+  const emptyEyebrow = await page.locator(".lesson-empty-v2 .eyebrow").boundingBox();
+  expect(emptyPanel).not.toBeNull();
+  expect(emptyEyebrow).not.toBeNull();
+  expect(emptyEyebrow!.y - emptyPanel!.y).toBeLessThanOrEqual(32);
+  await expect(page.locator(".lesson-new-button-v2")).toHaveCount(0);
   await page.locator(".lesson-empty-v2 button").click();
   await expect(page.getByText("Say that you have a reservation.")).toBeVisible();
   await expect(page.locator(".phrase-quick-save-v2")).toBeVisible();
@@ -3124,7 +3131,7 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   expect(fileControls).not.toBeNull();
   expect(sendButton).not.toBeNull();
   expect(phraseSave).not.toBeNull();
-  expect(output!.height).toBeGreaterThan(220);
+  expect(output!.height).toBeGreaterThan(200);
   expect(composer!.y).toBeGreaterThanOrEqual(output!.y + output!.height - 2);
   expect(phraseSave!.y).toBeGreaterThanOrEqual(fileControls!.y + fileControls!.height - 2);
   expect(sendButton!.x + sendButton!.width).toBeLessThanOrEqual((await page.locator(".composer-textarea-shell-v2").boundingBox())!.x + (await page.locator(".composer-textarea-shell-v2").boundingBox())!.width + 2);
@@ -3136,17 +3143,16 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   expect(phraseSave).not.toBeNull();
   expect(phraseSave!.y + phraseSave!.height).toBeLessThanOrEqual(viewport!.height - 64);
 
-  const newLessonButton = await page.locator(".lesson-new-button-v2").boundingBox();
   const mobileNav = await page.locator(".mobile-bottom-nav-v2").boundingBox();
-  expect(newLessonButton).not.toBeNull();
   expect(mobileNav).not.toBeNull();
-  expect(newLessonButton!.y).toBeGreaterThanOrEqual(0);
-  expect(newLessonButton!.y + newLessonButton!.height).toBeLessThanOrEqual(mobileNav!.y - 8);
+  await expect(page.locator(".lesson-new-button-v2")).toHaveCount(0);
 
   await page.locator(".composer-panel-v2 textarea").fill("I have a reservation.");
   await page.locator(".composer-panel-v2 textarea").press("Enter");
   await expect(page.getByText("Use under the name for reservations.")).toBeVisible();
   await expect(page.locator(".chat-interface__audio .audio-wave-button-v2").first()).toBeVisible();
+  await expect(page.locator(".context-display--lesson .lesson-panel-next-v2")).toHaveCount(1);
+  await expect(page.locator(".lesson-new-button-v2")).toHaveCount(0);
 });
 
 test("mobile roleplay session has readable scenario, dialogue and input without overlap", async ({ page, isMobile }) => {

@@ -8648,7 +8648,7 @@ select {
 
 .lesson-empty-v2 {
   min-height: 100%;
-  align-content: end;
+  align-content: start;
   gap: 12px;
 }
 
