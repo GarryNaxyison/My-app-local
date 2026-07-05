@@ -9,7 +9,7 @@ const I18N_PATH = path.join(SITE_DIR, "assets", "site-i18n.js");
 const MIRROR_PHRASES_PATHS = [
   path.join(ROOT, "site-react", "public", "assets", "site-phrases.js"),
 ];
-const PAGES = ["poliglot-ai.html", "terms.html", "privacy.html"];
+const PAGES = ["neriva.html", "terms.html", "privacy.html"];
 const REACT_SOURCES = [
   path.join(ROOT, "site-react", "src", "PublicSiteApp.tsx"),
   path.join(ROOT, "site-react", "src", "legacyLegalContent.ts"),
@@ -502,7 +502,7 @@ function createContext(lang, phrasesSource, i18nSource) {
     NodeFilter: { SHOW_TEXT: 4 },
     location: {
       search: `?lang=${lang}`,
-      href: `https://example.com/poliglot-ai.html?lang=${lang}`,
+      href: `https://example.com/neriva.html?lang=${lang}`,
       host: "example.com",
     },
     localStorage: {

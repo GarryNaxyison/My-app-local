@@ -918,7 +918,7 @@ function rendererSource(payload) {
       const original = link.dataset.legalOriginalHref || link.dataset.originalHref || link.getAttribute("href");
       if (!original || original.startsWith("#") || original.startsWith("mailto:") || original.startsWith("tel:") || /^https?:\\/\\//i.test(original)) return;
       link.dataset.legalOriginalHref = original;
-      if (/\\/(privacy|terms|agreement|consent|poliglot-ai)\\.html$/.test(new URL(original, location.origin).pathname)) {
+      if (/\\/(privacy|terms|agreement|consent|neriva)\\.html$/.test(new URL(original, location.origin).pathname)) {
         link.setAttribute("href", localHref(original, lang));
       }
     });

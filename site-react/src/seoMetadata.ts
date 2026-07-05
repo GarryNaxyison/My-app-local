@@ -18,7 +18,7 @@ const jsonLdScriptId = "poliglot-seo-jsonld";
 const supportEmail = "support@neriva.ru";
 
 function isLandingPage() {
-  return document.documentElement.dataset.sitePage === "landing" || location.pathname === "/" || location.pathname.endsWith("/poliglot-ai.html");
+  return document.documentElement.dataset.sitePage === "landing" || location.pathname === "/" || location.pathname.endsWith("/neriva.html");
 }
 
 function currentLandingLanguage() {

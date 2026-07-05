@@ -85,8 +85,8 @@ const pages = [
 ] as const;
 
 const rebrandedPublicPaths = [
-  "/poliglot-ai.html?lang=ru",
-  "/poliglot-ai.html?lang=en",
+  "/neriva.html?lang=ru",
+  "/neriva.html?lang=en",
   "/privacy.html?lang=ru",
   "/terms.html?lang=ru",
   "/agreement.html?lang=ru",
@@ -187,7 +187,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator(".seo-faq__item")).toHaveCount(5);
       await expect(page.locator(".seo-related a")).toHaveCount(pages.length - 1);
       await expect(page.locator('a[data-entry="web-app"]').first()).toHaveAttribute("href", "/app/");
-      await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html");
+      await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/neriva.html");
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
       await expect(page.locator('.seo-footer a[href="https://t.me/NERIVAapp_bot"]')).toBeVisible();
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
@@ -231,7 +231,7 @@ test.describe("static SEO pages", () => {
       await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute("href", `https://neriva.ru${item.enPath}`);
       await expect(page.locator(".seo-page")).toContainText("web app");
       await expect(page.locator(".seo-page")).toContainText("Telegram");
-      await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/poliglot-ai.html?lang=en");
+      await expect(page.locator('.seo-footer a[data-entry="landing"]')).toHaveAttribute("href", "/neriva.html?lang=en");
       await expect(page.locator('.seo-footer a[data-entry="web-app"]')).toHaveAttribute("href", "/app/");
       await expect(page.locator('.seo-footer a[href="https://t.me/NERIVAapp_bot"]')).toBeVisible();
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "index, follow");
@@ -271,7 +271,7 @@ test.describe("static SEO pages", () => {
   });
 
   test("landing exposes SEO guides only outside the primary hero and navigation", async ({ page }) => {
-    await page.goto("/poliglot-ai.html?lang=en");
+    await page.goto("/neriva.html?lang=en");
 
     const guideLinks = page.locator(".seo-guides a");
     await expect(guideLinks).toHaveCount(pages.length);
@@ -279,14 +279,14 @@ test.describe("static SEO pages", () => {
     await expect(page.locator(".public-nav .seo-guides")).toHaveCount(0);
     await expect(guideLinks.first()).toHaveAttribute("href", "/en/ai-tutor.html");
 
-    await page.goto("/poliglot-ai.html?lang=ru");
+    await page.goto("/neriva.html?lang=ru");
     const ruGuideLinks = page.locator(".seo-guides a");
     await expect(ruGuideLinks).toHaveCount(pages.length);
     await expect(ruGuideLinks.first()).toHaveAttribute("href", "/ai-tutor.html");
   });
 
   test("landing social links use downloaded color icon assets", async ({ page }) => {
-    await page.goto("/poliglot-ai.html?lang=en");
+    await page.goto("/neriva.html?lang=en");
 
     const expectedIcons = [
       "/assets/social/youtube-full-color.svg",

@@ -81,7 +81,7 @@ function buildJsonLd(page, language) {
             "@type": "ListItem",
             position: 1,
             name: "NERIVA",
-            item: `${origin}/poliglot-ai.html${language === "en" ? "?lang=en" : ""}`,
+            item: `${origin}/neriva.html${language === "en" ? "?lang=en" : ""}`,
           },
           { "@type": "ListItem", position: 2, name: copy.h1, item: canonicalUrl },
         ],
@@ -108,7 +108,7 @@ function renderPage(page, language) {
   const ruUrl = canonicalFor(page, "ru");
   const enUrl = canonicalFor(page, "en");
   const origin = language === "ru" ? russianOrigin : englishOrigin;
-  const landingHref = language === "en" ? "/poliglot-ai.html?lang=en" : "/poliglot-ai.html";
+  const landingHref = language === "en" ? "/neriva.html?lang=en" : "/neriva.html";
   const relatedPages = seoPages.filter((item) => item.slug !== page.slug);
   const ogImage = `${origin}/assets/seo/${language === "ru" ? "neriva-social-preview-v2-ru.jpg" : "neriva-social-preview-v2-en.jpg"}`;
   const appCta = language === "ru" ? "Открыть web app" : "Open web app";
@@ -203,8 +203,8 @@ function renderPage(page, language) {
 }
 
 function renderSitemap() {
-  const landingRuUrl = `${russianOrigin}/poliglot-ai.html`;
-  const landingEnUrl = `${englishOrigin}/poliglot-ai.html?lang=en`;
+  const landingRuUrl = `${russianOrigin}/neriva.html`;
+  const landingEnUrl = `${englishOrigin}/neriva.html?lang=en`;
   const landingAlternates = [
     `<xhtml:link rel="alternate" hreflang="ru" href="${landingRuUrl}" />`,
     `<xhtml:link rel="alternate" hreflang="en" href="${landingEnUrl}" />`,

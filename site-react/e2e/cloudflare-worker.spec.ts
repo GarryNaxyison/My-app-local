@@ -12,7 +12,7 @@ test("Cloudflare Worker fallback path matcher only proxies dynamic application p
   expect(worker.shouldProxyPath("/tonapi/webhook")).toBe(true);
   expect(worker.shouldProxyPath("/rollypay/webhook/site")).toBe(true);
   expect(worker.shouldProxyPath("/rollypay/webhook/anything")).toBe(true);
-  expect(worker.shouldProxyPath("/poliglot-ai.html")).toBe(false);
+  expect(worker.shouldProxyPath("/neriva.html")).toBe(false);
   expect(worker.shouldProxyPath("/assets/site-react/main.js")).toBe(false);
 });
 
@@ -76,7 +76,7 @@ test("Cloudflare Worker serves static pages from the Pages origin", async () => 
     expect(await homeResponse.text()).toContain("SEO page");
     expect(requestedUrls).toEqual([
       "https://neriva.pages.dev/en/ai-tutor",
-      "https://neriva.pages.dev/poliglot-ai",
+      "https://neriva.pages.dev/neriva",
     ]);
   } finally {
     globalThis.fetch = originalFetch;

@@ -23,7 +23,7 @@ const copyByKind: Record<ErrorPageKind, ErrorPageCopy> = {
     body: "Адрес не совпал с публичной страницей NERIVA. Вернитесь на главную или откройте приложение.",
     english: "Page not found. The public landing may have moved.",
     primaryLabel: "На главную",
-    primaryHref: "/poliglot-ai.html",
+    primaryHref: "/neriva.html",
     secondaryLabel: "Открыть web app",
     secondaryHref: "/app/",
     detail: "Если ссылка пришла из Telegram или письма, проверьте, что она скопирована полностью.",
@@ -36,7 +36,7 @@ const copyByKind: Record<ErrorPageKind, ErrorPageCopy> = {
     english: "Maintenance is in progress. Please retry in a few minutes.",
     primaryLabel: "Обновить",
     secondaryLabel: "На главную",
-    secondaryHref: "/poliglot-ai.html",
+    secondaryHref: "/neriva.html",
     detail: "Лендинг и справочные страницы могут открываться отдельно от приложения, пока backend возвращается в работу.",
   },
 };

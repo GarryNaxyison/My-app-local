@@ -446,7 +446,7 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
 
   return (
     <header className="public-nav public-nav--drawer">
-      <a className="public-brand" href="/poliglot-ai.html" aria-label="NERIVA">
+      <a className="public-brand" href="/neriva.html" aria-label="NERIVA">
         <span className="public-brand__logo">
           <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
         </span>
@@ -472,13 +472,13 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
       </div>
       <div className={isOpen ? "nav-drawer is-open" : "nav-drawer"} id="public-nav-drawer" aria-hidden={!isOpen}>
         <nav aria-label="Primary navigation">
-          <a href="/poliglot-ai.html#features" onClick={() => setIsOpen(false)}>
+          <a href="/neriva.html#features" onClick={() => setIsOpen(false)}>
             {copy.features}
           </a>
-          <a href="/poliglot-ai.html#pricing" onClick={() => setIsOpen(false)}>
+          <a href="/neriva.html#pricing" onClick={() => setIsOpen(false)}>
             {copy.pricing}
           </a>
-          <a href="/poliglot-ai.html#faq" onClick={() => setIsOpen(false)}>
+          <a href="/neriva.html#faq" onClick={() => setIsOpen(false)}>
             {copy.faq}
           </a>
           <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" onClick={() => setIsOpen(false)}>
@@ -518,20 +518,20 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
 function SiteNav({ page, theme, onThemeToggle }: { page: PageId; theme: SiteTheme; onThemeToggle: () => void }) {
   return (
     <header className="public-nav">
-      <a className="public-brand" href="/poliglot-ai.html" aria-label="NERIVA">
+      <a className="public-brand" href="/neriva.html" aria-label="NERIVA">
         <span className="public-brand__logo">
           <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
         </span>
         <strong>NERIVA</strong>
       </a>
       <nav aria-label="Основная навигация">
-        <a href="/poliglot-ai.html#features" data-i18n="nav_features">
+        <a href="/neriva.html#features" data-i18n="nav_features">
           Возможности
         </a>
-        <a href="/poliglot-ai.html#pricing" data-i18n="nav_pricing">
+        <a href="/neriva.html#pricing" data-i18n="nav_pricing">
           Тарифы
         </a>
-        <a href="/poliglot-ai.html#faq">FAQ</a>
+        <a href="/neriva.html#faq">FAQ</a>
         <a className={page === "privacy" ? "is-active" : undefined} href="/privacy.html" data-i18n="nav_policy">
           Политика
         </a>
@@ -1079,7 +1079,7 @@ function LegalPageV2({ page }: { page: LegalPageId }) {
 
       <section className="legal-layout">
         <aside className="legal-aside">
-          <a href="/poliglot-ai.html">
+          <a href="/neriva.html">
             <Sparkles size={16} /> NERIVA
           </a>
           <a href="/privacy.html" className={page === "privacy" ? "is-active" : undefined}>
@@ -1298,7 +1298,7 @@ function LegalPage({ page }: { page: "privacy" | "terms" }) {
 
       <section className="legal-layout">
         <aside className="legal-aside">
-          <a href="/poliglot-ai.html">
+          <a href="/neriva.html">
             <Sparkles size={16} /> NERIVA
           </a>
           <a href="/privacy.html" className={isPrivacy ? "is-active" : undefined}>
@@ -1332,9 +1332,9 @@ function SiteFooterEnglish({ showSeoGuides, copy, language }: { showSeoGuides: b
       </div>
       <nav>
         <strong>{isRussian ? "Навигация" : "Navigation"}</strong>
-        <a href="/poliglot-ai.html#features">{copy.features}</a>
-        <a href="/poliglot-ai.html#pricing">{copy.pricing}</a>
-        <a href="/poliglot-ai.html#faq">{copy.faq}</a>
+        <a href="/neriva.html#features">{copy.features}</a>
+        <a href="/neriva.html#pricing">{copy.pricing}</a>
+        <a href="/neriva.html#faq">{copy.faq}</a>
         <a href="/app/">{copy.webApp}</a>
       </nav>
       <SiteFooterSocial title={isRussian ? "Соцсети" : "Social"} />
@@ -1378,9 +1378,9 @@ function SiteFooter() {
       </div>
       <nav>
         <strong>Навигация</strong>
-        <a href="/poliglot-ai.html#features">Возможности</a>
-        <a href="/poliglot-ai.html#pricing">Тарифы</a>
-        <a href="/poliglot-ai.html#faq">FAQ</a>
+        <a href="/neriva.html#features">Возможности</a>
+        <a href="/neriva.html#pricing">Тарифы</a>
+        <a href="/neriva.html#faq">FAQ</a>
         <a href="/app/">Приложение</a>
       </nav>
       <SiteFooterSocial title="Соцсети" />

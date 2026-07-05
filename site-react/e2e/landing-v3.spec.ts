@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("landing v3 uses the premium dark reference and exposes only Russian and English", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");
   await expect(page.locator(".nav-theme-toggle")).toHaveCount(0);
@@ -33,7 +33,7 @@ test("landing v3 uses the premium dark reference and exposes only Russian and En
 });
 
 test("landing v3 Russian copy avoids removed Telegram block and awkward AI wording", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
 
   await expect(page.locator("body")).not.toContainText("Быстрая практика без второго продукта");
   await expect(page.locator("body")).not.toContainText("Запустите задание, отправьте голос или фото");
@@ -47,7 +47,7 @@ test("landing v3 Russian copy avoids removed Telegram block and awkward AI wordi
 });
 
 test("landing v3 hero uses filled product proof and transparent dark animation", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator("h1")).toContainText("NERIVA");
   await expect(page.locator(".premium-hero-animation__shader")).toHaveCount(0);
@@ -109,7 +109,7 @@ test("landing v3 hero uses filled product proof and transparent dark animation",
 });
 
 test("landing v3 uses before-after bridge and a controlled feature carousel", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".stitch-metrics")).toBeVisible();
   await expect(page.locator(".stitch-metric-card")).toHaveCount(3);
@@ -136,7 +136,7 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
 });
 
 test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   const featurePanel = page.locator(".feature-panel");
   const initialState = await featurePanel.evaluate((element) => {
@@ -172,7 +172,7 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
 });
 
 test("Russian landing localizes metrics and methodology blocks", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
 
   await expect(page.locator(".stitch-metrics")).toContainText("Анализ речи");
   await expect(page.locator(".stitch-metrics")).toContainText("Глубина маршрута");
@@ -189,7 +189,7 @@ test("Russian landing localizes metrics and methodology blocks", async ({ page }
 });
 
 test("footer keeps contacts in the first column without duplicate Telegram links", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
 
   const firstColumn = page.locator(".site-footer > div").first();
   await expect(firstColumn.locator("address")).toBeVisible();
@@ -198,7 +198,7 @@ test("footer keeps contacts in the first column without duplicate Telegram links
 });
 
 test("landing v3 pricing, community and final CTA are product-specific dark sections", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".plan-card")).toHaveCount(3);
   await expect(page.locator(".plan-card", { hasText: "Premium" })).toContainText("50 lessons");
@@ -227,7 +227,7 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
 
 test("landing v3 mobile is compact with no horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".landing-hero .entry-cta")).toHaveCount(2);
   await expect(page.locator(".feature-carousel__viewport")).toBeVisible();
@@ -249,7 +249,7 @@ test("landing v3 mobile is compact with no horizontal overflow", async ({ page }
 
 test("landing v3 mobile hero and methodology do not look clipped", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
 
   const layout = await page.evaluate(() => {
     const hero = document.querySelector(".landing-hero") as HTMLElement;
@@ -277,7 +277,7 @@ test("landing v3 mobile hero and methodology do not look clipped", async ({ page
 });
 
 test("landing v3 product screenshots open a focused preview", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await page.locator(".hero-product-frame .product-shot__button").first().click();
   await expect(page.locator(".image-preview")).toBeVisible();

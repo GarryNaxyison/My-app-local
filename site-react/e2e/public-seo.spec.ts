@@ -68,14 +68,14 @@ test.describe("public landing SEO and AEO metadata", () => {
   });
 
   test("sets Russian canonical metadata, alternates, JSON-LD, and visible answers", async ({ page }) => {
-    await page.goto("/poliglot-ai.html?lang=ru");
+    await page.goto("/neriva.html?lang=ru");
 
     await expect(page).toHaveTitle("NERIVA - AI-репетитор иностранных языков в Telegram");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       /AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium/,
     );
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/poliglot-ai.html");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/neriva.html");
 
     const alternates = await page.locator('link[rel="alternate"]').evaluateAll((links) =>
       links.map((link) => ({
@@ -89,9 +89,9 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect([...new Set(alternates.map((link) => link.hreflang))].sort()).toEqual([...supportedLanguages, "x-default"].sort());
     expect(alternates).toEqual(
       expect.arrayContaining([
-        { hreflang: "ru", href: "https://neriva.ru/poliglot-ai.html" },
-        { hreflang: "en", href: "https://neriva.ru/poliglot-ai.html?lang=en" },
-        { hreflang: "x-default", href: "https://neriva.ru/poliglot-ai.html?lang=en" },
+        { hreflang: "ru", href: "https://neriva.ru/neriva.html" },
+        { hreflang: "en", href: "https://neriva.ru/neriva.html?lang=en" },
+        { hreflang: "x-default", href: "https://neriva.ru/neriva.html?lang=en" },
       ]),
     );
 
@@ -121,15 +121,15 @@ test.describe("public landing SEO and AEO metadata", () => {
   });
 
   test("sets English international metadata without forcing app links away from the current host", async ({ page }) => {
-    await page.goto("/poliglot-ai.html?lang=en");
+    await page.goto("/neriva.html?lang=en");
 
     await expect(page).toHaveTitle("NERIVA - AI language tutor in Telegram and web app");
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
       /AI language tutor, speaking practice, Telegram bot, web app, voice, photo translation, mistakes, and premium plans/,
     );
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/poliglot-ai.html?lang=en");
-    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://neriva.ru/poliglot-ai.html?lang=en");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/neriva.html?lang=en");
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", "https://neriva.ru/neriva.html?lang=en");
     await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute("content", "NERIVA - AI language tutor in Telegram and web app");
 
     const jsonLdText = await page.locator("#poliglot-seo-jsonld").textContent();
@@ -163,7 +163,7 @@ test.describe("public landing SEO and AEO metadata", () => {
   });
 
   test("localizes visible AEO answers across landing languages", async ({ page }) => {
-    await page.goto("/poliglot-ai.html?lang=en");
+    await page.goto("/neriva.html?lang=en");
 
     const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
       options.map((option) => (option as HTMLOptionElement).value),
@@ -187,7 +187,7 @@ test.describe("public landing SEO and AEO metadata", () => {
   });
 
   test("keeps comparison answers off the main landing across landing languages", async ({ page }) => {
-    await page.goto("/poliglot-ai.html?lang=en");
+    await page.goto("/neriva.html?lang=en");
 
     const languageCodes = await page.locator("[data-site-language-select] option").evaluateAll((options) =>
       options.map((option) => (option as HTMLOptionElement).value),
@@ -217,8 +217,9 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(sitemapResponse).toBeTruthy();
     expect(sitemapResponse?.ok()).toBeTruthy();
     const sitemapBody = await sitemapResponse?.text();
-    expect(sitemapBody).toContain("https://neriva.ru/poliglot-ai.html");
-    expect(sitemapBody).toContain("https://neriva.ru/poliglot-ai.html?lang=en");
+    expect(sitemapBody).toContain("https://neriva.ru/neriva.html");
+    expect(sitemapBody).toContain("https://neriva.ru/neriva.html?lang=en");
+    expect(sitemapBody).not.toContain("https://neriva.ru/poliglot-ai.html");
     expect(sitemapBody).toContain('hreflang="x-default"');
   });
 });

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://neriva.ru/poliglot-ai.html</loc>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://neriva.ru/poliglot-ai.html" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://neriva.ru/poliglot-ai.html?lang=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://neriva.ru/poliglot-ai.html?lang=en" />
+    <loc>https://neriva.ru/neriva.html</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://neriva.ru/neriva.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://neriva.ru/neriva.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://neriva.ru/neriva.html?lang=en" />
   </url>
   <url>
-    <loc>https://neriva.ru/poliglot-ai.html?lang=en</loc>
-    <xhtml:link rel="alternate" hreflang="ru" href="https://neriva.ru/poliglot-ai.html" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://neriva.ru/poliglot-ai.html?lang=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://neriva.ru/poliglot-ai.html?lang=en" />
+    <loc>https://neriva.ru/neriva.html?lang=en</loc>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://neriva.ru/neriva.html" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://neriva.ru/neriva.html?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://neriva.ru/neriva.html?lang=en" />
   </url>
   <url>
     <loc>https://neriva.ru/ai-tutor.html</loc>

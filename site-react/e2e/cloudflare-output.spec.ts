@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const requiredCloudflareFiles = [
-  "poliglot-ai.html",
+  "neriva.html",
   "privacy.html",
   "terms.html",
   "agreement.html",
@@ -46,5 +46,6 @@ test("Cloudflare Pages output contains the static landing, SEO files, and fallba
   expect(headers).toContain("Cache-Control: public, max-age=31536000, immutable");
 
   const redirects = await fs.readFile(path.join(outputRoot, "_redirects"), "utf8");
-  expect(redirects).toContain("/ /poliglot-ai.html 200");
+  expect(redirects).toContain("/ /neriva.html 200");
+  expect(redirects).toContain("/poliglot-ai.html /neriva.html 301");
 });

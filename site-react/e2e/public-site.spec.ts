@@ -121,7 +121,7 @@ async function keepCookieBannerHidden(page: Page) {
 test.skip("landing presents the approved light product-first site", async ({ page }) => {
   test.setTimeout(120_000);
   await keepCookieBannerHidden(page);
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator("html")).toHaveAttribute("data-site-theme", "light");
   await expect(page.locator(".public-nav")).toBeVisible();
@@ -162,11 +162,11 @@ test.skip("landing presents the approved light product-first site", async ({ pag
   expect(telegramEntryHrefs.every((href) => href === "https://t.me/NERIVAapp_bot")).toBe(true);
 
   const productShots = page.locator(".product-shot img");
-  await expect(productShots).toHaveCount(13);
+  await expect(productShots).toHaveCount(12);
   await expect(page.locator('.hero-product-frame img[src="/assets/product/dashboard-progress.png"]')).toBeVisible();
   await expect(page.locator('.scenario-shot img[src="/assets/product/ai-tutor-lesson-correction.png"]')).toBeVisible();
   await expect(page.locator('.feature-panel img[src="/assets/product/voice-pronunciation-score.png"]')).toBeVisible();
-  await expect(page.locator('.telegram-panel img[src="/assets/product/telegram-app-light.png"]')).toBeVisible();
+  await expect(page.locator('.ecosystem-showcase img[src="/assets/product/telegram-app-light.png"]')).toBeVisible();
   await productShots.last().scrollIntoViewIfNeeded();
   await expect.poll(() =>
     productShots.evaluateAll((imgs) =>
@@ -204,7 +204,8 @@ test.skip("landing presents the approved light product-first site", async ({ pag
 
   await expect(page.locator(".community-section")).toBeVisible();
   await expect(page.locator(".community-section")).toContainText("Giveaways");
-  await expect(page.locator(".telegram-panel")).toContainText("Telegram");
+  await expect(page.locator(".telegram-panel")).toHaveCount(0);
+  await expect(page.locator(".ecosystem-showcase")).toContainText("Telegram");
   await expect(page.locator(".landing-faq")).toBeVisible();
   await expect(page.locator(".landing-faq__item")).toHaveCount(4);
   await expect(page.locator(".seo-guides a")).toHaveCount(5);
@@ -269,7 +270,7 @@ test.skip("landing presents the approved light product-first site", async ({ pag
 });
 
 test("public footer exposes NERIVA social channels", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   const footerSocial = page.locator(".site-footer .site-footer-social");
   await expect(footerSocial).toBeVisible();
@@ -283,7 +284,7 @@ test("public footer exposes NERIVA social channels", async ({ page }) => {
   await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("rel", "noreferrer");
   await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"] img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
 
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
   const ruFooterSocial = page.locator(".site-footer .site-footer-social");
   await expect(ruFooterSocial).toContainText("Соцсети");
   await expect(ruFooterSocial.locator("a")).toHaveCount(4);
@@ -295,7 +296,7 @@ test("public footer exposes NERIVA social channels", async ({ page }) => {
 
 test("landing visual blocks animate without breaking hero and ecosystem alignment", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
 
   for (const index of [1, 2, 3, 0]) {
     await page.locator(".feature-carousel__tab").nth(index).click();
@@ -325,9 +326,9 @@ test("landing visual blocks animate without breaking hero and ecosystem alignmen
 
 test("landing shows Russian legal links and centers the cookie banner on desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => localStorage.removeItem("poliglot-cookie-consent"));
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
 
   await page.locator(".nav-burger").click();
   const drawer = page.locator(".nav-drawer");
@@ -361,9 +362,9 @@ test("landing shows Russian legal links and centers the cookie banner on desktop
 test("cookie banner lets users configure optional cookies", async ({ page }) => {
   test.setTimeout(60_000);
 
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => localStorage.removeItem("poliglot-cookie-consent"));
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
 
   const banner = page.locator(".cookie-consent-banner");
   await expect(banner).toBeVisible();
@@ -390,7 +391,7 @@ test("cookie banner lets users configure optional cookies", async ({ page }) => 
     analyticsMarketing: true,
   });
 
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".cookie-consent-banner")).toBeHidden();
 });
 
@@ -407,7 +408,7 @@ test("Yandex Metrika waits for explicit cookie banner analytics consent", async 
   await page.addInitScript(() => {
     localStorage.setItem("poliglot-cookie-consent", "accepted");
   });
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
 
   await expect(page.locator(".cookie-consent-banner")).toBeHidden();
   await expect.poll(() => metrikaRequests.length).toBe(0);
@@ -424,7 +425,7 @@ test("Yandex Metrika waits for explicit cookie banner analytics consent", async 
     acceptMetrikaRequests.push(route.request().url());
     return route.abort();
   });
-  await acceptPage.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await acceptPage.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   await acceptPage.evaluate(() => localStorage.removeItem("poliglot-cookie-consent"));
   await acceptPage.reload({ waitUntil: "domcontentloaded" });
 
@@ -443,9 +444,9 @@ test("Yandex Metrika waits for explicit cookie banner analytics consent", async 
 
 test("cookie banner stays hidden with legacy saved consent values", async ({ page }) => {
   for (const legacyValue of ["necessary", "accepted"]) {
-    await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+    await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
     await page.evaluate((value) => localStorage.setItem("poliglot-cookie-consent", value), legacyValue);
-    await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+    await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".cookie-consent-banner")).toBeHidden();
   }
 });
@@ -455,7 +456,7 @@ test.skip("landing light theme keeps the approved layout readable", async ({ pag
   await page.addInitScript(() => {
     localStorage.setItem("poliglot-site-theme", "light");
   });
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator("html")).toHaveAttribute("data-site-theme", "light");
   await expect(page.locator(".landing-hero")).toBeVisible();
@@ -548,7 +549,7 @@ test.skip("landing light theme keeps the approved layout readable", async ({ pag
 });
 
 test.skip("landing keeps a short product flow below the hero", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".landing-hero")).toBeVisible();
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
@@ -581,7 +582,7 @@ test.skip("landing keeps a short product flow below the hero", async ({ page }) 
 });
 
 test.skip("Russian landing uses edited copy and keeps compact CTAs aligned", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
   await page.evaluate(() => {
     document.documentElement.dataset.siteTheme = "light";
     localStorage.setItem("poliglot-site-theme", "light");
@@ -632,7 +633,7 @@ test.skip("Russian landing uses edited copy and keeps compact CTAs aligned", asy
 });
 
 test("landing hero keeps the animation while product screenshots remain primary", async ({ page }) => {
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator('.landing-hero img[src="/assets/product/dashboard-progress-dark.png"]')).toBeVisible();
@@ -646,12 +647,12 @@ test("landing hero keeps the animation while product screenshots remain primary"
 });
 
 test.skip("landing startup is localized, lean, and theme-aware", async ({ page, request }) => {
-  const html = await (await request.get("/poliglot-ai.html")).text();
+  const html = await (await request.get("/neriva.html")).text();
   expect(html).not.toContain("/assets/site-phrases.js");
   expect(html).not.toContain("/assets/legal-documents-i18n.js");
 
   await keepCookieBannerHidden(page);
-  await page.goto("/poliglot-ai.html?lang=ru");
+  await page.goto("/neriva.html?lang=ru");
   await expect(page.locator("h1")).toContainText("NERIVA помогает говорить увереннее");
   await expect(page.locator(".hero-lead")).toContainText("Короткий урок");
   await expect(page.locator(".final-cta-section")).toContainText("Начните первый урок сегодня");
@@ -677,7 +678,7 @@ test.skip("landing startup is localized, lean, and theme-aware", async ({ page, 
 
 test.skip("product-first landing stays readable on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator("h1")).toContainText("helps you speak with more confidence");
@@ -721,7 +722,7 @@ test.skip("product-first landing stays readable on mobile", async ({ page }) => 
 
 test.skip("public site language selector exposes all interface locales", async ({ page }) => {
   test.setTimeout(180_000);
-  await page.goto("/poliglot-ai.html");
+  await page.goto("/neriva.html");
   const select = page.locator("[data-site-language-select]");
   await expect(select).toBeVisible();
 
@@ -749,7 +750,7 @@ test.skip("public site language selector exposes all interface locales", async (
 
 test.skip("landing localizes core product copy across all 35 interface locales", async ({ page }) => {
   test.setTimeout(240_000);
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
   const select = page.locator("[data-site-language-select]");
   await expect(select).toBeVisible();
 
@@ -887,9 +888,9 @@ test("legal document package exposes operator details and cookie opt-in", async 
     await expect(page.locator(".legal-aside a[href*='consent.html']")).toBeVisible();
   }
 
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => localStorage.removeItem("poliglot-cookie-consent"));
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   const banner = page.locator(".cookie-consent-banner");
   await expect(banner).toBeVisible();
   await expect(banner).toContainText("cookie");
@@ -900,7 +901,7 @@ test("legal document package exposes operator details and cookie opt-in", async 
   await expect(banner.getByRole("button", { name: "Принять все cookie" })).toBeVisible();
   await banner.getByRole("button", { name: "Принять все cookie" }).click();
   await expect(banner).toBeHidden();
-  await page.goto("/poliglot-ai.html?lang=ru", { waitUntil: "domcontentloaded" });
+  await page.goto("/neriva.html?lang=ru", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".cookie-consent-banner")).toBeHidden();
 });
 
@@ -966,7 +967,7 @@ test("production public-site output keeps all image and localization assets for 
     expect(generatedBlocks[0], `${source} should not be produced by the machine translation block`).not.toContain(JSON.stringify(source));
   }
 
-  await page.goto("/poliglot-ai.html?lang=en");
+  await page.goto("/neriva.html?lang=en");
   const heroImage = page.locator('.landing-hero img[src="/assets/product/dashboard-progress-dark.png"]');
   await heroImage.waitFor({ state: "visible" });
   await expect

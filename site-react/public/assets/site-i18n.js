@@ -1413,7 +1413,7 @@
         if (!rawHref || rawHref.startsWith("#") || rawHref.startsWith("mailto:") || rawHref.startsWith("tel:")) return rawHref;
         if (/^https?:\/\//i.test(rawHref) && !rawHref.includes(location.host)) return rawHref;
         const url = new URL(rawHref, location.href);
-        if (!url.pathname.endsWith(".html") && url.pathname !== "/" && url.pathname !== "/poliglot-ai.html") return rawHref;
+        if (!url.pathname.endsWith(".html") && url.pathname !== "/" && url.pathname !== "/neriva.html") return rawHref;
         url.searchParams.set("lang", lang);
         return url.pathname.replace(/^\//, "") + url.search + url.hash;
     }

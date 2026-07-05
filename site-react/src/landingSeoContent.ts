@@ -199,7 +199,7 @@ export function normalizeLandingLanguage(value: string | null | undefined): Land
 
 export function canonicalUrlForLanguage(language: LandingLanguageCode): string {
   const origin = language === "ru" ? russianSiteOrigin : internationalSiteOrigin;
-  const url = new URL("/poliglot-ai.html", origin);
+  const url = new URL("/neriva.html", origin);
   if (language !== "ru") url.searchParams.set("lang", language);
   return url.toString();
 }

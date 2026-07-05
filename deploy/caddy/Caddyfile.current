@@ -14,7 +14,10 @@ neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru {
 		reverse_proxy localhost:8080
 	}
 
-	@siteHtml path / /poliglot-ai.html /privacy.html /terms.html
+	@oldLanding path /poliglot-ai.html
+	redir @oldLanding /neriva.html 301
+
+	@siteHtml path / /neriva.html /privacy.html /terms.html
 	header @siteHtml Cache-Control "no-cache, no-store, must-revalidate"
 	header @siteHtml Pragma "no-cache"
 	header @siteHtml Expires "0"
@@ -30,7 +33,7 @@ neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru {
 
 	handle {
 		root * /var/www/poliglotai
-		try_files {path} /poliglot-ai.html
+		try_files {path} /neriva.html
 		file_server
 	}
 }

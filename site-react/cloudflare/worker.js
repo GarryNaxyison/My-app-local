@@ -47,10 +47,10 @@ export function resolveStaticUrl(requestUrl, staticBaseUrl = DEFAULT_STATIC_BASE
 
 export function resolvePagesPath(pathname) {
   if (pathname === "/") {
-    return "/poliglot-ai";
+    return "/neriva";
   }
   if (pathname === "/index.html") {
-    return "/poliglot-ai";
+    return "/neriva";
   }
   if (pathname.endsWith(".html")) {
     return pathname.slice(0, -".html".length) || "/";
@@ -77,7 +77,7 @@ function inlineMaintenanceHtml() {
       <h1>Технические работы</h1>
       <p>NERIVA временно недоступен. Попробуйте обновить страницу через пару минут.</p>
       <p>Maintenance is in progress. Please retry in a few minutes.</p>
-      <a href="/poliglot-ai.html">На главную</a>
+      <a href="/neriva.html">На главную</a>
     </main>
   </body>
 </html>`;

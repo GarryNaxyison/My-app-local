@@ -6,11 +6,11 @@
 npm start
 ```
 
-По умолчанию сайт открывается на `http://127.0.0.1:3000/poliglot-ai.html`.
+По умолчанию сайт открывается на `http://127.0.0.1:3000/neriva.html`.
 
 ## Основные файлы
 
-- `poliglot-ai.html` — основной лендинг, стили, HTML-разметка, hero-демо, блоки возможностей, шагов, тарифов, отзывов, CTA и FAQ.
+- `neriva.html` — основной лендинг, стили, HTML-разметка, hero-демо, блоки возможностей, шагов, тарифов, отзывов, CTA и FAQ.
 - `terms.html`, `privacy.html` — legal-страницы в общем брендовом стиле, с тёмной темой, переключателем языка и общими ассетами.
 - `assets/site-i18n.js` — переключатель языка и словарь переводов для сайта.
 - `assets/site-phrases.js` — расширенная база фраз для 20 языков.
@@ -27,7 +27,7 @@ npm start
 node tools/rebuild_public_site_translations.mjs
 ```
 
-Скрипт собирает фразы из `poliglot-ai.html`, `terms.html`, `privacy.html` и обновляет `assets/site-phrases.js`.
+Скрипт собирает фразы из `neriva.html`, `terms.html`, `privacy.html` и обновляет `assets/site-phrases.js`.
 
 ## Тема и кеш
 

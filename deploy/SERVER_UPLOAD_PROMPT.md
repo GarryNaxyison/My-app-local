@@ -35,7 +35,7 @@ tmp\putty\plink.exe -batch -hostkey "SHA256:SCw7oIAHX/xB9QJueAc9L7OvbXtDyVqA++ci
 После deploy всегда проверяй:
 - https://neriva.ru/healthz
 - https://neriva.ru/app/
-- https://neriva.ru/poliglot-ai.html
+- https://neriva.ru/neriva.html
 - https://neriva.ru/__codex_deploy_upload/healthz
 
 Если upload endpoint не отвечает, проверь:

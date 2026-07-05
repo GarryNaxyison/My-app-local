@@ -17,7 +17,7 @@ const targetFiles = [
   'PROJECT_TRACKING.md',
   'web-react/src/App.tsx',
   'web-react/src/lib/i18n.ts',
-  'Сайт полиглота для бота/poliglot-ai.html',
+  'Сайт полиглота для бота/neriva.html',
   'Сайт полиглота для бота/privacy.html',
   'Сайт полиглота для бота/terms.html',
   'Сайт полиглота для бота/assets/site-i18n.js'

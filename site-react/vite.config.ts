@@ -24,7 +24,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, "poliglot-ai.html"),
+        main: path.resolve(__dirname, "neriva.html"),
         privacy: path.resolve(__dirname, "privacy.html"),
         terms: path.resolve(__dirname, "terms.html"),
         agreement: path.resolve(__dirname, "agreement.html"),

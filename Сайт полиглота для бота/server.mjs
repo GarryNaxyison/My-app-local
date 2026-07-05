@@ -187,7 +187,7 @@ async function serveStatic(request, response, pathname) {
     }
 
     if (cleanPathname === "/") {
-        cleanPathname = "/poliglot-ai.html";
+        cleanPathname = "/neriva.html";
     }
 
     if (cleanPathname === "/bot" || cleanPathname === "/bot/") {

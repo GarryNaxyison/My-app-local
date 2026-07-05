@@ -11,7 +11,7 @@ export default defineConfig({
   },
   webServer: {
     command: "npm run preview -- --strictPort",
-    url: "http://127.0.0.1:4175/poliglot-ai.html",
+    url: "http://127.0.0.1:4175/neriva.html",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

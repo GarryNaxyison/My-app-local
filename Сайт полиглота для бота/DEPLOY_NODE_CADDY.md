@@ -15,7 +15,7 @@ server.mjs
 package.json
 .env
 bot.html
-poliglot-ai.html
+neriva.html
 privacy.html
 terms.html
 assets/
