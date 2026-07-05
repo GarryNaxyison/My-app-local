@@ -156,6 +156,53 @@ func TestAITutorStartUsesLearningFocusAsTopicSeed(t *testing.T) {
 	}
 }
 
+func TestAITutorStartSkipsApprovedLessonThatDoesNotMatchLearningFocus(t *testing.T) {
+	store := newTestJSONStore(t)
+	approvedPayload := validAITutorLessonPayloadForTest()
+	approvedPayload.Theme = "daily life"
+	approvedLesson := aiTutorLessonRecord{
+		ID:                "approved-daily-life",
+		LearningLanguage:  "en",
+		InterfaceLanguage: "ru",
+		ExactLevel:        "A1",
+		LevelBand:         "A1-A2",
+		Theme:             "daily life",
+		Status:            aiTutorStatusApproved,
+		Payload:           approvedPayload,
+		PreflightScore:    92,
+		PostScore:         95,
+	}
+	if err := store.saveAITutorLesson(approvedLesson); err != nil {
+		t.Fatalf("save approved lesson: %v", err)
+	}
+
+	generatedPayload := validAITutorLessonPayloadForTest()
+	generatedPayload.Title = "A Project Call"
+	generatedPayload.Theme = "work meetings and business travel"
+	body, _ := json.Marshal(generatedPayload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(body),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 83, FirstName: "demo", InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1", LearningFocus: "work meetings and business travel"}
+
+	result, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("Start() error = %v", err)
+	}
+	if result.Lesson.ID == approvedLesson.ID {
+		t.Fatalf("Start() reused unrelated approved lesson %#v for learning focus %q", result.Lesson, user.LearningFocus)
+	}
+	if ai.calls != 2 {
+		t.Fatalf("AI calls = %d, want generation + preflight after skipping unrelated approved lesson", ai.calls)
+	}
+	prompt := ai.messages[0][1].Content
+	if !strings.Contains(prompt, "Topic/theme seed: work meetings and business travel") {
+		t.Fatalf("generation prompt misses focused topic seed:\n%s", prompt)
+	}
+}
+
 func TestAITutorStartRepairsDerivedWordTasksAndReviewOptions(t *testing.T) {
 	store := newTestJSONStore(t)
 	payload := validAITutorLessonPayloadForTest()

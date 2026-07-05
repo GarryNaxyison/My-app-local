@@ -6992,6 +6992,13 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
   const totalPages = Math.max(1, Math.ceil(visibleDeck.length / pageSize));
   const safePage = Math.min(page, totalPages - 1);
   const pagedDeck = visibleDeck.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  const offlineSections = (["vocabulary", "phrasebook", "mistakes"] as const)
+    .map((source) => ({
+      source,
+      label: offlineSourceUiLabel(source, copy),
+      items: pagedDeck.filter((item) => item.source === source),
+    }))
+    .filter((section) => section.items.length > 0);
   useEffect(() => {
     setPage(0);
   }, [deck.length]);
@@ -7045,9 +7052,16 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
             <Button variant="outline" size="sm" disabled={safePage + 1 >= totalPages} onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}>{copy("offline_next_page", "Вперёд")}</Button>
           </div>
         </div>
-        <div className="offline-deck-grid-v2">
-          {pagedDeck.map((item) => (
-            <article key={item.id} data-source={item.source}>
+        <div className="offline-deck-sections-v2">
+          {offlineSections.map((section) => (
+            <section className="offline-deck-section-v2" data-source={section.source} key={section.source}>
+              <div className="offline-deck-section-v2__head">
+                <strong>{section.label}</strong>
+                <span>{section.items.length} {copy("cards", "cards")}</span>
+              </div>
+              <div className="offline-deck-grid-v2">
+                {section.items.map((item) => (
+                  <article key={item.id} data-source={item.source}>
               <small>{offlineSourceUiLabel(item.source, copy)}</small>
               <strong>{item.title}</strong>
               {item.answer ? <span>{item.answer}</span> : null}
@@ -7062,7 +7076,10 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
               >
                 <Trash2 size={15} />
               </Button>
-            </article>
+                  </article>
+                ))}
+              </div>
+            </section>
           ))}
           {!visibleDeck.length ? <p className="empty-copy">{copy("no_offline_cards", "Пока нет карточек.")}</p> : null}
         </div>

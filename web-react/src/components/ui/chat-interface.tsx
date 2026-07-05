@@ -64,9 +64,6 @@ export default function ChatComponent({ config, uiConfig = {} }: { config: ChatC
             >
               <div className="chat-interface__group">
                 <div className={cn("chat-interface__meta", !isLeft && "chat-interface__meta--right")}>
-                  <div className="chat-interface__avatar" aria-hidden="true">
-                    {person.avatar ? <img src={person.avatar} alt="" /> : person.name.slice(0, 1)}
-                  </div>
                   <span>{person.name}</span>
                 </div>
                 <div className={cn("chat-interface__bubble", !isLeft && "chat-interface__bubble--right")}>

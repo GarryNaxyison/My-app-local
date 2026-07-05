@@ -77,7 +77,7 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	levelBand := aiTutorLevelBand(level)
 	if session, lesson, ok, err := e.store.activeAITutorSessionForContext(user.TelegramID, language, interfaceLanguage, levelBand, surface); err != nil {
 		return aiTutorResult{}, err
-	} else if ok {
+	} else if ok && aiTutorLessonMatchesLearningFocus(lesson, user.LearningFocus) {
 		return aiTutorResult{
 			Session:  session,
 			Lesson:   lesson,
@@ -86,7 +86,7 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	}
 	if approved, ok, err := e.store.findApprovedAITutorLesson(language, interfaceLanguage, levelBand, user.TelegramID); err != nil {
 		return aiTutorResult{}, err
-	} else if ok {
+	} else if ok && aiTutorLessonMatchesLearningFocus(approved, user.LearningFocus) {
 		return e.createSessionForLesson(user, surface, approved)
 	}
 	usedCount, err := e.store.aiTutorSessionCountForContext(user.TelegramID, language, interfaceLanguage, levelBand)
@@ -408,6 +408,38 @@ func aiTutorTopicSeed(user userState, usedCount int) string {
 		return fmt.Sprintf("%s; rotation %d", focus, sequence+1)
 	}
 	return fmt.Sprintf("daily life rotation %d", sequence+1)
+}
+
+func aiTutorLessonMatchesLearningFocus(lesson aiTutorLessonRecord, focus string) bool {
+	focus = strings.TrimSpace(focus)
+	if focus == "" {
+		return true
+	}
+	haystack := strings.ToLower(strings.Join([]string{
+		lesson.Theme,
+		lesson.Payload.Theme,
+		lesson.Payload.Title,
+		lesson.Payload.LessonGoal,
+		lesson.Payload.Story.TitleInterface,
+		lesson.Payload.Story.StoryTitle,
+	}, " "))
+	words := strings.Fields(strings.ToLower(focus))
+	significant := 0
+	matches := 0
+	for _, word := range words {
+		word = strings.Trim(word, ".,;:!?()[]{}\"'")
+		if len([]rune(word)) < 4 {
+			continue
+		}
+		significant++
+		if strings.Contains(haystack, word) {
+			matches++
+		}
+	}
+	if significant == 0 {
+		return strings.Contains(haystack, strings.ToLower(focus))
+	}
+	return matches >= 1 && matches*2 >= significant
 }
 
 func aiTutorStageNeedsChecker(stage string) bool {
