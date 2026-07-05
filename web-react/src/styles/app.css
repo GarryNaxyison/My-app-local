@@ -2164,6 +2164,10 @@ select {
   min-height: 0;
 }
 
+.context-display[data-view="roleplay"] {
+  align-items: start;
+}
+
 .context-display[data-view="lesson"] {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 26%, transparent);
 }
@@ -6289,6 +6293,18 @@ select {
 .roleplay-grid-v2 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   grid-auto-rows: auto;
+  align-content: start;
+}
+
+.roleplay-view-v2:not(.roleplay-view-v2--session) {
+  align-self: start;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.roleplay-view-v2:not(.roleplay-view-v2--session) .panel-head {
+  margin-bottom: 0;
 }
 
 .daily-quests-v2__list button,
@@ -9651,6 +9667,166 @@ select {
 
   .tools-work-v2 .terminal-chat-v2 {
     min-height: 188px !important;
+  }
+}
+
+@media (min-width: 1900px) and (min-height: 880px) {
+  body {
+    font-size: 16px;
+  }
+
+  .v2-app {
+    gap: 12px;
+    padding: 8px;
+  }
+
+  .v2-topbar {
+    min-height: 58px;
+    padding: 10px 14px;
+    border-radius: 20px;
+  }
+
+  .v2-brand img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .v2-brand strong,
+  .v2-level-progress strong {
+    font-size: 15px;
+  }
+
+  .v2-brand small,
+  .v2-topbar__profile span,
+  .v2-level-progress span,
+  .v2-level-progress small {
+    font-size: 13px;
+  }
+
+  .v2-language-select,
+  .v2-brightness-control,
+  .v2-pill {
+    min-height: 46px;
+    font-size: 14px;
+    padding-inline: 14px;
+  }
+
+  .function-ribbon-shell {
+    padding: 9px 38px 9px 12px;
+    border-radius: 22px;
+  }
+
+  .function-ribbon {
+    gap: 16px;
+    padding-block: 4px;
+  }
+
+  .function-chip {
+    flex-basis: 78px;
+    width: 78px;
+    height: 78px;
+    min-height: 78px;
+  }
+
+  .function-chip::before,
+  .function-chip::after {
+    width: 78px;
+  }
+
+  .function-chip:hover::before,
+  .function-chip:hover::after,
+  .function-chip.is-active::before,
+  .function-chip.is-active::after,
+  .function-chip__caption {
+    width: 184px;
+  }
+
+  .function-chip__art {
+    width: 64px;
+    height: 64px;
+  }
+
+  .function-chip strong {
+    font-size: 14px;
+  }
+
+  .ribbon-scroll-button {
+    width: 38px;
+    height: 70px;
+  }
+
+  .context-display {
+    padding: 18px;
+    border-radius: 28px;
+  }
+
+  .v2-panel {
+    border-radius: 28px;
+    padding: 24px;
+  }
+
+  .v2-panel h2,
+  .panel-head h2,
+  .trainer-display h2,
+  .data-display h2 {
+    font-size: 26px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+  }
+
+  .roleplay-view-v2:not(.roleplay-view-v2--session) {
+    gap: 18px;
+  }
+
+  .roleplay-grid-v2 {
+    gap: 14px;
+  }
+
+  .roleplay-grid-v2 button {
+    min-height: 168px;
+    padding: 18px;
+    gap: 10px;
+  }
+
+  .roleplay-grid-v2 button strong {
+    font-size: 18px;
+  }
+
+  .roleplay-grid-v2 button span {
+    font-size: 15px;
+  }
+
+  .roleplay-grid-v2 button small {
+    font-size: 13px;
+  }
+
+  .vocabulary-grid-v2 {
+    gap: 14px;
+  }
+
+  .vocabulary-card-v2 {
+    min-height: 124px;
+    padding: 16px;
+  }
+
+  .vocabulary-card-v2 strong {
+    font-size: 21px;
+  }
+
+  .vocabulary-card-v2 span {
+    font-size: 16px;
+  }
+
+  .context-display--vocabulary .audio-wave-button-v2.is-compact {
+    min-height: 64px;
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .context-display--vocabulary .audio-wave-button-v2.is-compact .audio-wave-button-v2__icon {
+    width: 46px;
+    height: 46px;
   }
 }
 

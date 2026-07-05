@@ -878,6 +878,57 @@ func TestWebLearnedWordPronunciationStaysFree(t *testing.T) {
 	}
 }
 
+func TestWebLearnedWordPronunciationAcceptsLegacyWordID(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	api.cfg.OpenRouterTTSModel = "google/gemini-3.1-flash-tts-preview"
+	api.bot.cfg = api.cfg
+	api.bot.openrouter = newOpenRouterClient("test-key", "google/gemini-3.1-flash", "http://localhost", "test", &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"audio/mpeg"}},
+			Body:       io.NopCloser(bytes.NewBufferString("legacy-word-audio")),
+		}, nil
+	})})
+	addLearnedTestWord(t, store, -42, "be")
+	user, err := store.getOrCreateUser(-42, "tester")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(user.LearnedWords) == 0 {
+		t.Fatal("expected learned word")
+	}
+	legacyID := legacyVocabID(user.LearnedWords[0].ID)
+	if legacyID == user.LearnedWords[0].ID {
+		t.Fatalf("test word %q does not have a legacy id variant", user.LearnedWords[0].ID)
+	}
+
+	body, code := requestRaw(t, api, cookie, http.MethodPost, "/api/words/pronunciation", map[string]any{"word_id": legacyID})
+	if code != http.StatusOK || !bytes.Contains(body, []byte("legacy-word-audio")) {
+		t.Fatalf("legacy learned word pronunciation = status %d body %q", code, string(body))
+	}
+}
+
+func TestWriteAudioResponsesUseDetectedWAVMetadata(t *testing.T) {
+	wav := wrapPCM16LEAsWAV([]byte{0x01, 0x02}, 24000, 1)
+	wordRecorder := httptest.NewRecorder()
+	writePronunciationAudio(wordRecorder, vocabWord{ID: "en:water"}, wav)
+	if got := wordRecorder.Header().Get("Content-Type"); got != "audio/wav" {
+		t.Fatalf("word pronunciation content type = %q, want audio/wav", got)
+	}
+	if got := wordRecorder.Header().Get("Content-Disposition"); !strings.Contains(got, `filename="water.wav"`) {
+		t.Fatalf("word pronunciation filename = %q, want water.wav", got)
+	}
+
+	toolRecorder := httptest.NewRecorder()
+	writeToolAudio(toolRecorder, "translation.mp3", wav)
+	if got := toolRecorder.Header().Get("Content-Type"); got != "audio/wav" {
+		t.Fatalf("tool audio content type = %q, want audio/wav", got)
+	}
+	if got := toolRecorder.Header().Get("Content-Disposition"); !strings.Contains(got, `filename="translation.wav"`) {
+		t.Fatalf("tool audio filename = %q, want translation.wav", got)
+	}
+}
+
 func TestPronunciationCheckRequiresPremiumBeforeProviderCall(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	api.cfg.OpenRouterSTTModel = "openai/gpt-4o-transcribe"

@@ -63,9 +63,17 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
 
   const resolveAudio = async () => {
     if (objectUrlRef.current) return objectUrlRef.current;
-    const blob = wordId
-      ? await apiBlob("/api/words/pronunciation", { word_id: wordId })
-      : await apiBlob("/api/tools/translator-speech", { text, target_language: targetLanguage || "" });
+    let blob: Blob;
+    if (wordId) {
+      try {
+        blob = await apiBlob("/api/words/pronunciation", { word_id: wordId });
+      } catch (reason) {
+        if (!text.trim()) throw reason;
+        blob = await apiBlob("/api/tools/translator-speech", { text, target_language: targetLanguage || "" });
+      }
+    } else {
+      blob = await apiBlob("/api/tools/translator-speech", { text, target_language: targetLanguage || "" });
+    }
     const url = URL.createObjectURL(blob);
     objectUrlRef.current = url;
     return url;

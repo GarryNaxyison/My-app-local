@@ -3629,7 +3629,7 @@ func (api *webAPI) handleToolTranslatorSpeech(w http.ResponseWriter, r *http.Req
 
 func userLearnedWord(user userState, wordID string) bool {
 	for _, word := range user.LearnedWords {
-		if word.ID == wordID {
+		if learnedWordIDMatches(word, wordID) {
 			return true
 		}
 	}
@@ -3662,8 +3662,10 @@ func (api *webAPI) cachePronunciation(key string, audio []byte) {
 }
 
 func writePronunciationAudio(w http.ResponseWriter, word vocabWord, audio []byte) {
-	w.Header().Set("Content-Type", "audio/mpeg")
-	w.Header().Set("Content-Disposition", `inline; filename="`+legacyVocabID(word.ID)+`.mp3"`)
+	filename := audioFilenameForBytes(legacyVocabID(word.ID)+".mp3", audio)
+	w.Header().Set("Content-Type", audioContentType(audio))
+	w.Header().Set("Content-Disposition", `inline; filename="`+filename+`"`)
+	w.Header().Set("Cache-Control", "private, max-age=3600")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(audio)
 }
@@ -3673,7 +3675,8 @@ func writeToolAudio(w http.ResponseWriter, filename string, audio []byte) {
 	if filename == "" {
 		filename = "audio.mp3"
 	}
-	w.Header().Set("Content-Type", "audio/mpeg")
+	filename = audioFilenameForBytes(filename, audio)
+	w.Header().Set("Content-Type", audioContentType(audio))
 	w.Header().Set("Content-Disposition", `inline; filename="`+filename+`"`)
 	w.Header().Set("Cache-Control", "private, max-age=3600")
 	w.WriteHeader(http.StatusOK)

@@ -1726,6 +1726,27 @@ function formatStreakLabel(days: number, user: UserProfile, copy: (key: string, 
   return `${value} ${copy(key, "day streak")}`;
 }
 
+function phraseSentenceCandidatesFromText(value: string) {
+  const text = cleanAppText(value).replace(/\r/g, "\n").trim();
+  if (!text) return [];
+  const candidates: string[] = [];
+  const serviceLine = /^(correction|исправлен|исправление|пример|example|твоя очередь|your turn|роль|roleplay|ai|нерива|neriva)\s*:/i;
+  for (const rawLine of text.split(/\n+/)) {
+    const line = rawLine.trim();
+    if (!line || serviceLine.test(line)) {
+      const [, rest = ""] = line.split(/:\s*/, 2);
+      if (!rest || /^(correction|исправлен|исправление|твоя очередь|your turn)$/i.test(line.replace(/:.*/, "").trim())) continue;
+      candidates.push(rest);
+      continue;
+    }
+    candidates.push(line);
+  }
+  return candidates
+    .flatMap((line) => line.match(/[^.!?。！？]+[.!?。！？]+|[^.!?。！？]+$/gu) || [])
+    .map((item) => item.replace(/^[\s"'“”‘’«»\-–—•]+|[\s"'“”‘’«»]+$/g, "").trim())
+    .filter((item) => isUsefulPhraseCandidate(item));
+}
+
 function phraseCandidatesFromMessages(messages: ChatMessage[]) {
   const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
   const pushCandidate = (phrase: string, source: PhrasebookSource, details?: ApiRecord) => {
@@ -1740,6 +1761,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
     for (const field of fields) {
       pushCandidate(recordField(details, [field]), source, details);
     }
+    phraseSentenceCandidatesFromText(message.body).forEach((phrase) => pushCandidate(phrase, source, details));
     recordList(details.answer_variants)
       .concat(recordList(details.suggestions), recordList(details.examples), recordList(details.phrases))
       .forEach((phrase) => pushCandidate(phrase, source, details));
@@ -7692,7 +7714,7 @@ function LevelView({ levelQuestion, levelResult, startLevel, answerLevel, busy, 
   );
 }
 
-function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy }: ViewRendererProps) {
+function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy, user }: ViewRendererProps) {
   useEffect(() => {
     if (!vocabulary.length && busy !== "vocabulary") void loadVocabulary(0);
   }, []);
@@ -7733,7 +7755,7 @@ function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy
                 {item.translation ? <span>{item.translation}</span> : null}
                 {item.example ? <p className="vocabulary-example-v2">{item.example}</p> : item.context ? <p className="vocabulary-example-v2">{item.context}</p> : null}
               </div>
-              <AudioWaveButton label={copy("listen", "Listen")} wordId={item.id} text={item.word} compact />
+              <AudioWaveButton label={copy("listen", "Listen")} wordId={item.id} text={item.word} targetLanguage={user.learning_language} compact />
             </article>
           ))
         ) : (

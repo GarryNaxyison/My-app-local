@@ -2786,6 +2786,16 @@ test("roleplay scenario cards show concrete roles instead of the generic rolepla
   expect(genericCards).toBe(0);
 });
 
+test("desktop roleplay scenario cards stay near the top of the panel", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.goto("/app/?view=roleplay");
+  const panel = await page.locator(".context-display--roleplay").boundingBox();
+  const firstCard = await page.locator(".roleplay-grid-v2 button").first().boundingBox();
+  expect(panel).not.toBeNull();
+  expect(firstCard).not.toBeNull();
+  expect(firstCard!.y - panel!.y).toBeLessThan(170);
+});
+
 test("AI Tutor failed start stops loading loop and shows retry", async ({ page }) => {
   testSessionPayloadOverride = {
     ...sessionPayload,
@@ -3216,6 +3226,30 @@ test("regression: roleplay accepts a voice answer and shows the transcript", asy
   await page.locator(".roleplay-submit-v2").click();
   await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Could you repeat that, please?").first()).toBeVisible();
   expect(roleplayUploadSeen).toBe(true);
+});
+
+test("regression: roleplay quick save offers separate useful reply sentences", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop interaction assertion");
+  await page.unroute("**/api/practice");
+  await page.route("**/api/practice", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        explanation: "Short polite request. Could you tell me your name?",
+        question_audio_text: "Could you tell me your name?",
+      }),
+    });
+  });
+  await page.goto("/app/?view=roleplay");
+  await expect(page.locator(".context-display--roleplay")).toBeVisible();
+  await page.locator(".roleplay-grid-v2 button").first().click();
+  await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").fill("Hello.");
+  await page.locator(".roleplay-submit-v2").click();
+  const quickSave = page.locator(".roleplay-dialog-card-v2 .phrase-quick-save-v2");
+  await expect(quickSave).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "Short polite request." })).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "Could you tell me your name?" })).toBeVisible();
 });
 
 test("regression: image tool accepts a pasted clipboard image", async ({ page, isMobile }) => {
