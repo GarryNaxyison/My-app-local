@@ -7112,7 +7112,7 @@ function ChatWorkView({
         {isShadowing && shadowingTarget ? (
           <div className="task-box-v2">
             <span>{copy("spoken_model", "Spoken model")}</span>
-            <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget }]} />
+            <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget, showText: false }]} />
             <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
               <ChevronRight size={16} />
               {copy("next_phrase", "Next phrase")}
@@ -7329,21 +7329,21 @@ function RecordDetails({
   );
 }
 
-function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string }> }) {
+function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string; showText?: boolean }> }) {
   const uniqueClips = clips
     .map((clip) => {
       const generic = /^(Раздел|Section|Mục)$/i.test(cleanAppText(clip.label));
       if (generic && !clip.text && !clip.wordId) return null;
       return generic ? { ...clip, label: "Audio" } : clip;
     })
-    .filter((clip): clip is { label: string; text: string; wordId?: string; targetLanguage?: string } => clip !== null)
+    .filter((clip): clip is { label: string; text: string; wordId?: string; targetLanguage?: string; showText?: boolean } => clip !== null)
     .filter((clip) => Boolean(clip.text || clip.wordId))
     .filter((clip, index, all) => all.findIndex((other) => other.text === clip.text && other.wordId === clip.wordId) === index);
   if (!uniqueClips.length) return null;
   return (
     <div className="audio-action-row-v2">
       {uniqueClips.map((clip, index) => (
-        <AudioWaveButton key={`${clip.label}-${clip.wordId || clip.text || index}-${clip.targetLanguage || ""}`} label={clip.label} text={clip.text} wordId={clip.wordId} targetLanguage={clip.targetLanguage} />
+        <AudioWaveButton key={`${clip.label}-${clip.wordId || clip.text || index}-${clip.targetLanguage || ""}`} label={clip.label} text={clip.text} wordId={clip.wordId} targetLanguage={clip.targetLanguage} showText={clip.showText} />
       ))}
     </div>
   );

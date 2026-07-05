@@ -13,6 +13,7 @@ type AudioWaveButtonProps = {
   targetLanguage?: string;
   className?: string;
   compact?: boolean;
+  showText?: boolean;
 };
 
 function buildWaveVariants(): Variants[] {
@@ -33,7 +34,7 @@ function buildWaveVariants(): Variants[] {
   }));
 }
 
-export function AudioWaveButton({ label, text = "", wordId, targetLanguage, className, compact }: AudioWaveButtonProps) {
+export function AudioWaveButton({ label, text = "", wordId, targetLanguage, className, compact, showText = true }: AudioWaveButtonProps) {
   const variants = useMemo(() => buildWaveVariants(), []);
   const waveHeights = useMemo(() => Array.from({ length: 30 }, () => Math.random() * 20 + 5), []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -93,7 +94,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
     }
   };
   const visibleLabel = error ? "Audio unavailable" : loading ? "Loading..." : label;
-  const visibleText = text.trim();
+  const visibleText = showText ? text.trim() : "";
 
   return (
     <button
