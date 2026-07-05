@@ -9630,6 +9630,10 @@ select {
   .tools-work-v2 .file-controls-v2 {
     width: 100%;
   }
+
+  .tools-work-v2 .terminal-chat-v2 {
+    min-height: 188px !important;
+  }
 }
 
 /* Mobile regression guard for browser chrome + fixed bottom navigation. */

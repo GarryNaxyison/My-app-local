@@ -8584,7 +8584,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
         <Wand2 size={16} />
         {copy("choose_tool", "Выбрать инструмент")}
       </Button>
-      <ChatPanel messages={toolMessages} copy={copy} targetLanguage={toolTargetLanguage} />
+      {toolMessages.length ? <ChatPanel messages={toolMessages} copy={copy} targetLanguage={toolTargetLanguage} /> : null}
       <section className="v2-panel composer-panel-v2">
         <span className="eyebrow">{copy("tools", "Tools")}</span>
         <h2>{toolMode === "translator" ? copy("quick_translator", "Quick translator") : toolMode === "voice" ? copy("voice_to_text", "Voice to text") : copy("photo_translation", "Photo translation")}</h2>

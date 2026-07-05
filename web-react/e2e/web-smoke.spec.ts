@@ -3437,6 +3437,41 @@ test("regression: mobile tools translator controls stack without overlap", async
   expect(languageRow!.x + languageRow!.width).toBeLessThanOrEqual(composer!.x + composer!.width + 2);
 });
 
+test("regression: mobile tools hide empty output and show a taller result panel after submit", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  await page.route("**/api/tools/translator", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        source_text: "Hello",
+        translation: "Привет. Это немного более длинный результат, чтобы панель вывода была заметной и читабельной на мобильном экране.",
+        result: "Привет. Это немного более длинный результат, чтобы панель вывода была заметной и читабельной на мобильном экране.",
+        source_language: "en",
+        target_language: "ru",
+      }),
+    }),
+  );
+
+  await page.goto("/app/?view=tools");
+  await expect(page.locator(".context-display--tools")).toBeVisible();
+  await page.locator(".tool-switch-v2 button").first().click();
+  await expect(page.locator(".tools-change-v2")).toBeVisible();
+  await expect(page.locator(".tools-work-v2 .terminal-chat-v2")).toHaveCount(0);
+
+  await page.locator(".composer-panel-v2 textarea").fill("Hello");
+  await page.locator(".tools-submit-v2").click();
+  await expect(page.locator(".tools-work-v2 .terminal-chat-v2")).toBeVisible();
+  await expect(page.locator(".chat-interface").getByText("Привет").first()).toBeVisible();
+
+  const output = await page.locator(".tools-work-v2 .terminal-chat-v2").boundingBox();
+  const composer = await page.locator(".tools-work-v2 .composer-panel-v2").boundingBox();
+  expect(output).not.toBeNull();
+  expect(composer).not.toBeNull();
+  expect(output!.height).toBeGreaterThan(170);
+  expect(composer!.y).toBeGreaterThanOrEqual(output!.y + output!.height + 8);
+});
+
 test("mobile mistakes dictionary paginates after ten cards", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=mistakes");
@@ -4058,4 +4093,3 @@ test("regression: mobile leaderboard stays readable above bottom menu", async ({
   expect(navBox).not.toBeNull();
   expect(rowBox!.y + rowBox!.height).toBeLessThanOrEqual(navBox!.y - 4);
 });
-
