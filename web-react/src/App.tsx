@@ -1133,13 +1133,14 @@ function panelMessage(message: string, tone: ChatMessage["tone"] = "default", ti
   };
 }
 
-function userMessage(message: string, title: string, meta?: string): ChatMessage {
+function userMessage(message: string, title: string, meta?: string, attachments?: ChatMessage["attachments"]): ChatMessage {
   return {
     id: `${Date.now()}-user-${Math.random().toString(36).slice(2)}`,
     role: "user",
     title,
     body: message,
     meta,
+    attachments,
   };
 }
 
@@ -1796,6 +1797,74 @@ function phrasebookKey(value: string) {
   return cleanAppText(value).replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+function phraseLooksCompatibleWithLanguage(value: string, language: string) {
+  const text = cleanAppText(value);
+  const lang = languageCode(language);
+  if (!text || !lang) return true;
+  const latin = /[A-Za-zÀ-ÖØ-öø-ÿ]/u;
+  const cyrillic = /[\u0400-\u04FF]/u;
+  const greek = /[\u0370-\u03FF]/u;
+  const arabic = /[\u0600-\u06FF]/u;
+  const devanagari = /[\u0900-\u097F]/u;
+  const bengali = /[\u0980-\u09FF]/u;
+  const tamil = /[\u0B80-\u0BFF]/u;
+  const telugu = /[\u0C00-\u0C7F]/u;
+  const thai = /[\u0E00-\u0E7F]/u;
+  const cjk = /[\u3400-\u9FFF]/u;
+  const japanese = /[\u3040-\u30FF]/u;
+  const korean = /[\uAC00-\uD7AF]/u;
+  const nonLatin = cyrillic.test(text) || greek.test(text) || arabic.test(text) || devanagari.test(text) || bengali.test(text) || tamil.test(text) || telugu.test(text) || thai.test(text) || cjk.test(text) || japanese.test(text) || korean.test(text);
+  if (["en", "es", "de", "fr", "it", "pt", "nl", "sv", "tr", "vi", "id", "pl", "ro", "cs", "hu"].includes(lang)) return latin.test(text) && !nonLatin;
+  if (["ru", "uk", "kk", "ky", "tt", "tg"].includes(lang)) return cyrillic.test(text);
+  if (lang === "el") return greek.test(text);
+  if (lang === "ar") return arabic.test(text);
+  if (lang === "hi") return devanagari.test(text);
+  if (lang === "bn") return bengali.test(text);
+  if (lang === "ta") return tamil.test(text);
+  if (lang === "te") return telugu.test(text);
+  if (lang === "th") return thai.test(text);
+  if (lang === "zh") return cjk.test(text);
+  if (lang === "ja") return japanese.test(text) || cjk.test(text);
+  if (lang === "ko") return korean.test(text);
+  return true;
+}
+
+function phraseCandidatesFromToolMessages(messages: ChatMessage[], learningLanguage: string) {
+  const learning = languageCode(learningLanguage);
+  const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  const pushCandidate = (phrase: string, details?: ApiRecord) => {
+    const cleaned = cleanAppText(phrase).replace(/\s+/g, " ").trim();
+    if (isUsefulPhraseCandidate(cleaned) && cleaned.length <= 220 && phraseLooksCompatibleWithLanguage(cleaned, learning)) {
+      candidates.push({ phrase: cleaned, source: "tool", details });
+    }
+  };
+  for (const message of messages) {
+    if (message.role === "user") continue;
+    const details = getRecord(message.details);
+    const sourceLanguage = languageCode(recordField(details, ["source_language"]));
+    const targetLanguage = languageCode(recordField(details, ["target_language"]));
+    const sourceLooksLearned = !sourceLanguage || sourceLanguage === "auto" || sourceLanguage === learning;
+    const targetLooksLearned = Boolean(targetLanguage && targetLanguage === learning);
+    if (sourceLooksLearned) {
+      [recordField(details, ["source_text"]), recordField(details, ["transcript"])].forEach((phrase) => pushCandidate(phrase, details));
+    }
+    if (targetLooksLearned) {
+      [recordField(details, ["translation"]), recordField(details, ["result"])].forEach((phrase) => pushCandidate(phrase, details));
+    }
+    if (!sourceLooksLearned && !targetLooksLearned) {
+      [recordField(details, ["source_text"]), recordField(details, ["transcript"]), recordField(details, ["translation"])].forEach((phrase) => pushCandidate(phrase, details));
+    }
+    recordList(details.examples).concat(recordList(details.phrases), recordList(details.suggestions)).forEach((phrase) => pushCandidate(phrase, details));
+  }
+  const seen = new Set<string>();
+  return candidates.filter((item) => {
+    const key = phrasebookKey(item.phrase);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 6);
+}
+
 function samePhrasebookText(left: string | undefined, right: string | undefined) {
   const a = phrasebookKey(left || "");
   const b = phrasebookKey(right || "");
@@ -1850,6 +1919,7 @@ export function App() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     panelMessage(appCopy("ru", "ready_body"), "default", appCopy("ru", "ready_title")),
   ]);
+  const messageObjectUrlsRef = useRef<Set<string>>(new Set());
   const [activeLessonTaskId, setActiveLessonTaskId] = useState("");
   const [draft, setDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
@@ -1883,6 +1953,13 @@ export function App() {
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [phrasebook, setPhrasebook] = useState<PhrasebookItem[]>([]);
   const [habitLog, setHabitLog] = useState<Record<string, HabitDay>>({});
+
+  useEffect(() => {
+    return () => {
+      messageObjectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      messageObjectUrlsRef.current.clear();
+    };
+  }, []);
   const [dailyBonus, setDailyBonus] = useState<DailyBonusNotice | null>(null);
   const [xpGain, setXPGain] = useState<XPGainNotice | null>(null);
   const [bugReportOpen, setBugReportOpen] = useState(false);
@@ -2908,6 +2985,7 @@ export function App() {
 
   const submitTool = async () => {
     const text = draft.trim();
+    const submittedToolImageFile = toolMode === "image" ? toolImageFile : null;
     if (toolMode === "translator" && !text) {
       setStatus({ kind: "error", text: copy("paste_text_translate", "Paste text to translate") });
       return;
@@ -2938,10 +3016,17 @@ export function App() {
       target_language: asText(record.target_language || toolTargetLanguage, ""),
     };
     setToolResult(result);
-    const toolInput = text || (toolVoiceFile ? copy("voice_message", "Voice message") : toolImageFile ? copy("image_message", "Image message") : "");
+    const imageAttachments: ChatMessage["attachments"] = submittedToolImageFile
+      ? (() => {
+          const url = URL.createObjectURL(submittedToolImageFile);
+          messageObjectUrlsRef.current.add(url);
+          return [{ type: "image", url, name: submittedToolImageFile.name || "tool-image.jpg" }];
+        })()
+      : undefined;
+    const toolInput = text || (toolVoiceFile ? copy("voice_message", "Voice message") : submittedToolImageFile ? copy("image_message", "Image message") : "");
     setMessages((current) => [
       panelMessage(formatLearningRecord(record, copy, result.result || result.translation || result.source_text || copy("done", "Done.")), "success", copy("tools", "Tools"), record, `tools:${toolMode}`),
-      ...(toolInput ? [userMessage(toolInput, copy("you", "You"), `tools:${toolMode}`)] : []),
+      ...(toolInput ? [userMessage(toolInput, copy("you", "You"), `tools:${toolMode}`, imageAttachments)] : []),
       ...current,
     ]);
     if (toolMode === "translator") setDraft("");
@@ -7206,6 +7291,7 @@ function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]
         sender: message.role === "user" ? "right" : "left",
         type: "text",
         content: message.body,
+        attachments: message.attachments,
         audio: audioClipsFrom(message.details as ApiRecord | undefined, message.body, copy).map((clip) => ({ ...clip, targetLanguage })),
       })),
   };
@@ -8546,14 +8632,14 @@ function AwardModal({ selected, copy, onClose }: { selected: AwardInfo; copy: (k
   );
 }
 
-function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode, toolSourceLanguage, setToolSourceLanguage, toolTargetLanguage, setToolTargetLanguage, toolVoiceFile, setToolVoiceFile, toolImageFile, setToolImageFile, submitTool, messages, savePhrase, isPhraseSaved }: ViewRendererProps) {
+function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setToolMode, toolSourceLanguage, setToolSourceLanguage, toolTargetLanguage, setToolTargetLanguage, toolVoiceFile, setToolVoiceFile, toolImageFile, setToolImageFile, submitTool, messages, savePhrase, isPhraseSaved }: ViewRendererProps) {
   const languageOptions = session.learning_languages?.length ? session.learning_languages : session.interface_languages || [];
   const fallbackTargetLanguage = languageOptions.find((language) => language.code !== toolTargetLanguage)?.code || toolTargetLanguage || "en";
   const toolMessages = messages.filter((message) => message.meta === `tools:${toolMode}`);
   const toolPhraseCandidates = useMemo(() => {
-    const candidates = [...phraseCandidatesFromMessages(toolMessages)];
+    const candidates = [...phraseCandidatesFromToolMessages(toolMessages, user.learning_language || "")];
     const draftPhrase = cleanAppText(draft).replace(/\s+/g, " ").trim();
-    if (isUsefulPhraseCandidate(draftPhrase)) candidates.unshift({ phrase: draftPhrase, source: "tool" as PhrasebookSource, details: { note: copy("tools", "Tools") } });
+    if (isUsefulPhraseCandidate(draftPhrase) && phraseLooksCompatibleWithLanguage(draftPhrase, user.learning_language || "")) candidates.unshift({ phrase: draftPhrase, source: "tool" as PhrasebookSource, details: { note: copy("tools", "Tools") } });
     const seen = new Set<string>();
     return candidates.filter((item) => {
       const key = phrasebookKey(item.phrase);
@@ -8561,7 +8647,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
       seen.add(key);
       return true;
     }).slice(0, 4);
-  }, [copy, draft, toolMessages]);
+  }, [copy, draft, toolMessages, user.learning_language]);
   const [mobilePickerOpen, setMobilePickerOpen] = useState(true);
   const toolTextareaRef = useAutoResizeTextarea(draft);
   const swapToolLanguages = () => {

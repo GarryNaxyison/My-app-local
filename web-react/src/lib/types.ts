@@ -249,6 +249,7 @@ export type ChatMessage = {
   role: "system" | "user" | "assistant";
   title?: string;
   body: string;
+  attachments?: Array<{ type: "image"; url: string; name: string }>;
   tone?: "default" | "success" | "warning" | "danger";
   meta?: string;
   details?: Record<string, unknown>;

@@ -16,6 +16,7 @@ export interface ChatMessageItem {
   sender: "left" | "right";
   type?: "text" | "text-with-links";
   content: string;
+  attachments?: Array<{ type: "image"; url: string; name: string }>;
   links?: Array<{ text: string }>;
   audio?: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string }>;
 }
@@ -70,6 +71,18 @@ export default function ChatComponent({ config, uiConfig = {} }: { config: ChatC
                 </div>
                 <div className={cn("chat-interface__bubble", !isLeft && "chat-interface__bubble--right")}>
                   <p>{message.content}</p>
+                  {message.attachments?.length ? (
+                    <div className="chat-interface__attachments">
+                      {message.attachments.map((attachment) => (
+                        attachment.type === "image" ? (
+                          <figure className="chat-interface__image" key={`${attachment.url}-${attachment.name}`}>
+                            <img src={attachment.url} alt={attachment.name} />
+                            <figcaption>{attachment.name}</figcaption>
+                          </figure>
+                        ) : null
+                      ))}
+                    </div>
+                  ) : null}
                   {message.links?.length ? (
                     <div className="chat-interface__links">
                       {message.links.map((link) => (

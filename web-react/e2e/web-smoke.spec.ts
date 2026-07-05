@@ -3360,6 +3360,10 @@ test("regression: image tool accepts a pasted clipboard image", async ({ page, i
   await expect(page.locator(".file-chip-v2")).toContainText("clipboard-image-from-page.png");
   await page.locator(".tools-submit-v2").click();
   await expect(page.locator(".chat-interface").getByText("Меню кафе").first()).toBeVisible();
+  await expect(page.locator('.chat-interface__image img[alt="clipboard-image-from-page.png"]')).toBeVisible();
+  const quickSave = page.locator(".tools-work-v2 .phrase-quick-save-v2");
+  await expect(quickSave.locator("button").filter({ hasText: "Cafe menu" })).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "Меню кафе" })).toHaveCount(0);
   expect(uploadedImageSeen).toBe(true);
 });
 
