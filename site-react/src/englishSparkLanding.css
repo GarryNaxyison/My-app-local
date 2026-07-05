@@ -557,9 +557,12 @@ html[data-site-theme="dark"] body {
 
 .hero-proof span,
 .stitch-metric-card,
+.outcome-card,
 .before-after-bridge article,
 .feature-carousel__tab,
 .feature-panel,
+.use-case-card,
+.proof-step,
 .methodology-step,
 .ecosystem-card,
 .mobile-carousel__tab,
@@ -577,7 +580,10 @@ html[data-site-theme="dark"] body {
 
 .hero-proof span,
 .stitch-metric-card,
+.outcome-card,
 .feature-panel,
+.use-case-card,
+.proof-step,
 .methodology-step,
 .ecosystem-card,
 .mobile-panel,
@@ -605,7 +611,10 @@ html[data-site-theme="dark"] body {
 
 html[data-site-theme="dark"] .english-spark-landing .hero-proof > span,
 html[data-site-theme="dark"] .english-spark-landing .stitch-metric-card,
+html[data-site-theme="dark"] .english-spark-landing .outcome-card,
 html[data-site-theme="dark"] .english-spark-landing .feature-panel,
+html[data-site-theme="dark"] .english-spark-landing .use-case-card,
+html[data-site-theme="dark"] .english-spark-landing .proof-step,
 html[data-site-theme="dark"] .english-spark-landing .methodology-step,
 html[data-site-theme="dark"] .english-spark-landing .ecosystem-card,
 html[data-site-theme="dark"] .english-spark-landing .mobile-panel,
@@ -756,6 +765,49 @@ html[data-site-theme="dark"] .english-spark-landing .final-cta-visual {
 .pricing-section,
 .final-cta-section {
   padding: 92px 0;
+}
+
+.outcome-section {
+  padding-top: 72px;
+}
+
+.outcome-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.outcome-card {
+  min-height: 260px;
+  padding: 28px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(118, 216, 255, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(19, 28, 42, 0.84), rgba(8, 17, 31, 0.68));
+}
+
+.outcome-card > span,
+.proof-step > span {
+  color: var(--neriva-cyan);
+  font: 700 12px "JetBrains Mono", monospace;
+}
+
+.outcome-card h3,
+.use-case-card h3,
+.proof-step h3 {
+  margin: 16px 0 12px;
+  color: #ffffff;
+  font-family: "Sora", sans-serif;
+  font-size: 24px;
+  line-height: 1.12;
+}
+
+.outcome-card p,
+.use-case-card p,
+.proof-step p {
+  margin: 0;
+  color: rgba(218, 227, 247, 0.74);
+  line-height: 1.62;
 }
 
 .pricing-section {
@@ -981,6 +1033,58 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   margin: 0;
 }
 
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.use-case-card {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 220px 1fr;
+  min-height: 520px;
+  border-radius: 26px;
+}
+
+.use-case-card .product-shot {
+  height: 220px;
+  overflow: hidden;
+}
+
+.use-case-card .product-shot__button {
+  height: 100%;
+}
+
+.use-case-card .product-shot img {
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.use-case-card > div {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.use-case-card a {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 40px;
+  margin-top: auto;
+  padding: 0 14px;
+  border: 1px solid rgba(118, 216, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(118, 216, 255, 0.1);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .feature-carousel,
 .mobile-carousel {
   display: grid;
@@ -1087,6 +1191,56 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   align-items: start;
   padding-top: 118px;
   padding-bottom: 118px;
+}
+
+.proof-section {
+  padding-top: 108px;
+}
+
+.proof-section__layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1fr);
+  gap: 34px;
+  align-items: center;
+}
+
+.proof-section__shots {
+  position: relative;
+  min-height: 520px;
+}
+
+.proof-section__shots .product-shot:first-child {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: min(78%, 620px);
+}
+
+.proof-section__shots .product-shot:last-child {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  width: min(58%, 430px);
+}
+
+.proof-section__shots .product-shot img {
+  max-height: 430px;
+  object-fit: contain;
+}
+
+.proof-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.proof-step {
+  min-height: 260px;
+  padding: 24px;
+  border-radius: 24px;
 }
 
 .methodology-timeline .section-copy {
@@ -1643,6 +1797,9 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   }
 
   .stitch-metrics,
+  .outcome-grid,
+  .use-case-grid,
+  .proof-steps,
   .ecosystem-showcase__grid,
   .pricing-grid,
   .site-footer {
@@ -1656,6 +1813,18 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   .methodology-timeline {
     padding-top: 76px;
     padding-bottom: 76px;
+  }
+
+  .proof-section__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .proof-section__shots {
+    min-height: 460px;
+  }
+
+  .use-case-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ecosystem-card .product-shot {
@@ -1724,6 +1893,9 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   }
 
   .before-after-bridge__grid,
+  .outcome-grid,
+  .use-case-grid,
+  .proof-steps,
   .landing-faq__grid,
   .pricing-grid {
     grid-template-columns: 1fr;
@@ -1812,6 +1984,9 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 
   .feature-panel,
   .mobile-panel,
+  .outcome-card,
+  .use-case-card,
+  .proof-step,
   .ecosystem-card,
   .telegram-panel,
   .community-panel,
@@ -1824,6 +1999,27 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   .feature-panel .product-shot,
   .mobile-panel .product-shot {
     padding: 7px;
+  }
+
+  .use-case-card {
+    grid-template-rows: 190px 1fr;
+    min-height: 0;
+  }
+
+  .use-case-card .product-shot {
+    height: 190px;
+  }
+
+  .proof-section__shots {
+    min-height: 360px;
+  }
+
+  .proof-section__shots .product-shot:first-child {
+    width: 86%;
+  }
+
+  .proof-section__shots .product-shot:last-child {
+    width: 62%;
   }
 
   .ecosystem-card .product-shot {

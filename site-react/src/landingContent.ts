@@ -46,6 +46,15 @@ export type LandingContent = {
     value: string;
     body: string;
   }[];
+  outcomes: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    items: readonly {
+      title: string;
+      body: string;
+    }[];
+  };
   beforeAfter: {
     eyebrow: string;
     title: string;
@@ -61,6 +70,26 @@ export type LandingContent = {
     tags: readonly string[];
     captionLabel: string;
     caption: string;
+  };
+  useCases: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    items: readonly {
+      title: string;
+      body: string;
+      cta: string;
+      imageKey: keyof LandingContent["images"];
+    }[];
+  };
+  proof: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    steps: readonly {
+      title: string;
+      body: string;
+    }[];
   };
   features: {
     eyebrow: string;
@@ -181,10 +210,29 @@ const english: LandingContent = {
     badges: ["CEFR level", "6 chunks", "review date"],
   },
   metrics: [
-    { label: "Speech analysis", value: "98%", body: "Target clarity for repeat-and-correct practice" },
+    { label: "Voice check", value: "score", body: "Pronunciation is checked on phrases you actually practise" },
     { label: "Route depth", value: "A1-C2", body: "Level-aware lessons, voice and review" },
     { label: "Profile", value: "1", body: "Browser and Telegram share the same learning memory" },
   ],
+  outcomes: {
+    eyebrow: "Why it helps",
+    title: "If you study but still avoid speaking, NERIVA gives the next small step",
+    body: "The product is built for the common problem: you know words, but in a real moment you cannot quickly put them into a phrase. NERIVA gives a situation, asks for an answer, corrects it and keeps the weak place for review.",
+    items: [
+      {
+        title: "No blank page",
+        body: "You start from a concrete travel, work, exam or speaking situation, not from an empty chat.",
+      },
+      {
+        title: "No lost correction",
+        body: "A corrected phrase goes to mistakes and notes, so one useful answer does not disappear.",
+      },
+      {
+        title: "No separate tools",
+        body: "Text, voice, photo and Telegram feed the same profile instead of splitting your practice.",
+      },
+    ],
+  },
   beforeAfter: {
     eyebrow: "Before / After",
     title: "More than a vocabulary app: NERIVA closes the loop",
@@ -200,6 +248,48 @@ const english: LandingContent = {
     tags: ["Story", "Chunks", "Answer", "Review"],
     captionLabel: "Hotel check-in",
     caption: "The task, answer, correction and review options stay in one lesson.",
+  },
+  useCases: {
+    eyebrow: "Use cases",
+    title: "Why people open NERIVA",
+    body: "Each path starts from a real reason to speak or understand a language today.",
+    items: [
+      {
+        title: "Travel",
+        body: "Practise check-in, transport, cafe orders and short questions before you need them.",
+        cta: "Start travel lesson",
+        imageKey: "aiTutor",
+      },
+      {
+        title: "Work",
+        body: "Rehearse self-intros, calls, messages and deadline questions without waiting for a teacher.",
+        cta: "Practise work phrase",
+        imageKey: "notes",
+      },
+      {
+        title: "Exam",
+        body: "Turn weak grammar and speaking answers into repeatable tasks with a clear review date.",
+        cta: "Train exam answer",
+        imageKey: "mistakes",
+      },
+      {
+        title: "Pronunciation",
+        body: "Record a phrase, see weak words and repeat while the context is still fresh.",
+        cta: "Check voice",
+        imageKey: "voice",
+      },
+    ],
+  },
+  proof: {
+    eyebrow: "Product proof",
+    title: "How it looks inside the product",
+    body: "The screenshots show the actual loop: open a lesson, answer, get a correction, then come back to weak phrases.",
+    steps: [
+      { title: "Pick a task", body: "Choose the goal and level, then start with a concrete situation." },
+      { title: "Answer in your words", body: "Type, speak or use a photo when the context comes from real life." },
+      { title: "Get the correction", body: "NERIVA explains what to change and shows a better phrase." },
+      { title: "Repeat later", body: "Mistakes, notes and reminders bring the phrase back when it matters." },
+    ],
   },
   features: {
     eyebrow: "Four functions",
@@ -404,10 +494,29 @@ const russian: LandingContent = {
     badges: ["уровень CEFR", "6 чанков", "дата повтора"],
   },
   metrics: [
-    { label: "Анализ речи", value: "98%", body: "Целевая ясность для практики с повтором и правкой" },
+    { label: "Проверка голоса", value: "score", body: "Произношение проверяется на фразах из вашей практики" },
     { label: "Глубина маршрута", value: "A1-C2", body: "Уроки, голос и повтор учитывают уровень" },
     { label: "Профиль", value: "1", body: "Браузер и Telegram используют одну учебную память" },
   ],
+  outcomes: {
+    eyebrow: "Зачем это нужно",
+    title: "Если вы учите язык, но всё равно молчите, нужен не ещё один список слов",
+    body: "Обычно проблема не в том, что вы совсем ничего не знаете. Проблема в том, что в нужный момент фраза не собирается. NERIVA даёт ситуацию, просит ответить, исправляет и не даёт ошибкам пропасть.",
+    items: [
+      {
+        title: "Есть с чего начать",
+        body: "Вы открываете не пустой чат, а короткую задачу: поездка, работа, экзамен или разговор.",
+      },
+      {
+        title: "Исправление не теряется",
+        body: "Полезная правка попадает в ошибки и заметки, чтобы к ней можно было вернуться.",
+      },
+      {
+        title: "Всё в одном профиле",
+        body: "Текст, голос, фото, браузер и Telegram работают на одну учебную память.",
+      },
+    ],
+  },
   beforeAfter: {
     eyebrow: "До / После",
     title: "Больше чем словарик: NERIVA закрывает цикл обучения",
@@ -423,6 +532,48 @@ const russian: LandingContent = {
     tags: ["Ситуация", "Фразы", "Ответ", "Повтор"],
     captionLabel: "Заселение в отель",
     caption: "Задание, ответ, правка и варианты повтора остаются в одном уроке.",
+  },
+  useCases: {
+    eyebrow: "Сценарии",
+    title: "Для чего открывают NERIVA",
+    body: "У каждого занятия есть понятная причина: скоро поездка, рабочий созвон, экзамен или желание звучать увереннее.",
+    items: [
+      {
+        title: "Поездка",
+        body: "Прогоните заселение, кафе, транспорт и короткие вопросы до момента, когда они понадобятся.",
+        cta: "Начать урок для поездки",
+        imageKey: "aiTutor",
+      },
+      {
+        title: "Работа",
+        body: "Отрепетируйте self-intro, созвон, письмо или вопрос по срокам без ожидания преподавателя.",
+        cta: "Разобрать рабочую фразу",
+        imageKey: "notes",
+      },
+      {
+        title: "Экзамен",
+        body: "Слабая грамматика и speaking-ответы превращаются в задания, которые можно повторить.",
+        cta: "Потренировать ответ",
+        imageKey: "mistakes",
+      },
+      {
+        title: "Произношение",
+        body: "Запишите фразу, увидьте слабые слова и повторите её, пока контекст ещё свежий.",
+        cta: "Проверить голос",
+        imageKey: "voice",
+      },
+    ],
+  },
+  proof: {
+    eyebrow: "Доказательство продуктом",
+    title: "Как это выглядит в продукте",
+    body: "На скринах не абстрактные обещания, а рабочий цикл: открыть урок, ответить, получить правку и вернуться к слабой фразе.",
+    steps: [
+      { title: "Выбираете задачу", body: "Цель и уровень задают короткий урок под ситуацию." },
+      { title: "Отвечаете своими словами", body: "Можно писать, говорить голосом или использовать фото из реальной жизни." },
+      { title: "Получаете правку", body: "NERIVA показывает, что исправить, и даёт более естественную фразу." },
+      { title: "Повторяете позже", body: "Ошибки, заметки и напоминания возвращают фразу в нужный момент." },
+    ],
   },
   features: {
     eyebrow: "Четыре функции",
@@ -461,8 +612,8 @@ const russian: LandingContent = {
   pricing: {
     ...english.pricing,
     eyebrow: "Тарифы",
-    title: "Начните бесплатно. Добавьте лимиты, когда учеба станет регулярной.",
-    lead: "Оплата через Telegram Stars и YooKassa/SBP.",
+    title: "Free для пробы. Premium для нормальной ежедневной практики.",
+    lead: "Premium нужен, когда вы занимаетесь почти каждый день: открываются голос, фото, больше уроков и нормальный запас сообщений. Оплата через Telegram Stars и YooKassa/SBP.",
     choose: "Выбрать тариф",
     plans: [
       {
@@ -470,7 +621,7 @@ const russian: LandingContent = {
         label: "Попробовать",
         price: "0 ₽",
         period: "стартовый доступ",
-        body: "Чтобы проверить цикл урока без оплаты.",
+        body: "Для первого знакомства: понять, как работает урок, правка и сохранение фраз.",
         limits: ["5 уроков в день", "15 сообщений практики", "Базовый phrasebook"],
         access: ["текстовая практика", "заметки", "прогресс"],
       },
@@ -480,9 +631,9 @@ const russian: LandingContent = {
         oldPrice: "1000 ₽",
         price: "300 ₽",
         period: "в месяц",
-        body: "Основной тариф для AI-репетитора, голоса, фото и ошибок.",
+        body: "Основной тариф для ежедневной практики: AI-уроки, голос, фото и разбор ошибок в одном профиле.",
         limits: ["50 уроков в день", "200 сообщений практики", "20 голосовых проверок"],
-        access: ["AI-репетитор", "Голос", "Фото", "Ошибки"],
+        access: ["AI-репетитор", "голос, фото и разбор ошибок", "повтор слабых мест"],
       },
       {
         name: "Platinum",
@@ -490,7 +641,7 @@ const russian: LandingContent = {
         oldPrice: "2000 ₽",
         price: "590 ₽",
         period: "в месяц",
-        body: "Больше лимитов для поездки, работы и экзамена.",
+        body: "Для плотной подготовки перед поездкой, рабочим периодом или экзаменом, когда лимиты Free и Premium быстро заканчиваются.",
         limits: ["100 уроков в день", "500 сообщений практики", "60 голосовых проверок"],
         access: ["больше лимитов", "голос интенсив", "фото практика"],
       },

@@ -272,6 +272,23 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         ))}
       </RevealSection>
 
+      <RevealSection className="spark-section outcome-section" aria-label={copy.outcomes.title}>
+        <div className="section-copy">
+          <span className="eyebrow">{copy.outcomes.eyebrow}</span>
+          <h2>{copy.outcomes.title}</h2>
+          <p>{copy.outcomes.body}</p>
+        </div>
+        <div className="outcome-grid">
+          {copy.outcomes.items.map((item, index) => (
+            <RevealArticle className="outcome-card" key={item.title} transition={{ delay: index * 0.08 }}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </RevealArticle>
+          ))}
+        </div>
+      </RevealSection>
+
       <RevealSection className="before-after-bridge" aria-label="Before and after NERIVA">
         <div className="section-copy">
           <span className="eyebrow">{copy.beforeAfter.eyebrow}</span>
@@ -310,6 +327,29 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             <span>{copy.scenario.captionLabel}</span>
             <strong>{copy.scenario.caption}</strong>
           </div>
+        </div>
+      </RevealSection>
+
+      <RevealSection className="spark-section use-case-section" aria-label={copy.useCases.title}>
+        <div className="section-copy">
+          <span className="eyebrow">{copy.useCases.eyebrow}</span>
+          <h2>{copy.useCases.title}</h2>
+          <p>{copy.useCases.body}</p>
+        </div>
+        <div className="use-case-grid">
+          {copy.useCases.items.map((item, index) => {
+            const image = productImages[item.imageKey] ?? productImages.aiTutor;
+            return (
+              <RevealArticle className="use-case-card" key={item.title} transition={{ delay: index * 0.07 }}>
+                <ProductShot image={image} alt={imgAlt(image)} onOpen={openPreview} />
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                  <a href={WEB_APP_HREF}>{item.cta}</a>
+                </div>
+              </RevealArticle>
+            );
+          })}
         </div>
       </RevealSection>
 
@@ -362,6 +402,29 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           {copy.methodology.steps.map((step) => (
             <RevealArticle className="methodology-step" key={step.label}>
               <span>{step.label}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </RevealArticle>
+          ))}
+        </div>
+      </RevealSection>
+
+      <RevealSection className="spark-section proof-section" aria-label={copy.proof.title}>
+        <div className="proof-section__layout">
+          <div className="section-copy">
+            <span className="eyebrow">{copy.proof.eyebrow}</span>
+            <h2>{copy.proof.title}</h2>
+            <p>{copy.proof.body}</p>
+          </div>
+          <div className="proof-section__shots" aria-label={copy.proof.title}>
+            <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
+            <ProductShot image={productImages.mistakes} alt={imgAlt(productImages.mistakes)} onOpen={openPreview} />
+          </div>
+        </div>
+        <div className="proof-steps">
+          {copy.proof.steps.map((step, index) => (
+            <RevealArticle className="proof-step" key={step.title} transition={{ delay: index * 0.07 }}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
               <h3>{step.title}</h3>
               <p>{step.body}</p>
             </RevealArticle>

@@ -113,7 +113,7 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
 
   await expect(page.locator(".stitch-metrics")).toBeVisible();
   await expect(page.locator(".stitch-metric-card")).toHaveCount(3);
-  await expect(page.locator(".stitch-metrics")).toContainText("98%");
+  await expect(page.locator(".stitch-metrics")).toContainText("score");
   await expect(page.locator(".stitch-metrics")).toContainText("A1-C2");
 
   await expect(page.locator(".before-after-bridge")).toBeVisible();
@@ -174,7 +174,7 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
 test("Russian landing localizes metrics and methodology blocks", async ({ page }) => {
   await page.goto("/neriva.html?lang=ru");
 
-  await expect(page.locator(".stitch-metrics")).toContainText("Анализ речи");
+  await expect(page.locator(".stitch-metrics")).toContainText("Проверка голоса");
   await expect(page.locator(".stitch-metrics")).toContainText("Глубина маршрута");
   await expect(page.locator(".stitch-metrics")).toContainText("Браузер и Telegram используют одну учебную память");
   await expect(page.locator(".stitch-metrics")).not.toContainText("Speech analysis");
