@@ -1541,6 +1541,85 @@ func (s *sqliteStore) claimDailyBonus(telegramID int64, date string, amount int)
 	return true, tx.Commit()
 }
 
+func (s *sqliteStore) resetLearningState(telegramID int64) error {
+	if telegramID == 0 {
+		return nil
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	sessionRows, err := tx.Query(`SELECT id FROM ai_tutor_sessions WHERE telegram_id = ?`, telegramID)
+	if err != nil {
+		return err
+	}
+	sessionIDs := []string{}
+	for sessionRows.Next() {
+		var id string
+		if err := sessionRows.Scan(&id); err != nil {
+			sessionRows.Close()
+			return err
+		}
+		if strings.TrimSpace(id) != "" {
+			sessionIDs = append(sessionIDs, id)
+		}
+	}
+	if err := sessionRows.Err(); err != nil {
+		sessionRows.Close()
+		return err
+	}
+	sessionRows.Close()
+
+	for _, sessionID := range sessionIDs {
+		if _, err := tx.Exec(`DELETE FROM ai_tutor_answers WHERE session_id = ?`, sessionID); err != nil {
+			return err
+		}
+	}
+	for _, stmt := range []string{
+		`DELETE FROM mistakes WHERE telegram_id = ?`,
+		`DELETE FROM learned_words WHERE telegram_id = ?`,
+		`DELETE FROM phrasebook_entries WHERE telegram_id = ?`,
+		`DELETE FROM daily_bonus_claims WHERE telegram_id = ?`,
+		`DELETE FROM habit_days WHERE telegram_id = ?`,
+		`DELETE FROM tutor_user_lessons WHERE telegram_id = ?`,
+		`DELETE FROM ai_tutor_reviews WHERE telegram_id = ?`,
+		`DELETE FROM ai_tutor_word_reports WHERE telegram_id = ?`,
+		`DELETE FROM ai_tutor_sessions WHERE telegram_id = ?`,
+	} {
+		if _, err := tx.Exec(stmt, telegramID); err != nil {
+			return err
+		}
+	}
+	_, err = tx.Exec(
+		`UPDATE users
+		SET mode = 'idle',
+			level = 'A2',
+			lesson_count = 0,
+			practice_count = 0,
+			voice_count = 0,
+			word_lesson_count = 0,
+			word_game_count = 0,
+			xp = 0,
+			daily_date = '',
+			lessons_today = 0,
+			practice_today = 0,
+			voice_today = 0,
+			lesson_history = '',
+			practice_history = '',
+			last_lesson_prompt = '',
+			updated_at = ?
+		WHERE telegram_id = ?`,
+		formatDBTime(time.Now().UTC()),
+		telegramID,
+	)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 func (s *sqliteStore) saveLesson(telegramID int64, prompt string) error {
 	return s.updateUser(telegramID, func(user *userState) {
 		user.Mode = "lesson"

@@ -164,7 +164,11 @@ type reminderTarget struct {
 type tutorLessonFactory func(sequence int) (tutorLesson, error)
 
 func totalLeaderboardScore(user userState) int {
-	return leaderboardActivityScore(masteredWordCount(user), len(user.Mistakes))
+	score := leaderboardActivityScore(masteredWordCount(user), len(user.Mistakes))
+	if user.XP > score {
+		return user.XP
+	}
+	return score
 }
 
 func leaderboardActivityScore(words int, mistakes int) int {

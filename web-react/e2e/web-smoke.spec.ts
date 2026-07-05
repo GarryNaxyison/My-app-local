@@ -434,6 +434,48 @@ async function mockApi(page: Page) {
       }),
     });
   });
+  await page.route("**/api/word-game/next", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        empty: false,
+        prompt: "\u044f\u0431\u043b\u043e\u043a\u043e",
+        context: "Pick the learned target-language word.",
+        direction: "RU -> EN",
+        options: [
+          { id: "en:apple", text: "apple" },
+          { id: "en:station", text: "station" },
+          { id: "en:ticket", text: "ticket" },
+          { id: "en:coffee", text: "coffee" },
+        ],
+        correct_answer_id: "en:apple",
+        instruction: "Choose answer",
+        word_id: "en:apple",
+        word: "apple",
+        translation: "\u044f\u0431\u043b\u043e\u043a\u043e",
+      }),
+    }),
+  );
+  await page.route("**/api/word-game/answer", async (route) => {
+    const answer = route.request().postDataJSON();
+    const answerId = String(answer.answer_id || "");
+    const correct = answerId === "en:apple";
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        correct,
+        word_id: "en:apple",
+        word: "apple",
+        translation: "\u044f\u0431\u043b\u043e\u043a\u043e",
+        context: correct ? "Reviewed." : "Try again.",
+        example: "I bought an apple.",
+        xp: correct ? 5 : 0,
+        user: correct ? { ...sessionPayload.user, xp: sessionPayload.user.xp + 5 } : sessionPayload.user,
+      }),
+    });
+  });
   await page.route("**/api/vocabulary**", (route) =>
     route.fulfill({
       status: 200,
@@ -2585,7 +2627,7 @@ test("regression: mobile composer and recording controls expose clear labels", a
   };
   await page.goto("/app/?view=lesson");
   await page.locator(".lesson-empty-v2 button").click();
-  await expect(page.getByText("Say that you have a reservation.")).toBeVisible();
+  await expect(page.locator(".chat-interface").getByText("Say that you have a reservation.").first()).toBeVisible();
   const sendButton = page.locator(".context-display--lesson .composer-submit-v2");
   await expect(sendButton).toBeVisible();
   await expect(sendButton).toContainText("Отправить");
@@ -2898,6 +2940,16 @@ test("learn words result shows target word and saves word pair to notes", async 
   expect(String(savedItem?.translation || savedItem?.note || "")).toContain(targetTranslation);
 });
 
+test("word review wrong answer does not leave a red selected option", async ({ page }) => {
+  await page.goto("/app/?view=word-game");
+  await expect(page.locator(".context-display--word-game")).toBeVisible();
+  await expect(page.locator(".choice-grid-v2 button")).toHaveCount(4);
+  await page.locator(".choice-grid-v2 button", { hasText: "station" }).click();
+  await expect(page.locator(".trainer-result-v2")).toBeVisible();
+  await expect(page.locator(".trainer-result-v2")).toContainText(/Try again|Попробуйте|Try/);
+  await expect(page.locator(".choice-grid-v2 button.is-wrong")).toHaveCount(0);
+});
+
 test("spelling result shows the correct target-language word", async ({ page }) => {
   await page.goto("/app/?view=spelling");
   await expect(page.locator(".context-display--spelling")).toBeVisible();
@@ -3127,7 +3179,7 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   expect(emptyEyebrow!.y - emptyPanel!.y).toBeLessThanOrEqual(32);
   await expect(page.locator(".lesson-new-button-v2")).toHaveCount(0);
   await page.locator(".lesson-empty-v2 button").click();
-  await expect(page.getByText("Say that you have a reservation.")).toBeVisible();
+  await expect(page.locator(".chat-interface").getByText("Say that you have a reservation.").first()).toBeVisible();
   await expect(page.locator(".phrase-quick-save-v2")).toBeVisible();
 
   const output = await page.locator(".chat-workspace__output").boundingBox();
@@ -3146,6 +3198,18 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
   expect(phraseSave!.y).toBeGreaterThanOrEqual(fileControls!.y + fileControls!.height - 2);
   expect(sendButton!.x + sendButton!.width).toBeLessThanOrEqual((await page.locator(".composer-textarea-shell-v2").boundingBox())!.x + (await page.locator(".composer-textarea-shell-v2").boundingBox())!.width + 2);
   expect(phraseSave!.height).toBeLessThanOrEqual(130);
+  await expect(page.locator(".composer-submit-v2 svg")).toBeVisible();
+  const lessonTextareaMetrics = await page.locator(".context-display--lesson textarea").evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      clientHeight: node.clientHeight,
+      scrollHeight: node.scrollHeight,
+      overflowY: style.overflowY,
+    };
+  });
+  expect(lessonTextareaMetrics.clientHeight).toBeGreaterThanOrEqual(148);
+  expect(lessonTextareaMetrics.scrollHeight).toBeLessThanOrEqual(lessonTextareaMetrics.clientHeight + 1);
+  expect(lessonTextareaMetrics.overflowY).not.toBe("scroll");
   await page.locator(".composer-panel-v2").evaluate((node) => node.scrollTo(0, node.scrollHeight));
   phraseSave = await page.locator(".phrase-quick-save-v2").boundingBox();
   const viewport = page.viewportSize();
@@ -3471,6 +3535,17 @@ test("mobile practice and tools keep input controls visible and tools selectable
   expect(viewport).not.toBeNull();
   expect(practiceOutput!.height).toBeLessThan(320);
   expect(practiceInput!.y + practiceInput!.height).toBeLessThanOrEqual(viewport!.height - 64);
+  const practiceTextareaMetrics = await page.locator(".context-display--practice textarea").evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      clientHeight: node.clientHeight,
+      scrollHeight: node.scrollHeight,
+      overflowY: style.overflowY,
+    };
+  });
+  expect(practiceTextareaMetrics.clientHeight).toBeGreaterThanOrEqual(148);
+  expect(practiceTextareaMetrics.scrollHeight).toBeLessThanOrEqual(practiceTextareaMetrics.clientHeight + 1);
+  expect(practiceTextareaMetrics.overflowY).not.toBe("scroll");
   await page.locator(".composer-panel-v2 textarea").fill("Can you repeat?");
   await page.locator(".composer-panel-v2 textarea").press("Enter");
   await expect(page.locator(".phrase-quick-save-v2")).toBeVisible();
@@ -3494,6 +3569,7 @@ test("mobile practice and tools keep input controls visible and tools selectable
   await expect(page.locator(".tool-switch-v2 button:visible")).toHaveCount(0);
   await expect(page.locator(".tools-change-v2")).toBeVisible();
   await expect(page.locator(".tools-submit-v2")).toBeVisible();
+  await expect(page.locator(".tools-submit-v2 svg")).toBeVisible();
   const inputShell = await page.locator(".tool-input-shell-v2").boundingBox();
   const submitButton = await page.locator(".tools-submit-v2").boundingBox();
   const toolsInput = await page.locator(".composer-panel-v2 textarea").boundingBox();
@@ -3503,6 +3579,17 @@ test("mobile practice and tools keep input controls visible and tools selectable
   expect(toolsInput!.y + toolsInput!.height).toBeLessThanOrEqual(viewport!.height - 64);
   expect(submitButton!.x + submitButton!.width).toBeLessThanOrEqual(inputShell!.x + inputShell!.width + 2);
   expect(submitButton!.y + submitButton!.height).toBeLessThanOrEqual(inputShell!.y + inputShell!.height + 2);
+  const toolsTextareaMetrics = await page.locator(".context-display--tools textarea").evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      clientHeight: node.clientHeight,
+      scrollHeight: node.scrollHeight,
+      overflowY: style.overflowY,
+    };
+  });
+  expect(toolsTextareaMetrics.clientHeight).toBeGreaterThanOrEqual(148);
+  expect(toolsTextareaMetrics.scrollHeight).toBeLessThanOrEqual(toolsTextareaMetrics.clientHeight + 1);
+  expect(toolsTextareaMetrics.overflowY).not.toBe("scroll");
 });
 
 test("regression: mobile tools translator controls stack without overlap", async ({ page, isMobile }) => {
@@ -4186,4 +4273,10 @@ test("regression: mobile leaderboard stays readable above bottom menu", async ({
   expect(rowBox).not.toBeNull();
   expect(navBox).not.toBeNull();
   expect(rowBox!.y + rowBox!.height).toBeLessThanOrEqual(navBox!.y - 4);
+  const scrollMetrics = await page.evaluate(() => ({
+    windowScrollY: window.scrollY,
+    overflowX: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+  }));
+  expect(scrollMetrics.windowScrollY).toBe(0);
+  expect(scrollMetrics.overflowX).toBeLessThanOrEqual(1);
 });

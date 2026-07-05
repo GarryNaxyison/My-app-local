@@ -10190,3 +10190,154 @@ select {
     display: none !important;
   }
 }
+
+/* Final mobile workbench geometry: one page scroll, readable output, large auto-growing inputs. */
+@media (max-width: 760px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden !important;
+  }
+
+  .v2-app {
+    width: 100%;
+    max-width: 100vw;
+    height: 100dvh;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: 8px;
+    padding: 8px;
+    overflow: hidden !important;
+  }
+
+  .context-display,
+  .context-display[data-mobile-controls="true"],
+  .context-display--lesson,
+  .context-display--tools,
+  .context-display--roleplay,
+  .context-display--practice,
+  .context-display--shadowing,
+  .context-display--leaderboard {
+    grid-row: 1 !important;
+    width: 100%;
+    min-height: 0 !important;
+    height: auto !important;
+    align-self: stretch;
+    padding: 12px !important;
+    padding-bottom: 14px !important;
+    border-radius: 20px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+  }
+
+  .chat-workspace--lesson,
+  .chat-workspace--practice,
+  .chat-workspace--shadowing,
+  .chat-workspace--roleplay {
+    min-height: 100%;
+    align-content: start;
+  }
+
+  .chat-workspace--lesson .chat-workspace__output,
+  .chat-workspace--practice .chat-workspace__output,
+  .chat-workspace--roleplay .chat-workspace__output {
+    min-height: clamp(190px, 32dvh, 300px) !important;
+  }
+
+  .composer-panel-v2 {
+    overflow: visible !important;
+  }
+
+  .composer-panel-head-v2,
+  .tools-composer-head-v2 {
+    display: none !important;
+  }
+
+  .composer-textarea-shell-v2,
+  .tool-input-shell-v2 {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    overflow: visible !important;
+  }
+
+  .composer-textarea-shell-v2 textarea,
+  .roleplay-composer-v2 textarea,
+  .tool-input-shell-v2 textarea {
+    width: 100% !important;
+    min-height: 156px !important;
+    max-height: none !important;
+    resize: none !important;
+    overflow-y: hidden !important;
+    padding: 16px !important;
+    line-height: 1.45 !important;
+    scroll-margin-bottom: 92px;
+  }
+
+  .composer-submit-v2,
+  .tools-submit-v2,
+  .roleplay-submit-v2 {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 50px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .composer-submit-v2 svg,
+  .tools-submit-v2 svg,
+  .roleplay-submit-v2 svg {
+    display: block !important;
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    opacity: 1 !important;
+    color: currentColor;
+  }
+
+  .composer-submit-v2 span,
+  .tools-submit-v2 span,
+  .roleplay-submit-v2 span {
+    display: inline !important;
+  }
+
+  .context-display--roleplay .composer-textarea-shell-v2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .context-display--roleplay .roleplay-submit-v2 {
+    justify-self: stretch !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+  }
+
+  .context-display--roleplay .roleplay-submit-v2 span {
+    display: inline !important;
+  }
+
+  .mobile-bottom-nav-v2 {
+    grid-row: 2 !important;
+    position: relative !important;
+    bottom: auto !important;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+  }
+
+  .payment-back-v2 {
+    min-width: 44px;
+  }
+}

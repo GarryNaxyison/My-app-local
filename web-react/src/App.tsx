@@ -1,5 +1,5 @@
 import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ClipboardEvent } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
@@ -811,6 +811,17 @@ function useMobileUiLayout() {
   }, []);
 
   return isMobile;
+}
+
+function useAutoResizeTextarea(value: string) {
+  const ref = useRef<HTMLTextAreaElement | null>(null);
+  useLayoutEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${node.scrollHeight}px`;
+  }, [value]);
+  return ref;
 }
 
 function navCopyKey(view: ViewId) {
@@ -5463,7 +5474,10 @@ function PaymentModal({
             <span className="eyebrow">{copy("payment_options", "Payment options")}</span>
             <h2>{premiumPlanTitle(plan, copy)}</h2>
           </div>
-          <Button variant="outline" size="sm" onClick={onClose}>x</Button>
+          <Button className="payment-back-v2" variant="outline" size="sm" onClick={onClose} aria-label={copy("back", "Back")}>
+            <ChevronLeft size={18} />
+            <span>{copy("back", "Back")}</span>
+          </Button>
         </div>
         <p>{premiumPlanBody(plan, copy)}</p>
         <div className="payment-methods-v2">
@@ -6571,6 +6585,7 @@ function RoleplayView({
     setDraft("");
     setVoiceFile(null);
   };
+  const roleplayTextareaRef = useAutoResizeTextarea(draft);
   const roleplayMessages = messages.filter((message) => message.meta === "roleplay");
   const sessionMessages = roleplayResult
     ? [roleplayResult, ...roleplayMessages.filter((message) => message.id !== roleplayResult.id)].slice(0, 8)
@@ -6616,6 +6631,7 @@ function RoleplayView({
             </div>
             <div className="composer-textarea-shell-v2">
               <textarea
+                ref={roleplayTextareaRef}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder={copy("roleplay_answer_placeholder", "Ответьте в рамках роли. AI продолжит сцену и исправит фразу.")}
@@ -7090,6 +7106,7 @@ function ChatWorkView({
   const lessonHasActiveTask = isLesson && Boolean(activeLessonTaskId);
   const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
+  const textareaRef = useAutoResizeTextarea(draft);
   return (
     <div className={cn("chat-workspace", `chat-workspace--${mode}`, isShadowing && !visibleMessages.length && "chat-workspace--single")} data-work-mode={mode}>
       {showOutput ? (
@@ -7136,12 +7153,13 @@ function ChatWorkView({
         ) : null}
         {!lessonComposerLocked ? (
           <>
-            <div className="panel-head">
+            <div className="panel-head composer-panel-head-v2">
               <span className="eyebrow">{copy("input", "Input")}</span>
               <h2>{isLesson ? copy("lesson_answer", "Lesson answer") : isPractice ? copy("practice", "Practice") : copy("listening_answer", "Listening answer")}</h2>
             </div>
             <div className="composer-textarea-shell-v2">
               <textarea
+                ref={textareaRef}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={(event) => {
@@ -7503,7 +7521,7 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
                 className={cn(
                   result?.selectedId === option.id && "is-selected",
                   result?.correctId === option.id && result.tone === "success" && "is-correct",
-                  result?.selectedId === option.id && result.tone === "warning" && "is-wrong",
+                  mode === "words" && result?.selectedId === option.id && result.tone === "warning" && "is-wrong",
                 )}
                 onClick={() => void answer(option.id)}
                 disabled={Boolean(busy) || result?.tone === "success"}
@@ -8545,6 +8563,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
     }).slice(0, 4);
   }, [copy, draft, toolMessages]);
   const [mobilePickerOpen, setMobilePickerOpen] = useState(true);
+  const toolTextareaRef = useAutoResizeTextarea(draft);
   const swapToolLanguages = () => {
     if (toolSourceLanguage === "auto") {
       setToolSourceLanguage(toolTargetLanguage || fallbackTargetLanguage);
@@ -8601,10 +8620,13 @@ function ToolsView({ draft, setDraft, busy, copy, session, toolMode, setToolMode
       </Button>
       {toolMessages.length ? <ChatPanel messages={toolMessages} copy={copy} targetLanguage={toolTargetLanguage} /> : null}
       <section className="v2-panel composer-panel-v2">
-        <span className="eyebrow">{copy("tools", "Tools")}</span>
-        <h2>{toolMode === "translator" ? copy("quick_translator", "Quick translator") : toolMode === "voice" ? copy("voice_to_text", "Voice to text") : copy("photo_translation", "Photo translation")}</h2>
+        <div className="panel-head composer-panel-head-v2 tools-composer-head-v2">
+          <span className="eyebrow">{copy("tools", "Tools")}</span>
+          <h2>{toolMode === "translator" ? copy("quick_translator", "Quick translator") : toolMode === "voice" ? copy("voice_to_text", "Voice to text") : copy("photo_translation", "Photo translation")}</h2>
+        </div>
         <div className="tool-input-shell-v2">
           <textarea
+            ref={toolTextareaRef}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {

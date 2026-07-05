@@ -54,16 +54,29 @@ func TestTotalLeaderboardScoreUsesOnlyLanguageActivity(t *testing.T) {
 	}
 
 	got := totalLeaderboardScore(user)
-	want := 2*15 + 3*3
+	want := user.XP
 	if got != want {
 		t.Fatalf("expected total leaderboard score %d, got %d", want, got)
 	}
 }
 
-func TestWebLeaderboardDTOKeepsXPSeparateFromRatingScore(t *testing.T) {
+func TestTotalLeaderboardScoreNeverDropsBelowXP(t *testing.T) {
+	user := userState{
+		XP: 100,
+		LearnedWords: []learnedWordEntry{
+			{ID: "en:hello", Language: "en"},
+		},
+	}
+
+	if got := totalLeaderboardScore(user); got != user.XP {
+		t.Fatalf("totalLeaderboardScore() = %d, want XP floor %d", got, user.XP)
+	}
+}
+
+func TestWebLeaderboardDTOUsesMonotonicRatingScore(t *testing.T) {
 	got := webLeaderboardDTO([]leaderboardEntry{{
 		FirstName: "Maria",
-		Score:     33,
+		Score:     2007,
 		XP:        2007,
 		Words:     2,
 		Mistakes:  1,
@@ -74,8 +87,8 @@ func TestWebLeaderboardDTOKeepsXPSeparateFromRatingScore(t *testing.T) {
 		t.Fatalf("expected one leaderboard DTO entry, got %#v", got)
 	}
 	entry := got[0]
-	if entry["score"] != 33 || entry["rating_points"] != 33 {
-		t.Fatalf("expected rating score fields to be 33, got %#v", entry)
+	if entry["score"] != 2007 || entry["rating_points"] != 2007 {
+		t.Fatalf("expected rating score fields to be 2007, got %#v", entry)
 	}
 	if entry["xp"] != 2007 {
 		t.Fatalf("expected raw XP to stay separate from rating score, got %#v", entry)
