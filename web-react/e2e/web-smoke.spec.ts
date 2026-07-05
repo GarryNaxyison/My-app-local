@@ -1481,6 +1481,60 @@ test("bug report paste keeps one clipboard image and no generic section text", a
   await expect(dialog.locator(".bug-report-dialog-v2__upload")).not.toContainText("2 ");
 });
 
+test("bug report dialog contains long report text and screenshot filename on mobile", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Mobile viewport catches the bug report dialog overflow regression.");
+
+  await page.goto("/app/?view=home");
+  await page.locator(".mobile-report-button-v2").click();
+
+  const dialog = page.locator(".bug-report-dialog-v2");
+  await expect(dialog).toBeVisible();
+
+  await dialog.locator("textarea").fill(
+    "Слишком-длинный-багрепорт-без-пробелов-".repeat(12),
+  );
+  await dialog.locator("textarea").evaluate((node) => {
+    const longName = `screenshot_${"2026-07-04-13-28-24-759_".repeat(7)}org.mozilla.fenix.jpg`;
+    const file = new File([new Uint8Array([137, 80, 78, 71])], longName, { type: "image/jpeg", lastModified: 123 });
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    const event = new ClipboardEvent("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "clipboardData", { value: { files: transfer.files, items: transfer.items } });
+    node.dispatchEvent(event);
+  });
+
+  await expect(dialog.locator(".bug-report-dialog-v2__upload")).toContainText("screenshot_");
+
+  const overflow = await page.evaluate(() => {
+    const root = document.documentElement;
+    const dialog = document.querySelector(".bug-report-dialog-v2");
+    const upload = document.querySelector(".bug-report-dialog-v2__upload");
+    const uploadText = document.querySelector(".bug-report-dialog-v2__upload span");
+    const dialogBox = dialog?.getBoundingClientRect();
+    const uploadBox = upload?.getBoundingClientRect();
+    const uploadTextBox = uploadText?.getBoundingClientRect();
+    return {
+      pageOverflowX: Math.max(0, root.scrollWidth - root.clientWidth),
+      uploadOverflowX: upload ? Math.max(0, upload.scrollWidth - upload.clientWidth) : 0,
+      uploadWidth: uploadBox ? uploadBox.width : 0,
+      uploadTextOverflow: uploadText ? getComputedStyle(uploadText).textOverflow : "",
+      uploadTextWhiteSpace: uploadText ? getComputedStyle(uploadText).whiteSpace : "",
+      dialogRight: dialogBox ? dialogBox.right : 0,
+      uploadRight: uploadBox ? uploadBox.right : 0,
+      uploadTextRight: uploadTextBox ? uploadTextBox.right : 0,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  expect(overflow.pageOverflowX).toBe(0);
+  expect(overflow.uploadOverflowX).toBe(0);
+  expect(overflow.uploadWidth).toBeGreaterThan(280);
+  expect(overflow.uploadTextOverflow).toBe("ellipsis");
+  expect(overflow.uploadTextWhiteSpace).toBe("nowrap");
+  expect(overflow.dialogRight).toBeLessThanOrEqual(overflow.viewportWidth);
+  expect(overflow.uploadRight).toBeLessThanOrEqual(overflow.viewportWidth);
+  expect(overflow.uploadTextRight).toBeLessThanOrEqual(overflow.uploadRight);
+});
+
 test("free users see AI Tutor premium paywall instead of starting a lesson", async ({ page }) => {
   let startCalled = false;
   await page.unroute("**/api/ai-tutor/start").catch(() => undefined);

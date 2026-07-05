@@ -5044,12 +5044,15 @@ select {
 }
 
 .bug-report-dialog-v2 {
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 28px));
   max-width: 560px;
 }
 
 .bug-report-dialog-v2__body {
   display: grid;
   gap: 16px;
+  min-width: 0;
   text-align: left;
 }
 
@@ -5066,6 +5069,7 @@ select {
 
 .bug-report-dialog-v2 textarea,
 .phrasebook-add-v2 input {
+  box-sizing: border-box;
   width: 100%;
   border: 1px solid var(--v2-border);
   border-radius: 18px;
@@ -5073,6 +5077,7 @@ select {
   color: var(--v2-text);
   padding: 13px 15px;
   outline: none;
+  overflow-wrap: anywhere;
 }
 
 .bug-report-dialog-v2 textarea:focus,
@@ -5083,17 +5088,30 @@ select {
 
 .bug-report-dialog-v2__upload {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 10px;
-  width: fit-content;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
+  min-width: 0;
   padding: 11px 14px;
   border: 1px dashed color-mix(in srgb, var(--v2-accent) 45%, var(--v2-border));
   border-radius: 999px;
   color: var(--v2-text);
   cursor: pointer;
   overflow: hidden;
+}
+
+.bug-report-dialog-v2__upload svg {
+  flex: 0 0 auto;
+}
+
+.bug-report-dialog-v2__upload span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bug-report-dialog-v2__upload input {
