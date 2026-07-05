@@ -110,7 +110,7 @@ function renderPage(page, language) {
   const origin = language === "ru" ? russianOrigin : englishOrigin;
   const landingHref = language === "en" ? "/poliglot-ai.html?lang=en" : "/poliglot-ai.html";
   const relatedPages = seoPages.filter((item) => item.slug !== page.slug);
-  const ogImage = `${origin}/assets/seo/${language === "ru" ? "poliglot-ai-og-ru.jpg" : "poliglot-ai-og-en.jpg"}`;
+  const ogImage = `${origin}/assets/seo/${language === "ru" ? "neriva-social-preview-v2-ru.jpg" : "neriva-social-preview-v2-en.jpg"}`;
   const appCta = language === "ru" ? "Открыть web app" : "Open web app";
   const landingLabel = language === "ru" ? "Главная" : "Landing";
   const guidesLabel = language === "ru" ? "Материалы" : "Guides";

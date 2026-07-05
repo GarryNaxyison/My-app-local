@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5175",
     "seo:generate": "node scripts/generate-static-seo-pages.mjs",
+    "og:generate": "node scripts/generate-og-images.mjs",
     "favicons:generate": "node scripts/generate-favicons.mjs",
-    "build": "npm run favicons:generate && npm run seo:generate && node ../tools/clean_public_site_bundle.mjs && tsc -b && vite build",
+    "build": "npm run favicons:generate && npm run og:generate && npm run seo:generate && node ../tools/clean_public_site_bundle.mjs && tsc -b && vite build",
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4175",
     "e2e": "playwright test"

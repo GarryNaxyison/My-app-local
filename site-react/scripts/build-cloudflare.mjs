@@ -32,5 +32,6 @@ const cloudflareEnv = {
 };
 
 await run("npm", ["run", "seo:generate"], cloudflareEnv);
+await run("npm", ["run", "og:generate"], cloudflareEnv);
 await run("npx", ["tsc", "-b"], cloudflareEnv);
 await run("npx", ["vite", "build"], cloudflareEnv);

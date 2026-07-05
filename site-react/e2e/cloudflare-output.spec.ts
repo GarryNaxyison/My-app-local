@@ -14,8 +14,8 @@ const requiredCloudflareFiles = [
   "_redirects",
   "assets/site-i18n.js",
   "assets/site-phrases.js",
-  "assets/seo/poliglot-ai-og-ru.jpg",
-  "assets/seo/poliglot-ai-og-en.jpg",
+  "assets/seo/neriva-social-preview-v2-ru.jpg",
+  "assets/seo/neriva-social-preview-v2-en.jpg",
 ] as const;
 
 test("Cloudflare Pages output contains the static landing, SEO files, and fallback pages", async () => {
