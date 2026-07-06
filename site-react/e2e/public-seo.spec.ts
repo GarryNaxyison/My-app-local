@@ -36,6 +36,23 @@ const englishComparisonCopy = [
   "Best when quick mobile practice and deeper desktop study should stay synced.",
 ] as const;
 
+const russianLandingTitle = "NERIVA - AI-репетитор иностранных языков в Telegram";
+const russianLandingDescription =
+  "NERIVA: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.";
+const russianLandingSocialDescription =
+  "AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.";
+const mojibakeCodepointPattern = /[\u0080-\u009f\u00b5\u0402\u0403\u0453\u0457\u201a\u2026]/;
+
+function staticMetaContent(html: string, selector: "description" | "og:title" | "og:description" | "twitter:title" | "twitter:description") {
+  if (selector === "description") {
+    return html.match(/<meta\s+name="description"\s+content="([^"]+)"/i)?.[1] || "";
+  }
+  if (selector.startsWith("og:")) {
+    return html.match(new RegExp(`<meta\\s+property="${selector}"\\s+content="([^"]+)"`, "i"))?.[1] || "";
+  }
+  return html.match(new RegExp(`<meta\\s+name="${selector}"\\s+content="([^"]+)"`, "i"))?.[1] || "";
+}
+
 async function selectLandingLanguage(page: Page, code: string) {
   const languageSelect = page.locator("[data-site-language-select]").first();
   await languageSelect.selectOption(code);
@@ -67,13 +84,36 @@ test.describe("public landing SEO and AEO metadata", () => {
     });
   });
 
+  test("serves valid UTF-8 Russian social metadata before client JavaScript", async ({ request }) => {
+    const response = await request.get("/neriva.html");
+    expect(response.ok()).toBeTruthy();
+    expect(response.headers()["content-type"]).toContain("text/html");
+    const html = await response.text();
+
+    expect(html.match(/<title>([^<]+)<\/title>/i)?.[1]).toBe(russianLandingTitle);
+    expect(staticMetaContent(html, "description")).toBe(russianLandingDescription);
+    expect(staticMetaContent(html, "og:title")).toBe(russianLandingTitle);
+    expect(staticMetaContent(html, "og:description")).toBe(russianLandingSocialDescription);
+    expect(staticMetaContent(html, "twitter:title")).toBe(russianLandingTitle);
+    expect(staticMetaContent(html, "twitter:description")).toBe(russianLandingSocialDescription);
+    [
+      russianLandingTitle,
+      russianLandingDescription,
+      russianLandingSocialDescription,
+      staticMetaContent(html, "og:title"),
+      staticMetaContent(html, "og:description"),
+      staticMetaContent(html, "twitter:title"),
+      staticMetaContent(html, "twitter:description"),
+    ].forEach((value) => expect(value).not.toMatch(mojibakeCodepointPattern));
+  });
+
   test("sets Russian canonical metadata, alternates, JSON-LD, and visible answers", async ({ page }) => {
     await page.goto("/neriva.html?lang=ru");
 
-    await expect(page).toHaveTitle("NERIVA - AI-репетитор иностранных языков в Telegram");
+    await expect(page).toHaveTitle(russianLandingTitle);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
-      /AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium/,
+      russianLandingDescription,
     );
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://neriva.ru/neriva.html");
 
