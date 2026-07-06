@@ -231,7 +231,7 @@ func buildPronunciationTechnicalReport(user userState, expected string, transcri
 		similarity = shadowingScore(expected, spoken)
 		alignments := alignPronunciationUnits(targetUnits, spokenUnits)
 		problems, missing, substitutions = pronunciationProblemsFromAlignment(alignments, spokenConf, confidenceSource)
-		if len(problems) == 0 && avgConfidence < 0.80 {
+		if confidenceSource != "estimated" && len(problems) == 0 && avgConfidence < 0.80 {
 			for i, unit := range spokenUnits {
 				if i >= len(spokenConf) || spokenConf[i] >= 0.80 {
 					continue
@@ -310,9 +310,6 @@ func spokenWordConfidences(transcription audioTranscription, spokenUnits []strin
 			return confidences, "logprobs"
 		}
 	}
-	for i := range confidences {
-		confidences[i] = 0.74
-	}
 	return confidences, "estimated"
 }
 
@@ -359,6 +356,9 @@ func pronunciationProblemsFromAlignment(alignments []pronunciationAlignment, spo
 }
 
 func pronunciationProblemsFromFreeSpeech(spokenUnits []string, spokenConf []float64, source string) []pronunciationProblemWord {
+	if source == "estimated" {
+		return nil
+	}
 	var problems []pronunciationProblemWord
 	for i, unit := range spokenUnits {
 		conf := 0.74
@@ -379,14 +379,14 @@ func pronunciationProblemsFromFreeSpeech(spokenUnits []string, spokenConf []floa
 }
 
 func confidenceForAlignment(item pronunciationAlignment, spokenConf []float64, source string) float64 {
-	if item.SpokenIndex >= 0 && item.SpokenIndex < len(spokenConf) {
-		return clampFloat(spokenConf[item.SpokenIndex], 0, 1)
-	}
 	if source == "estimated" {
 		if item.Op == "match" {
 			return 0.90
 		}
 		return clampFloat(0.35+item.Similarity*0.45, 0.20, 0.78)
+	}
+	if item.SpokenIndex >= 0 && item.SpokenIndex < len(spokenConf) {
+		return clampFloat(spokenConf[item.SpokenIndex], 0, 1)
 	}
 	return 0
 }
@@ -906,6 +906,20 @@ func normalizeCoachProblemWords(coach []pronunciationProblemWord, local []pronun
 		out[i].Tip = strings.TrimSpace(out[i].Tip)
 		out[i].Issue = strings.TrimSpace(out[i].Issue)
 		out[i].Confidence = roundConfidence(out[i].Confidence)
+	}
+	if len(out) > 1 {
+		samePlaceholder := true
+		for _, item := range out {
+			if item.Confidence != 0.74 {
+				samePlaceholder = false
+				break
+			}
+		}
+		if samePlaceholder {
+			for i := range out {
+				out[i].Confidence = 0
+			}
+		}
 	}
 	return out
 }

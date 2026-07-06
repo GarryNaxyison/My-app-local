@@ -46,7 +46,6 @@ func main() {
 		cfg:            cfg,
 		store:          store,
 		telegram:       newTelegramClient(cfg.TelegramBotToken, httpClient),
-		cryptoRates:    newCryptoRateProvider(cfg, httpClient),
 		activationKeys: activationKeys,
 		openrouter: newOpenRouterClient(
 			cfg.OpenRouterAPIKey,

@@ -9,9 +9,10 @@ test("Cloudflare Worker fallback path matcher only proxies dynamic application p
   expect(worker.shouldProxyPath("/api/profile")).toBe(true);
   expect(worker.shouldProxyPath("/healthz")).toBe(true);
   expect(worker.shouldProxyPath("/payment/success")).toBe(true);
-  expect(worker.shouldProxyPath("/tonapi/webhook")).toBe(true);
-  expect(worker.shouldProxyPath("/rollypay/webhook/site")).toBe(true);
-  expect(worker.shouldProxyPath("/rollypay/webhook/anything")).toBe(true);
+  expect(worker.shouldProxyPath("/yookassa/webhook")).toBe(true);
+  expect(worker.shouldProxyPath("/tonapi/webhook")).toBe(false);
+  expect(worker.shouldProxyPath("/rollypay/webhook/site")).toBe(false);
+  expect(worker.shouldProxyPath("/rollypay/webhook/anything")).toBe(false);
   expect(worker.shouldProxyPath("/neriva.html")).toBe(false);
   expect(worker.shouldProxyPath("/assets/site-react/main.js")).toBe(false);
 });

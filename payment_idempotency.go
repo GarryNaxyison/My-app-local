@@ -37,11 +37,3 @@ func paymentIdempotencyToken(provider string, telegramID int64, product string, 
 	sum := sha256.Sum256([]byte(seed))
 	return strings.TrimSpace(provider) + "-" + hex.EncodeToString(sum[:])[:32]
 }
-
-func cryptoPaymentIDFromIdempotencyKey(methodID string, telegramID int64, product string, key string) string {
-	token := paymentIdempotencyToken("crypto", telegramID, product, methodID, key)
-	if token == "" {
-		return ""
-	}
-	return strings.TrimSpace(methodID) + "_" + strings.TrimPrefix(token, "crypto-")[:24]
-}

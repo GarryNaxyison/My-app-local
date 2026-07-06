@@ -7,10 +7,7 @@ const exactProxyPaths = new Set([
   "/login",
   "/healthz",
   "/payment/success",
-  "/tonapi/webhook",
   "/yookassa/webhook",
-  "/rollypay/webhook/site",
-  "/rollypay/webhook/bot",
 ]);
 
 const prefixProxyPaths = [
@@ -18,9 +15,7 @@ const prefixProxyPaths = [
   "/login/",
   "/api/",
   "/payment/success/",
-  "/tonapi/webhook/",
   "/yookassa/webhook/",
-  "/rollypay/webhook/",
 ];
 
 const fallbackStatuses = new Set([520, 521, 522, 523, 524, 525, 526, 530, 502, 503, 504]);

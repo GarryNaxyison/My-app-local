@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -13,7 +12,6 @@ const (
 	referralDirectRewardPercent     = 20
 	referralIndirectRewardPercent   = 5
 	referralWithdrawalMinKopecks    = int64(1000 * 100)
-	defaultUSDTExchangeRateRubles   = 72
 )
 
 type referralApplication struct {
@@ -90,29 +88,4 @@ func formatRubKopecks(kopecks int64) string {
 		return fmt.Sprintf("%d ₽", kopecks/100)
 	}
 	return fmt.Sprintf("%.2f ₽", float64(kopecks)/100)
-}
-
-func formatUSDTFromKopecks(kopecks int64) string {
-	return formatUSDTFromKopecksAtRate(kopecks, float64(defaultUSDTExchangeRateRubles))
-}
-
-func formatUSDTFromKopecksAtRate(kopecks int64, usdtRubRate float64) string {
-	if kopecks < 0 {
-		kopecks = 0
-	}
-	if usdtRubRate <= 0 {
-		usdtRubRate = float64(defaultUSDTExchangeRateRubles)
-	}
-	return fmt.Sprintf("%.2f USDT", float64(kopecks)/100/usdtRubRate)
-}
-
-func formatUSDTRubRate(usdtRubRate float64) string {
-	return formatUSDTRubRateValue(usdtRubRate) + " ₽"
-}
-
-func formatUSDTRubRateValue(usdtRubRate float64) string {
-	if usdtRubRate <= 0 {
-		usdtRubRate = float64(defaultUSDTExchangeRateRubles)
-	}
-	return strings.TrimRight(strings.TrimRight(fmt.Sprintf("%.2f", usdtRubRate), "0"), ".")
 }

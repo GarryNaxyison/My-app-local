@@ -241,10 +241,6 @@ func (api *webAPI) webYooKassaReady() bool {
 	return api.webYooKassaClient() != nil && api.cfg.webYooKassaEnabled()
 }
 
-func (api *webAPI) webRollyPayReady() bool {
-	return api != nil && api.bot != nil && api.bot.rollyPayWeb != nil && api.cfg.rollyPayWebEnabled()
-}
-
 func (api *webAPI) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") {
@@ -2384,17 +2380,19 @@ func (api *webAPI) handleWordAnswer(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	example := api.bot.vocabularyExample(r.Context(), user, word, "learn word")
 	writeJSON(w, http.StatusOK, map[string]any{
-		"correct":     true,
-		"learned":     learned,
-		"total":       total,
-		"word_id":     word.ID,
-		"word":        word.English,
-		"translation": prompt,
-		"context":     api.bot.vocabularyHint(r.Context(), user, word, "learn word"),
-		"example":     api.bot.vocabularyExample(r.Context(), user, word, "learn word"),
-		"promoted_to": promotedTo,
-		"user":        api.userDTO(refreshed),
+		"correct":             true,
+		"learned":             learned,
+		"total":               total,
+		"word_id":             word.ID,
+		"word":                word.English,
+		"translation":         prompt,
+		"context":             api.bot.vocabularyHint(r.Context(), user, word, "learn word"),
+		"example":             example,
+		"example_translation": api.bot.vocabularyExampleTranslation(r.Context(), user, word, "learn word", example),
+		"promoted_to":         promotedTo,
+		"user":                api.userDTO(refreshed),
 	})
 }
 
@@ -2880,17 +2878,19 @@ func (api *webAPI) handleWordGameAnswer(w http.ResponseWriter, r *http.Request) 
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	example := api.bot.vocabularyExample(r.Context(), user, word, "review word")
 	writeJSON(w, http.StatusOK, map[string]any{
-		"correct":     true,
-		"word_id":     word.ID,
-		"word":        word.English,
-		"translation": prompt,
-		"context":     api.bot.vocabularyHint(r.Context(), user, word, "review word"),
-		"example":     api.bot.vocabularyExample(r.Context(), user, word, "review word"),
-		"mastered":    masteredNow,
-		"xp":          10,
-		"promoted_to": promotedTo,
-		"user":        api.userDTO(refreshed),
+		"correct":             true,
+		"word_id":             word.ID,
+		"word":                word.English,
+		"translation":         prompt,
+		"context":             api.bot.vocabularyHint(r.Context(), user, word, "review word"),
+		"example":             example,
+		"example_translation": api.bot.vocabularyExampleTranslation(r.Context(), user, word, "review word", example),
+		"mastered":            masteredNow,
+		"xp":                  10,
+		"promoted_to":         promotedTo,
+		"user":                api.userDTO(refreshed),
 	})
 }
 
@@ -4093,10 +4093,8 @@ func (api *webAPI) handlePremiumPlans(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"enabled":          api.webYooKassaReady(),
-		"rollypay_enabled": false,
-		"crypto_enabled":   false,
-		"plans":            api.premiumPlansDTO(user),
+		"enabled": api.webYooKassaReady(),
+		"plans":   api.premiumPlansDTO(user),
 	})
 }
 
@@ -4139,13 +4137,6 @@ func (api *webAPI) handlePremiumPayment(w http.ResponseWriter, r *http.Request) 
 		"method":           normalizeYooKassaPaymentMethod(req.PaymentMethod),
 		"method_label":     yooKassaPaymentMethodLabel(req.PaymentMethod, user.InterfaceLanguage),
 	})
-}
-
-func (api *webAPI) handlePremiumRollyPayPayment(w http.ResponseWriter, r *http.Request) {
-	if !allowMethod(w, r, http.MethodPost) {
-		return
-	}
-	writeAPIError(w, http.StatusGone, "This payment method is no longer available.")
 }
 
 func (api *webAPI) handlePremiumStarsPayment(w http.ResponseWriter, r *http.Request) {
@@ -4248,20 +4239,6 @@ func (api *webAPI) handlePremiumActivationKey(w http.ResponseWriter, r *http.Req
 		"premium_until": until.Format(time.RFC3339),
 	}
 	writeJSON(w, http.StatusOK, payload)
-}
-
-func (api *webAPI) handleCryptoPremiumPayment(w http.ResponseWriter, r *http.Request) {
-	if !allowMethod(w, r, http.MethodPost) {
-		return
-	}
-	writeAPIError(w, http.StatusGone, "This payment method is no longer available.")
-}
-
-func (api *webAPI) handleCryptoPremiumCheck(w http.ResponseWriter, r *http.Request) {
-	if !allowMethod(w, r, http.MethodPost) {
-		return
-	}
-	writeAPIError(w, http.StatusGone, "This payment method is no longer available.")
 }
 
 func (api *webAPI) currentUser(w http.ResponseWriter, r *http.Request) (userState, error) {
@@ -4512,8 +4489,6 @@ func (api *webAPI) sessionPayload(user userState) map[string]any {
 		"learning_languages":  webLanguageDTOs(learningLanguages),
 		"premium_plans":       api.premiumPlansDTO(user),
 		"yookassa_enabled":    api.webYooKassaReady(),
-		"rollypay_enabled":    false,
-		"crypto_enabled":      false,
 		"captcha":             api.webCaptchaDTO(),
 		"telegram_login_bot":  api.cfg.WebTelegramLoginBot,
 		"web_app_url":         api.cfg.WebAppURL,
@@ -4691,8 +4666,6 @@ func (api *webAPI) premiumPlansDTO(user userState) []map[string]any {
 		"note":            free.Note,
 		"rub_price":       0,
 		"stars_price":     0,
-		"crypto_enabled":  false,
-		"crypto_methods":  []map[string]any{},
 	})
 	for _, plan := range plans {
 		landing := premiumPlanLandingCopy(user, plan.Tier)
@@ -4708,46 +4681,9 @@ func (api *webAPI) premiumPlansDTO(user userState) []map[string]any {
 			"days_label":      plan.DaysLabel,
 			"rub_price":       plan.RubPrice,
 			"stars_price":     plan.StarsPrice,
-			"usdt_price":      "",
-			"crypto_enabled":  false,
-			"crypto_methods":  []map[string]any{},
 		})
 	}
 	return result
-}
-
-func (api *webAPI) usdtPriceLabel(product string) string {
-	rate := api.currentUSDTRubRate()
-	amount, err := api.cfg.cryptoUSDTAmountForProductAtRate(product, rate.USDTRub)
-	if err != nil || amount <= 0 {
-		return ""
-	}
-	return formatUnitsAmount(amount, 6) + " USDT"
-}
-
-func (api *webAPI) cryptoPaymentMethodsDTO(product string) []map[string]any {
-	rate := api.currentUSDTRubRate()
-	methods := api.cfg.cryptoPaymentMethodsForProductAtRate(product, rate.USDTRub)
-	result := make([]map[string]any, 0, len(methods))
-	for _, method := range methods {
-		result = append(result, map[string]any{
-			"id":       method.ID,
-			"label":    method.Label,
-			"currency": method.Currency,
-			"network":  method.Network,
-		})
-	}
-	return result
-}
-
-func (api *webAPI) currentUSDTRubRate() cryptoRateSnapshot {
-	if api == nil {
-		return fallbackCryptoRateSnapshot(config{})
-	}
-	if api.bot != nil {
-		return api.bot.currentUSDTRubRate(context.Background())
-	}
-	return fallbackCryptoRateSnapshot(api.cfg)
 }
 
 func webPremiumStarsMessage(user userState, key string) string {
@@ -4794,28 +4730,6 @@ func webLanguageDTOs(languages []learningLanguage) []webLanguageDTO {
 		})
 	}
 	return result
-}
-
-func cryptoPaymentDTO(payment cryptoPayment, invoiceURL string) map[string]any {
-	return map[string]any{
-		"payment_id":    payment.ID,
-		"provider":      payment.Provider,
-		"currency":      payment.Currency,
-		"network":       payment.Network,
-		"method":        cryptoPaymentMethodID(payment),
-		"method_label":  cryptoPaymentMethodLabel(payment),
-		"product":       payment.Product,
-		"status":        payment.Status,
-		"address":       payment.Address,
-		"memo":          payment.Memo,
-		"memo_required": strings.TrimSpace(payment.Memo) != "",
-		"amount":        payment.Amount,
-		"amount_nano":   payment.AmountNano,
-		"amount_units":  payment.AmountNano,
-		"invoice_url":   invoiceURL,
-		"tx_hash":       payment.TxHash,
-		"expires_at":    payment.ExpiresAt.Format(time.RFC3339),
-	}
 }
 
 func webCopyDTO(copy uiCopy) map[string]string {

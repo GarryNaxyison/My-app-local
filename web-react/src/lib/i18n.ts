@@ -286,7 +286,6 @@ const en: Record<string, string> = {
   referral_code: "Referral code",
   no_code_yet: "No code yet",
   referral_unavailable: "Referral links are available after account setup.",
-  usdt_rub_rate: "Referral balance",
   copy_invite: "Copy invite",
   invite_telegram: "Invite in Telegram",
   share: "Share",
@@ -811,7 +810,6 @@ const localeOverrides: Partial<Record<AppLocaleCode, Record<string, string>>> = 
     amount: "Сумма",
     wallet: "Кошелек",
     open_payment: "Открыть оплату",
-    usdt_rub_rate: "Referral balance",
     copy_invite: "Скопировать приглашение",
     invite_telegram: "Пригласить в Telegram",
     share: "Поделиться",
@@ -3287,7 +3285,7 @@ function localizedFallbackForEnglishCopy(code: AppLocaleCode, key: string): stri
     if (key.includes("sent") || key.includes("saved")) return terms.ready;
     return target.tools || terms.unavailable;
   }
-  if (key.includes("payment") || key.includes("crypto") || key.includes("network")) return target.payment_options && target.payment_options !== en.payment_options ? target.payment_options : target.premium || terms.account;
+  if (key.includes("payment") || key.includes("network")) return target.payment_options && target.payment_options !== en.payment_options ? target.payment_options : target.premium || terms.account;
   if (key.includes("activity") || key.includes("rhythm") || key.includes("training_balance")) return target.dashboard || terms.growth;
   if (key.includes("learned") || key.includes("completed") || key.includes("rounds") || key.includes("attempts") || key.includes("repaired") || key.includes("practiced")) return target.dashboard || terms.growth;
   if (key.includes("lesson")) return target.new_lesson || terms.learn;
@@ -3359,8 +3357,6 @@ const coreV2FallbackKeys = [
   "voice_attempts",
   "mistakes_repaired",
   "payment_requisites",
-  "payment_crypto_instruction",
-  "specified_network",
   "check_payment",
   "premium_year_title",
   "premium_year_body",
@@ -3696,10 +3692,8 @@ appLocaleCodes.forEach((code) => {
     payment_options: target.payment_options && target.payment_options !== en.payment_options ? target.payment_options : target.premium || terms.account,
     payment_requisites: target.payment_options || target.premium || terms.account,
     check_payment: target.payment_options || target.premium || terms.account,
-    specified_network: target.payment_options || target.premium || terms.account,
     premium_year_title: target.premium || "Premium",
     premium_year_body: target.premium || "365 days",
-    payment_crypto_instruction: target.payment_options || target.premium || terms.account,
   };
   Object.entries(generic).forEach(([key, value]) => {
     const current = String(target[key] || "").trim();
@@ -3748,8 +3742,6 @@ localeOverrides.th = {
   mistakes_repaired: "ข้อผิดพลาดที่กำลังแก้",
   payment_options: "ตัวเลือกการชำระเงิน",
   payment_requisites: "รายละเอียดการชำระเงิน",
-  payment_crypto_instruction: "โอนจำนวนให้ตรง: {amount} ใช้เครือข่ายที่แสดงด้านล่าง: {network} หากจำนวนหรือเครือข่ายไม่ตรง การชำระเงินอาจไม่สำเร็จ ใส่คอมเมนต์/เมโมตามที่แสดงไว้ถ้ามี",
-  specified_network: "เครือข่ายที่ระบุ",
   check_payment: "ตรวจสอบการชำระเงิน",
   premium_year_title: "Premium รายปี",
   premium_year_body: "365 วัน",
@@ -3998,21 +3990,26 @@ Object.entries(freePlanCompleteCopy).forEach(([locale, values]) => {
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
 });
 
-const paymentSafetyCopy: Record<AppLocaleCode, { stars: string; cryptoPrepare: string; crypto: string; trc20: string; shownAmount: string }> = Object.fromEntries(
+function paymentStarsInstruction(locale: AppLocaleCode) {
+  if (locale === "ru") {
+    return "Оплата Telegram Stars откроется в Telegram. Завершите счет в окне бота; Premium включится автоматически после подтверждения Telegram.";
+  }
+  if (locale === "en") {
+    return "Telegram Stars payment opens in Telegram. Finish it in the bot window; Premium turns on automatically after Telegram confirms the invoice.";
+  }
+  const target = localeOverrides[locale] || {};
+  const label = target.payment_options || target.premium || target.account || "Premium";
+  return `${label}: Telegram Stars. Open Telegram, finish the invoice in the bot window, then Premium turns on automatically.`;
+}
+
+const paymentSafetyCopy: Record<AppLocaleCode, { stars: string }> = Object.fromEntries(
   appLocaleCodes.map((locale) => [
     locale,
     {
-      stars:
-        locale === "ru"
-          ? "Оплата Telegram Stars откроется в Telegram. Завершите счет в окне бота; Premium включится автоматически после подтверждения Telegram."
-          : "Telegram Stars payment opens in Telegram. Finish it in the bot window; Premium turns on automatically after Telegram confirms the invoice.",
-      cryptoPrepare: "",
-      crypto: "",
-      trc20: "",
-      shownAmount: "",
+      stars: paymentStarsInstruction(locale),
     },
   ]),
-) as Record<AppLocaleCode, { stars: string; cryptoPrepare: string; crypto: string; trc20: string; shownAmount: string }>;
+) as Record<AppLocaleCode, { stars: string }>;
 
 const studyPlanCopy: Record<AppLocaleCode, { title: string; active: string; steady: string; words: string; speak: string; listen: string; repair: string }> = {
   ru: { title: "План обучения на сегодня", active: "Сначала закрываем одну ошибку, потом короткий цикл слова -> фраза -> аудирование, чтобы новые темы не наслаивались на старые пробелы.", steady: "Держим ритм: слова для разогрева, фразы для вывода, аудирование для слуха и один быстрый контроль.", words: "5 слов текущего уровня, пример и быстрый повтор только сложных.", speak: "3 полезные фразы под реальные ситуации, одну сохраните в заметки.", listen: "Одна короткая аудиофраза: послушать, повторить, исправить слабый звук.", repair: "Одна ошибка или spelling-пробел закрывается до новых материалов." },
@@ -4090,50 +4087,11 @@ const passwordUxCopy: Record<AppLocaleCode, { change: string; current: string; n
   vi: { change: "Đổi mật khẩu", current: "Mật khẩu hiện tại", next: "Mật khẩu mới", confirm: "Nhập lại mật khẩu", min: "Dùng ít nhất 8 ký tự. Chữ hoa và chữ thường khác nhau.", mismatch: "Mật khẩu không khớp.", match: "Mật khẩu khớp.", save: "Lưu mật khẩu", changed: "Đã đổi mật khẩu.", placeholder: "Nhập mật khẩu", confirmPlaceholder: "Nhập lại đúng mật khẩu", authHint: "Dùng ít nhất 8 ký tự. Chữ hoa và chữ thường khác nhau.", authConfirmHint: "Nhập lại mật khẩu chính xác." },
 };
 
-const paymentFieldCopy: Record<AppLocaleCode, { network: string; comment: string; expires: string; tx: string }> = {
-  ru: { network: "Сеть", comment: "Комментарий", expires: "Истекает", tx: "Транзакция" },
-  en: { network: "Network", comment: "Comment", expires: "Expires at", tx: "Transaction" },
-  es: { network: "Red", comment: "Comentario", expires: "Caduca", tx: "Transacción" },
-  de: { network: "Netzwerk", comment: "Kommentar", expires: "Läuft ab", tx: "Transaktion" },
-  fr: { network: "Réseau", comment: "Commentaire", expires: "Expire le", tx: "Transaction" },
-  it: { network: "Rete", comment: "Commento", expires: "Scade", tx: "Transazione" },
-  zh: { network: "网络", comment: "备注", expires: "到期时间", tx: "交易" },
-  ja: { network: "ネットワーク", comment: "コメント", expires: "期限", tx: "取引" },
-  ko: { network: "네트워크", comment: "코멘트", expires: "만료 시간", tx: "거래" },
-  tg: { network: "Шабака", comment: "Шарҳ", expires: "Анҷом меёбад", tx: "Транзаксия" },
-  uz: { network: "Tarmoq", comment: "Izoh", expires: "Tugash vaqti", tx: "Tranzaksiya" },
-  tt: { network: "Челтәр", comment: "Комментарий", expires: "Вакыты чыга", tx: "Транзакция" },
-  hy: { network: "Ցանց", comment: "Մեկնաբանություն", expires: "Ավարտվում է", tx: "Գործարք" },
-  kk: { network: "Желі", comment: "Пікір", expires: "Аяқталады", tx: "Транзакция" },
-  ky: { network: "Тармак", comment: "Комментарий", expires: "Мөөнөтү бүтөт", tx: "Транзакция" },
-  ka: { network: "ქსელი", comment: "კომენტარი", expires: "იწურება", tx: "ტრანზაქცია" },
-  uk: { network: "Мережа", comment: "Коментар", expires: "Діє до", tx: "Транзакція" },
-  pl: { network: "Sieć", comment: "Komentarz", expires: "Wygasa", tx: "Transakcja" },
-  ro: { network: "Rețea", comment: "Comentariu", expires: "Expiră la", tx: "Tranzacție" },
-  pt: { network: "Rede", comment: "Comentário", expires: "Expira em", tx: "Transação" },
-  ar: { network: "الشبكة", comment: "تعليق", expires: "ينتهي في", tx: "المعاملة" },
-  bn: { network: "নেটওয়ার্ক", comment: "মন্তব্য", expires: "মেয়াদ শেষ", tx: "লেনদেন" },
-  cs: { network: "Síť", comment: "Komentář", expires: "Vyprší", tx: "Transakce" },
-  el: { network: "Δίκτυο", comment: "Σχόλιο", expires: "Λήγει", tx: "Συναλλαγή" },
-  hi: { network: "नेटवर्क", comment: "टिप्पणी", expires: "समाप्ति समय", tx: "लेनदेन" },
-  hu: { network: "Hálózat", comment: "Megjegyzés", expires: "Lejár", tx: "Tranzakció" },
-  id: { network: "Jaringan", comment: "Komentar", expires: "Berakhir", tx: "Transaksi" },
-  nl: { network: "Netwerk", comment: "Opmerking", expires: "Verloopt op", tx: "Transactie" },
-  sv: { network: "Nätverk", comment: "Kommentar", expires: "Går ut", tx: "Transaktion" },
-  ta: { network: "Network", comment: "குறிப்பு", expires: "காலாவதி", tx: "பரிவர்த்தனை" },
-  te: { network: "Network", comment: "కామెంట్", expires: "గడువు", tx: "లావాదేవీ" },
-  th: { network: "เครือข่าย", comment: "คอมเมนต์", expires: "หมดอายุ", tx: "ธุรกรรม" },
-  tl: { network: "Network", comment: "Comment", expires: "Mag-e-expire", tx: "Transaksyon" },
-  tr: { network: "Ağ", comment: "Yorum", expires: "Bitiş zamanı", tx: "İşlem" },
-  vi: { network: "Mạng", comment: "Ghi chú", expires: "Hết hạn", tx: "Giao dịch" },
-};
-
 function applyCriticalUxCopy(code: AppLocaleCode) {
   const target = localeOverrides[code] || {};
   const payment = paymentSafetyCopy[code];
   const plan = studyPlanCopy[code];
   const passwordUx = passwordUxCopy[code];
-  const paymentFields = paymentFieldCopy[code];
   const labels = {
     today: target.today || en.today,
     learnWords: target.learn_words || target.words || en.learn_words || "Words",
@@ -4189,17 +4147,8 @@ function applyCriticalUxCopy(code: AppLocaleCode) {
     auth_password_confirm_hint: passwordUx.authConfirmHint,
     pay_stars: "Telegram Stars",
     payment_stars_instruction: payment.stars,
-    payment_crypto_prepare_instruction: payment.cryptoPrepare,
-    payment_crypto_instruction: payment.crypto,
-    payment_usdt_trc20_instruction: payment.trc20,
-    shown_amount: payment.shownAmount,
     payment_requisites: code === "ru" ? "Реквизиты оплаты" : target.payment_requisites || labels.payment,
     check_payment: code === "ru" ? "Проверить оплату" : target.check_payment || labels.payment,
-    specified_network: code === "ru" ? "указанная сеть" : target.specified_network || labels.network,
-    network: paymentFields.network,
-    comment: paymentFields.comment,
-    expires_at: paymentFields.expires,
-    tx_hash: paymentFields.tx,
   };
 }
 

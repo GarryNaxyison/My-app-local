@@ -154,7 +154,22 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
   expect(initialState.filter).toContain("blur");
 
   await featurePanel.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(850);
+
+  await expect.poll(async () =>
+    featurePanel.evaluate((element) => Number(getComputedStyle(element).opacity)),
+  ).toBeGreaterThan(0.95);
+  await expect.poll(async () =>
+    featurePanel.evaluate((element) => {
+      const transform = getComputedStyle(element).transform;
+      return Math.abs(transform === "none" ? 0 : Number(transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*([^)]+)\)/)?.[1] ?? 0));
+    }),
+  ).toBeLessThan(0.5);
+  await expect.poll(async () =>
+    featurePanel.evaluate((element) => {
+      const filter = getComputedStyle(element).filter;
+      return Number(filter.match(/^blur\(([^)]+)px\)$/)?.[1] ?? 0);
+    }),
+  ).toBeLessThan(0.05);
 
   const revealedState = await featurePanel.evaluate((element) => {
     const style = getComputedStyle(element);

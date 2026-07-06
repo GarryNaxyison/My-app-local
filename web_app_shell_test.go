@@ -667,7 +667,7 @@ func TestWebLanguageDTOsUseCleanVisibleNames(t *testing.T) {
 }
 
 func TestPublicSiteReactBuildSupportsLandingAndLegalPages(t *testing.T) {
-	for _, name := range []string{"poliglot-ai.html", "privacy.html", "terms.html"} {
+	for _, name := range []string{"neriva.html", "privacy.html", "terms.html"} {
 		html, err := os.ReadFile(filepath.Join("Сайт полиглота для бота", name))
 		if err != nil {
 			t.Fatal(err)
@@ -677,12 +677,18 @@ func TestPublicSiteReactBuildSupportsLandingAndLegalPages(t *testing.T) {
 			`<div id="root"></div>`,
 			`/assets/site-react/`,
 			`/assets/site-i18n.js`,
-			`/assets/site-phrases.js`,
 			`type="module"`,
 		} {
 			if !strings.Contains(page, want) {
 				t.Fatalf("%s React static page is missing %q", name, want)
 			}
+		}
+		hasSitePhrases := strings.Contains(page, `/assets/site-phrases.js`)
+		if name == "neriva.html" && hasSitePhrases {
+			t.Fatalf("%s should not load site phrases in the initial HTML", name)
+		}
+		if name != "neriva.html" && !hasSitePhrases {
+			t.Fatalf("%s React static page is missing %q", name, `/assets/site-phrases.js`)
 		}
 	}
 	source, err := os.ReadFile(filepath.Join("site-react", "src", "PublicSiteApp.tsx"))
@@ -705,8 +711,10 @@ func TestPublicSiteReactBuildSupportsLandingAndLegalPages(t *testing.T) {
 		"pricing-grid",
 		"termsDocumentHtml",
 		"privacyDocumentHtml",
+		"userAgreementDocumentHtml",
+		"personalDataConsentDocumentHtml",
+		"Telegram Stars",
 		"1. Принятие условий",
-		"\u041f\u041e\u041b\u0418\u0422\u0418\u041a\u0410 \u041e\u0411\u0420\u0410\u0411\u041e\u0422\u041a\u0418 \u041f\u0415\u0420\u0421\u041e\u041d\u0410\u041b\u042c\u041d\u042b\u0425 \u0414\u0410\u041d\u041d\u042b\u0425",
 	} {
 		if !strings.Contains(page, want) {
 			t.Fatalf("public React site source is missing %q", want)
@@ -736,7 +744,7 @@ func TestPrivacyPolicyAssetCoversTwentyLocalesAndBotConsent(t *testing.T) {
 			}
 		}
 		for _, want := range []string{
-			"poliglotai.online",
+			"neriva.ru",
 			"@NERIVAapp_bot",
 			"@NERIVAapp_bot",
 			"Telegram ID",

@@ -68,7 +68,6 @@ type referralInviteeEntry struct {
 	ReachedLevel3 bool      `json:"reached_level_3"`
 	LevelRewarded bool      `json:"level_rewarded"`
 	Earned        string    `json:"earned"`
-	EarnedUSDT    string    `json:"earned_usdt"`
 	JoinedAt      time.Time `json:"joined_at"`
 }
 
@@ -1710,10 +1709,8 @@ func referralInviteeFromUser(user userState) referralInviteeEntry {
 		joinedAt = user.UpdatedAt
 	}
 	earned := "0 RUB"
-	earnedUSDT := "0"
 	if user.ReferralLevelRewarded {
 		earned = "7 days Premium"
-		earnedUSDT = "0"
 	}
 	return referralInviteeEntry{
 		ID:            user.TelegramID,
@@ -1724,7 +1721,6 @@ func referralInviteeFromUser(user userState) referralInviteeEntry {
 		ReachedLevel3: referralLevelReached(user.XP),
 		LevelRewarded: user.ReferralLevelRewarded,
 		Earned:        earned,
-		EarnedUSDT:    earnedUSDT,
 		JoinedAt:      joinedAt,
 	}
 }
@@ -1800,7 +1796,7 @@ func normalizePhrasebookEntries(items []phrasebookEntry, fallbackLanguage string
 
 func normalizePhrasebookSource(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "lesson", "practice", "roleplay", "mistake", "manual", "word", "tool":
+	case "lesson", "practice", "roleplay", "shadowing", "mistake", "manual", "word", "tool":
 		return strings.ToLower(strings.TrimSpace(value))
 	default:
 		return "manual"

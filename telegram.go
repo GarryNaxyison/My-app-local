@@ -1033,13 +1033,13 @@ func wordGameDoneKeyboard(copies ...uiCopy) map[string]any {
 	}
 }
 
-func premiumInlineKeyboard(yooKassaEnabled bool, _ map[string][]cryptoPaymentMethod, plans []premiumPlan, user userState) map[string]any {
+func premiumInlineKeyboard(yooKassaEnabled bool, plans []premiumPlan, user userState) map[string]any {
 	copy := ui(user)
 	premiumCopy := premiumUI(user)
 	rows := [][]map[string]any{}
 	for _, plan := range plans {
 		rows = append(rows, []map[string]any{{
-			"text":          premiumPlanChoiceButtonText(plan, yooKassaEnabled, nil),
+			"text":          premiumPlanChoiceButtonText(plan, yooKassaEnabled),
 			"callback_data": "premium_plan|" + plan.Product,
 		}})
 	}
@@ -1051,7 +1051,7 @@ func premiumInlineKeyboard(yooKassaEnabled bool, _ map[string][]cryptoPaymentMet
 	return map[string]any{"inline_keyboard": rows}
 }
 
-func premiumPlanChoiceButtonText(plan premiumPlan, yooKassaEnabled bool, _ []cryptoPaymentMethod) string {
+func premiumPlanChoiceButtonText(plan premiumPlan, yooKassaEnabled bool) string {
 	prices := []string{strconv.Itoa(plan.StarsPrice) + " Stars"}
 	if yooKassaEnabled && plan.RubPrice > 0 {
 		prices = append(prices, strconv.Itoa(plan.RubPrice)+" RUB")
@@ -1059,7 +1059,7 @@ func premiumPlanChoiceButtonText(plan premiumPlan, yooKassaEnabled bool, _ []cry
 	return plan.Title + " - " + strings.Join(prices, " / ")
 }
 
-func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, _ bool, _ []cryptoPaymentMethod, plan premiumPlan, user userState) map[string]any {
+func premiumPaymentOptionsKeyboard(yooKassaEnabled bool, plan premiumPlan, user userState) map[string]any {
 	copy := ui(user)
 	premiumCopy := premiumUI(user)
 	rows := [][]map[string]any{}
@@ -1097,21 +1097,6 @@ func yookassaPaymentKeyboard(paymentURL string, user userState) map[string]any {
 			{{"text": "ЮKassa", "url": paymentURL}},
 			{{"text": copy.BackMenu, "callback_data": "back_menu"}},
 		},
-	}
-}
-
-func cryptoPaymentKeyboard(paymentURL string, paymentID string, user userState) map[string]any {
-	copy := ui(user)
-	rows := [][]map[string]any{}
-	if strings.TrimSpace(paymentURL) != "" {
-		rows = append(rows, []map[string]any{{"text": "Open wallet", "url": paymentURL}})
-	}
-	rows = append(rows,
-		[]map[string]any{{"text": "I paid - check", "callback_data": "check_crypto|" + paymentID}},
-		[]map[string]any{{"text": copy.BackMenu, "callback_data": "back_menu"}},
-	)
-	return map[string]any{
-		"inline_keyboard": rows,
 	}
 }
 

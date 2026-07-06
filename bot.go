@@ -238,9 +238,6 @@ type bot struct {
 	aiTutor               *aiTutorEngine
 	yookassa              *yooKassaClient
 	webYooKassa           *yooKassaClient
-	rollyPayBot           *rollyPayClient
-	rollyPayWeb           *rollyPayClient
-	cryptoRates           *cryptoRateProvider
 	activationKeys        *activationKeyStore
 	webAuth               *webAuthBroker
 	offset                int64
@@ -967,8 +964,6 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 		return b.sendYooKassaMethodOptions(ctx, chatID, user, platinumMonthlyProduct)
 	case "buy_yookassa_platinum_year":
 		return b.sendYooKassaMethodOptions(ctx, chatID, user, platinumYearlyProduct)
-	case "buy_rollypay_month", "buy_rollypay_year", "buy_crypto_month", "buy_crypto_year":
-		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 	case "invite_friend":
 		return b.sendInviteLink(ctx, chatID, user)
 	case "referral_withdraw":
@@ -1045,9 +1040,6 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 			}
 			return b.sendLanguageLeaderboard(ctx, chatID, scope, user)
 		}
-		if strings.HasPrefix(query.Data, "check_crypto|") {
-			return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-		}
 		if strings.HasPrefix(query.Data, "premium_plan|") {
 			product := strings.TrimPrefix(query.Data, "premium_plan|")
 			return b.sendPremiumPaymentOptions(ctx, chatID, user, product)
@@ -1066,12 +1058,6 @@ func (b *bot) handleCallbackQuery(ctx context.Context, query callbackQuery) erro
 				return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 			}
 			return b.sendYooKassaPayment(ctx, chatID, user, parts[1], parts[2])
-		}
-		if strings.HasPrefix(query.Data, "buy_rollypay|") {
-			return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-		}
-		if strings.HasPrefix(query.Data, "buy_crypto|") {
-			return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 		}
 		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 	}
@@ -1785,6 +1771,62 @@ func (b *bot) vocabularyExample(ctx context.Context, user userState, word vocabW
 	b.vocabularyHints[cacheKey] = example
 	b.vocabularyHintMu.Unlock()
 	return example
+}
+
+func (b *bot) vocabularyExampleTranslation(ctx context.Context, user userState, word vocabWord, mode string, example string) string {
+	example = strings.TrimSpace(example)
+	if b == nil || b.openrouter == nil || strings.TrimSpace(b.cfg.OpenRouterVocabularyModel) == "" || example == "" {
+		return ""
+	}
+	if strings.TrimSpace(word.English) == "" {
+		return ""
+	}
+	learningLanguage := userLearningLanguage(user)
+	interfaceLanguage := userInterfaceLanguage(user)
+	if normalizeLearningLanguage(learningLanguage.Code) == normalizeInterfaceLanguage(interfaceLanguage.Code) {
+		return ""
+	}
+	cacheKey := strings.Join([]string{
+		b.cfg.OpenRouterVocabularyModel,
+		normalizeInterfaceLanguage(user.InterfaceLanguage),
+		normalizeLearningLanguage(word.Language),
+		"example_translation",
+		mode,
+		strings.TrimSpace(user.Level),
+		word.ID,
+		word.English,
+		example,
+	}, "|")
+
+	b.vocabularyHintMu.Lock()
+	if b.vocabularyHints != nil {
+		if cached := b.vocabularyHints[cacheKey]; cached != "" {
+			b.vocabularyHintMu.Unlock()
+			return cached
+		}
+	}
+	b.vocabularyHintMu.Unlock()
+
+	translation, err := b.openrouter.completeWithModel(ctx, b.cfg.OpenRouterVocabularyModel, vocabularyExampleTranslationPrompt(word, example, learningLanguage, interfaceLanguage, mode), 0.1, 100)
+	if err != nil {
+		log.Printf("failed to translate vocabulary example for %s: %v", word.ID, err)
+		return ""
+	}
+	translation = sanitizeVocabularyExample(translation)
+	if translation == "" || sameDictionaryText(translation, example) {
+		return ""
+	}
+
+	b.vocabularyHintMu.Lock()
+	if b.vocabularyHints == nil {
+		b.vocabularyHints = map[string]string{}
+	}
+	if len(b.vocabularyHints) > 2048 {
+		b.vocabularyHints = map[string]string{}
+	}
+	b.vocabularyHints[cacheKey] = translation
+	b.vocabularyHintMu.Unlock()
+	return translation
 }
 
 func sanitizeVocabularyHint(hint string, word vocabWord) string {
@@ -3398,127 +3440,8 @@ func (b *bot) sendYooKassaPayment(ctx context.Context, chatID int64, user userSt
 	return b.telegram.sendInlineMessage(ctx, chatID, text, yookassaPaymentKeyboard(payment.Confirmation.ConfirmationURL, user))
 }
 
-func (b *bot) sendRollyPayPayment(ctx context.Context, chatID int64, user userState, product string) error {
-	return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-}
-
-func (b *bot) sendCryptoPayment(ctx context.Context, chatID int64, user userState, product string, methodID string) error {
-	return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-}
-
-func (b *bot) checkCryptoPayment(ctx context.Context, chatID int64, user userState, paymentID string) error {
-	return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
-}
-
-func cryptoPaymentText(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string) string {
-	expiresAt := userLocalDateTimeLabel(payment.ExpiresAt, user)
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		return fmt.Sprintf(
-			"%s\n\nСумма: %s\nАдрес: %s\nКомментарий: %s\n\nЭтот способ оплаты больше недоступен. Выберите YooKassa/СБП или Telegram Stars.\n\nСсылка: %s\nСчет действителен до: %s",
-			plan.Title,
-			payment.Amount,
-			payment.Address,
-			payment.Memo,
-			invoiceURL,
-			expiresAt,
-		)
-	}
-	return fmt.Sprintf(
-		"%s\n\nAmount: %s\nAddress: %s\nComment: %s\n\nThis payment method is no longer available. Choose YooKassa/SBP or Telegram Stars.\n\nLink: %s\nInvoice expires at: %s",
-		plan.Title,
-		payment.Amount,
-		payment.Address,
-		payment.Memo,
-		invoiceURL,
-		expiresAt,
-	)
-}
-
-func cryptoPaymentPendingText(user userState, plan premiumPlan, payment cryptoPayment) string {
-	if payment.Status == cryptoStatusExpired {
-		if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-			return "Счет истек. Откройте Premium и выберите YooKassa/СБП или Telegram Stars."
-		}
-		return "This invoice has expired. Open Premium and choose YooKassa/SBP or Telegram Stars."
-	}
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		return fmt.Sprintf("%s\n\nЭтот способ оплаты больше недоступен. Выберите YooKassa/СБП или Telegram Stars.", plan.Title)
-	}
-	return fmt.Sprintf("%s\n\nThis payment method is no longer available. Choose YooKassa/SBP or Telegram Stars.", plan.Title)
-}
-
-func cryptoPaymentTextV2(user userState, plan premiumPlan, payment cryptoPayment, invoiceURL string) string {
-	expiresAt := userLocalDateTimeLabel(payment.ExpiresAt, user)
-	methodLabel := cryptoPaymentMethodLabel(payment)
-	amountLabel := payment.Amount + " " + payment.Currency
-	memo := strings.TrimSpace(payment.Memo)
-	ruLinkLine := ""
-	enLinkLine := ""
-	if strings.TrimSpace(invoiceURL) != "" {
-		ruLinkLine = "\n\nСсылка: " + invoiceURL
-		enLinkLine = "\n\nLink: " + invoiceURL
-	}
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		memoLine := "Комментарий: не нужен"
-		instruction := "Отправьте точную сумму на адрес ниже. Для этого метода сервер отличает платеж по сумме, поэтому не округляйте ее."
-		if memo != "" {
-			memoLine = "Комментарий: " + memo
-			instruction = "Откройте кошелек кнопкой ниже или отправьте перевод вручную. Комментарий обязателен: по нему сервер найдет ваш платеж."
-		}
-		return fmt.Sprintf(
-			"%s\n\nСумма: %s\nСеть: %s\nАдрес: %s\n%s\n\n%s\n\nПосле перевода нажмите \"I paid - check\".%s\nСчет действителен до: %s",
-			plan.Title,
-			amountLabel,
-			methodLabel,
-			payment.Address,
-			memoLine,
-			instruction,
-			ruLinkLine,
-			expiresAt,
-		)
-	}
-	memoLine := "Comment: not needed"
-	instruction := "Send the exact amount to the address below. This method is matched by the unique amount, so do not round it."
-	if memo != "" {
-		memoLine = "Comment: " + memo
-		instruction = "Open a wallet with the button below or send the transfer manually. The comment is required: the server uses it to match your payment."
-	}
-	return fmt.Sprintf(
-		"%s\n\nAmount: %s\nNetwork: %s\nAddress: %s\n%s\n\n%s\n\nAfter sending, tap \"I paid - check\".%s\nInvoice expires at: %s",
-		plan.Title,
-		amountLabel,
-		methodLabel,
-		payment.Address,
-		memoLine,
-		instruction,
-		enLinkLine,
-		expiresAt,
-	)
-}
-
-func cryptoPaymentPendingTextV2(user userState, plan premiumPlan, payment cryptoPayment) string {
-	if payment.Status == cryptoStatusExpired {
-		if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-			return "Счет истек. Откройте Premium и создайте новый crypto-счет."
-		}
-		return "This invoice has expired. Open Premium and create a new crypto invoice."
-	}
-	amountLabel := payment.Amount + " " + payment.Currency
-	if normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru" {
-		if strings.TrimSpace(payment.Memo) != "" {
-			return fmt.Sprintf("%s\n\nПлатеж пока не найден.\n\nПроверьте сумму %s и обязательный комментарий: %s", plan.Title, amountLabel, payment.Memo)
-		}
-		return fmt.Sprintf("%s\n\nПлатеж пока не найден.\n\nПроверьте точную сумму %s и сеть %s.", plan.Title, amountLabel, cryptoPaymentMethodLabel(payment))
-	}
-	if strings.TrimSpace(payment.Memo) != "" {
-		return fmt.Sprintf("%s\n\nPayment is not found yet.\n\nCheck the %s amount and required comment: %s", plan.Title, amountLabel, payment.Memo)
-	}
-	return fmt.Sprintf("%s\n\nPayment is not found yet.\n\nCheck the exact %s amount and the %s network.", plan.Title, amountLabel, cryptoPaymentMethodLabel(payment))
-}
-
 func (b *bot) sendPremiumMenu(ctx context.Context, chatID int64, user userState) error {
-	cryptoProducts := map[string][]cryptoPaymentMethod{}
-	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, b.premiumText(user), premiumInlineKeyboard(b.cfg.yooKassaEnabled(), cryptoProducts, localizedPremiumPlans(user, b.premiumPlanList()), user))
+	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, b.premiumText(user), premiumInlineKeyboard(b.cfg.yooKassaEnabled(), localizedPremiumPlans(user, b.premiumPlanList()), user))
 }
 
 func (b *bot) sendPremiumPaymentOptions(ctx context.Context, chatID int64, user userState, product string) error {
@@ -3527,8 +3450,7 @@ func (b *bot) sendPremiumPaymentOptions(ctx context.Context, chatID int64, user 
 		return b.telegram.sendMessageWithCopy(ctx, chatID, ui(user).UnknownButton, ui(user))
 	}
 	plan = localizedPremiumPlan(user, plan)
-	methods := []cryptoPaymentMethod{}
-	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), false, methods, plan, user))
+	return b.telegram.sendInlineMarkdownMessage(ctx, chatID, premiumPaymentOptionsText(user, plan), premiumPaymentOptionsKeyboard(b.cfg.yooKassaEnabled(), plan, user))
 }
 
 func premiumPaymentOptionsText(user userState, plan premiumPlan) string {

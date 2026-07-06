@@ -44,13 +44,6 @@ type config struct {
 	WebYooKassaSecretKey              string
 	YooKassaReturnURL                 string
 	YooKassaWebhookKey                string
-	RollyPayBotCashboxID              string
-	RollyPayBotAPIKey                 string
-	RollyPayWebCashboxID              string
-	RollyPayWebAPIKey                 string
-	RollyPayAPIBaseURL                string
-	RollyPayCreatePaymentPath         string
-	RollyPayWebhookSecret             string
 	WebhookListenAddr                 string
 	WebAPISessionSecret               string
 	WebCORSOrigins                    []string
@@ -63,28 +56,6 @@ type config struct {
 	WebTurnstileSiteKey               string
 	WebTurnstileSecretKey             string
 	TrustedProxyCIDRs                 []string
-	CryptoTONWallet                   string
-	CryptoTONMonthAmount              string
-	CryptoTONYearAmount               string
-	CryptoTONPlatinumMonthAmount      string
-	CryptoTONPlatinumYearAmount       string
-	CryptoTONCenterAPIKey             string
-	CryptoTONCenterBaseURL            string
-	CryptoTONAPIKey                   string
-	CryptoTONAPIBaseURL               string
-	CryptoTONAPIWebhookKey            string
-	CryptoUSDTMonthAmount             string
-	CryptoUSDTYearAmount              string
-	CryptoUSDTPlatinumMonthAmount     string
-	CryptoUSDTPlatinumYearAmount      string
-	CryptoUSDTRubRate                 int
-	CryptoUSDTTONWallet               string
-	CryptoUSDTTONJettonMaster         string
-	CryptoUSDTTRC20Wallet             string
-	CryptoUSDTTRC20Contract           string
-	CryptoTronGridAPIKey              string
-	CryptoTronGridBaseURL             string
-	CryptoPaymentTTLMinutes           int
 	ReminderHour                      int
 	ReminderUTCOffset                 int
 	SQLiteBackupDir                   string
@@ -130,13 +101,6 @@ func configFromEnv() (config, error) {
 		WebYooKassaSecretKey:              strings.TrimSpace(os.Getenv("WEB_YOOKASSA_SECRET_KEY")),
 		YooKassaReturnURL:                 strings.TrimSpace(os.Getenv("YOOKASSA_RETURN_URL")),
 		YooKassaWebhookKey:                strings.TrimSpace(os.Getenv("YOOKASSA_WEBHOOK_KEY")),
-		RollyPayBotCashboxID:              strings.TrimSpace(os.Getenv("ROLLYPAY_BOT_CASHBOX_ID")),
-		RollyPayBotAPIKey:                 strings.TrimSpace(os.Getenv("ROLLYPAY_BOT_API_KEY")),
-		RollyPayWebCashboxID:              strings.TrimSpace(os.Getenv("ROLLYPAY_WEB_CASHBOX_ID")),
-		RollyPayWebAPIKey:                 strings.TrimSpace(os.Getenv("ROLLYPAY_WEB_API_KEY")),
-		RollyPayAPIBaseURL:                envOrDefault("ROLLYPAY_API_BASE_URL", "https://rollypay.io"),
-		RollyPayCreatePaymentPath:         envOrDefault("ROLLYPAY_CREATE_PAYMENT_PATH", "/api/v1/payments"),
-		RollyPayWebhookSecret:             strings.TrimSpace(os.Getenv("ROLLYPAY_WEBHOOK_SECRET")),
 		WebhookListenAddr:                 envOrDefault("WEBHOOK_LISTEN_ADDR", ":8080"),
 		WebAPISessionSecret:               strings.TrimSpace(os.Getenv("WEB_API_SESSION_SECRET")),
 		WebCORSOrigins:                    envListOrDefault("WEB_CORS_ORIGINS", []string{"https://neriva.ru", "https://www.neriva.ru", "https://api.neriva.ru", "https://poliglotai.ru", "https://www.poliglotai.ru", "https://api.poliglotai.ru", "https://poliglotai.online", "https://www.poliglotai.online", "https://api.poliglotai.online"}),
@@ -149,28 +113,6 @@ func configFromEnv() (config, error) {
 		WebTurnstileSiteKey:               strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SITE_KEY")),
 		WebTurnstileSecretKey:             strings.TrimSpace(os.Getenv("WEB_TURNSTILE_SECRET_KEY")),
 		TrustedProxyCIDRs:                 envListOrDefault("TRUSTED_PROXY_CIDRS", nil),
-		CryptoTONWallet:                   strings.TrimSpace(os.Getenv("CRYPTO_TON_WALLET")),
-		CryptoTONMonthAmount:              strings.TrimSpace(os.Getenv("CRYPTO_TON_MONTH_AMOUNT")),
-		CryptoTONYearAmount:               strings.TrimSpace(os.Getenv("CRYPTO_TON_YEAR_AMOUNT")),
-		CryptoTONPlatinumMonthAmount:      strings.TrimSpace(os.Getenv("CRYPTO_TON_PLATINUM_MONTH_AMOUNT")),
-		CryptoTONPlatinumYearAmount:       strings.TrimSpace(os.Getenv("CRYPTO_TON_PLATINUM_YEAR_AMOUNT")),
-		CryptoTONCenterAPIKey:             strings.TrimSpace(os.Getenv("CRYPTO_TONCENTER_API_KEY")),
-		CryptoTONCenterBaseURL:            envOrDefault("CRYPTO_TONCENTER_BASE_URL", "https://toncenter.com/api/v2"),
-		CryptoTONAPIKey:                   strings.TrimSpace(os.Getenv("CRYPTO_TONAPI_KEY")),
-		CryptoTONAPIBaseURL:               envOrDefault("CRYPTO_TONAPI_BASE_URL", "https://tonapi.io/v2"),
-		CryptoTONAPIWebhookKey:            strings.TrimSpace(os.Getenv("CRYPTO_TONAPI_WEBHOOK_KEY")),
-		CryptoUSDTMonthAmount:             strings.TrimSpace(os.Getenv("CRYPTO_USDT_MONTH_AMOUNT")),
-		CryptoUSDTYearAmount:              strings.TrimSpace(os.Getenv("CRYPTO_USDT_YEAR_AMOUNT")),
-		CryptoUSDTPlatinumMonthAmount:     strings.TrimSpace(os.Getenv("CRYPTO_USDT_PLATINUM_MONTH_AMOUNT")),
-		CryptoUSDTPlatinumYearAmount:      strings.TrimSpace(os.Getenv("CRYPTO_USDT_PLATINUM_YEAR_AMOUNT")),
-		CryptoUSDTRubRate:                 envIntOrDefault("CRYPTO_USDT_RUB_RATE", 72),
-		CryptoUSDTTONWallet:               strings.TrimSpace(os.Getenv("CRYPTO_USDT_TON_WALLET")),
-		CryptoUSDTTONJettonMaster:         envOrDefault("CRYPTO_USDT_TON_JETTON_MASTER", "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"),
-		CryptoUSDTTRC20Wallet:             strings.TrimSpace(os.Getenv("CRYPTO_USDT_TRC20_WALLET")),
-		CryptoUSDTTRC20Contract:           envOrDefault("CRYPTO_USDT_TRC20_CONTRACT", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
-		CryptoTronGridAPIKey:              strings.TrimSpace(os.Getenv("CRYPTO_TRONGRID_API_KEY")),
-		CryptoTronGridBaseURL:             envOrDefault("CRYPTO_TRONGRID_BASE_URL", "https://api.trongrid.io"),
-		CryptoPaymentTTLMinutes:           envIntOrDefault("CRYPTO_PAYMENT_TTL_MINUTES", 60),
 		ReminderHour:                      envIntOrDefault("REMINDER_HOUR", 19),
 		ReminderUTCOffset:                 envIntOrDefault("REMINDER_UTC_OFFSET_MINUTES", 180),
 		SQLiteBackupDir:                   envOrDefault("SQLITE_BACKUP_DIR", "backups"),
@@ -284,28 +226,6 @@ func (cfg config) webPaymentReturnURL() string {
 
 func (cfg config) webYooKassaEnabled() bool {
 	return cfg.webYooKassaShopID() != "" && cfg.webYooKassaSecretKey() != "" && cfg.webPaymentReturnURL() != ""
-}
-
-func (cfg config) rollyPayBotEnabled() bool {
-	return false
-}
-
-func (cfg config) rollyPayWebEnabled() bool {
-	return false
-}
-
-func (cfg config) rollyPayBotReturnURL() string {
-	if cfg.WebAppURL != "" {
-		return cfg.WebAppURL
-	}
-	return "https://neriva.ru/app"
-}
-
-func (cfg config) rollyPayWebReturnURL() string {
-	if cfg.WebPaymentReturnURL != "" {
-		return cfg.WebPaymentReturnURL
-	}
-	return "https://neriva.ru/app?payment=success&provider=rollypay"
 }
 
 func envOrDefault(name string, fallback string) string {

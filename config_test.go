@@ -22,12 +22,6 @@ func TestLoadConfigUsesNerivaProductionDefaults(t *testing.T) {
 			t.Fatalf("default WEB_CORS_ORIGINS missing %q: %#v", want, cfg.WebCORSOrigins)
 		}
 	}
-	if got := cfg.rollyPayBotReturnURL(); got != "https://neriva.ru/app" {
-		t.Fatalf("RollyPay bot fallback URL = %q, want Neriva app URL", got)
-	}
-	if got := cfg.rollyPayWebReturnURL(); got != "https://neriva.ru/app?payment=success&provider=rollypay" {
-		t.Fatalf("RollyPay web fallback URL = %q, want Neriva success URL", got)
-	}
 }
 
 func stringSliceContains(values []string, target string) bool {

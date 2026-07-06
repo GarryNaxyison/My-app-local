@@ -580,6 +580,37 @@ func vocabularyExamplePrompt(word vocabWord, learningLanguage learningLanguage, 
 	}
 }
 
+func vocabularyExampleTranslationPrompt(word vocabWord, example string, learningLanguage learningLanguage, interfaceLanguage learningLanguage, mode string) []chatMessage {
+	mode = strings.TrimSpace(mode)
+	if mode == "" {
+		mode = "word practice"
+	}
+	example = strings.TrimSpace(example)
+	systemPrompt := "You translate example sentences for language learners. " +
+		"Translate into " + interfaceLanguage.NativeName + ". " +
+		"Keep the meaning natural and concise. No Markdown. No lists. No explanation."
+	userPrompt := "Target learning language: " + learningLanguage.NativeName + "\n" +
+		"Interface language: " + interfaceLanguage.NativeName + "\n" +
+		"Mode: " + mode + "\n" +
+		"Target word: " + word.English + "\n" +
+		"Example sentence: " + example + "\n\n" +
+		"Translate the example sentence into " + interfaceLanguage.NativeName + ". Return only the translation."
+	return []chatMessage{
+		{
+			Role:    "system",
+			Content: renderAppPrompt("vocabulary.example_translation.system", systemPrompt, commonPromptVars(learningLanguage, interfaceLanguage)),
+		},
+		{
+			Role: "user",
+			Content: renderAppPrompt("vocabulary.example_translation.user", userPrompt, mergePromptVars(commonPromptVars(learningLanguage, interfaceLanguage), map[string]string{
+				"mode":        mode,
+				"target_word": word.English,
+				"example":     example,
+			})),
+		},
+	}
+}
+
 func trimStringHistory(history []string, limit int) []string {
 	if limit <= 0 {
 		return nil

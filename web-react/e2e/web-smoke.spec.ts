@@ -28,7 +28,6 @@ const referralInvitees = Array.from({ length: 11 }, (_, index) => ({
   reached_level_3: index % 2 === 0,
   level_rewarded: index % 2 === 0,
   earned: index % 2 === 0 ? "150 RUB" : "0 RUB",
-  earned_usdt: index % 2 === 0 ? 1.5 : 0,
   joined_at: "2026-05-26T10:00:00Z",
 }));
 
@@ -111,11 +110,10 @@ const sessionPayload = {
   interface_languages: appLocaleCodes.map((code) => ({ code, native_name: code.toUpperCase() })),
   learning_languages: [{ code: "en", native_name: "English" }],
   premium_plans: [
-    { product: "premium_month", title: "Premium 30 дней", days_label: "6 AI audio actions per day", rub_price: "300", crypto_enabled: true },
-    { product: "platinum_month", title: "Platinum 30 дней", days_label: "18 AI audio actions per day", rub_price: "590", crypto_enabled: true },
+    { product: "premium_month", title: "Premium 30 дней", days_label: "6 AI audio actions per day", rub_price: "300" },
+    { product: "platinum_month", title: "Platinum 30 дней", days_label: "18 AI audio actions per day", rub_price: "590" },
   ],
   yookassa_enabled: true,
-  crypto_enabled: true,
   telegram_login_bot: "neriva_app",
 };
 
@@ -132,12 +130,12 @@ const legacyPhrasebookSeed = [
 
 const paymentHistorySeed = [
   {
-    id: "pending-ton",
+    id: "pending-card",
     date: "2026-05-26T09:00:00Z",
     plan: "Premium 30 дней",
     period: "Месяц",
-    amount: "1.5 TON",
-    method: "TON",
+    amount: "300 RUB",
+    method: "Bank card",
     status: "pending",
   },
   {
@@ -368,7 +366,7 @@ async function mockApi(page: Page) {
     const currentIndex = aiTutorStages.indexOf(aiTutorStage);
     aiTutorStage = aiTutorStages[Math.min(currentIndex + 1, aiTutorStages.length - 1)];
     const feedback = aiTutorStage === "lesson_feedback"
-      ? { ok: true, message: "Повторите wake up завтра.", json: JSON.stringify({ corrected_version_target: "I wake up at seven. I get ready quickly.", recommendations_interface: ["Repeat wake up tomorrow."], mistakes: [{ correction: "I wake up at seven.", explanation: "Use at + time." }] }) }
+      ? { ok: true, message: "Повторите wake up завтра.", json: JSON.stringify({ corrected_version_target: "I wake up at seven. I get ready quickly.", recommendations_interface: ["Повторите wake up завтра."], mistakes: [{ correction: "I wake up at seven.", explanation: "Use at + time." }] }) }
       : { ok: true, message: "Ответ сохранён" };
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(aiTutorResponse(feedback)) });
   });
@@ -417,6 +415,7 @@ async function mockApi(page: Page) {
     const word = isTrain ? "train" : "apple";
     const translation = isTrain ? "\u043f\u043e\u0435\u0437\u0434" : "\u044f\u0431\u043b\u043e\u043a\u043e";
     const example = isTrain ? "I caught the train." : "I bought an apple.";
+    const exampleTranslation = isTrain ? "\u042f \u0443\u0441\u043f\u0435\u043b \u043d\u0430 \u043f\u043e\u0435\u0437\u0434." : "\u042f \u043a\u0443\u043f\u0438\u043b \u044f\u0431\u043b\u043e\u043a\u043e.";
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -429,6 +428,7 @@ async function mockApi(page: Page) {
         translation,
         context: "Saved.",
         example,
+        example_translation: exampleTranslation,
         xp: correct ? 15 : 0,
         user: correct ? { ...sessionPayload.user, xp: sessionPayload.user.xp + 15 } : sessionPayload.user,
       }),
@@ -687,27 +687,7 @@ async function mockApi(page: Page) {
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, claimed: true, xp: 25, streak: 1, user: { ...sessionPayload.user, xp: 660 } }) }),
   );
   await page.route("**/api/bug-report", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, id: "test-report" }) }));
-  await page.route("**/api/premium/plans", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ plans: sessionPayload.premium_plans, enabled: true, crypto_enabled: true }) }));
-  await page.route("**/api/premium/crypto/payment", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        payment_id: "pay-ton-1",
-        amount: "1.5",
-        currency: "TON",
-        network: "TON",
-        address: "UQCDkENqCLcFLvAzPHX8LxfK6wdlPEmpFQ5DQ5UhG9BIZQ3i",
-        comment: "NERIVA:test",
-        status: "pending",
-        method: "TON",
-        expires_at: "2026-05-27T01:38:00+03:00",
-      }),
-    }),
-  );
-  await page.route("**/api/premium/crypto/check", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ payment_id: "pay-ton-1", status: "pending", paid: false }) }),
-  );
+  await page.route("**/api/premium/plans", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ plans: sessionPayload.premium_plans, enabled: true }) }));
   await page.route("**/api/leaderboard**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: leaderboardItems, overall: leaderboardItems, meta: { language: "en" } }) }));
 }
 
@@ -937,9 +917,6 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "auth_password_confirm_placeholder",
     "pay_stars",
     "payment_stars_instruction",
-    "payment_crypto_prepare_instruction",
-    "payment_crypto_instruction",
-    "payment_usdt_trc20_instruction",
     "free_plan_title",
     "free_plan_tier",
     "free_plan_body",
@@ -1068,8 +1045,6 @@ test("v2 required labels are localized for all 35 interface languages", () => {
       "weekly_plan_title",
       "today_plan_title",
       "payment_stars_instruction",
-      "payment_crypto_instruction",
-      "payment_usdt_trc20_instruction",
       "change_password",
       "password_min_hint",
       "roleplay_scenario_restaurant",
@@ -1140,8 +1115,6 @@ test("v2 required labels are localized for all 35 interface languages", () => {
     "change_password",
     "password_min_hint",
     "payment_stars_instruction",
-    "payment_crypto_instruction",
-    "payment_usdt_trc20_instruction",
     "tutor_step_pronunciation",
     "tutor_step_final_check",
     "tutor_step_assessment",
@@ -1684,7 +1657,8 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(tutorNotes).toHaveCount(1);
   await expect(tutorNotes).toContainText(appCopy("ru", "save_to_phrasebook"));
   await expect(tutorNotes.locator("button").filter({ hasText: "I wake up at seven" }).first()).toBeVisible();
-  await expect(tutorNotes.locator("button").filter({ hasText: "Repeat wake up tomorrow" })).toHaveCount(1);
+  await expect(tutorNotes.locator("button").filter({ hasText: "I get ready quickly" })).toHaveCount(1);
+  await expect(tutorNotes.locator("button").filter({ hasText: "Повторите wake up завтра" })).toHaveCount(0);
   await expect(page.locator(".tutor-context-v2 .phrase-quick-save-v2")).toHaveCount(0);
   await expect(page.locator(".tutor-context-v2 .tutor-notes-suggestions-v2")).toHaveCount(0);
   await expect(page.locator(".tutor-context-v2")).not.toContainText(/Ошибки:\s*Сохранить в заметки/);
@@ -1937,12 +1911,15 @@ test("standalone listening reveals the heard phrase after the answer is checked"
   await expect(listeningPanel).not.toContainText(phrases[0]);
 
   await page.locator(".composer-panel-v2 textarea").fill("Would you like to bring me some water now");
-  await page.locator(".composer-panel-v2").getByRole("button", { name: /Send|Отправить|Надіслати/ }).click();
+  await page.locator(".chat-workspace--shadowing .composer-submit-v2").click();
 
   const feedback = page.locator(".chat-workspace--shadowing .chat-interface");
   await expect(feedback).toContainText("Оценка: 25/100");
   await expect(feedback).toContainText(phrases[0]);
   await expect(feedback).not.toContainText(phrases[1]);
+  const quickSave = page.locator(".chat-workspace--shadowing .phrase-quick-save-v2");
+  await expect(quickSave.locator("button").filter({ hasText: phrases[0] })).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "РћС†РµРЅРєР°" })).toHaveCount(0);
   await expect.poll(() => phraseIndex).toBeGreaterThan(1);
   await expect(listeningPanel).not.toContainText(phrases[1]);
 });
@@ -1975,7 +1952,7 @@ test("auth registration shows localized password rules", async ({ page }) => {
   await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_password_confirm_hint"));
 });
 
-test("premium payment modal explains Stars and exact USDT TRC20 crypto payment", async ({ page }) => {
+test("premium payment modal explains Stars and keeps retired crypto methods hidden", async ({ page }) => {
   await page.route("**/api/premium/stars", (route) =>
     route.fulfill({
       status: 200,
@@ -1983,37 +1960,14 @@ test("premium payment modal explains Stars and exact USDT TRC20 crypto payment",
       body: JSON.stringify({ bot_url: "https://t.me/NERIVAapp_bot?start=stars_invoice", status: "created", message: "Stars invoice created." }),
     }),
   );
-  await page.unroute("**/api/premium/crypto/payment").catch(() => undefined);
-  await page.route("**/api/premium/crypto/payment", (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        payment_id: "pay-usdt-trc20",
-        amount: "12.34",
-        currency: "USDT",
-        network: "TRC20",
-        address: "TXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-        comment: "NERIVA:test",
-        status: "pending",
-        method: "USDT_TRC20",
-        expires_at: "2026-05-27T01:38:00+03:00",
-      }),
-    }),
-  );
 
   await page.goto("/app/?view=premium");
   await page.locator(".plan-card-v2:not(.is-free) button").first().click();
   await expect(page.locator(".v2-payment-modal")).toBeVisible();
   await page.locator(".payment-method-button-v2").filter({ hasText: "Telegram Stars" }).click();
-  await expect(page.locator(".v2-payment-modal")).toContainText("Оплата Telegram Stars откроется в Telegram");
-  await page.locator(".payment-method-button-v2").filter({ hasText: /TON|USDT/ }).click();
-  await expect(page.locator(".v2-payment-modal")).toContainText(/Отправьте ровно 12[,.]34 USDT/);
-  await expect(page.locator(".v2-payment-modal")).toContainText("USDT TRC20");
-  await expect(page.locator(".v2-payment-modal")).toContainText("сеть Tron");
-  await expect(page.locator(".v2-payment-modal")).toContainText("Сеть");
-  await expect(page.locator(".v2-payment-modal")).toContainText("Комментарий");
-  await expect(page.locator(".v2-payment-modal")).toContainText("Истекает");
+  await expect(page.locator(".v2-payment-modal")).toContainText(appCopy("ru", "payment_stars_instruction"));
+  await expect(page.locator(".payment-method-button-v2").filter({ hasText: /TON|USDT|TRC20|crypto/i })).toHaveCount(0);
+  await expect(page.locator(".v2-payment-modal")).not.toContainText(/TON|USDT|TRC20|UQCDkENqCLcFLvAzPHX8LxfK6wdlPEmpFQ5DQ5UhG9BIZQ3i/);
   await expect(page.locator(".payment-invoice-v2")).not.toContainText("Раздел");
 });
 
@@ -2294,20 +2248,27 @@ test("payment history shows only confirmed payments", async ({ page }) => {
   await expect(history).toBeVisible();
   await expect(history.getByText("300 RUB")).toBeVisible();
   await expect(history.getByText("paid")).toBeVisible();
-  await expect(history.getByText("1.5 TON")).toHaveCount(0);
   await expect(history.getByText("590 RUB")).toHaveCount(0);
   await expect(history.getByText("pending")).toHaveCount(0);
   await expect(history.getByText("created")).toHaveCount(0);
 });
 
-test("mobile payment requisites modal stays above bottom navigation and scrolls", async ({ page, isMobile }) => {
+test("mobile payment modal stays above bottom navigation without retired crypto requisites", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile payment layout assertion");
+  await page.route("**/api/premium/stars", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ bot_url: "https://t.me/NERIVAapp_bot?start=stars_invoice", status: "created", message: "Stars invoice created." }),
+    }),
+  );
   await page.goto("/app/?view=premium");
   await page.locator(".plan-card-v2:not(.is-free) button").first().click();
   await expect(page.locator(".v2-payment-modal")).toBeVisible();
-  await page.getByRole("button", { name: /TON|USDT/ }).click();
-  await expect(page.locator(".payment-invoice-v2")).toBeVisible();
-  await expect(page.getByText("UQCDkENqCLcFLvAzPHX8LxfK6wdlPEmpFQ5DQ5UhG9BIZQ3i")).toBeVisible();
+  await expect(page.locator(".payment-method-button-v2").filter({ hasText: /TON|USDT|TRC20|crypto/i })).toHaveCount(0);
+  await page.locator(".payment-method-button-v2").filter({ hasText: "Telegram Stars" }).click();
+  await expect(page.locator(".payment-method-note-v2")).toContainText("Telegram Stars");
+  await expect(page.locator(".v2-payment-modal")).not.toContainText(/TON|USDT|TRC20|UQCDkENqCLcFLvAzPHX8LxfK6wdlPEmpFQ5DQ5UhG9BIZQ3i/);
 
   const backdropZ = await page.locator(".modal-backdrop-v2").evaluate((node) => Number(getComputedStyle(node).zIndex));
   const navZ = await page.locator(".mobile-bottom-nav-v2").evaluate((node) => Number(getComputedStyle(node).zIndex));
@@ -2915,12 +2876,19 @@ test("learn words result shows target word and saves word pair to notes", async 
   await expect(result).toBeVisible();
   await expect(result.locator(".trainer-correct-word-v2")).toContainText(targetWord);
   await expect(result).toContainText(targetTranslation);
+  await expect(result).toContainText(targetWord === "apple" ? "\u042f \u043a\u0443\u043f\u0438\u043b \u044f\u0431\u043b\u043e\u043a\u043e." : "\u042f \u0443\u0441\u043f\u0435\u043b \u043d\u0430 \u043f\u043e\u0435\u0437\u0434.");
+  await expect(result.locator(".record-details-v2")).toHaveCount(0);
 
   const nextButton = result.getByRole("button", { name: new RegExp(ru("next_word", "Next")) });
-  const saveChip = result.locator(".trainer-word-save-v2 .phrase-quick-save-v2__chips button");
+  const saveChips = result.locator(".trainer-word-save-v2 .phrase-quick-save-v2__chips button");
+  const saveChip = saveChips.filter({ hasText: targetWord }).first();
+  const exampleChip = saveChips.filter({ hasText: targetWord === "apple" ? "I bought an apple." : "I caught the train." }).first();
   await expect(nextButton).toBeVisible();
+  await expect(saveChips).toHaveCount(2);
   await expect(saveChip).toContainText(targetWord);
-  await expect(saveChip).toContainText(targetTranslation);
+  await expect(saveChip).not.toContainText(targetTranslation);
+  await expect(exampleChip).toBeVisible();
+  await expect(exampleChip).not.toContainText(targetTranslation);
 
   const nextBox = await nextButton.boundingBox();
   const saveBox = await saveChip.boundingBox();
@@ -2938,6 +2906,73 @@ test("learn words result shows target word and saves word pair to notes", async 
   await saveChip.click();
   await expect.poll(() => String(savedItem?.phrase || "")).toContain(targetWord);
   expect(String(savedItem?.translation || savedItem?.note || "")).toContain(targetTranslation);
+});
+
+test("mobile learn words result wraps long corrected answer inside the interface", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  const longWord = "extraordinarily-long-corrected-learning-word-that-must-wrap-inside-mobile";
+  await page.unroute("**/api/words/next").catch(() => undefined);
+  await page.unroute("**/api/words/answer").catch(() => undefined);
+  await page.route("**/api/words/next", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        empty: false,
+        prompt: "\u043e\u0447\u0435\u043d\u044c \u0434\u043b\u0438\u043d\u043d\u043e\u0435 \u0441\u043b\u043e\u0432\u043e",
+        context: "Pick the target-language word.",
+        options: [
+          { id: "en:long", text: longWord },
+          { id: "en:short1", text: "short" },
+          { id: "en:short2", text: "near" },
+          { id: "en:short3", text: "plain" },
+        ],
+        correct_answer_id: "en:long",
+        instruction: "Choose answer",
+        word_id: "en:long",
+        word: longWord,
+      }),
+    }),
+  );
+  await page.route("**/api/words/answer", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        correct: true,
+        learned: true,
+        word_id: "en:long",
+        word: longWord,
+        translation: "\u043e\u0447\u0435\u043d\u044c-\u0434\u043b\u0438\u043d\u043d\u044b\u0439-\u043f\u0435\u0440\u0435\u0432\u043e\u0434-\u043a\u043e\u0442\u043e\u0440\u044b\u0439-\u0442\u043e\u0436\u0435-\u0434\u043e\u043b\u0436\u0435\u043d-\u043f\u0435\u0440\u0435\u043d\u043e\u0441\u0438\u0442\u044c\u0441\u044f-\u0432\u043d\u0443\u0442\u0440\u0438-\u043c\u043e\u0431\u0438\u043b\u044c\u043d\u043e\u0433\u043e-\u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441\u0430",
+        example: "This extraordinarily-long-corrected-learning-word-that-must-wrap-inside-mobile appears in a sentence.",
+        example_translation: "\u042d\u0442\u043e\u0442 \u043e\u0447\u0435\u043d\u044c \u0434\u043b\u0438\u043d\u043d\u044b\u0439 \u0438\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442 \u043f\u0435\u0440\u0435\u043d\u043e\u0441\u0438\u0442\u0441\u044f \u0432\u043d\u0443\u0442\u0440\u0438 \u043c\u043e\u0431\u0438\u043b\u044c\u043d\u043e\u0433\u043e \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441\u0430.",
+        xp: 15,
+        user: sessionPayload.user,
+      }),
+    }),
+  );
+
+  await page.goto("/app/?view=words");
+  await page.locator(".choice-grid-v2 button", { hasText: longWord }).click();
+  const result = page.locator(".trainer-result-v2");
+  await expect(result).toBeVisible();
+  await expect(result.locator(".record-details-v2")).toHaveCount(0);
+  await expect(result).toContainText("\u042d\u0442\u043e\u0442 \u043e\u0447\u0435\u043d\u044c \u0434\u043b\u0438\u043d\u043d\u044b\u0439 \u0438\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043d\u044b\u0439 \u0432\u0430\u0440\u0438\u0430\u043d\u0442");
+  const metrics = await result.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    const children = Array.from(node.querySelectorAll("p, span, button")) as HTMLElement[];
+    return {
+      pageOverflowX: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+      resultOverflowX: Math.max(0, node.scrollWidth - node.clientWidth),
+      resultRight: rect.right,
+      viewportWidth: window.innerWidth,
+      childOverflow: children.some((child) => child.getBoundingClientRect().right > window.innerWidth + 1),
+    };
+  });
+  expect(metrics.pageOverflowX).toBe(0);
+  expect(metrics.resultOverflowX).toBe(0);
+  expect(metrics.resultRight).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.childOverflow).toBe(false);
 });
 
 test("word review wrong answer does not leave a red selected option", async ({ page }) => {
@@ -3256,6 +3291,28 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").fill("Could you repeat that, please?");
   await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").press("Enter");
   await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Short polite request.").first()).toBeVisible();
+  const quickSave = page.locator(".roleplay-dialog-card-v2 .phrase-quick-save-v2");
+  await expect(quickSave.locator("button").filter({ hasText: "Could you repeat that, please?" })).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "Short polite request." })).toHaveCount(0);
+  const postAnswerMetrics = await page.locator(".roleplay-view-v2--mobile-session").evaluate((node) => {
+    const panel = node.getBoundingClientRect();
+    const composer = node.querySelector(".composer-panel-v2")?.getBoundingClientRect();
+    const chips = Array.from(node.querySelectorAll(".phrase-quick-save-v2 button")) as HTMLElement[];
+    return {
+      pageOverflowX: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+      panelRight: panel.right,
+      composerBottom: composer?.bottom || 0,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+      chipOverflow: chips.some((chip) => chip.getBoundingClientRect().right > window.innerWidth + 1),
+    };
+  });
+  const navBox = await page.locator(".mobile-bottom-nav-v2").boundingBox();
+  expect(navBox).not.toBeNull();
+  expect(postAnswerMetrics.pageOverflowX).toBe(0);
+  expect(postAnswerMetrics.panelRight).toBeLessThanOrEqual(postAnswerMetrics.viewportWidth + 1);
+  expect(postAnswerMetrics.chipOverflow).toBe(false);
+  expect(postAnswerMetrics.composerBottom).toBeLessThanOrEqual(navBox!.y + 1);
 });
 
 test("regression: roleplay accepts a voice answer and shows the transcript", async ({ page, isMobile }) => {
@@ -3312,8 +3369,21 @@ test("regression: roleplay quick save offers separate useful reply sentences", a
   await page.locator(".roleplay-submit-v2").click();
   const quickSave = page.locator(".roleplay-dialog-card-v2 .phrase-quick-save-v2");
   await expect(quickSave).toBeVisible();
-  await expect(quickSave.locator("button").filter({ hasText: "Short polite request." })).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "Short polite request." })).toHaveCount(0);
   await expect(quickSave.locator("button").filter({ hasText: "Could you tell me your name?" })).toBeVisible();
+  const geometry = await page.locator(".roleplay-view-v2--session").evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    const chips = Array.from(node.querySelectorAll(".phrase-quick-save-v2 button")) as HTMLElement[];
+    return {
+      pageOverflowX: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+      panelRight: rect.right,
+      viewportWidth: window.innerWidth,
+      chipOverflow: chips.some((chip) => chip.getBoundingClientRect().right > window.innerWidth + 1),
+    };
+  });
+  expect(geometry.pageOverflowX).toBe(0);
+  expect(geometry.panelRight).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+  expect(geometry.chipOverflow).toBe(false);
 });
 
 test("regression: image tool accepts a pasted clipboard image", async ({ page, isMobile }) => {
@@ -3520,6 +3590,30 @@ test("mobile listening panel stays above bottom menu", async ({ page, isMobile }
   expect(taskBox).not.toBeNull();
   expect(navBox).not.toBeNull();
   expect(taskBox!.y + taskBox!.height).toBeLessThanOrEqual(navBox!.y - 4);
+
+  await page.locator(".composer-panel-v2 textarea").fill("Could you repeat that please");
+  await page.locator(".chat-workspace--shadowing .composer-submit-v2").click();
+  const quickSave = page.locator(".chat-workspace--shadowing .phrase-quick-save-v2");
+  await expect(quickSave).toBeVisible();
+  await expect(quickSave.locator("button").filter({ hasText: "Could you repeat that, please?" })).toBeVisible();
+  const metrics = await page.locator(".context-display--shadowing").evaluate((node) => {
+    const panel = node.getBoundingClientRect();
+    const chips = Array.from(node.querySelectorAll(".phrase-quick-save-v2 button")) as HTMLElement[];
+    return {
+      pageOverflowX: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+      panelRight: panel.right,
+      viewportWidth: window.innerWidth,
+      chipOverflow: chips.some((chip) => chip.getBoundingClientRect().right > window.innerWidth + 1),
+    };
+  });
+  const navAfterAnswer = await page.locator(".mobile-bottom-nav-v2").boundingBox();
+  const composerAfterAnswer = await page.locator(".chat-workspace--shadowing .composer-panel-v2").boundingBox();
+  expect(navAfterAnswer).not.toBeNull();
+  expect(composerAfterAnswer).not.toBeNull();
+  expect(metrics.pageOverflowX).toBe(0);
+  expect(metrics.panelRight).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+  expect(metrics.chipOverflow).toBe(false);
+  expect(composerAfterAnswer!.y + composerAfterAnswer!.height).toBeLessThanOrEqual(navAfterAnswer!.y + 1);
 });
 
 test("mobile practice and tools keep input controls visible and tools selectable", async ({ page, isMobile }) => {
@@ -3784,7 +3878,74 @@ test("mobile phrasebook paginates notes after ten cards", async ({ page, isMobil
   await expect(page.getByText("Saved phrase 11")).toHaveCount(0);
   await page.locator(".phrasebook-pagination-v2 button").nth(1).click();
   await expect(page.locator(".phrasebook-card-v2")).toHaveCount(2);
-  await expect(page.getByText("Saved phrase 11")).toBeVisible();
+  await expect(page.locator(".phrasebook-card-v2 strong", { hasText: "Saved phrase 11" })).toBeVisible();
+});
+
+test("phrasebook source blocks filter notes and keep the all block", async ({ page, isMobile }) => {
+  const phrases = [
+    { id: "word-note", phrase: "apple", translation: "яблоко", source: "word", language: "en", createdAt: "2026-07-01T10:00:00Z" },
+    { id: "lesson-note", phrase: "I have a reservation.", translation: "У меня бронь.", source: "lesson", language: "en", createdAt: "2026-07-01T10:01:00Z" },
+    { id: "listening-note", phrase: "Could you repeat that, please?", translation: "Повторите, пожалуйста.", source: "shadowing", language: "en", createdAt: "2026-07-01T10:02:00Z" },
+    { id: "manual-note", phrase: "Today is a good day.", source: "manual", language: "en", createdAt: "2026-07-01T10:03:00Z" },
+  ];
+  testPhrasebookItemsOverride = phrases;
+  const sessionWithPhrases = { ...sessionPayload, user: { ...sessionPayload.user, phrasebook: phrases } };
+  testSessionPayloadOverride = sessionWithPhrases;
+  await page.addInitScript((items) => {
+    localStorage.setItem("poliglot-phrasebook-v2:demor22", JSON.stringify(items));
+  }, phrases);
+  await page.unroute("**/api/session").catch(() => undefined);
+  await page.unroute("**/api/phrasebook**").catch(() => undefined);
+  await page.unroute("**/api/daily/claim").catch(() => undefined);
+  await page.route("**/api/session", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionWithPhrases) }),
+  );
+  await page.route("**/api/daily/claim", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, claimed: true, xp: 25, streak: 1, user: sessionWithPhrases.user }),
+    }),
+  );
+  await page.route("**/api/phrasebook**", async (route) => {
+    if (route.request().method() === "GET") {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: phrases }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: phrases }) });
+  });
+
+  await page.goto("/app/?view=phrasebook");
+  await expect(page.locator(".phrasebook-source-filter-v2")).toBeVisible();
+  const tabs = page.locator(".phrasebook-source-filter-v2 button");
+  await expect(tabs.first()).toContainText(/Все|All/);
+  await expect(tabs.first()).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".phrasebook-card-v2")).toHaveCount(4);
+
+  await tabs.filter({ hasText: /Аудирование|Listening/ }).click();
+  await expect(page.locator(".phrasebook-card-v2")).toHaveCount(1);
+  await expect(page.locator(".phrasebook-card-v2")).toContainText("Could you repeat that, please?");
+  await expect(page.locator(".phrasebook-card-v2")).not.toContainText("apple");
+
+  await tabs.filter({ hasText: /Слова|Words/ }).click();
+  await expect(page.locator(".phrasebook-card-v2")).toHaveCount(1);
+  await expect(page.locator(".phrasebook-card-v2")).toContainText("apple");
+  await expect(page.locator(".phrasebook-card-v2")).not.toContainText("Could you repeat that, please?");
+
+  await tabs.first().click();
+  await expect(page.locator(".phrasebook-card-v2")).toHaveCount(4);
+
+  if (isMobile) {
+    const metrics = await page.locator(".context-display--phrasebook").evaluate((node) => {
+      const tabs = Array.from(node.querySelectorAll(".phrasebook-source-filter-v2 button")) as HTMLElement[];
+      return {
+        pageOverflowX: Math.max(0, document.documentElement.scrollWidth - window.innerWidth),
+        tabOverflow: tabs.some((tab) => tab.getBoundingClientRect().right > window.innerWidth + 1),
+      };
+    });
+    expect(metrics.pageOverflowX).toBe(0);
+    expect(metrics.tabOverflow).toBe(false);
+  }
 });
 
 test("mobile award details open in the current viewport", async ({ page, isMobile }) => {
@@ -3815,7 +3976,7 @@ test("phrasebook loads from session and save calls persistent API", async ({ pag
     await route.fallback();
   });
   await page.goto("/app/?view=phrasebook");
-  await expect(page.getByText("I have a reservation under the name Ivan Petrov.")).toBeVisible();
+  await expect(page.locator(".phrasebook-card-v2 strong", { hasText: "I have a reservation under the name Ivan Petrov." })).toBeVisible();
   await page.getByRole("button", { name: /Добавить пример|Add sample/ }).click();
   await expect.poll(() => savedPhrase).toContain("Could you say that again");
 });

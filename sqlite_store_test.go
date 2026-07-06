@@ -150,7 +150,6 @@ func TestSQLiteResetLearningStatePreservesAccountAndCommercialData(t *testing.T)
 		`INSERT INTO ai_tutor_answers (session_id, stage, answer_text, created_at) VALUES ('session-wipe', 'story_intro', 'answer', '` + now + `')`,
 		`INSERT INTO ai_tutor_reviews (id, telegram_id, lesson_id, due_at, interval_code, status, created_at, updated_at) VALUES ('review-wipe', 123, 'ai-lesson-keep', '` + now + `', 'd1', 'scheduled', '` + now + `', '` + now + `')`,
 		`INSERT INTO ai_tutor_word_reports (id, telegram_id, session_id, lesson_id, stage, word_index, original_word, original_translation, proposed_word, proposed_translation, comment, status, created_at, updated_at) VALUES ('report-wipe', 123, 'session-wipe', 'ai-lesson-keep', 'stage', 0, 'bad', 'bad', 'good', 'good', '', 'pending', '` + now + `', '` + now + `')`,
-		`INSERT INTO crypto_payments (id, provider, currency, network, product, status, address, memo, amount, amount_nano, price_rub, telegram_id, expires_at, created_at, updated_at) VALUES ('payment-keep', 'test', 'TON', 'ton', 'premium', 'paid', 'addr', 'memo', '1', 1, 100, 123, '` + now + `', '` + now + `', '` + now + `')`,
 		`INSERT INTO referral_purchase_rewards (payment_id, buyer_id, direct_inviter_id, paid_kopecks, direct_reward_kopecks, created_at) VALUES ('reward-keep', 123, 77, 10000, 1000, '` + now + `')`,
 	} {
 		if _, err := store.db.Exec(stmt); err != nil {
@@ -199,17 +198,14 @@ func TestSQLiteResetLearningStatePreservesAccountAndCommercialData(t *testing.T)
 	if refreshed.XP != 0 || refreshed.Mode != "idle" || refreshed.LessonCount != 0 || refreshed.PracticeCount != 0 || refreshed.VoiceCount != 0 || refreshed.WordLessonCount != 0 || refreshed.WordGameCount != 0 || refreshed.LessonsToday != 0 || refreshed.PracticeToday != 0 || refreshed.VoiceToday != 0 || refreshed.LastLessonPrompt != "" || len(refreshed.LessonHistory) != 0 || len(refreshed.PracticeHistory) != 0 {
 		t.Fatalf("learning fields were not reset: %#v", refreshed)
 	}
-	var webAccounts, payments, rewards int
+	var webAccounts, rewards int
 	if err := store.db.QueryRow(`SELECT COUNT(*) FROM web_accounts WHERE user_id = ?`, userID).Scan(&webAccounts); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.db.QueryRow(`SELECT COUNT(*) FROM crypto_payments WHERE telegram_id = ?`, userID).Scan(&payments); err != nil {
 		t.Fatal(err)
 	}
 	if err := store.db.QueryRow(`SELECT COUNT(*) FROM referral_purchase_rewards WHERE buyer_id = ?`, userID).Scan(&rewards); err != nil {
 		t.Fatal(err)
 	}
-	if webAccounts != 1 || payments != 1 || rewards != 1 {
-		t.Fatalf("preserved rows web=%d payments=%d rewards=%d, want 1 each", webAccounts, payments, rewards)
+	if webAccounts != 1 || rewards != 1 {
+		t.Fatalf("preserved rows web=%d rewards=%d, want 1 each", webAccounts, rewards)
 	}
 }

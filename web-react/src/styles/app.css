@@ -5149,6 +5149,48 @@ select {
   margin-top: 18px;
 }
 
+.phrasebook-source-filter-v2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.phrasebook-source-filter-v2 button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 34px;
+  border: 1px solid var(--v2-border);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--v2-panel-strong) 70%, transparent);
+  color: var(--v2-muted);
+  font-size: 12px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.phrasebook-source-filter-v2 button.is-active {
+  border-color: color-mix(in srgb, var(--v2-accent) 68%, var(--v2-border));
+  background: color-mix(in srgb, var(--v2-accent) 15%, transparent);
+  color: var(--v2-text);
+}
+
+.phrasebook-source-filter-v2 span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.phrasebook-source-filter-v2 small {
+  flex: 0 0 auto;
+  color: inherit;
+  opacity: 0.72;
+}
+
 .phrasebook-list-v2,
 .offline-deck-list-v2 {
   min-height: 0;
@@ -5336,6 +5378,8 @@ select {
   border-top: 1px solid var(--line);
   padding-top: 10px;
   align-self: start;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .composer-panel-v2 .phrase-quick-save-v2 {
@@ -5347,6 +5391,8 @@ select {
   display: flex;
   gap: 7px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .phrase-quick-save-v2__chips button {
@@ -5354,6 +5400,7 @@ select {
   align-items: center;
   gap: 7px;
   max-width: min(100%, 520px);
+  min-width: 0;
   min-height: 34px;
   padding: 6px 9px;
   border: 1px solid var(--v2-border);
@@ -5366,9 +5413,9 @@ select {
 }
 
 .phrase-quick-save-v2__chips span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .tutor-note-strip-v2 {
@@ -5409,6 +5456,7 @@ select {
 .tutor-note-strip-v2__chips button {
   flex: 0 0 auto;
   max-width: min(420px, 76vw);
+  min-width: 0;
   min-height: 34px;
   display: inline-flex;
   align-items: center;
@@ -5429,9 +5477,9 @@ select {
 }
 
 .tutor-note-strip-v2__chips span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .tutor-actual-errors-v2 span {
@@ -8456,7 +8504,7 @@ select {
 
 .chat-interface__group {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   width: 100%;
@@ -8464,7 +8512,7 @@ select {
 }
 
 .chat-interface__row--right .chat-interface__group {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .chat-interface__meta {
@@ -8474,13 +8522,14 @@ select {
   gap: 8px;
   grid-column: 1;
   grid-row: 1;
+  justify-self: start;
   color: var(--faint);
   font-size: 11px;
   font-weight: 900;
 }
 
 .chat-interface__meta--right {
-  grid-column: 1;
+  grid-column: 2;
   justify-self: end;
 }
 
@@ -8490,7 +8539,7 @@ select {
 }
 
 .chat-interface__bubble {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1;
   width: 100%;
   min-width: 0;
@@ -9052,6 +9101,9 @@ select {
     gap: 8px;
     padding: 12px;
     border-radius: 18px;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   .context-display--words .trainer-result-v2 h3,
@@ -9063,6 +9115,8 @@ select {
   .context-display--words .trainer-result-v2 > p,
   .context-display--word-game .trainer-result-v2 > p {
     line-height: 1.42;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .context-display--words .trainer-correct-word-v2,
@@ -9075,6 +9129,8 @@ select {
   .context-display--words .trainer-correct-word-v2 span,
   .context-display--word-game .trainer-correct-word-v2 span {
     font-size: 18px;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .context-display--words .record-details-v2,
@@ -9192,6 +9248,7 @@ select {
 
   .context-display--roleplay {
     overflow-y: auto !important;
+    overflow-x: hidden !important;
     padding-bottom: calc(132px + env(safe-area-inset-bottom)) !important;
     align-self: stretch;
     display: block;
@@ -9205,6 +9262,8 @@ select {
     min-height: max-content !important;
     max-height: none !important;
     overflow: visible !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     grid-auto-rows: auto !important;
   }
 
@@ -9236,9 +9295,25 @@ select {
   }
 
   .context-display--roleplay .roleplay-view-v2--mobile-session {
-    height: auto !important;
+    height: calc(100dvh - 196px - env(safe-area-inset-bottom)) !important;
     min-height: 0 !important;
+    max-height: calc(100dvh - 196px - env(safe-area-inset-bottom)) !important;
     padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .chat-workspace--roleplay {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .chat-workspace__output {
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
 
   .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-stage-v2 {
@@ -9247,15 +9322,26 @@ select {
 
   .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-dialog-card-v2 {
     min-height: 0 !important;
-    grid-template-rows: auto minmax(220px, auto) auto;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     gap: 8px;
     padding: 10px;
-    overflow: visible;
+    overflow-x: hidden;
+    overflow-y: hidden;
   }
 
   .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-dialog-scroll-v2 {
-    min-height: min(44dvh, 360px);
-    max-height: calc(100dvh - 300px);
+    min-height: 0;
+    max-height: none;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .composer-panel-v2 {
+    max-height: min(32dvh, 236px);
+    overflow: auto;
   }
 
   .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-composer-v2 textarea {
@@ -9271,6 +9357,16 @@ select {
     max-height: none !important;
     padding-bottom: 24px;
     overflow: visible !important;
+  }
+
+  .context-display--phrasebook .phrasebook-source-filter-v2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .context-display--phrasebook .phrasebook-source-filter-v2 button {
+    justify-content: space-between;
+    width: 100%;
   }
 
   .context-display--phrasebook .phrasebook-list-v2 {
@@ -9939,6 +10035,8 @@ select {
     min-height: 0 !important;
     height: auto !important;
     overflow: visible !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
   .chat-workspace--shadowing .chat-workspace__output,
@@ -9947,7 +10045,10 @@ select {
   .chat-panel-v2 {
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
   .composer-panel-v2 {

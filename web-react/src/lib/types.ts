@@ -100,7 +100,6 @@ export type ReferralInvitee = {
   reached_level_3?: boolean;
   level_rewarded?: boolean;
   earned?: string;
-  earned_usdt?: string;
   joined_at?: string;
 };
 
@@ -109,7 +108,7 @@ export type PhrasebookItem = {
   phrase: string;
   translation?: string;
   note?: string;
-  source?: "lesson" | "practice" | "roleplay" | "mistake" | "manual" | "word" | "tool";
+  source?: "lesson" | "practice" | "roleplay" | "shadowing" | "mistake" | "manual" | "word" | "tool";
   language?: string;
   createdAt?: string;
   created_at?: string;
@@ -187,8 +186,6 @@ export type SessionData = {
   learning_languages?: LanguageOption[];
   premium_plans?: PremiumPlan[];
   yookassa_enabled?: boolean;
-  rollypay_enabled?: boolean;
-  crypto_enabled?: boolean;
   telegram_login_bot?: string;
   web_app_url?: string;
   support?: {
@@ -222,16 +219,6 @@ export type PremiumPlan = {
   days_label?: string;
   rub_price?: string | number;
   stars_price?: string | number;
-  usdt_price?: string;
-  crypto_enabled?: boolean;
-  crypto_methods?: CryptoMethod[];
-};
-
-export type CryptoMethod = {
-  id: string;
-  label?: string;
-  currency?: string;
-  network?: string;
 };
 
 export type NavItem = {

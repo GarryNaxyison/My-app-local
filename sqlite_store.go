@@ -319,24 +319,6 @@ func (s *sqliteStore) init() error {
 			indirect_reward_kopecks INTEGER NOT NULL DEFAULT 0,
 			created_at TEXT NOT NULL
 		)`,
-		`CREATE TABLE IF NOT EXISTS crypto_payments (
-			id TEXT PRIMARY KEY,
-			provider TEXT NOT NULL,
-			currency TEXT NOT NULL,
-			network TEXT NOT NULL,
-			product TEXT NOT NULL,
-			status TEXT NOT NULL,
-			address TEXT NOT NULL,
-			memo TEXT NOT NULL,
-			amount TEXT NOT NULL,
-			amount_nano INTEGER NOT NULL,
-			price_rub INTEGER NOT NULL DEFAULT 0,
-			telegram_id INTEGER NOT NULL,
-			tx_hash TEXT NOT NULL DEFAULT '',
-			expires_at TEXT NOT NULL,
-			created_at TEXT NOT NULL,
-			updated_at TEXT NOT NULL
-		)`,
 		`CREATE TABLE IF NOT EXISTS web_accounts (
 			user_id INTEGER PRIMARY KEY,
 			login TEXT NOT NULL,
@@ -380,12 +362,6 @@ func (s *sqliteStore) init() error {
 		}
 	}
 	if _, err := s.db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code) WHERE referral_code <> ''`); err != nil {
-		return err
-	}
-	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_crypto_payments_user_created ON crypto_payments(telegram_id, created_at)`); err != nil {
-		return err
-	}
-	if _, err := s.db.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_crypto_payments_tx_hash ON crypto_payments(tx_hash) WHERE tx_hash <> ''`); err != nil {
 		return err
 	}
 	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_daily_bonus_claims_user_created ON daily_bonus_claims(telegram_id, created_at DESC)`); err != nil {

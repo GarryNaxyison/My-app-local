@@ -144,6 +144,25 @@ func TestToolTranslationPromptUsesInterfaceLanguage(t *testing.T) {
 	}
 }
 
+func TestVocabularyExampleTranslationPromptUsesInterfaceLanguage(t *testing.T) {
+	messages := vocabularyExampleTranslationPrompt(vocabWord{English: "size"}, "What size shoes do you wear?", learningLanguageByCode("en"), interfaceLanguageByCode("ru"), "learn word")
+	if len(messages) != 2 {
+		t.Fatalf("expected 2 chat messages, got %d", len(messages))
+	}
+	content := messages[1].Content
+	for _, want := range []string{"Russian", "What size shoes do you wear?"} {
+		if !strings.Contains(content, want) {
+			t.Fatalf("expected translation prompt to contain %q, got %q", want, content)
+		}
+	}
+	if !strings.Contains(strings.ToLower(content), "translate") {
+		t.Fatalf("expected translation prompt to ask for translation, got %q", content)
+	}
+	if strings.Contains(content, "write one short natural example") {
+		t.Fatalf("translation prompt must not ask to generate a new example: %q", content)
+	}
+}
+
 func TestCleanModelReplyRemovesPromptLeak(t *testing.T) {
 	raw := "You are an encouraging English coach for learners.\nAct like an expert English teacher.\n\nГотово: перевод ниже."
 	got := cleanModelReply(raw)

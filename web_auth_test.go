@@ -288,7 +288,7 @@ func TestSQLiteTelegramLinkReplacesTemporaryTelegramWebAccount(t *testing.T) {
 		t.Fatalf("expected old web user to be removed, ok=%v err=%v", ok, err)
 	}
 	overall := store.leaderboard(10)
-	if len(overall) != 1 || overall[0].FirstName != "Demor22" || overall[0].Score != 30 {
+	if len(overall) != 1 || overall[0].FirstName != "Demor22" || overall[0].Score != 230 {
 		t.Fatalf("expected linked telegram username in unified leaderboard, got %#v", overall)
 	}
 }
@@ -624,26 +624,27 @@ func TestSQLiteLeaderboardIsUnifiedAcrossWebAndTelegram(t *testing.T) {
 	}
 
 	overall := store.leaderboard(10)
-	if len(overall) != 2 {
-		t.Fatalf("expected unified leaderboard with 2 language-active entries, got %d: %#v", len(overall), overall)
+	if len(overall) != 4 {
+		t.Fatalf("expected unified leaderboard with XP and language-active entries, got %d: %#v", len(overall), overall)
 	}
 	names := map[string]int{}
 	for _, entry := range overall {
 		names[entry.FirstName] = entry.Score
 	}
-	if names["web_two"] != 15 || names["telegram_user"] != 15 {
+	if names["xp_only_telegram"] != 1000 || names["web_one"] != 40 || names["web_two"] != 115 || names["telegram_user"] != 115 {
 		t.Fatalf("unexpected unified leaders: %#v", overall)
-	}
-	if _, ok := names["web_one"]; ok {
-		t.Fatalf("xp-only web account should not enter leaderboard: %#v", overall)
-	}
-	if _, ok := names["xp_only_telegram"]; ok {
-		t.Fatalf("xp-only telegram account should not enter leaderboard: %#v", overall)
 	}
 
 	byLanguage := store.languageLeaderboard("en", 10)
 	if len(byLanguage) != 2 {
 		t.Fatalf("expected unified language leaderboard, got %d: %#v", len(byLanguage), byLanguage)
+	}
+	languageNames := map[string]int{}
+	for _, entry := range byLanguage {
+		languageNames[entry.FirstName] = entry.Score
+	}
+	if languageNames["web_two"] != 15 || languageNames["telegram_user"] != 15 {
+		t.Fatalf("unexpected language-active leaders: %#v", byLanguage)
 	}
 }
 

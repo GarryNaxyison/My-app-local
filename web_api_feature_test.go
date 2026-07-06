@@ -1689,73 +1689,35 @@ func TestPremiumPlansDTOIncludesLandingPricingCopy(t *testing.T) {
 	}
 }
 
-func TestPremiumPlansDTOUsesLiveTonAPIRateForUSDTPrices(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/rates" {
-			t.Fatalf("unexpected path: %s", r.URL.Path)
-		}
-		_, _ = w.Write([]byte(`{"rates":{"USDT_MASTER":{"prices":{"RUB":75}}}}`))
-	}))
-	defer server.Close()
-
-	cfg := config{
-		PremiumRubPrice:           300,
-		PremiumStarsPrice:         150,
-		CryptoUSDTRubRate:         72,
-		CryptoTONAPIBaseURL:       server.URL,
-		CryptoUSDTTONJettonMaster: "USDT_MASTER",
-		CryptoUSDTTONWallet:       "EQ_USDT",
-	}
-	bot := &bot{cfg: cfg, cryptoRates: newCryptoRateProvider(cfg, server.Client())}
+func TestPremiumPlansDTOContainsOnlyCurrentPaymentFields(t *testing.T) {
+	cfg := config{PremiumRubPrice: 300, PremiumStarsPrice: 150}
+	bot := &bot{cfg: cfg}
 	api := newWebAPI(cfg, bot)
 
 	plans := api.premiumPlansDTO(userState{InterfaceLanguage: "en"})
 	if len(plans) < 2 {
 		t.Fatalf("plans len = %d, want paid plans: %#v", len(plans), plans)
 	}
-	premium := plans[1]
-	if premium["usdt_price"] != "4 USDT" {
-		t.Fatalf("premium usdt_price = %#v, want live 75 RUB/USDT conversion", premium["usdt_price"])
-	}
-	methods, ok := premium["crypto_methods"].([]map[string]any)
-	if !ok || len(methods) == 0 {
-		t.Fatalf("premium crypto_methods missing: %#v", premium["crypto_methods"])
-	}
-	if methods[0]["currency"] != cryptoCurrencyUSDT || methods[0]["network"] != cryptoNetworkTON {
-		t.Fatalf("unexpected crypto method: %#v", methods[0])
-	}
-}
-
-func TestWebUserDTOUsesLiveTonAPIRateForReferralUSDT(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/rates" {
-			t.Fatalf("unexpected path: %s", r.URL.Path)
+	for _, plan := range plans {
+		for _, retiredKey := range []string{"usdt_price", "crypto_enabled", "crypto_methods"} {
+			if _, ok := plan[retiredKey]; ok {
+				t.Fatalf("plan still exposes retired payment key %q: %#v", retiredKey, plan)
+			}
 		}
-		_, _ = w.Write([]byte(`{"rates":{"USDT_MASTER":{"prices":{"RUB":75}}}}`))
-	}))
-	defer server.Close()
-
-	cfg := config{
-		CryptoUSDTRubRate:         72,
-		CryptoTONAPIBaseURL:       server.URL,
-		CryptoUSDTTONJettonMaster: "USDT_MASTER",
-	}
-	bot := &bot{cfg: cfg, cryptoRates: newCryptoRateProvider(cfg, server.Client())}
-	api := newWebAPI(cfg, bot)
-
-	dto := api.userDTO(userState{ReferralBalanceKopecks: 7500 * 100})
-	if dto["usdt_rub_rate"] != "75" {
-		t.Fatalf("usdt_rub_rate = %#v, want live rate", dto["usdt_rub_rate"])
-	}
-	if dto["referral_balance_usdt"] != "100.00 USDT" {
-		t.Fatalf("referral_balance_usdt = %#v, want live 75 RUB/USDT conversion", dto["referral_balance_usdt"])
-	}
-	if dto["referral_withdraw_min_usdt"] != "13.33 USDT" {
-		t.Fatalf("referral_withdraw_min_usdt = %#v, want live 75 RUB/USDT conversion", dto["referral_withdraw_min_usdt"])
 	}
 }
 
-func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {
+func TestWebUserDTOContainsOnlyRubReferralFields(t *testing.T) {
+	api := newWebAPI(config{}, &bot{})
+	dto := api.userDTO(userState{ReferralBalanceKopecks: 7500 * 100})
+	for _, retiredKey := range []string{"usdt_rub_rate", "referral_balance_usdt", "referral_withdraw_min_usdt"} {
+		if _, ok := dto[retiredKey]; ok {
+			t.Fatalf("user dto still exposes retired referral key %q: %#v", retiredKey, dto)
+		}
+	}
+}
+
+func TestWebDirectCryptoPaymentEndpointIsRemoved(t *testing.T) {
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
 	if err != nil {
 		t.Fatal(err)
@@ -1771,14 +1733,7 @@ func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {
 	if _, err := store.getOrCreateUser(-42, "tester"); err != nil {
 		t.Fatal(err)
 	}
-	cfg := config{
-		WebAPISessionSecret:     "test-session-secret",
-		CryptoTONWallet:         "EQ_TEST",
-		CryptoTONMonthAmount:    "1.25",
-		CryptoTONYearAmount:     "10",
-		CryptoTONCenterBaseURL:  "https://toncenter.com/api/v2",
-		CryptoPaymentTTLMinutes: 60,
-	}
+	cfg := config{WebAPISessionSecret: "test-session-secret"}
 	bot := &bot{cfg: cfg, store: store}
 	api := newWebAPI(cfg, bot)
 	recorder := httptest.NewRecorder()
@@ -1787,22 +1742,9 @@ func TestWebDirectCryptoPaymentCreatesTONInvoice(t *testing.T) {
 	if len(cookies) == 0 {
 		t.Fatal("expected session cookie")
 	}
-	payment := requestJSON(t, api, cookies[0], http.MethodPost, "/api/premium/crypto/payment", map[string]any{"product": premiumMonthlyProduct})
-	if payment["network"] != cryptoNetworkTON || payment["currency"] != cryptoCurrencyTON {
-		t.Fatalf("unexpected crypto payment response: %#v", payment)
-	}
-	if memo, _ := payment["memo"].(string); !strings.HasPrefix(memo, "POLIGLOT:ton_") {
-		t.Fatalf("expected unique memo, got %#v", payment)
-	}
-	if invoiceURL, _ := payment["invoice_url"].(string); !strings.HasPrefix(invoiceURL, "https://app.tonkeeper.com/transfer/") {
-		t.Fatalf("expected Tonkeeper invoice url, got %#v", payment)
-	}
-	var count int
-	if err := store.db.QueryRow(`SELECT COUNT(*) FROM crypto_payments`).Scan(&count); err != nil {
-		t.Fatal(err)
-	}
-	if count != 1 {
-		t.Fatalf("crypto_payments count = %d, want 1", count)
+	_, status := requestRaw(t, api, cookies[0], http.MethodPost, "/api/premium/crypto/payment", map[string]any{"product": premiumMonthlyProduct})
+	if status != http.StatusNotFound {
+		t.Fatalf("retired crypto payment endpoint status = %d, want 404", status)
 	}
 }
 

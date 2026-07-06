@@ -20,7 +20,7 @@ neriva.ru, www.neriva.ru, poliglotai.ru, www.poliglotai.ru, poliglotai.online, w
 		reverse_proxy localhost:8080
 	}
 
-	@botcallbacks path /payment/success /payment/success* /tonapi/webhook /tonapi/webhook/* /yookassa/webhook /yookassa/webhook/* /rollypay/webhook/site /rollypay/webhook/bot
+	@botcallbacks path /payment/success /payment/success* /yookassa/webhook /yookassa/webhook/*
 	handle @botcallbacks {
 		reverse_proxy localhost:8080
 	}

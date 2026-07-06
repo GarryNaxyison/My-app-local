@@ -1163,10 +1163,15 @@ function challengeMessage(challenge: WordChallenge | SpellingChallenge, copy: (k
 }
 
 function updateSessionUser(session: SessionData | null, user: UserProfile): SessionData {
+  const currentUser = session?.user;
+  const nextUser =
+    currentUser && user.navigation_layout === undefined && currentUser.navigation_layout !== undefined
+      ? { ...user, navigation_layout: currentUser.navigation_layout }
+      : user;
   return {
     ...(session || { authenticated: true }),
     authenticated: true,
-    user,
+    user: nextUser,
   };
 }
 
@@ -1327,7 +1332,11 @@ function formatLearningRecord(
   if (includeContext && context && !lines.some((line) => line.includes(context))) lines.push(`${copy("context", "Context")}: ${context}`);
 
   const example = recordField(record, ["example"]);
-  if (includeExample && example) lines.push(`${copy("example", "Example")}: ${example}`);
+  const exampleTranslation = recordField(record, ["example_translation", "exampleTranslation", "context_translation", "translation_ru"]);
+  if (includeExample && example) {
+    lines.push(`${copy("example", "Example")}: ${example}`);
+    if (exampleTranslation && !samePhrasebookText(example, exampleTranslation)) lines.push(`${copy("translation", "Translation")}: ${exampleTranslation}`);
+  }
 
   const mistakes = includeMistakes ? recordMistakes(record.mistakes) : [];
   if (mistakes.length) {
@@ -1597,7 +1606,7 @@ function normalizePhrasebookItems(value: unknown): PhrasebookItem[] {
       phrase,
       translation: cleanAppText(asText(record.translation, "")),
       note: cleanAppText(asText(record.note, "")),
-      source: (["lesson", "practice", "roleplay", "mistake", "manual", "word", "tool"].includes(asText(record.source, "")) ? asText(record.source, "") : "manual") as PhrasebookSource,
+      source: (["lesson", "practice", "roleplay", "shadowing", "mistake", "manual", "word", "tool"].includes(asText(record.source, "")) ? asText(record.source, "") : "manual") as PhrasebookSource,
       language: cleanAppText(asText(record.language, "")),
       createdAt: cleanAppText(asText(record.createdAt || record.created_at, "")) || new Date().toISOString(),
     });
@@ -1759,21 +1768,24 @@ function phraseSentenceCandidatesFromText(value: string) {
     .filter((item) => isUsefulPhraseCandidate(item));
 }
 
-function phraseCandidatesFromMessages(messages: ChatMessage[]) {
+function phraseCandidatesFromMessages(messages: ChatMessage[], learningLanguage: string) {
+  const learning = languageCode(learningLanguage);
   const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
   const pushCandidate = (phrase: string, source: PhrasebookSource, details?: ApiRecord) => {
     const cleaned = cleanAppText(phrase).replace(/\s+/g, " ").trim();
-    if (isUsefulPhraseCandidate(cleaned) && cleaned.length <= 220) candidates.push({ phrase: cleaned, source, details });
+    if (isUsefulPhraseCandidate(cleaned) && cleaned.length <= 220 && phraseLooksCompatibleWithLanguage(cleaned, learning)) candidates.push({ phrase: cleaned, source, details });
   };
   for (const message of messages) {
     if (message.role === "user") continue;
     const details = getRecord(message.details);
-    const source = message.meta === "roleplay" ? "roleplay" : message.meta === "practice" ? "practice" : message.meta?.startsWith("tools:") ? "tool" : "lesson";
-    const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example"];
+    const source = message.meta === "roleplay" ? "roleplay" : message.meta === "shadowing" ? "shadowing" : message.meta === "practice" ? "practice" : message.meta?.startsWith("tools:") ? "tool" : "lesson";
+    const fields = ["correction", "model_phrase", "correction_audio_text", "corrected_text", "example", "target", "phrase", "question_audio_text"];
     for (const field of fields) {
       pushCandidate(recordField(details, [field]), source, details);
     }
-    phraseSentenceCandidatesFromText(message.body).forEach((phrase) => pushCandidate(phrase, source, details));
+    if (message.meta !== "roleplay" && message.meta !== "shadowing") {
+      phraseSentenceCandidatesFromText(message.body).forEach((phrase) => pushCandidate(phrase, source, details));
+    }
     recordList(details.answer_variants)
       .concat(recordList(details.suggestions), recordList(details.examples), recordList(details.phrases))
       .forEach((phrase) => pushCandidate(phrase, source, details));
@@ -1790,7 +1802,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[]) {
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).slice(0, 6);
+  }).slice(0, 8);
 }
 
 function phrasebookKey(value: string) {
@@ -1862,7 +1874,7 @@ function phraseCandidatesFromToolMessages(messages: ChatMessage[], learningLangu
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).slice(0, 6);
+  }).slice(0, 8);
 }
 
 function samePhrasebookText(left: string | undefined, right: string | undefined) {
@@ -4153,6 +4165,7 @@ function uniquePronunciationProblems(items: PronunciationProblem[]) {
 
 function compactPronunciationMap(items: PronunciationProblem[], user: UserProfile, copy: (key: string, fallback: string) => string) {
   const seenText = new Set<string>();
+  const seenSignals = new Set<string>();
   const compact: PronunciationProblem[] = [];
   for (const item of items) {
     const label = cleanPronunciationWord(item.word || item.spoken);
@@ -4168,9 +4181,12 @@ function compactPronunciationMap(items: PronunciationProblem[], user: UserProfil
         : issue.includes("low") || issue.includes("confidence")
           ? copy("pronunciation_map_confidence", "Уверенность")
           : tip || copy("pronunciation_map_focus", "Фокус");
-    const normalized = `${label.toLowerCase()}|${signal.toLowerCase()}`;
+    const normalized = label.toLowerCase();
     if (seenText.has(normalized)) continue;
+    const signalKey = signal.toLowerCase();
+    if (seenSignals.has(signalKey)) continue;
     seenText.add(normalized);
+    seenSignals.add(signalKey);
     compact.push({ ...item, issue: signal, tip: tip && tip !== signal ? tip : "" });
     if (compact.length >= 8) break;
   }
@@ -5512,11 +5528,7 @@ function PaymentModal({
   const info = payment.info || {};
   const invoiceURL = asText(info.invoice_url || info.url || info.confirmation_url || info.bot_url, "");
   const amountLine = paymentAmountLine(info);
-  const address = asText(info.address || info.wallet || info.recipient, "");
-  const memo = asText(info.memo || info.comment || info.payload || info.payment_comment, "");
   const status = asText(info.status || info.payment_status || "", "");
-  const paymentID = asText(info.payment_id || info.id, "");
-  const network = asText(info.network || info.chain, "");
   const expiresRaw = asText(info.expires_at, "");
   const expiresLabel = (() => {
     if (!expiresRaw) return "";
@@ -5533,11 +5545,7 @@ function PaymentModal({
   const requisites = [
     [copy("status", "Status"), status],
     [copy("amount", "Amount"), amountLine],
-    [copy("network", "Network"), network],
-    [copy("wallet", "Wallet"), address],
-    [copy("comment", "Comment"), memo],
     [copy("expires_at", "Expires at"), expiresLabel],
-    [copy("tx_hash", "Transaction"), asText(info.tx_hash || info.hash, "")],
   ].filter(([, value]) => value);
   const methodNote = (() => {
     if (selectedMethod === "stars") {
@@ -5880,8 +5888,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const feedbackMessage = isPreviewing ? "" : display(aiTutorFeedback?.message);
   const feedbackOK = aiTutorFeedback?.ok !== false;
   const parsedFeedback = useMemo(() => parseAITutorFeedbackJSON(aiTutorFeedback?.json), [aiTutorFeedback?.json]);
-  const phraseCandidates = useMemo(() => aiTutorPhraseCandidates(parsedFeedback, savePhrase), [parsedFeedback, savePhrase]);
-  const mistakeCandidates = useMemo(() => aiTutorMistakeCandidates(parsedFeedback, savePhrase), [parsedFeedback, savePhrase]);
+  const phraseCandidates = useMemo(() => aiTutorPhraseCandidates(parsedFeedback, savePhrase, user.learning_language || ""), [parsedFeedback, savePhrase, user.learning_language]);
+  const mistakeCandidates = useMemo(() => aiTutorMistakeCandidates(parsedFeedback, savePhrase, user.learning_language || ""), [parsedFeedback, savePhrase, user.learning_language]);
   const tutorNoteCandidates = useMemo(() => mergeTutorNoteCandidates(phraseCandidates, mistakeCandidates), [phraseCandidates, mistakeCandidates]);
   const tutorActualErrorLines = useMemo(() => aiTutorActualErrorLines(parsedFeedback), [parsedFeedback]);
   const heroTopic = display(currentLesson?.theme || currentLesson?.title || aiTutorStep?.title);
@@ -6319,7 +6327,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
                       <strong>{item.topic || item.title}</strong>
                       <small>{prettyDate(item.completedAt)}</small>
                     </span>
-                    <em>{restartingLessonId === item.lessonId ? copy("loading", "Loading...") : item.level || copy("level_label", "Level")}</em>
+                    <em>{restartingLessonId && restartingLessonId === item.lessonId ? copy("loading", "Loading...") : item.level || copy("level_label", "Level")}</em>
                   </button>
                 )) : (
                   <p className="tutor-completed-lessons-empty-v2">{copy("tutor_completed_lessons_empty", "Completed tutor lessons will appear here after the final review.")}</p>
@@ -6406,32 +6414,30 @@ function parseAITutorFeedbackJSON(raw?: string) {
   }
 }
 
-function aiTutorPhraseCandidates(feedback: ApiRecord, savePhrase: ViewRendererProps["savePhrase"]) {
-  const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
-  const seen = new Set<string>();
-  const add = (phrase: unknown, note = "") => {
-    const text = cleanAppText(phrase).trim();
-    if (!isUsefulPhraseCandidate(text)) return;
-    const key = text.toLowerCase();
-    if (seen.has(key)) return;
-    seen.add(key);
-    candidates.push({ phrase: text, source: "lesson", details: { note } });
-  };
-  add(feedback.corrected_answer_target, "AI Tutor correction");
-  add(feedback.corrected_version_target, "AI Tutor correction");
-  recordList(feedback.recommendations_interface)
-    .concat(recordList(feedback.recommendations), recordList(feedback.suggestions), recordList(feedback.tips))
-    .forEach((item) => add(item, "AI Tutor recommendation"));
-  return candidates.slice(0, 4);
-}
-
-function aiTutorMistakeCandidates(feedback: ApiRecord, savePhrase: ViewRendererProps["savePhrase"]) {
+function aiTutorPhraseCandidates(feedback: ApiRecord, savePhrase: ViewRendererProps["savePhrase"], learningLanguage: string) {
   void savePhrase;
   const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
   const seen = new Set<string>();
   const add = (phrase: unknown, note = "") => {
     const text = cleanAppText(phrase).trim();
-    if (!text || text.length < 2) return;
+    if (!isUsefulPhraseCandidate(text) || !phraseLooksCompatibleWithLanguage(text, learningLanguage)) return;
+    const key = text.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    candidates.push({ phrase: text, source: "lesson", details: { note } });
+  };
+  phraseSentenceCandidatesFromText(cleanAppText(feedback.corrected_answer_target)).forEach((item) => add(item, "AI Tutor correction"));
+  phraseSentenceCandidatesFromText(cleanAppText(feedback.corrected_version_target)).forEach((item) => add(item, "AI Tutor correction"));
+  return candidates.slice(0, 6);
+}
+
+function aiTutorMistakeCandidates(feedback: ApiRecord, savePhrase: ViewRendererProps["savePhrase"], learningLanguage: string) {
+  void savePhrase;
+  const candidates: Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }> = [];
+  const seen = new Set<string>();
+  const add = (phrase: unknown, note = "") => {
+    const text = cleanAppText(phrase).trim();
+    if (!text || text.length < 2 || !phraseLooksCompatibleWithLanguage(text, learningLanguage)) return;
     const key = text.toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
@@ -6443,9 +6449,9 @@ function aiTutorMistakeCandidates(feedback: ApiRecord, savePhrase: ViewRendererP
       add(record.correction || record.corrected || record.expected, cleanAppText(record.explanation || record.issue || "AI Tutor mistake"));
     });
   }
-  add(feedback.corrected_answer_target, "AI Tutor correction");
-  add(feedback.corrected_version_target, "AI Tutor correction");
-  return candidates.slice(0, 4);
+  phraseSentenceCandidatesFromText(cleanAppText(feedback.corrected_answer_target)).forEach((item) => add(item, "AI Tutor correction"));
+  phraseSentenceCandidatesFromText(cleanAppText(feedback.corrected_version_target)).forEach((item) => add(item, "AI Tutor correction"));
+  return candidates.slice(0, 6);
 }
 
 function mergeTutorNoteCandidates(...groups: Array<Array<{ phrase: string; source: PhrasebookSource; details?: ApiRecord }>>) {
@@ -6461,7 +6467,7 @@ function mergeTutorNoteCandidates(...groups: Array<Array<{ phrase: string; sourc
       merged.push({ ...item, phrase: text });
     }
   }
-  return merged.slice(0, 6);
+  return merged.slice(0, 8);
 }
 
 function aiTutorActualErrorLines(feedback: ApiRecord) {
@@ -6675,7 +6681,7 @@ function RoleplayView({
   const sessionMessages = roleplayResult
     ? [roleplayResult, ...roleplayMessages.filter((message) => message.id !== roleplayResult.id)].slice(0, 8)
     : roleplayMessages.slice(0, 8);
-  const phraseCandidates = phraseCandidatesFromMessages(sessionMessages);
+  const phraseCandidates = phraseCandidatesFromMessages(sessionMessages, user.learning_language || "");
   useEffect(() => {
     if (!activeScenario) return;
     requestAnimationFrame(() => {
@@ -7204,7 +7210,7 @@ function ChatWorkView({
     : scopedMessages;
   const showOutput = !isShadowing || visibleMessages.length > 0;
   const practiceEmpty = isPractice && !visibleMessages.length;
-  const phraseCandidates = isLesson || isPractice ? phraseCandidatesFromMessages(scopedMessages) : [];
+  const phraseCandidates = isLesson || isPractice || isShadowing ? phraseCandidatesFromMessages(scopedMessages, user.learning_language || "") : [];
   const lessonHasActiveTask = isLesson && Boolean(activeLessonTaskId);
   const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
@@ -7713,8 +7719,16 @@ function TrainerResultBox({
   const spellingAnswer = compactSpellingResult && !hideSpellingAnswer && result.record ? recordField(result.record, ["correct_answer", "word"]) : "";
   const learnedWord = compactWordResult && result.tone === "success" && result.record ? recordField(result.record, ["word", "correct_answer"]) : "";
   const learnedTranslation = compactWordResult && result.record ? recordField(result.record, ["translation", "prompt", "message"]) : "";
-  const phrasebookLabel = [learnedWord, learnedTranslation].filter(Boolean).join(" — ");
+  const learnedExample = compactWordResult && result.tone === "success" && result.record ? recordField(result.record, ["example"]) : "";
+  const learnedExampleTranslation = compactWordResult && result.record ? recordField(result.record, ["example_translation", "exampleTranslation", "context_translation", "translation_ru"]) : "";
   const learnedWordSaved = Boolean(learnedWord && isPhraseSaved?.(learnedWord));
+  const learnedExampleSaved = Boolean(learnedExample && isPhraseSaved?.(learnedExample));
+  const compactWordAudioClips = compactWordResult && result.record && result.tone === "success"
+    ? ([
+        learnedWord ? { label: copy("word", "Word"), text: learnedWord, wordId: recordField(result.record, ["word_id"]) } : null,
+        learnedExample ? { label: copy("example", "Example"), text: learnedExample } : null,
+      ].filter(Boolean) as Array<{ label: string; text: string; wordId?: string }>)
+    : [];
   return (
     <article className={cn("trainer-result-v2", `is-${result.tone}`)}>
       <div>
@@ -7734,7 +7748,8 @@ function TrainerResultBox({
           <span>{spellingAnswer}</span>
         </p>
       ) : null}
-      {result.record ? (
+      {compactWordAudioClips.length ? <AudioActionRow clips={compactWordAudioClips} /> : null}
+      {result.record && !compactWordResult && !hideSpellingAnswer ? (
         <RecordDetails
           record={result.record}
           copy={copy}
@@ -7749,19 +7764,33 @@ function TrainerResultBox({
       {canAdvance ? (
         <Button type="button" onClick={onNext}><ChevronRight size={17} />{copy("next_word", "Next")}</Button>
       ) : null}
-      {learnedWord && savePhrase ? (
+      {(learnedWord || learnedExample) && savePhrase ? (
         <section className="phrase-quick-save-v2 trainer-word-save-v2">
           <div className="phrase-quick-save-v2__chips">
-            <button
-              type="button"
-              className={cn(learnedWordSaved && "is-saved")}
-              aria-pressed={learnedWordSaved}
-              aria-label={copy("save_to_phrasebook", "Сохранить в заметки")}
-              onClick={() => savePhrase(learnedWord, "word", { ...result.record, translation: learnedTranslation, note: "" })}
-            >
-              <Bookmark size={14} fill={learnedWordSaved ? "currentColor" : "none"} />
-              <span>{phrasebookLabel || learnedWord}</span>
-            </button>
+            {learnedWord ? (
+              <button
+                type="button"
+                className={cn(learnedWordSaved && "is-saved")}
+                aria-pressed={learnedWordSaved}
+                aria-label={copy("save_to_phrasebook", "Сохранить в заметки")}
+                onClick={() => savePhrase(learnedWord, "word", { ...result.record, translation: learnedTranslation, note: "" })}
+              >
+                <Bookmark size={14} fill={learnedWordSaved ? "currentColor" : "none"} />
+                <span>{learnedWord}</span>
+              </button>
+            ) : null}
+            {learnedExample ? (
+              <button
+                type="button"
+                className={cn(learnedExampleSaved && "is-saved")}
+                aria-pressed={learnedExampleSaved}
+                aria-label={copy("save_to_phrasebook", "Save to notes")}
+                onClick={() => savePhrase(learnedExample, "word", { ...result.record, translation: learnedExampleTranslation, note: learnedWord || learnedTranslation })}
+              >
+                <Bookmark size={14} fill={learnedExampleSaved ? "currentColor" : "none"} />
+                <span>{learnedExample}</span>
+              </button>
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -7891,17 +7920,50 @@ function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy
   );
 }
 
+const phrasebookSourceOrder: PhrasebookSource[] = ["word", "lesson", "practice", "roleplay", "shadowing", "mistake", "tool", "manual"];
+
+function phrasebookSourceLabel(source: PhrasebookSource, copy: (key: string, fallback: string) => string, interfaceLanguage: string) {
+  const ru = languageCode(interfaceLanguage) === "ru";
+  const fallbacks: Record<PhrasebookSource, string> = {
+    word: ru ? "Слова" : "Words",
+    lesson: ru ? "Уроки" : "Lessons",
+    practice: ru ? "Практика" : "Practice",
+    roleplay: ru ? "Ролевые" : "Roleplay",
+    shadowing: ru ? "Аудирование" : "Listening",
+    mistake: ru ? "Ошибки" : "Mistakes",
+    tool: ru ? "Инструменты" : "Tools",
+    manual: ru ? "Мои" : "Manual",
+  };
+  return copy(`phrase_source_${source}`, fallbacks[source]);
+}
+
 function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: ViewRendererProps) {
   const [manualPhrase, setManualPhrase] = useState("");
   const [manualNote, setManualNote] = useState("");
+  const [activeSource, setActiveSource] = useState<PhrasebookSource | "all">("all");
   const [page, setPage] = useState(0);
   const pageSize = 10;
-  const totalPages = Math.max(1, Math.ceil(phrasebook.length / pageSize));
+  const interfaceLanguage = user.interface_language || "";
+  const learningLanguage = user.learning_language || "";
+  const filteredPhrasebook = activeSource === "all" ? phrasebook : phrasebook.filter((item) => (item.source || "manual") === activeSource);
+  const sourceBlocks = [
+    {
+      key: "all" as const,
+      label: copy("all", languageCode(interfaceLanguage) === "ru" ? "Все" : "All"),
+      count: phrasebook.length,
+    },
+    ...phrasebookSourceOrder.map((source) => ({
+      key: source,
+      label: phrasebookSourceLabel(source, copy, interfaceLanguage),
+      count: phrasebook.filter((item) => (item.source || "manual") === source).length,
+    })),
+  ];
+  const totalPages = Math.max(1, Math.ceil(filteredPhrasebook.length / pageSize));
   const safePage = Math.min(page, totalPages - 1);
-  const pagedPhrasebook = phrasebook.slice(safePage * pageSize, safePage * pageSize + pageSize);
+  const pagedPhrasebook = filteredPhrasebook.slice(safePage * pageSize, safePage * pageSize + pageSize);
   useEffect(() => {
     setPage(0);
-  }, [phrasebook.length]);
+  }, [activeSource, phrasebook.length]);
   const addManualPhrase = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const phrase = manualPhrase.trim();
@@ -7936,16 +7998,31 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
         <div className="panel-head">
           <div>
             <span className="eyebrow">{copy("saved_phrases", "Saved phrases")}</span>
-            <h2>{phrasebook.length ? `${phrasebook.length} ${copy("phrases", "phrases")}` : copy("empty_phrasebook", "Phrasebook is empty")}</h2>
+            <h2>{filteredPhrasebook.length ? `${filteredPhrasebook.length} ${copy("phrases", "phrases")}` : phrasebook.length ? copy("empty_phrasebook_filter", "No notes in this block") : copy("empty_phrasebook", "Phrasebook is empty")}</h2>
           </div>
           <Button variant="outline" onClick={() => savePhrase(copy("sample_phrase", "Could you say that again, please?"), "manual")}>
             <Bookmark size={16} />
             {copy("add_sample", "Добавить пример")}
           </Button>
         </div>
-        {phrasebook.length > pageSize ? (
+        <div className="phrasebook-source-filter-v2" role="tablist" aria-label={copy("phrasebook_blocks", "Note blocks")}>
+          {sourceBlocks.map((block) => (
+            <button
+              key={block.key}
+              type="button"
+              role="tab"
+              aria-selected={activeSource === block.key}
+              className={activeSource === block.key ? "is-active" : ""}
+              onClick={() => setActiveSource(block.key)}
+            >
+              <span>{block.label}</span>
+              <small>{block.count}</small>
+            </button>
+          ))}
+        </div>
+        {filteredPhrasebook.length > pageSize ? (
           <div className="offline-pagination-v2 phrasebook-pagination-v2">
-            <span>{copy("showing_cards_page", "Показано по 10")}: {phrasebook.length ? `${safePage + 1}/${totalPages}` : "0/0"}</span>
+            <span>{copy("showing_cards_page", "Показано по 10")}: {filteredPhrasebook.length ? `${safePage + 1}/${totalPages}` : "0/0"}</span>
             <div>
               <Button variant="outline" size="sm" disabled={safePage <= 0} onClick={() => setPage((current) => Math.max(0, current - 1))}>{copy("back", "Назад")}</Button>
               <Button variant="outline" size="sm" disabled={safePage + 1 >= totalPages} onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}>{copy("next", "Вперёд")}</Button>
@@ -7953,16 +8030,16 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
           </div>
         ) : null}
         <div className="phrasebook-grid-v2">
-          {phrasebook.length ? (
+          {filteredPhrasebook.length ? (
             pagedPhrasebook.map((item) => (
               <article className="phrasebook-card-v2" key={item.id}>
-                <small>{copy(`phrase_source_${item.source || "manual"}`, item.source || "manual")} · {prettyDate(item.createdAt || item.created_at)}</small>
+                <small>{phrasebookSourceLabel((item.source || "manual") as PhrasebookSource, copy, interfaceLanguage)} · {prettyDate(item.createdAt || item.created_at)}</small>
                 <strong>{item.phrase}</strong>
-                <small className="phrasebook-card-v2__group">{(item.source || "manual") === "manual" ? copy("phrasebook_group_my", languageCode(user.interface_language) === "ru" ? "Мои заметки" : "My notes") : copy("phrasebook_group_learning", languageCode(user.interface_language) === "ru" ? "Из разделов" : "From sections")}</small>
+                <small className="phrasebook-card-v2__group">{(item.source || "manual") === "manual" ? copy("phrasebook_group_my", languageCode(interfaceLanguage) === "ru" ? "Мои заметки" : "My notes") : copy("phrasebook_group_learning", languageCode(interfaceLanguage) === "ru" ? "Из разделов" : "From sections")}</small>
                 {item.translation && !samePhrasebookText(item.translation, item.phrase) ? <p>{item.translation}</p> : null}
                 {item.note && !samePhrasebookText(item.note, item.phrase) && !samePhrasebookText(item.note, item.translation) ? <p>{item.note}</p> : null}
                 <div className="phrasebook-card-v2__actions">
-                  <AudioWaveButton label={copy("listen", "Listen")} text={item.phrase} targetLanguage={item.language || user.learning_language} compact />
+                  <AudioWaveButton label={copy("listen", "Listen")} text={item.phrase} targetLanguage={item.language || learningLanguage} compact />
                   <Button type="button" variant="outline" size="sm" onClick={() => removePhrase(item.id)}>
                     <X size={14} />
                     {copy("remove", "Remove")}
@@ -8615,7 +8692,7 @@ function ReferralView({ user, copy }: { user: UserProfile; copy: (key: string, f
               <strong>{cleanAppText(invitee.name) || copy("learner", "Ученик")}<small>{invitee.joined_at ? prettyDate(invitee.joined_at) : ""}</small></strong>
               <span>{invitee.level || "A1"} / LVL {invitee.xp_level || 1}</span>
               <em className={invitee.reached_level_3 ? "is-reached" : ""}>{invitee.reached_level_3 ? copy("reached", "Достиг") : copy("not_yet", "Пока нет")}</em>
-              <span>{invitee.earned || invitee.earned_usdt || "0"}</span>
+              <span>{invitee.earned || "0"}</span>
             </article>
           ))}
           {!visibleInvitees.length ? <p className="empty-copy">{copy("no_referral_invitees", "Пока никто не перешёл по вашей ссылке.")}</p> : null}

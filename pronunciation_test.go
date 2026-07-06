@@ -83,11 +83,57 @@ func TestPronunciationEstimatedConfidenceDoesNotAllowPerfectRepeat(t *testing.T)
 	if report.ConfidenceSource != "estimated" {
 		t.Fatalf("expected estimated confidence without logprobs, got %q", report.ConfidenceSource)
 	}
+	if len(report.ProblemWords) != 0 {
+		t.Fatalf("estimated exact repeat must not invent per-word weak scores, got %#v", report.ProblemWords)
+	}
 	assessment := localPronunciationAssessment(user, report, 100)
 	if assessment.Score > 76 {
 		t.Fatalf("expected estimated confidence exact repeat to be capped, got %d", assessment.Score)
 	}
 	if !strings.Contains(assessment.Feedback, "Балл ограничен") {
 		t.Fatalf("expected capped-confidence feedback, got %q", assessment.Feedback)
+	}
+}
+
+func TestPronunciationEstimatedAlignmentDoesNotUseUniformPlaceholderConfidence(t *testing.T) {
+	user := userState{InterfaceLanguage: "en", LearningLanguage: "en", Level: "A2"}
+	transcription := audioTranscription{
+		Text:            "Could you tell me where nearest station is",
+		DurationSeconds: 3.1,
+	}
+	report := buildPronunciationTechnicalReport(user, "Could you tell me where the nearest station is?", transcription, pronunciationModeExact)
+	if report.ConfidenceSource != "estimated" {
+		t.Fatalf("expected estimated confidence without logprobs, got %q", report.ConfidenceSource)
+	}
+	for _, item := range report.ProblemWords {
+		if item.Confidence == 0.74 {
+			t.Fatalf("estimated problem word must not expose placeholder 0.74: %#v", report.ProblemWords)
+		}
+	}
+}
+
+func TestNormalizeCoachProblemWordsStripsUniformPlaceholderConfidence(t *testing.T) {
+	words := normalizeCoachProblemWords([]pronunciationProblemWord{
+		{Word: "thank", Confidence: 0.74},
+		{Word: "you", Confidence: 0.74},
+		{Word: "so", Confidence: 0.74},
+	}, nil)
+	if len(words) != 3 {
+		t.Fatalf("expected coach words to remain, got %#v", words)
+	}
+	for _, item := range words {
+		if item.Confidence != 0 {
+			t.Fatalf("uniform 0.74 placeholder confidence should be omitted, got %#v", words)
+		}
+	}
+}
+
+func TestNormalizeCoachProblemWordsKeepsVariedConfidence(t *testing.T) {
+	words := normalizeCoachProblemWords([]pronunciationProblemWord{
+		{Word: "thank", Confidence: 0.61},
+		{Word: "you", Confidence: 0.79},
+	}, nil)
+	if len(words) != 2 || words[0].Confidence != 0.61 || words[1].Confidence != 0.79 {
+		t.Fatalf("expected varied real confidences to remain, got %#v", words)
 	}
 }
