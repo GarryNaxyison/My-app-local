@@ -4,6 +4,7 @@
 
 - The outro text should now support Neriva variants, especially `neriva.ru` and `NERIVA.RU`, rendered as clean deterministic text rather than generated typography.
 - The 360-degree coin spin should be slow and premium, not a fast snap; a roughly 4x slower pass across most of the 2-second outro is preferred.
+- Also keep a `NERIVA.RU` option where the comet-flown text itself remains as the final lockup, without fading it out and replacing it with a second manually drawn full-line overlay.
 
 ## 2026-06-29 Dynamic Outro Direction
 

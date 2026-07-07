@@ -2,6 +2,7 @@
 
 ## 2026-07-08
 
+- Added Neriva v17 uppercase outro variant where `NERIVA.RU` is not replaced by a second full-line text overlay: the comet-flown glyphs remain visible as the final lockup while keeping the slower 360-degree coin spin. Final MP4: `C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v17_upper_comet_text_lockup.mp4`.
 - Added the Neriva rebrand v16 outro pair: generated both `neriva.ru` and `NERIVA.RU` clean deterministic text variants, kept the approved comet URL assembly style, and slowed the 360-degree logo coin spin across most of the 2-second clip. Final MP4s: `C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v16_lower_clean_text_slow_spin.mp4` and `C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v16_upper_clean_text_slow_spin.mp4`.
 
 ## 2026-06-29

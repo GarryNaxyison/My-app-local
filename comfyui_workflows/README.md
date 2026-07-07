@@ -24,7 +24,8 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `render_poliglot_tech_outro_v13_motion_logo_text.py` - previous compositor with post-materialization logo rotation/glint and a stronger per-character comet URL assembly.
 - `render_poliglot_tech_outro_v14_coin_logo_upright_text.py` - previous compositor with upright comet URL assembly, no separate text panel, and a simple one-turn coin spin for the materialized logo.
 - `render_poliglot_tech_outro_v15_clean_vector_text.py` - previous Poliglot compositor that keeps the v14 motion but resolves the URL into one clean deterministic TrueType text layer instead of a per-character final lockup.
-- `render_neriva_tech_outro_v16_clean_text_slow_spin.py` - current Neriva rebrand compositor that renders both `neriva.ru` and `NERIVA.RU` clean-text variants with a slower 360-degree logo coin spin.
+- `render_neriva_tech_outro_v16_clean_text_slow_spin.py` - Neriva rebrand compositor that renders both `neriva.ru` and `NERIVA.RU` clean-text variants with a slower 360-degree logo coin spin.
+- `render_neriva_tech_outro_v17_upper_comet_text_lockup.py` - current `NERIVA.RU` variant where the comet-flown glyphs remain as the final lockup instead of being replaced by a second full-line overlay.
 - `poliglot_outro_2s_tech_warp_v11_api.json` - v11 ComfyUI API prompt for the new dynamic technology direction.
 - `poliglot_outro_2s_tech_warp_v11_prompt.md` - v11 prompt notes and output paths.
 - `poliglot_outro_tech_warp_v11_reference_1080x1920.png` - v11 high-energy reference frame copied into ComfyUI input.
@@ -104,14 +105,13 @@ Render the kinetic replacement for the rejected static/flat-space direction:
 Queue `poliglot_outro_2s_tech_warp_v11_api.json` through ComfyUI, then render the refined final composite:
 
 ```powershell
-& 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_neriva_tech_outro_v16_clean_text_slow_spin.py
+& 'C:\Users\Admin\Documents\ComfyUI\.venv\Scripts\python.exe' .\comfyui_workflows\render_neriva_tech_outro_v17_upper_comet_text_lockup.py
 ```
 
 Current final output:
 
 ```text
-C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v16_lower_clean_text_slow_spin.mp4
-C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v16_upper_clean_text_slow_spin.mp4
+C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v17_upper_comet_text_lockup.mp4
 ```
 
 ## Chain
