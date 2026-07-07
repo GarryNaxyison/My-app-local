@@ -1,5 +1,10 @@
 # User UI Wishes
 
+## 2026-07-08 Neriva Rebrand Outro
+
+- The outro text should now support Neriva variants, especially `neriva.ru` and `NERIVA.RU`, rendered as clean deterministic text rather than generated typography.
+- The 360-degree coin spin should be slow and premium, not a fast snap; a roughly 4x slower pass across most of the 2-second outro is preferred.
+
 ## 2026-06-29 Dynamic Outro Direction
 
 - The Poliglot AI 2-second outro should feel like a real motion-design insert: kinetic, technological, premium, and animated through the whole two seconds.

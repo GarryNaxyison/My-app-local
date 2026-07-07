@@ -1,5 +1,9 @@
 ﻿# Changelog
 
+## 2026-07-08
+
+- Added the Neriva rebrand v16 outro pair: generated both `neriva.ru` and `NERIVA.RU` clean deterministic text variants, kept the approved comet URL assembly style, and slowed the 360-degree logo coin spin across most of the 2-second clip. Final MP4s: `C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v16_lower_clean_text_slow_spin.mp4` and `C:\Users\Admin\Documents\ComfyUI\output\outro\neriva_outro_tech_warp_v16_upper_clean_text_slow_spin.mp4`.
+
 ## 2026-06-29
 
 - Promoted the 2-second outro to v15: preserved the approved v14 motion, but replaced the per-character final URL lockup with one deterministic TrueType text layer using Segoe UI Bold so `poliglotAI.online` resolves cleanly without neural or crooked typography. Final MP4: `C:\Users\Admin\Documents\ComfyUI\output\outro\poliglot_outro_tech_warp_v15_clean_vector_text.mp4`.
