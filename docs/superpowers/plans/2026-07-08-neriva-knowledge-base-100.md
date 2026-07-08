@@ -58,8 +58,14 @@
 **Files:**
 - Stage only task files and generated public-site artifacts.
 
-- [ ] Commit and push to `origin/codex/ai-tutor-rebuild-fix`.
-- [ ] Build `poliglot-public-site.tgz`.
-- [ ] Upload through deploy-upload service.
-- [ ] Run site-only deploy.
-- [ ] Verify production `/knowledge/`, new article URL, sitemap, and header link.
+- [x] Commit and push to `origin/codex/ai-tutor-rebuild-fix`.
+- [x] Build `poliglot-public-site.tgz`.
+- [x] Upload through deploy-upload service.
+- [x] Run site-only deploy.
+- [x] Verify production `/knowledge/`, new article URL, sitemap, and header link.
+
+Production evidence on 2026-07-08:
+- Commit `a0e71df` pushed to `origin/codex/ai-tutor-rebuild-fix`.
+- Site-only deploy completed with server backup `/opt/aibot/deploy-backups/20260708T103153Z-neriva-marketing-site`.
+- Browser verification confirmed 100 `/knowledge/` cards, live partial search, `/knowledge/?q=...` filtering, mobile article search, the landing header link, and 101 sitemap Knowledge Base URLs.
+- Read-only production checks returned HTTP 200 for `/healthz`, `/app/`, `/neriva.html`, `/knowledge/`, and deploy-upload healthz.
