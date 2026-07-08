@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { knowledgeSitemapUrls } from "./knowledge-base-data.mjs";
 import { englishOrigin, legalLinks, russianOrigin, seoPages, socialProfileUrls } from "./static-seo-pages-data.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -240,6 +241,10 @@ function renderSitemap() {
   for (const legalPath of ["/privacy.html", "/terms.html", "/agreement.html", "/consent.html"]) {
     urls.push(`<url><loc>${russianOrigin}${legalPath}</loc></url>`);
     urls.push(`<url><loc>${englishOrigin}${legalPath}?lang=en</loc></url>`);
+  }
+
+  for (const knowledgePath of knowledgeSitemapUrls()) {
+    urls.push(`<url><loc>${russianOrigin}${knowledgePath}</loc></url>`);
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>

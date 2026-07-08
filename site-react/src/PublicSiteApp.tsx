@@ -443,6 +443,7 @@ function LandingLanguageOptions() {
 function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { page: PageId; theme: SiteTheme; copy: ReturnType<typeof getLandingContent>["nav"]; showThemeToggle: boolean; onThemeToggle: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const themeLabel = theme === "dark" ? copy.light : copy.dark;
+  const knowledgeLabel = document.documentElement.lang === "ru" ? "База знаний" : "Knowledge Base";
 
   return (
     <header className="public-nav public-nav--drawer">
@@ -453,6 +454,9 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
         <strong>NERIVA</strong>
       </a>
       <div className="public-nav__actions">
+        <a className="nav-knowledge-link" href="/knowledge/" data-no-localize-href>
+          {knowledgeLabel}
+        </a>
         <select data-site-language-select aria-label="Language">
           {page === "landing" ? <LandingLanguageOptions /> : null}
         </select>
