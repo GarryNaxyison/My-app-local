@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
 
 const firstArticlePath = "/knowledge/can-you-learn-a-language-yourself.html";
+const memoryArticlePath = "/knowledge/how-language-memory-works.html";
+const examArticlePath = "/knowledge/how-to-prepare-for-language-exam.html";
+const lastArticlePath = "/knowledge/how-to-choose-language-learning-app.html";
 
 test.describe("NERIVA knowledge base", () => {
-  test("renders the knowledge hub with Stitch-style search, filters, and 25 articles", async ({ page }) => {
+  test("renders the knowledge hub with Stitch-style search, filters, and 100 articles", async ({ page }) => {
     const response = await page.goto("/knowledge/");
     expect(response?.ok()).toBe(true);
 
@@ -13,8 +16,8 @@ test.describe("NERIVA knowledge base", () => {
     await expect(page.locator(".knowledge-nav__link--knowledge")).toHaveText("База знаний");
     await expect(page.locator(".knowledge-nav__link--knowledge")).toHaveCSS("border-bottom-color", "rgb(183, 196, 255)");
     await expect(page.locator(".knowledge-search__input")).toHaveAttribute("placeholder", "Найти статью, вопрос или тему");
-    await expect(page.locator(".knowledge-filter")).toHaveCount(8);
-    await expect(page.locator(".knowledge-card")).toHaveCount(25);
+    await expect(page.locator(".knowledge-filter")).toHaveCount(10);
+    await expect(page.locator(".knowledge-card")).toHaveCount(100);
     await expect(page.locator(".knowledge-card").first()).toContainText("Можно ли выучить иностранный язык самостоятельно?");
     await expect(page.locator(".knowledge-rail")).toContainText("Маршрут для старта");
     await expect(page.locator(".knowledge-plan")).toContainText("500 материалов");
@@ -31,18 +34,66 @@ test.describe("NERIVA knowledge base", () => {
 
     await page.locator(".knowledge-search__input").fill("слова");
     const visibleCards = page.locator(".knowledge-card:not([hidden])");
-    await expect(page.locator(".knowledge-results-count")).toContainText('10 материалов по запросу "слова"');
-    await expect(visibleCards).toHaveCount(10);
+    await expect(page.locator(".knowledge-results-count")).toContainText('20 материалов по запросу "слова"');
+    await expect(visibleCards).toHaveCount(20);
     await expect(visibleCards.first()).toContainText("Почему иностранные слова быстро забываются?");
     await expect(page.locator(".knowledge-card:not([hidden])", { hasText: "Как выбрать язык для изучения?" })).toHaveCount(0);
 
     await page.locator(".knowledge-filter", { hasText: "Словарный запас" }).click();
     await expect(page.locator(".knowledge-filter.is-active")).toContainText("Словарный запас");
-    await expect(visibleCards).toHaveCount(10);
+    await expect(visibleCards).toHaveCount(15);
 
     await page.locator(".knowledge-reset").click();
-    await expect(page.locator(".knowledge-results-count")).toContainText("25 материалов");
-    await expect(visibleCards).toHaveCount(25);
+    await expect(page.locator(".knowledge-results-count")).toContainText("100 материалов");
+    await expect(visibleCards).toHaveCount(100);
+  });
+
+  test("search supports partial queries and query parameters", async ({ page }) => {
+    await page.goto("/knowledge/");
+    const visibleCards = page.locator(".knowledge-card:not([hidden])");
+
+    await page.locator(".knowledge-search__input").fill("пам");
+    expect(await visibleCards.count()).toBeGreaterThan(0);
+    await expect(page.locator(".knowledge-card:not([hidden])", { hasText: "Как работает память при изучении языков?" })).toHaveCount(1);
+
+    await page.goto("/knowledge/?q=экзам");
+    await expect(page.locator(".knowledge-search__input")).toHaveValue("экзам");
+    await expect(page.locator(".knowledge-results-count")).toContainText('материалов по запросу "экзам"');
+    await expect(visibleCards.first()).toContainText("Как подготовиться к языковому экзамену?");
+    expect(await visibleCards.count()).toBeGreaterThanOrEqual(5);
+  });
+
+  test("article mobile search opens the filtered knowledge hub", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(memoryArticlePath);
+
+    await page.locator(".knowledge-mobile-header .knowledge-search__input").fill("экзам");
+    await page.locator(".knowledge-mobile-header .knowledge-search__input").press("Enter");
+
+    await expect(page).toHaveURL(/\/knowledge\/\?q=/);
+    await expect(page.locator(".knowledge-search__input")).toHaveValue("экзам");
+    await expect(page.locator(".knowledge-card:not([hidden])").first()).toContainText("Как подготовиться к языковому экзамену?");
+  });
+
+  test("filters the expanded article clusters by category", async ({ page }) => {
+    await page.goto("/knowledge/");
+    const visibleCards = page.locator(".knowledge-card:not([hidden])");
+
+    await page.locator(".knowledge-filter", { hasText: "Словарный запас" }).click();
+    await expect(visibleCards).toHaveCount(15);
+    await expect(visibleCards.last()).toContainText("Какие слова учить в первую очередь?");
+
+    await page.locator(".knowledge-filter", { hasText: "CEFR уровни" }).click();
+    await expect(visibleCards).toHaveCount(8);
+    await expect(visibleCards.first()).toContainText("Что такое уровень A1?");
+
+    await page.locator(".knowledge-filter", { hasText: "Экзамены" }).click();
+    await expect(visibleCards).toHaveCount(5);
+    await expect(visibleCards.first()).toContainText("Как подготовиться к языковому экзамену?");
+
+    await page.locator(".knowledge-filter", { hasText: "AI и технологии" }).click();
+    await expect(visibleCards).toHaveCount(5);
+    await expect(visibleCards.last()).toContainText("Как выбрать приложение для изучения языка?");
   });
 
   test("renders a detailed article with TOC, FAQ, related materials, and JSON-LD", async ({ page }) => {
@@ -75,6 +126,18 @@ test.describe("NERIVA knowledge base", () => {
     expect(faqNode.mainEntity).toHaveLength(5);
   });
 
+  test("renders representative new articles from the 75-article expansion", async ({ page }) => {
+    await page.goto(memoryArticlePath);
+    await expect(page.locator(".knowledge-article h1")).toHaveText("Как работает память при изучении языков?");
+    await expect(page.locator(".article-answer")).toContainText("Короткий ответ");
+    await expect(page.locator(".article-faq__item")).toHaveCount(5);
+
+    await page.goto(lastArticlePath);
+    await expect(page.locator(".knowledge-article h1")).toHaveText("Как выбрать приложение для изучения языка?");
+    await expect(page.locator(".article-answer")).toContainText("приложение");
+    await expect(page.locator(".article-related__card")).toHaveCount(3);
+  });
+
   test("keeps article layout usable on mobile without horizontal overflow", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 1200 });
     await page.goto(firstArticlePath);
@@ -97,5 +160,8 @@ test.describe("NERIVA knowledge base", () => {
     expect(body).toContain("https://neriva.ru/knowledge/");
     expect(body).toContain(`https://neriva.ru${firstArticlePath}`);
     expect(body).toContain("https://neriva.ru/knowledge/what-is-spaced-repetition.html");
+    expect(body).toContain(`https://neriva.ru${memoryArticlePath}`);
+    expect(body).toContain(`https://neriva.ru${examArticlePath}`);
+    expect(body).toContain(`https://neriva.ru${lastArticlePath}`);
   });
 });

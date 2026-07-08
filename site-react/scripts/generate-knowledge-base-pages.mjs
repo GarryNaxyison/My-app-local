@@ -246,7 +246,7 @@ function renderHubPage() {
               Сбросить фильтры
             </button>
           </div>
-          <div class="knowledge-results-count" aria-live="polite">25 материалов</div>
+          <div class="knowledge-results-count" aria-live="polite">${knowledgeArticles.length} материалов</div>
         </div>
         <aside class="knowledge-rail" aria-label="Навигация по базе знаний">
           <div>
@@ -293,8 +293,8 @@ function renderHubScript() {
     const queryTokens = tokens(input?.value || "");
     let visible = 0;
     cards.forEach((card) => {
-      const cardTokens = new Set(tokens(card.dataset.search || ""));
-      const queryMatch = queryTokens.length === 0 || queryTokens.every((token) => cardTokens.has(token));
+      const searchText = tokens(card.dataset.search || "").join(" ");
+      const queryMatch = queryTokens.length === 0 || queryTokens.every((token) => searchText.includes(token));
       const categoryMatch = !activeCategory || card.dataset.category === activeCategory;
       const show = queryMatch && categoryMatch;
       card.hidden = !show;
@@ -319,6 +319,11 @@ function renderHubScript() {
     filters.forEach((item) => item.classList.remove("is-active"));
     applyFilters();
   });
+  const params = new URLSearchParams(window.location.search);
+  const initialQuery = params.get("q");
+  if (initialQuery && input) {
+    input.value = initialQuery;
+  }
   applyFilters();
 })();`;
 }
@@ -462,12 +467,10 @@ function renderMobileArticleHeader(article) {
     </div>
     <form class="knowledge-mobile-header__search" action="/knowledge/" role="search">
       <span class="material-symbols-outlined" aria-hidden="true">search</span>
-      <input class="knowledge-search__input" name="q" type="search" placeholder="Найти статью..." value="${escapeAttr(article.category === vocabularyCluster ? "слова" : "")}" />
+      <input class="knowledge-search__input" name="q" type="search" placeholder="Найти статью..." />
     </form>
   </header>`;
 }
-
-const vocabularyCluster = "Словарный запас";
 
 function renderArticlePage(article) {
   const tocLinks = [
