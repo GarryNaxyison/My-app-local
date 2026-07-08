@@ -36,11 +36,11 @@ const englishComparisonCopy = [
   "Best when quick mobile practice and deeper desktop study should stay synced.",
 ] as const;
 
-const russianLandingTitle = "NERIVA - AI-репетитор английского и изучения языков в Telegram";
+const russianLandingTitle = "NERIVA - изучение языков и AI-репетитор английского в Telegram";
 const russianLandingDescription =
-  "NERIVA - AI-репетитор для изучения английского и языков в Telegram и web app: уроки, разговорная практика, произношение, фото-перевод и ошибки.";
+  "NERIVA - изучение языков с AI-репетитором: английский и другие языки в Telegram и web app, уроки, разговорная практика, произношение, фото-перевод и ошибки.";
 const russianLandingSocialDescription =
-  "AI-репетитор для изучения английского и языков в Telegram и web app: уроки, speaking, произношение, фото-перевод и ошибки.";
+  "Изучение языков с AI-репетитором: английский и другие языки в Telegram и web app, уроки, speaking, произношение, фото-перевод и ошибки.";
 const mojibakeCodepointPattern = /[\u0080-\u009f\u00b5\u0402\u0403\u0453\u0457\u201a\u2026]/;
 
 function staticMetaContent(html: string, selector: "description" | "og:title" | "og:description" | "twitter:title" | "twitter:description") {
