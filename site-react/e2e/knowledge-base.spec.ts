@@ -4,6 +4,7 @@ const firstArticlePath = "/knowledge/can-you-learn-a-language-yourself.html";
 const memoryArticlePath = "/knowledge/how-language-memory-works.html";
 const examArticlePath = "/knowledge/how-to-prepare-for-language-exam.html";
 const lastArticlePath = "/knowledge/how-to-choose-language-learning-app.html";
+const vocabularyClusterPath = "/knowledge/vocabulary.html";
 
 test.describe("NERIVA knowledge base", () => {
   test("renders the knowledge hub with Stitch-style search, filters, and 100 articles", async ({ page }) => {
@@ -111,7 +112,8 @@ test.describe("NERIVA knowledge base", () => {
     await expect(page.locator("#how-neriva-helps")).toContainText("Как NERIVA может помочь");
     await expect(page.locator(".article-faq__item")).toHaveCount(5);
     await expect(page.locator(".article-related__card")).toHaveCount(3);
-    await expect(page.locator(".article-cta")).toContainText("Открыть NERIVA и начать практику");
+    await expect(page.locator(".article-cta")).toHaveClass(/article-cta--start/);
+    await expect(page.locator(".article-cta a")).toHaveAttribute("href", "/app/");
 
     const pageText = await page.locator("body").innerText();
     expect(pageText).not.toMatch(/Quantum|Dr\. Elena|Solutions|Capabilities|Stats/);
@@ -158,10 +160,47 @@ test.describe("NERIVA knowledge base", () => {
     expect(response?.ok()).toBe(true);
     const body = await response?.text();
     expect(body).toContain("https://neriva.ru/knowledge/");
+    expect(body).toContain("https://neriva.ru/knowledge/start.html");
+    expect(body).toContain("https://neriva.ru/knowledge/vocabulary.html");
+    expect(body).toContain("https://neriva.ru/knowledge/english.html");
+    expect(body).toContain("https://neriva.ru/knowledge/speaking.html");
+    expect(body).toContain("https://neriva.ru/knowledge/exam.html");
+    expect(body).toContain("https://neriva.ru/knowledge/technology.html");
     expect(body).toContain(`https://neriva.ru${firstArticlePath}`);
     expect(body).toContain("https://neriva.ru/knowledge/what-is-spaced-repetition.html");
     expect(body).toContain(`https://neriva.ru${memoryArticlePath}`);
     expect(body).toContain(`https://neriva.ru${examArticlePath}`);
     expect(body).toContain(`https://neriva.ru${lastArticlePath}`);
+  });
+
+  test("renders category pillar pages as indexable article routes", async ({ page }) => {
+    const response = await page.goto(vocabularyClusterPath);
+    expect(response?.ok()).toBe(true);
+
+    await expect(page.locator("body")).toHaveAttribute("data-page", "knowledge-cluster");
+    await expect(page.locator(".cluster-route__step")).toHaveCount(3);
+    await expect(page.locator(".knowledge-card")).toHaveCount(15);
+    await expect(page.locator(`.knowledge-card[href="${memoryArticlePath}"]`)).toHaveCount(1);
+    await expect(page.locator(`.knowledge-card[href="${firstArticlePath}"]`)).toHaveCount(0);
+    await expect(page.locator(".cluster-cta a")).toHaveAttribute("href", "/app/");
+
+    const jsonLdText = await page.locator('script[type="application/ld+json"]').textContent();
+    const jsonLd = JSON.parse(jsonLdText || "{}");
+    const types = jsonLd["@graph"].map((node: { "@type": string }) => node["@type"]);
+    expect(types).toEqual(expect.arrayContaining(["CollectionPage", "ItemList", "BreadcrumbList"]));
+  });
+
+  test("adds in-body internal links and topic-specific CTA to articles", async ({ page }) => {
+    await page.goto(memoryArticlePath);
+
+    await expect(page.locator(".article-route-links")).toBeVisible();
+    await expect(page.locator(".article-route-links a[href='/knowledge/vocabulary.html']")).toHaveCount(1);
+    await expect(page.locator(".article-route-links a[href^='/knowledge/']")).toHaveCount(4);
+    await expect(page.locator(".article-cta")).toHaveClass(/article-cta--vocabulary/);
+    await expect(page.locator(".article-cta a")).toHaveAttribute("href", "/app/");
+
+    await page.setViewportSize({ width: 390, height: 1200 });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
   });
 });

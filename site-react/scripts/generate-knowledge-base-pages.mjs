@@ -2,8 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  articlesForCategory,
+  categoryRouteFor,
   knowledgeArticles,
   knowledgeCategories,
+  knowledgeCategoryRoutes,
   knowledgeHubPath,
   knowledgeOrigin,
   relatedArticlesFor,
@@ -183,6 +186,19 @@ function renderArticleCard(article, featured = false) {
   </a>`;
 }
 
+function renderCategoryRouteCard(route) {
+  const count = articlesForCategory(route.id).length;
+  return `<a class="knowledge-cluster-card" href="${route.path}">
+    <span>${count} материалов</span>
+    <h2>${escapeHtml(route.title)}</h2>
+    <p>${escapeHtml(route.description)}</p>
+  </a>`;
+}
+
+function renderCategoryRouteCards() {
+  return knowledgeCategoryRoutes.map((route) => renderCategoryRouteCard(route)).join("\n        ");
+}
+
 function renderHubJsonLd() {
   return [
     ...buildBaseJsonLd({
@@ -196,11 +212,18 @@ function renderHubJsonLd() {
       url: canonical(knowledgeHubPath),
       name: "База знаний NERIVA",
       inLanguage: "ru",
-      hasPart: knowledgeArticles.map((article) => ({
-        "@type": "Article",
-        headline: article.title,
-        url: canonical(article.path),
-      })),
+      hasPart: [
+        ...knowledgeCategoryRoutes.map((route) => ({
+          "@type": "CollectionPage",
+          name: route.title,
+          url: canonical(route.path),
+        })),
+        ...knowledgeArticles.map((article) => ({
+          "@type": "Article",
+          headline: article.title,
+          url: canonical(article.path),
+        })),
+      ],
     },
     {
       "@type": "BreadcrumbList",
@@ -265,6 +288,16 @@ function renderHubPage() {
           </div>
         </aside>
       </section>
+      <section class="knowledge-clusters" aria-label="Маршруты базы знаний">
+        <div class="knowledge-section-heading">
+          <span class="knowledge-eyebrow">SEO/AEO routes</span>
+          <h2>Маршруты по темам</h2>
+          <p>Каждый маршрут собирает статьи в понятный путь: от первого вопроса до практического действия в NERIVA.</p>
+        </div>
+        <div class="knowledge-cluster-grid">
+          ${renderCategoryRouteCards()}
+        </div>
+      </section>
       <section class="knowledge-list" aria-label="Статьи базы знаний">
         ${cards}
       </section>
@@ -326,6 +359,115 @@ function renderHubScript() {
   }
   applyFilters();
 })();`;
+}
+
+function renderCategoryRouteJsonLd(route) {
+  const articles = articlesForCategory(route.id);
+  const routeUrl = canonical(route.path);
+  return [
+    ...buildBaseJsonLd({
+      path: route.path,
+      title: `${route.title} - База знаний NERIVA`,
+      description: route.description,
+    }),
+    {
+      "@type": "CollectionPage",
+      "@id": `${routeUrl}#collection`,
+      url: routeUrl,
+      name: route.title,
+      description: route.description,
+      inLanguage: "ru",
+      isPartOf: { "@id": `${knowledgeOrigin}/#website` },
+      hasPart: articles.map((article) => ({
+        "@type": "Article",
+        headline: article.title,
+        url: canonical(article.path),
+      })),
+    },
+    {
+      "@type": "ItemList",
+      "@id": `${routeUrl}#items`,
+      name: `${route.title}: статьи`,
+      itemListElement: articles.map((article, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: article.title,
+        url: canonical(article.path),
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${routeUrl}#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "NERIVA", item: `${knowledgeOrigin}/neriva.html` },
+        { "@type": "ListItem", position: 2, name: "База знаний", item: canonical(knowledgeHubPath) },
+        { "@type": "ListItem", position: 3, name: route.title, item: routeUrl },
+      ],
+    },
+  ];
+}
+
+function renderCategoryRouteSteps(route) {
+  return route.route
+    .map(([title, body], index) => `<div class="cluster-route__step">
+      <span>${index + 1}</span>
+      <div>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(body)}</p>
+      </div>
+    </div>`)
+    .join("\n            ");
+}
+
+function renderCategoryRoutePage(route) {
+  const articles = articlesForCategory(route.id);
+  const cards = articles.map((article, index) => renderArticleCard(article, index === 0)).join("\n        ");
+
+  return `<!doctype html>
+<html class="dark" lang="ru">
+  ${renderHead({
+    title: `${route.title} - База знаний NERIVA`,
+    description: route.description,
+    path: route.path,
+    jsonLd: renderCategoryRouteJsonLd(route),
+  })}
+  <body class="knowledge-shell" data-page="knowledge-cluster">
+    <div class="knowledge-bg" aria-hidden="true"></div>
+    ${renderKnowledgeHeader()}
+    ${renderMobileArticleHeader()}
+    <main class="knowledge-main knowledge-cluster">
+      <section class="knowledge-hero knowledge-cluster-hero" aria-labelledby="cluster-title">
+        <div class="knowledge-hero__copy">
+          <nav aria-label="Breadcrumb" class="article-breadcrumb">
+            <ol>
+              <li><a href="/neriva.html">Главная</a></li>
+              <li><span>/</span></li>
+              <li><a href="/knowledge/">База знаний</a></li>
+              <li><span>/</span></li>
+              <li aria-current="page">${escapeHtml(route.title)}</li>
+            </ol>
+          </nav>
+          <span class="knowledge-eyebrow">NERIVA topic route</span>
+          <h1 id="cluster-title">${escapeHtml(route.title)}</h1>
+          <p>${escapeHtml(route.description)}</p>
+        </div>
+        <aside class="cluster-cta" aria-label="Практика в NERIVA">
+          <span class="knowledge-rail__label">Практика</span>
+          <strong>${escapeHtml(route.cta.title)}</strong>
+          <p>${escapeHtml(route.cta.text)}</p>
+          <a href="/app/">${escapeHtml(route.cta.button)} <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+        </aside>
+      </section>
+      <section class="cluster-route" aria-label="Маршрут обучения">
+        ${renderCategoryRouteSteps(route)}
+      </section>
+      <section class="knowledge-list" aria-label="Статьи маршрута">
+        ${cards}
+      </section>
+    </main>
+    ${renderKnowledgeFooter()}
+  </body>
+</html>`;
 }
 
 function renderBreadcrumb(article) {
@@ -472,6 +614,41 @@ function renderMobileArticleHeader(article) {
   </header>`;
 }
 
+function renderArticleRouteLinks(article) {
+  const route = categoryRouteFor(article.categoryId);
+  const relatedLinks = relatedArticlesFor(article);
+
+  return `<section class="article-route-links reveal-element" aria-label="Продолжить маршрут">
+        <div class="article-route-links__copy">
+          <span class="knowledge-eyebrow">Маршрут по теме</span>
+          <h2>Что изучить дальше</h2>
+          <p>Чтобы материал не остался отдельной статьей, двигайтесь по соседним вопросам и возвращайтесь к практике.</p>
+        </div>
+        <div class="article-route-links__grid">
+          <a class="article-route-links__pillar" href="${route.path}">
+            <span class="material-symbols-outlined" aria-hidden="true">route</span>
+            <strong>${escapeHtml(route.title)}</strong>
+            <small>Открыть весь маршрут</small>
+          </a>
+          ${relatedLinks
+            .map((related) => `<a href="${related.path}">
+              <span>${escapeHtml(related.category)}</span>
+              <strong>${escapeHtml(related.title)}</strong>
+            </a>`)
+            .join("\n          ")}
+        </div>
+      </section>`;
+}
+
+function renderArticleCta(article) {
+  const route = categoryRouteFor(article.categoryId);
+  return `<section class="article-cta article-cta--${article.categoryId} reveal-element">
+            <h2>${escapeHtml(route.cta.title)}</h2>
+            <p>${escapeHtml(route.cta.text)}</p>
+            <a href="/app/">${escapeHtml(route.cta.button)} <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
+          </section>`;
+}
+
 function renderArticlePage(article) {
   const tocLinks = [
     ["why-it-works", "Почему это работает"],
@@ -516,6 +693,7 @@ function renderArticlePage(article) {
         </div>
         <p>${escapeHtml(article.directAnswer)}</p>
       </section>
+      ${renderArticleRouteLinks(article)}
       <details class="article-toc-mobile">
         <summary>Содержание <span class="material-symbols-outlined" aria-hidden="true">expand_more</span></summary>
         <nav>
@@ -537,11 +715,7 @@ function renderArticlePage(article) {
             <h2>Частые вопросы</h2>
             <div class="article-faq">${renderArticleFaq(article)}</div>
           </section>
-          <section class="article-cta reveal-element">
-            <h2>Открыть NERIVA и начать практику</h2>
-            <p>Выберите короткую сессию, проверьте ответ и сохраните слабые места в одном учебном профиле.</p>
-            <a href="/app/">Открыть NERIVA <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></a>
-          </section>
+          ${renderArticleCta(article)}
         </article>
       </div>
       <section class="article-related reveal-element">
@@ -590,8 +764,12 @@ function renderArticleScript() {
 await fs.mkdir(knowledgeRoot, { recursive: true });
 await fs.writeFile(path.join(knowledgeRoot, "index.html"), renderHubPage(), "utf8");
 
+for (const route of knowledgeCategoryRoutes) {
+  await fs.writeFile(path.join(knowledgeRoot, path.basename(route.path)), renderCategoryRoutePage(route), "utf8");
+}
+
 for (const article of knowledgeArticles) {
   await fs.writeFile(path.join(knowledgeRoot, `${article.slug}.html`), renderArticlePage(article), "utf8");
 }
 
-console.log(`Generated ${knowledgeArticles.length} Knowledge Base articles and /knowledge/index.html`);
+console.log(`Generated ${knowledgeArticles.length} Knowledge Base articles, ${knowledgeCategoryRoutes.length} category routes, and /knowledge/index.html`);
