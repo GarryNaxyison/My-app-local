@@ -63,8 +63,8 @@ export const staticSeoGuideLinks = [
 
 export const landingSeoCopy = {
   ru: {
-    title: "NERIVA - изучение языков и AI-репетитор английского в Telegram",
-    description: "NERIVA - изучение языков с AI-репетитором: английский и другие языки в Telegram и web app, уроки, разговорная практика, произношение, фото-перевод и ошибки.",
+    title: "NERIVA - изучение языков и AI-репетитор английского в Telegram и приложении",
+    description: "NERIVA - изучение языков с AI-репетитором: английский и другие языки в Telegram и приложении NERIVA, уроки, разговорная практика, произношение, фото-перевод и ошибки.",
     sectionEyebrow: "Поисковые ответы",
     sectionTitle: "Ответы для поиска и AI",
     sectionIntro: "Короткие прямые ответы о NERIVA для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
