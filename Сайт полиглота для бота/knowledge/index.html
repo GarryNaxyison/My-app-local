@@ -56,7 +56,8 @@
           <p>Подробные ответы о том, как учить иностранные языки, запоминать слова, говорить увереннее и не бросать занятия.</p>
           <div class="knowledge-search">
             <span class="material-symbols-outlined" aria-hidden="true">search</span>
-            <input class="knowledge-search__input" type="search" placeholder="Найти статью, вопрос или тему" autocomplete="off" />
+            <input class="knowledge-search__input" type="search" placeholder="Найти статью, вопрос или тему" autocomplete="off" aria-controls="knowledge-search-suggestions" aria-expanded="false" />
+            <div class="knowledge-search__suggestions" id="knowledge-search-suggestions" role="listbox" aria-label="Подходящие темы" hidden></div>
           </div>
           <div class="knowledge-filterbar" aria-label="Фильтры базы знаний">
             <button class="knowledge-filter" type="button" data-filter="start">Начало обучения</button>
@@ -93,6 +94,75 @@
           </div>
         </aside>
       </section>
+      <section class="knowledge-topic-nav" aria-label="Быстрый переход по темам">
+    <div class="knowledge-section-heading knowledge-section-heading--compact">
+      <span class="knowledge-eyebrow">Быстрый переход</span>
+      <h2>Выберите тему без прокрутки 100 статей</h2>
+      <p>Маршруты собирают материалы по смыслу: можно сразу открыть нужный раздел или искать точный вопрос выше.</p>
+    </div>
+    <div class="knowledge-topic-nav__grid">
+      <a class="knowledge-topic-nav__link" href="/knowledge/start.html">
+    <span class="knowledge-topic-nav__count">15 материалов</span>
+    <strong>Начало обучения</strong>
+    <span class="knowledge-topic-nav__title">Как начать учить язык: маршрут для первых 30 дней</span>
+    <span class="knowledge-topic-nav__preview">Можно ли выучить иностранный язык самостоятельно? · Как начать учить язык с нуля? · Сколько времени нужно для изучения языка?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/vocabulary.html">
+    <span class="knowledge-topic-nav__count">15 материалов</span>
+    <strong>Словарный запас</strong>
+    <span class="knowledge-topic-nav__title">Как учить слова и расширять словарный запас</span>
+    <span class="knowledge-topic-nav__preview">Почему иностранные слова быстро забываются? · Как запоминать слова быстрее? · Как увеличить словарный запас?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/english.html">
+    <span class="knowledge-topic-nav__count">15 материалов</span>
+    <strong>Английский</strong>
+    <span class="knowledge-topic-nav__title">Английский с нуля и до уверенной практики</span>
+    <span class="knowledge-topic-nav__preview">Как выучить английский самостоятельно? · Английский с нуля: с чего начать? · Сколько времени нужно для изучения английского?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/method.html">
+    <span class="knowledge-topic-nav__count">10 материалов</span>
+    <strong>Методика</strong>
+    <span class="knowledge-topic-nav__title">Методика изучения языка без хаоса</span>
+    <span class="knowledge-topic-nav__preview">Какие существуют методы изучения языков? · Какая методика изучения языка самая эффективная? · Что такое коммуникативный метод?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/grammar.html">
+    <span class="knowledge-topic-nav__count">10 материалов</span>
+    <strong>Грамматика</strong>
+    <span class="knowledge-topic-nav__title">Грамматика, которая работает в речи</span>
+    <span class="knowledge-topic-nav__preview">Нужно ли учить грамматику? · Почему грамматика кажется сложной? · Как быстро понять грамматику?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/listening.html">
+    <span class="knowledge-topic-nav__count">9 материалов</span>
+    <strong>Аудирование</strong>
+    <span class="knowledge-topic-nav__title">Как понимать иностранную речь на слух</span>
+    <span class="knowledge-topic-nav__preview">Почему я не понимаю иностранную речь? · Как научиться понимать английский на слух? · Как тренировать восприятие речи?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/speaking.html">
+    <span class="knowledge-topic-nav__count">8 материалов</span>
+    <strong>Разговорная практика</strong>
+    <span class="knowledge-topic-nav__title">Разговорная практика и языковой барьер</span>
+    <span class="knowledge-topic-nav__preview">Как начать говорить на иностранном языке? · Почему сложно говорить? · Как перестать переводить в голове?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/cefr.html">
+    <span class="knowledge-topic-nav__count">8 материалов</span>
+    <strong>CEFR уровни</strong>
+    <span class="knowledge-topic-nav__title">Уровни CEFR: A1, A2, B1, B2 и C1</span>
+    <span class="knowledge-topic-nav__preview">Что такое уровень A1? · Что значит уровень A2? · Что нужно знать на B1?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/exam.html">
+    <span class="knowledge-topic-nav__count">5 материалов</span>
+    <strong>Экзамены</strong>
+    <span class="knowledge-topic-nav__title">Подготовка к языковому экзамену</span>
+    <span class="knowledge-topic-nav__preview">Как подготовиться к языковому экзамену? · Как составить план подготовки к экзамену? · Как сдать устную часть языкового экзамена?</span>
+  </a>
+      <a class="knowledge-topic-nav__link" href="/knowledge/technology.html">
+    <span class="knowledge-topic-nav__count">5 материалов</span>
+    <strong>AI и технологии</strong>
+    <span class="knowledge-topic-nav__title">AI и приложения для изучения языка</span>
+    <span class="knowledge-topic-nav__preview">Может ли AI помочь выучить язык? · Как пользоваться AI-репетитором? · Полезны ли переводчики для изучения языка?</span>
+  </a>
+    </div>
+  </section>
       <section class="knowledge-clusters" aria-label="Маршруты базы знаний">
         <div class="knowledge-section-heading">
           <span class="knowledge-eyebrow">SEO/AEO routes</span>
@@ -153,7 +223,7 @@
         </div>
       </section>
       <section class="knowledge-list" aria-label="Статьи базы знаний">
-        <a class="knowledge-card knowledge-card--featured" href="/knowledge/can-you-learn-a-language-yourself.html" data-category="start" data-search="можно ли выучить иностранный язык самостоятельно начало обучения начало обучения самостоятельно выучить язык реально если заменить хаос системой понятная цель ежедневная практика обратная связь повторение и измеримый прогресс старт план самообучение самостоятельно без преподавателя план язык">
+        <a class="knowledge-card knowledge-card--featured" href="/knowledge/can-you-learn-a-language-yourself.html" data-category="start" data-category-label="Начало обучения" data-reading-time="9" data-title="Можно ли выучить иностранный язык самостоятельно?" data-search="можно ли выучить иностранный язык самостоятельно начало обучения начало обучения самостоятельно выучить язык реально если заменить хаос системой понятная цель ежедневная практика обратная связь повторение и измеримый прогресс старт план самообучение самостоятельно без преподавателя план язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>9 мин чтения</span>
@@ -165,7 +235,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-start-learning-a-language-from-zero.html" data-category="start" data-search="как начать учить язык с нуля начало обучения начало обучения старт с нуля должен быть коротким и практичным звуки 100 200 частых фраз базовый порядок слов ежедневные мини ответы и повторение старт план самообучение с нуля старт первые фразы язык">
+        <a class="knowledge-card" href="/knowledge/how-to-start-learning-a-language-from-zero.html" data-category="start" data-category-label="Начало обучения" data-reading-time="10" data-title="Как начать учить язык с нуля?" data-search="как начать учить язык с нуля начало обучения начало обучения старт с нуля должен быть коротким и практичным звуки 100 200 частых фраз базовый порядок слов ежедневные мини ответы и повторение старт план самообучение с нуля старт первые фразы язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>10 мин чтения</span>
@@ -177,7 +247,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-long-does-it-take-to-learn-a-language.html" data-category="start" data-search="сколько времени нужно для изучения языка начало обучения начало обучения срок зависит от языка цели уровня старта и регулярности для базового общения нужны месяцы для уверенного b2 часто требуется 1 2 года системной практики старт план самообучение время срок уровень регулярность">
+        <a class="knowledge-card" href="/knowledge/how-long-does-it-take-to-learn-a-language.html" data-category="start" data-category-label="Начало обучения" data-reading-time="9" data-title="Сколько времени нужно для изучения языка?" data-search="сколько времени нужно для изучения языка начало обучения начало обучения срок зависит от языка цели уровня старта и регулярности для базового общения нужны месяцы для уверенного b2 часто требуется 1 2 года системной практики старт план самообучение время срок уровень регулярность">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>9 мин чтения</span>
@@ -189,7 +259,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/easiest-foreign-language-to-learn.html" data-category="start" data-search="какой иностранный язык проще всего выучить начало обучения начало обучения проще всего обычно тот язык который близок к вашему родному нужен в жизни и имеет много понятных материалов личная мотивация часто важнее рейтингов сложности старт план самообучение простой язык выбор мотивация родной язык">
+        <a class="knowledge-card" href="/knowledge/easiest-foreign-language-to-learn.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Какой иностранный язык проще всего выучить?" data-search="какой иностранный язык проще всего выучить начало обучения начало обучения проще всего обычно тот язык который близок к вашему родному нужен в жизни и имеет много понятных материалов личная мотивация часто важнее рейтингов сложности старт план самообучение простой язык выбор мотивация родной язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -201,7 +271,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-choose-a-language-to-learn.html" data-category="start" data-search="как выбрать язык для изучения начало обучения начало обучения выбирайте язык не по моде а по пересечению цели интереса доступных материалов практики и горизонта применения в ближайшие 12 месяцев старт план самообучение выбор языка цель мотивация план">
+        <a class="knowledge-card" href="/knowledge/how-to-choose-a-language-to-learn.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Как выбрать язык для изучения?" data-search="как выбрать язык для изучения начало обучения начало обучения выбирайте язык не по моде а по пересечению цели интереса доступных материалов практики и горизонта применения в ближайшие 12 месяцев старт план самообучение выбор языка цель мотивация план">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -213,7 +283,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/best-first-foreign-language.html" data-category="start" data-search="какой язык лучше учить первым начало обучения начало обучения первым лучше учить язык с высокой практической ценностью большим количеством материалов и понятной мотивацией для многих таким выбором становится английский старт план самообучение первый язык английский выбор старт">
+        <a class="knowledge-card" href="/knowledge/best-first-foreign-language.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Какой язык лучше учить первым?" data-search="какой язык лучше учить первым начало обучения начало обучения первым лучше учить язык с высокой практической ценностью большим количеством материалов и понятной мотивацией для многих таким выбором становится английский старт план самообучение первый язык английский выбор старт">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -225,7 +295,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-language-after-30.html" data-category="start" data-search="можно ли выучить язык после 30 лет начало обучения начало обучения после 30 лет язык учить можно взрослым мешает не возраст сам по себе а нехватка времени страх ошибки и отсутствие регулярной системы старт план самообучение после 30 взрослые возраст язык">
+        <a class="knowledge-card" href="/knowledge/learn-language-after-30.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Можно ли выучить язык после 30 лет?" data-search="можно ли выучить язык после 30 лет начало обучения начало обучения после 30 лет язык учить можно взрослым мешает не возраст сам по себе а нехватка времени страх ошибки и отсутствие регулярной системы старт план самообучение после 30 взрослые возраст язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -237,7 +307,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-language-after-40.html" data-category="start" data-search="можно ли выучить язык после 40 лет начало обучения начало обучения после 40 лет язык тоже можно выучить ключ не соревноваться со школьниками а строить взрослую систему вокруг цели повторения и практики старт план самообучение после 40 возраст взрослые память">
+        <a class="knowledge-card" href="/knowledge/learn-language-after-40.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Можно ли выучить язык после 40 лет?" data-search="можно ли выучить язык после 40 лет начало обучения начало обучения после 40 лет язык тоже можно выучить ключ не соревноваться со школьниками а строить взрослую систему вокруг цели повторения и практики старт план самообучение после 40 возраст взрослые память">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -249,7 +319,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-adults-find-languages-hard.html" data-category="start" data-search="почему взрослым сложно учить языки начало обучения начало обучения взрослым мешают перегруз страх ошибки привычка переводить дословно редкая практика и школьные ожидания эти барьеры решаются системой старт план самообучение взрослые сложно барьер ошибки">
+        <a class="knowledge-card" href="/knowledge/why-adults-find-languages-hard.html" data-category="start" data-category-label="Начало обучения" data-reading-time="9" data-title="Почему взрослым сложно учить языки?" data-search="почему взрослым сложно учить языки начало обучения начало обучения взрослым мешают перегруз страх ошибки привычка переводить дословно редкая практика и школьные ожидания эти барьеры решаются системой старт план самообучение взрослые сложно барьер ошибки">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>9 мин чтения</span>
@@ -261,7 +331,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/daily-language-learning-routine.html" data-category="start" data-search="как заниматься языком каждый день начало обучения начало обучения ежедневная практика должна быть короткой и повторяемой вход активный ответ исправление повторение такой цикл легче удержать месяцами старт план самообучение каждый день привычка режим практика">
+        <a class="knowledge-card" href="/knowledge/daily-language-learning-routine.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Как заниматься языком каждый день?" data-search="как заниматься языком каждый день начало обучения начало обучения ежедневная практика должна быть короткой и повторяемой вход активный ответ исправление повторение такой цикл легче удержать месяцами старт план самообучение каждый день привычка режим практика">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -273,7 +343,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-many-minutes-a-day-to-study-language.html" data-category="start" data-search="сколько минут в день нужно изучать язык начало обучения начало обучения минимум для привычки 10 15 минут рабочий режим 25 45 минут интенсив 60 90 минут важнее качество и регулярность старт план самообучение минут день режим интенсив">
+        <a class="knowledge-card" href="/knowledge/how-many-minutes-a-day-to-study-language.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Сколько минут в день нужно изучать язык?" data-search="сколько минут в день нужно изучать язык начало обучения начало обучения минимум для привычки 10 15 минут рабочий режим 25 45 минут интенсив 60 90 минут важнее качество и регулярность старт план самообучение минут день режим интенсив">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -285,7 +355,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/build-language-learning-habit.html" data-category="start" data-search="как создать привычку изучать язык начало обучения начало обучения привычка строится не на мотивации а на низком пороге входа одном времени понятном шаблоне занятия и видимом прогрессе старт план самообучение привычка регулярность мотивация день">
+        <a class="knowledge-card" href="/knowledge/build-language-learning-habit.html" data-category="start" data-category-label="Начало обучения" data-reading-time="8" data-title="Как создать привычку изучать язык?" data-search="как создать привычку изучать язык начало обучения начало обучения привычка строится не на мотивации а на низком пороге входа одном времени понятном шаблоне занятия и видимом прогрессе старт план самообучение привычка регулярность мотивация день">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>8 мин чтения</span>
@@ -297,7 +367,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-not-to-quit-learning-language.html" data-category="start" data-search="как не бросить изучение языка начало обучения начало обучения люди бросают язык из за слишком большой цели невидимого прогресса скучных материалов и отсутствия практики нужна система удержания старт план самообучение не бросить мотивация регулярность прогресс">
+        <a class="knowledge-card" href="/knowledge/how-not-to-quit-learning-language.html" data-category="start" data-category-label="Начало обучения" data-reading-time="9" data-title="Как не бросить изучение языка?" data-search="как не бросить изучение языка начало обучения начало обучения люди бросают язык из за слишком большой цели невидимого прогресса скучных материалов и отсутствия практики нужна система удержания старт план самообучение не бросить мотивация регулярность прогресс">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>9 мин чтения</span>
@@ -309,7 +379,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/beginner-language-learning-mistakes.html" data-category="start" data-search="какие ошибки делают новички начало обучения начало обучения новички чаще всего учат без цели копят материалы боятся говорить зубрят лексику изолированно и не возвращаются к ошибкам старт план самообучение ошибки новичков старт практика язык">
+        <a class="knowledge-card" href="/knowledge/beginner-language-learning-mistakes.html" data-category="start" data-category-label="Начало обучения" data-reading-time="9" data-title="Какие ошибки делают новички?" data-search="какие ошибки делают новички начало обучения начало обучения новички чаще всего учат без цели копят материалы боятся говорить зубрят лексику изолированно и не возвращаются к ошибкам старт план самообучение ошибки новичков старт практика язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>9 мин чтения</span>
@@ -321,7 +391,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/language-learning-plan.html" data-category="start" data-search="как составить план обучения языку начало обучения начало обучения хороший план связывает цель уровень навыки материалы ежедневный цикл повторение и проверку прогресса без этого обучение распадается старт план самообучение план маршрут уровень практика">
+        <a class="knowledge-card" href="/knowledge/language-learning-plan.html" data-category="start" data-category-label="Начало обучения" data-reading-time="10" data-title="Как составить план обучения языку?" data-search="как составить план обучения языку начало обучения начало обучения хороший план связывает цель уровень навыки материалы ежедневный цикл повторение и проверку прогресса без этого обучение распадается старт план самообучение план маршрут уровень практика">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Начало обучения</span>
       <span>10 мин чтения</span>
@@ -333,7 +403,7 @@
       <span>старт</span><span>план</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-foreign-words-are-forgotten.html" data-category="vocabulary" data-search="почему иностранные слова быстро забываются словарный запас словарный запас иностранные слова быстро забываются когда они учатся без контекста личной связи активного вспоминания и повторения до момента полного забывания лексика память повторение слова забываются память повторение">
+        <a class="knowledge-card" href="/knowledge/why-foreign-words-are-forgotten.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="9" data-title="Почему иностранные слова быстро забываются?" data-search="почему иностранные слова быстро забываются словарный запас словарный запас иностранные слова быстро забываются когда они учатся без контекста личной связи активного вспоминания и повторения до момента полного забывания лексика память повторение слова забываются память повторение">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>9 мин чтения</span>
@@ -345,7 +415,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-memorize-words-faster.html" data-category="vocabulary" data-search="как запоминать слова быстрее словарный запас словарный запас быстрее всего слова запоминаются через фразы активное вспоминание ассоциации голос личные примеры и интервальное повторение лексика память повторение слова запоминать быстрее ассоциации">
+        <a class="knowledge-card" href="/knowledge/how-to-memorize-words-faster.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="10" data-title="Как запоминать слова быстрее?" data-search="как запоминать слова быстрее словарный запас словарный запас быстрее всего слова запоминаются через фразы активное вспоминание ассоциации голос личные примеры и интервальное повторение лексика память повторение слова запоминать быстрее ассоциации">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>10 мин чтения</span>
@@ -357,7 +427,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/increase-vocabulary.html" data-category="vocabulary" data-search="как увеличить словарный запас словарный запас словарный запас словарный запас растет когда новые единицы приходят из живого контекста повторяются по интервалам и переходят в активную речь лексика память повторение лексика запас словарь контекст слова">
+        <a class="knowledge-card" href="/knowledge/increase-vocabulary.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="9" data-title="Как увеличить словарный запас?" data-search="как увеличить словарный запас словарный запас словарный запас словарный запас растет когда новые единицы приходят из живого контекста повторяются по интервалам и переходят в активную речь лексика память повторение лексика запас словарь контекст слова">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>9 мин чтения</span>
@@ -369,7 +439,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-many-words-for-speaking.html" data-category="vocabulary" data-search="сколько слов нужно знать для общения словарный запас словарный запас для простого общения достаточно нескольких сотен частых слов и фраз но уверенность появляется когда они становятся активными и связаны с ситуациями лексика память повторение слова общение сколько слов разговор">
+        <a class="knowledge-card" href="/knowledge/how-many-words-for-speaking.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Сколько слов нужно знать для общения?" data-search="сколько слов нужно знать для общения словарный запас словарный запас для простого общения достаточно нескольких сотен частых слов и фраз но уверенность появляется когда они становятся активными и связаны с ситуациями лексика память повторение слова общение сколько слов разговор">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -381,7 +451,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-many-words-for-b1.html" data-category="vocabulary" data-search="сколько слов нужно знать для уровня b1 словарный запас словарный запас для b1 обычно нужен активный запас около 2000 3000 частых слов и устойчивых фраз плюс умение применять их в типичных ситуациях лексика память повторение слова b1 уровень запас">
+        <a class="knowledge-card" href="/knowledge/how-many-words-for-b1.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Сколько слов нужно знать для уровня B1?" data-search="сколько слов нужно знать для уровня b1 словарный запас словарный запас для b1 обычно нужен активный запас около 2000 3000 частых слов и устойчивых фраз плюс умение применять их в типичных ситуациях лексика память повторение слова b1 уровень запас">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -393,7 +463,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/first-1000-words.html" data-category="vocabulary" data-search="как выучить первые 1000 слов словарный запас словарный запас первые 1000 слов нужно учить не алфавитным списком а частотными группами через фразы мини диалоги повторение и личные примеры лексика память повторение слова 1000 первые слова частотные">
+        <a class="knowledge-card" href="/knowledge/first-1000-words.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="10" data-title="Как выучить первые 1000 слов?" data-search="как выучить первые 1000 слов словарный запас словарный запас первые 1000 слов нужно учить не алфавитным списком а частотными группами через фразы мини диалоги повторение и личные примеры лексика память повторение слова 1000 первые слова частотные">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>10 мин чтения</span>
@@ -405,7 +475,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-cramming-words-does-not-work.html" data-category="vocabulary" data-search="почему зубрежка слов не работает словарный запас словарный запас зубрежка слов дает краткосрочное узнавание но плохо переводит лексику в речь без контекста и активного вспоминания слова быстро исчезают лексика память повторение слова зубрежка память контекст">
+        <a class="knowledge-card" href="/knowledge/why-cramming-words-does-not-work.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="9" data-title="Почему зубрежка слов не работает?" data-search="почему зубрежка слов не работает словарный запас словарный запас зубрежка слов дает краткосрочное узнавание но плохо переводит лексику в речь без контекста и активного вспоминания слова быстро исчезают лексика память повторение слова зубрежка память контекст">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>9 мин чтения</span>
@@ -417,7 +487,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-words-without-cramming.html" data-category="vocabulary" data-search="как учить слова без зубрежки словарный запас словарный запас без зубрежки слова учатся через контекст личные фразы активное вспоминание мини диалоги интервальное повторение и возвращение в речь лексика память повторение слова без зубрежки контекст фразы">
+        <a class="knowledge-card" href="/knowledge/learn-words-without-cramming.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="9" data-title="Как учить слова без зубрежки?" data-search="как учить слова без зубрежки словарный запас словарный запас без зубрежки слова учатся через контекст личные фразы активное вспоминание мини диалоги интервальное повторение и возвращение в речь лексика память повторение слова без зубрежки контекст фразы">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>9 мин чтения</span>
@@ -429,7 +499,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-phrases-instead-of-single-words.html" data-category="vocabulary" data-search="почему нужно учить фразы вместо слов словарный запас словарный запас фразы показывают грамматику контекст порядок слов и естественную сочетаемость поэтому они быстрее переходят в речь чем одиночные слова лексика память повторение фразы слов контекст речь">
+        <a class="knowledge-card" href="/knowledge/learn-phrases-instead-of-single-words.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="9" data-title="Почему нужно учить фразы вместо слов?" data-search="почему нужно учить фразы вместо слов словарный запас словарный запас фразы показывают грамматику контекст порядок слов и естественную сочетаемость поэтому они быстрее переходят в речь чем одиночные слова лексика память повторение фразы слов контекст речь">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>9 мин чтения</span>
@@ -441,7 +511,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/what-is-spaced-repetition.html" data-category="vocabulary" data-search="что такое интервальное повторение словарный запас словарный запас интервальное повторение это возврат к словам и фразам в моменты когда память уже напряглась но материал еще не исчез полностью лексика память повторение слова интервальное повторение srs память">
+        <a class="knowledge-card" href="/knowledge/what-is-spaced-repetition.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="10" data-title="Что такое интервальное повторение?" data-search="что такое интервальное повторение словарный запас словарный запас интервальное повторение это возврат к словам и фразам в моменты когда память уже напряглась но материал еще не исчез полностью лексика память повторение слова интервальное повторение srs память">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>10 мин чтения</span>
@@ -453,7 +523,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-language-memory-works.html" data-category="vocabulary" data-search="как работает память при изучении языков словарный запас словарный запас память удерживает язык лучше когда новое слово связано со смыслом звуком эмоцией действием и повторяется до полного забывания лексика память повторение слова словарь лексика память память запоминание">
+        <a class="knowledge-card" href="/knowledge/how-language-memory-works.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Как работает память при изучении языков?" data-search="как работает память при изучении языков словарный запас словарный запас память удерживает язык лучше когда новое слово связано со смыслом звуком эмоцией действием и повторяется до полного забывания лексика память повторение слова словарь лексика память память запоминание">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -465,7 +535,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-review-new-words.html" data-category="vocabulary" data-search="как повторять новые слова правильно словарный запас словарный запас правильное повторение это не перечитывание списка а активное вспоминание слова во фразе через растущие интервалы лексика память повторение слова словарь лексика память повторять слова review">
+        <a class="knowledge-card" href="/knowledge/how-to-review-new-words.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Как повторять новые слова правильно?" data-search="как повторять новые слова правильно словарный запас словарный запас правильное повторение это не перечитывание списка а активное вспоминание слова во фразе через растущие интервалы лексика память повторение слова словарь лексика память повторять слова review">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -477,7 +547,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-many-times-repeat-word.html" data-category="vocabulary" data-search="сколько раз нужно повторить слово словарный запас словарный запас у слова нет магического числа повторений важнее качество встреч контекст и то насколько активно вы его вспоминаете лексика память повторение слова словарь лексика память сколько повторять слово">
+        <a class="knowledge-card" href="/knowledge/how-many-times-repeat-word.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Сколько раз нужно повторить слово?" data-search="сколько раз нужно повторить слово словарный запас словарный запас у слова нет магического числа повторений важнее качество встреч контекст и то насколько активно вы его вспоминаете лексика память повторение слова словарь лексика память сколько повторять слово">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -489,7 +559,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-create-personal-dictionary.html" data-category="vocabulary" data-search="как создать личный словарь словарный запас словарный запас личный словарь должен хранить не все подряд а полезные слова фразы примеры ошибки и контекст к которому вы реально вернетесь лексика память повторение слова словарь лексика память личный словарь словарь">
+        <a class="knowledge-card" href="/knowledge/how-to-create-personal-dictionary.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Как создать личный словарь?" data-search="как создать личный словарь словарный запас словарный запас личный словарь должен хранить не все подряд а полезные слова фразы примеры ошибки и контекст к которому вы реально вернетесь лексика память повторение слова словарь лексика память личный словарь словарь">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -501,7 +571,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/which-words-to-learn-first.html" data-category="vocabulary" data-search="какие слова учить в первую очередь словарный запас словарный запас в первую очередь стоит учить частотные слова и фразы которые нужны для базовых действий спросить объяснить согласиться отказаться уточнить лексика память повторение слова словарь лексика память первые слова частотные слова">
+        <a class="knowledge-card" href="/knowledge/which-words-to-learn-first.html" data-category="vocabulary" data-category-label="Словарный запас" data-reading-time="8" data-title="Какие слова учить в первую очередь?" data-search="какие слова учить в первую очередь словарный запас словарный запас в первую очередь стоит учить частотные слова и фразы которые нужны для базовых действий спросить объяснить согласиться отказаться уточнить лексика память повторение слова словарь лексика память первые слова частотные слова">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Словарный запас</span>
       <span>8 мин чтения</span>
@@ -513,7 +583,7 @@
       <span>лексика</span><span>память</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-english-yourself.html" data-category="english" data-search="как выучить английский самостоятельно английский английский самостоятельный английский требует маршрута частотные фразы ежедневный слух голосовая практика грамматика по необходимости и исправление ошибок английский практика уровень английский english разговор грамматика английский самостоятельно">
+        <a class="knowledge-card" href="/knowledge/learn-english-yourself.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как выучить английский самостоятельно?" data-search="как выучить английский самостоятельно английский английский самостоятельный английский требует маршрута частотные фразы ежедневный слух голосовая практика грамматика по необходимости и исправление ошибок английский практика уровень английский english разговор грамматика английский самостоятельно">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -525,7 +595,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/english-from-zero.html" data-category="english" data-search="английский с нуля с чего начать английский английский начинать английский с нуля лучше с произношения базовых фраз частотных слов простых вопросов и коротких ежедневных ответов английский практика уровень английский english разговор грамматика английский с нуля начать английский">
+        <a class="knowledge-card" href="/knowledge/english-from-zero.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Английский с нуля: с чего начать?" data-search="английский с нуля с чего начать английский английский начинать английский с нуля лучше с произношения базовых фраз частотных слов простых вопросов и коротких ежедневных ответов английский практика уровень английский english разговор грамматика английский с нуля начать английский">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -537,7 +607,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-long-to-learn-english.html" data-category="english" data-search="сколько времени нужно для изучения английского английский английский срок изучения английского зависит от цели стартового уровня и регулярности для уверенного бытового общения часто нужны месяцы для b2 годы практики английский практика уровень английский english разговор грамматика сколько учить английский">
+        <a class="knowledge-card" href="/knowledge/how-long-to-learn-english.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Сколько времени нужно для изучения английского?" data-search="сколько времени нужно для изучения английского английский английский срок изучения английского зависит от цели стартового уровня и регулярности для уверенного бытового общения часто нужны месяцы для b2 годы практики английский практика уровень английский english разговор грамматика сколько учить английский">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -549,7 +619,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/can-you-learn-english-in-a-year.html" data-category="english" data-search="можно ли выучить английский за год английский английский за год можно сильно продвинуться в английском если цель реалистична занятия регулярны а практика включает речь слух и повторение английский практика уровень английский english разговор грамматика английский за год">
+        <a class="knowledge-card" href="/knowledge/can-you-learn-english-in-a-year.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Можно ли выучить английский за год?" data-search="можно ли выучить английский за год английский английский за год можно сильно продвинуться в английском если цель реалистична занятия регулярны а практика включает речь слух и повторение английский практика уровень английский english разговор грамматика английский за год">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -561,7 +631,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/move-from-a1-to-a2.html" data-category="english" data-search="как перейти с a1 на a2 английский английский переход с a1 на a2 требует расширить бытовые темы научиться говорить простыми связными фразами и увереннее понимать медленную речь английский практика уровень английский english разговор грамматика a1 a2 английский уровень">
+        <a class="knowledge-card" href="/knowledge/move-from-a1-to-a2.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как перейти с A1 на A2?" data-search="как перейти с a1 на a2 английский английский переход с a1 на a2 требует расширить бытовые темы научиться говорить простыми связными фразами и увереннее понимать медленную речь английский практика уровень английский english разговор грамматика a1 a2 английский уровень">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -573,7 +643,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/move-from-b1-to-b2.html" data-category="english" data-search="как перейти с b1 на b2 английский английский переход с b1 на b2 требует точности широкой лексики устойчивого аудирования и умения говорить не только о быте но и о мнениях английский практика уровень английский english разговор грамматика b1 b2 английский">
+        <a class="knowledge-card" href="/knowledge/move-from-b1-to-b2.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как перейти с B1 на B2?" data-search="как перейти с b1 на b2 английский английский переход с b1 на b2 требует точности широкой лексики устойчивого аудирования и умения говорить не только о быте но и о мнениях английский практика уровень английский english разговор грамматика b1 b2 английский">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -585,7 +655,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/start-speaking-english.html" data-category="english" data-search="как начать говорить на английском английский английский начать говорить на английском помогает не ожидание идеального уровня а короткие ежедневные ответы готовые фразы и безопасная практика ошибок английский практика уровень английский english разговор грамматика говорить на английском speaking">
+        <a class="knowledge-card" href="/knowledge/start-speaking-english.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как начать говорить на английском?" data-search="как начать говорить на английском английский английский начать говорить на английском помогает не ожидание идеального уровня а короткие ежедневные ответы готовые фразы и безопасная практика ошибок английский практика уровень английский english разговор грамматика говорить на английском speaking">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -597,7 +667,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/understand-words-but-cannot-speak.html" data-category="english" data-search="почему я понимаю слова но не могу говорить английский английский понимание слов пассивный навык а говорение требует активного вспоминания скорости и смелости строить фразу с ошибками английский практика уровень английский english разговор грамматика понимаю но не говорю английский">
+        <a class="knowledge-card" href="/knowledge/understand-words-but-cannot-speak.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Почему я понимаю слова, но не могу говорить?" data-search="почему я понимаю слова но не могу говорить английский английский понимание слов пассивный навык а говорение требует активного вспоминания скорости и смелости строить фразу с ошибками английский практика уровень английский english разговор грамматика понимаю но не говорю английский">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -609,7 +679,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/remove-language-barrier.html" data-category="english" data-search="как убрать языковой барьер английский английский языковой барьер уходит когда речь становится привычной короткие ответы частые сценарии право на ошибку и регулярная обратная связь английский практика уровень английский english разговор грамматика языковой барьер английский">
+        <a class="knowledge-card" href="/knowledge/remove-language-barrier.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как убрать языковой барьер?" data-search="как убрать языковой барьер английский английский языковой барьер уходит когда речь становится привычной короткие ответы частые сценарии право на ошибку и регулярная обратная связь английский практика уровень английский english разговор грамматика языковой барьер английский">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -621,7 +691,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/improve-english-pronunciation.html" data-category="english" data-search="как улучшить английское произношение английский английский произношение улучшается через слух артикуляцию повтор коротких фраз запись голоса и исправление конкретных звуков а не через чтение правил английский практика уровень английский english разговор грамматика произношение английский">
+        <a class="knowledge-card" href="/knowledge/improve-english-pronunciation.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как улучшить английское произношение?" data-search="как улучшить английское произношение английский английский произношение улучшается через слух артикуляцию повтор коротких фраз запись голоса и исправление конкретных звуков а не через чтение правил английский практика уровень английский english разговор грамматика произношение английский">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -633,7 +703,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/understand-english-speech.html" data-category="english" data-search="как понимать английскую речь английский английский понимание английской речи развивается через короткие аудио повтор разбор с текстом затем прослушивание без текста и накопление устойчивых фраз английский практика уровень английский english разговор грамматика понимать английскую речь listening">
+        <a class="knowledge-card" href="/knowledge/understand-english-speech.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как понимать английскую речь?" data-search="как понимать английскую речь английский английский понимание английской речи развивается через короткие аудио повтор разбор с текстом затем прослушивание без текста и накопление устойчивых фраз английский практика уровень английский english разговор грамматика понимать английскую речь listening">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -645,7 +715,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/watch-movies-in-english.html" data-category="english" data-search="как смотреть фильмы на английском английский английский фильмы на английском полезны если смотреть их активно короткими сценами с разбором фраз повтором и постепенным отказом от русских субтитров английский практика уровень английский english разговор грамматика фильмы на английском">
+        <a class="knowledge-card" href="/knowledge/watch-movies-in-english.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как смотреть фильмы на английском?" data-search="как смотреть фильмы на английском английский английский фильмы на английском полезны если смотреть их активно короткими сценами с разбором фраз повтором и постепенным отказом от русских субтитров английский практика уровень английский english разговор грамматика фильмы на английском">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -657,7 +727,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/read-books-in-english.html" data-category="english" data-search="как читать книги на английском английский английский книги на английском стоит читать по уровню понимать общий смысл выписывать полезные фразы и не останавливать чтение на каждом незнакомом слове английский практика уровень английский english разговор грамматика книги на английском чтение">
+        <a class="knowledge-card" href="/knowledge/read-books-in-english.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как читать книги на английском?" data-search="как читать книги на английском английский английский книги на английском стоит читать по уровню понимать общий смысл выписывать полезные фразы и не останавливать чтение на каждом незнакомом слове английский практика уровень английский english разговор грамматика книги на английском чтение">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -669,7 +739,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-english-grammar.html" data-category="english" data-search="как учить английскую грамматику английский английский английскую грамматику лучше учить через функции что правило помогает сказать в каких фразах встречается и какую ошибку исправляет английский практика уровень английский english разговор грамматика английская грамматика">
+        <a class="knowledge-card" href="/knowledge/learn-english-grammar.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Как учить английскую грамматику?" data-search="как учить английскую грамматику английский английский английскую грамматику лучше учить через функции что правило помогает сказать в каких фразах встречается и какую ошибку исправляет английский практика уровень английский english разговор грамматика английская грамматика">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -681,7 +751,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/most-important-english-tenses.html" data-category="english" data-search="какие времена английского самые важные английский английский самые важные времена английского те которые чаще всего управляют реальной речью present simple past simple future forms present continuous и present perfect английский практика уровень английский english разговор грамматика времена английского">
+        <a class="knowledge-card" href="/knowledge/most-important-english-tenses.html" data-category="english" data-category-label="Английский" data-reading-time="8" data-title="Какие времена английского самые важные?" data-search="какие времена английского самые важные английский английский самые важные времена английского те которые чаще всего управляют реальной речью present simple past simple future forms present continuous и present perfect английский практика уровень английский english разговор грамматика времена английского">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Английский</span>
       <span>8 мин чтения</span>
@@ -693,7 +763,7 @@
       <span>английский</span><span>практика</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/language-learning-methods.html" data-category="method" data-search="какие существуют методы изучения языков методика методика методов много коммуникативный грамматико переводной погружение интервальное повторение shadowing проектное обучение и смешанный подход методика система самообучение метод обучение занятия прогресс методы изучения языков">
+        <a class="knowledge-card" href="/knowledge/language-learning-methods.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Какие существуют методы изучения языков?" data-search="какие существуют методы изучения языков методика методика методов много коммуникативный грамматико переводной погружение интервальное повторение shadowing проектное обучение и смешанный подход методика система самообучение метод обучение занятия прогресс методы изучения языков">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -705,7 +775,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/most-effective-language-learning-method.html" data-category="method" data-search="какая методика изучения языка самая эффективная методика методика самая эффективная методика та которая регулярно соединяет понятный материал активное вспоминание разговорную практику обратную связь и повторение методика система самообучение метод обучение занятия прогресс эффективная методика">
+        <a class="knowledge-card" href="/knowledge/most-effective-language-learning-method.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Какая методика изучения языка самая эффективная?" data-search="какая методика изучения языка самая эффективная методика методика самая эффективная методика та которая регулярно соединяет понятный материал активное вспоминание разговорную практику обратную связь и повторение методика система самообучение метод обучение занятия прогресс эффективная методика">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -717,7 +787,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/communicative-method.html" data-category="method" data-search="что такое коммуникативный метод методика методика коммуникативный метод учит язык через общение фразы задачи диалоги смысл и реальные ситуации важнее механического пересказа правил методика система самообучение метод обучение занятия прогресс коммуникативный метод">
+        <a class="knowledge-card" href="/knowledge/communicative-method.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Что такое коммуникативный метод?" data-search="что такое коммуникативный метод методика методика коммуникативный метод учит язык через общение фразы задачи диалоги смысл и реальные ситуации важнее механического пересказа правил методика система самообучение метод обучение занятия прогресс коммуникативный метод">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -729,7 +799,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/language-immersion.html" data-category="method" data-search="что такое погружение в язык методика методика погружение это регулярное окружение языком слушать читать говорить и думать на нем в понятных ситуациях а не просто включать фон методика система самообучение метод обучение занятия прогресс погружение в язык">
+        <a class="knowledge-card" href="/knowledge/language-immersion.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Что такое погружение в язык?" data-search="что такое погружение в язык методика методика погружение это регулярное окружение языком слушать читать говорить и думать на нем в понятных ситуациях а не просто включать фон методика система самообучение метод обучение занятия прогресс погружение в язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -741,7 +811,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-language-through-films.html" data-category="method" data-search="можно ли выучить язык через фильмы методика методика фильмы помогают учить язык но только как часть системы сцены нужно разбирать повторять выписывать фразы и возвращать их в речь методика система самообучение метод обучение занятия прогресс язык через фильмы">
+        <a class="knowledge-card" href="/knowledge/learn-language-through-films.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Можно ли выучить язык через фильмы?" data-search="можно ли выучить язык через фильмы методика методика фильмы помогают учить язык но только как часть системы сцены нужно разбирать повторять выписывать фразы и возвращать их в речь методика система самообучение метод обучение занятия прогресс язык через фильмы">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -753,7 +823,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-language-through-games.html" data-category="method" data-search="можно ли учить язык через игры методика методика игры могут помогать языку через мотивацию контекст повтор команд и живые ситуации но им нужна поддержка словарем и активной речью методика система самообучение метод обучение занятия прогресс язык через игры">
+        <a class="knowledge-card" href="/knowledge/learn-language-through-games.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Можно ли учить язык через игры?" data-search="можно ли учить язык через игры методика методика игры могут помогать языку через мотивацию контекст повтор команд и живые ситуации но им нужна поддержка словарем и активной речью методика система самообучение метод обучение занятия прогресс язык через игры">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -765,7 +835,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/do-apps-help-learn-language.html" data-category="method" data-search="помогают ли приложения изучить язык методика методика приложения помогают если дают систему повторение активные ответы и обратную связь одни красивые карточки язык не построят методика система самообучение метод обучение занятия прогресс приложения для языка">
+        <a class="knowledge-card" href="/knowledge/do-apps-help-learn-language.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Помогают ли приложения изучить язык?" data-search="помогают ли приложения изучить язык методика методика приложения помогают если дают систему повторение активные ответы и обратную связь одни красивые карточки язык не построят методика система самообучение метод обучение занятия прогресс приложения для языка">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -777,7 +847,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/online-learning-vs-courses.html" data-category="method" data-search="чем онлайн обучение отличается от курсов методика методика онлайн обучение гибче и чаще индивидуальнее а курсы дают расписание и группу результат зависит от практики обратной связи и дисциплины методика система самообучение метод обучение занятия прогресс онлайн обучение курсы">
+        <a class="knowledge-card" href="/knowledge/online-learning-vs-courses.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Чем онлайн обучение отличается от курсов?" data-search="чем онлайн обучение отличается от курсов методика методика онлайн обучение гибче и чаще индивидуальнее а курсы дают расписание и группу результат зависит от практики обратной связи и дисциплины методика система самообучение метод обучение занятия прогресс онлайн обучение курсы">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -789,7 +859,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-study-language-independently.html" data-category="method" data-search="как правильно заниматься самостоятельно методика методика самостоятельные занятия работают когда у них есть цель короткий ежедневный цикл проверка ошибок повторение и регулярная смена навыков методика система самообучение метод обучение занятия прогресс заниматься самостоятельно">
+        <a class="knowledge-card" href="/knowledge/how-to-study-language-independently.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Как правильно заниматься самостоятельно?" data-search="как правильно заниматься самостоятельно методика методика самостоятельные занятия работают когда у них есть цель короткий ежедневный цикл проверка ошибок повторение и регулярная смена навыков методика система самообучение метод обучение занятия прогресс заниматься самостоятельно">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -801,7 +871,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-track-language-progress.html" data-category="method" data-search="как контролировать прогресс методика методика прогресс в языке нужно контролировать по действиям что вы понимаете что можете сказать какие ошибки ушли и какие темы стали доступнее методика система самообучение метод обучение занятия прогресс контроль прогресса">
+        <a class="knowledge-card" href="/knowledge/how-to-track-language-progress.html" data-category="method" data-category-label="Методика" data-reading-time="8" data-title="Как контролировать прогресс?" data-search="как контролировать прогресс методика методика прогресс в языке нужно контролировать по действиям что вы понимаете что можете сказать какие ошибки ушли и какие темы стали доступнее методика система самообучение метод обучение занятия прогресс контроль прогресса">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Методика</span>
       <span>8 мин чтения</span>
@@ -813,7 +883,7 @@
       <span>методика</span><span>система</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/should-you-learn-grammar.html" data-category="grammar" data-search="нужно ли учить грамматику грамматика грамматика грамматику учить нужно но как инструмент речи правила должны помогать строить смысл а не заменять практику общения грамматика ошибки речь грамматика правила ошибки времена нужно ли учить грамматику">
+        <a class="knowledge-card" href="/knowledge/should-you-learn-grammar.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Нужно ли учить грамматику?" data-search="нужно ли учить грамматику грамматика грамматика грамматику учить нужно но как инструмент речи правила должны помогать строить смысл а не заменять практику общения грамматика ошибки речь грамматика правила ошибки времена нужно ли учить грамматику">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -825,7 +895,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-grammar-seems-hard.html" data-category="grammar" data-search="почему грамматика кажется сложной грамматика грамматика грамматика кажется сложной когда ее учат как набор терминов а не как способ выражать время связь условие причину и отношение грамматика ошибки речь грамматика правила ошибки времена почему грамматика сложная">
+        <a class="knowledge-card" href="/knowledge/why-grammar-seems-hard.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Почему грамматика кажется сложной?" data-search="почему грамматика кажется сложной грамматика грамматика грамматика кажется сложной когда ее учат как набор терминов а не как способ выражать время связь условие причину и отношение грамматика ошибки речь грамматика правила ошибки времена почему грамматика сложная">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -837,7 +907,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/understand-grammar-faster.html" data-category="grammar" data-search="как быстро понять грамматику грамматика грамматика быстрее понять грамматику помогает связка простое объяснение контраст примеров свои фразы исправление и повтор через несколько дней грамматика ошибки речь грамматика правила ошибки времена понять грамматику">
+        <a class="knowledge-card" href="/knowledge/understand-grammar-faster.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Как быстро понять грамматику?" data-search="как быстро понять грамматику грамматика грамматика быстрее понять грамматику помогает связка простое объяснение контраст примеров свои фразы исправление и повтор через несколько дней грамматика ошибки речь грамматика правила ошибки времена понять грамматику">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -849,7 +919,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/do-you-need-all-language-rules.html" data-category="grammar" data-search="нужно ли знать все правила языка грамматика грамматика все правила языка знать не нужно сначала важны частотные конструкции которые помогают понимать и говорить в реальных ситуациях грамматика ошибки речь грамматика правила ошибки времена все правила языка">
+        <a class="knowledge-card" href="/knowledge/do-you-need-all-language-rules.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Нужно ли знать все правила языка?" data-search="нужно ли знать все правила языка грамматика грамматика все правила языка знать не нужно сначала важны частотные конструкции которые помогают понимать и говорить в реальных ситуациях грамматика ошибки речь грамматика правила ошибки времена все правила языка">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -861,7 +931,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/most-important-grammar-topics.html" data-category="grammar" data-search="какие грамматические темы самые важные грамматика грамматика самые важные грамматические темы порядок слов вопросы отрицания времена модальные глаголы местоимения предлоги и связки грамматика ошибки речь грамматика правила ошибки времена важные грамматические темы">
+        <a class="knowledge-card" href="/knowledge/most-important-grammar-topics.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Какие грамматические темы самые важные?" data-search="какие грамматические темы самые важные грамматика грамматика самые важные грамматические темы порядок слов вопросы отрицания времена модальные глаголы местоимения предлоги и связки грамматика ошибки речь грамматика правила ошибки времена важные грамматические темы">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -873,7 +943,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/know-rules-but-cannot-speak.html" data-category="grammar" data-search="почему правила знаю а говорить не могу грамматика грамматика знание правил не превращается в речь без активной практики в разговоре нужно быстро выбрать форму а не вспомнить страницу учебника грамматика ошибки речь грамматика правила ошибки времена знаю правила но не говорю">
+        <a class="knowledge-card" href="/knowledge/know-rules-but-cannot-speak.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Почему правила знаю, а говорить не могу?" data-search="почему правила знаю а говорить не могу грамматика грамматика знание правил не превращается в речь без активной практики в разговоре нужно быстро выбрать форму а не вспомнить страницу учебника грамматика ошибки речь грамматика правила ошибки времена знаю правила но не говорю">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -885,7 +955,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/practice-grammar.html" data-category="grammar" data-search="как практиковать грамматику грамматика грамматика грамматику нужно практиковать в три слоя упражнение на форму свои фразы на смысл и короткая речь где правило используется без подсказки грамматика ошибки речь грамматика правила ошибки времена практиковать грамматику">
+        <a class="knowledge-card" href="/knowledge/practice-grammar.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Как практиковать грамматику?" data-search="как практиковать грамматику грамматика грамматика грамматику нужно практиковать в три слоя упражнение на форму свои фразы на смысл и короткая речь где правило используется без подсказки грамматика ошибки речь грамматика правила ошибки времена практиковать грамматику">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -897,7 +967,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/stop-making-language-mistakes.html" data-category="grammar" data-search="как перестать делать ошибки грамматика грамматика ошибки уходят не от стыда а от системы заметить повтор понять причину потренировать правильную форму и вернуться к ней позже грамматика ошибки речь грамматика правила ошибки времена перестать делать ошибки">
+        <a class="knowledge-card" href="/knowledge/stop-making-language-mistakes.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Как перестать делать ошибки?" data-search="как перестать делать ошибки грамматика грамматика ошибки уходят не от стыда а от системы заметить повтор понять причину потренировать правильную форму и вернуться к ней позже грамматика ошибки речь грамматика правила ошибки времена перестать делать ошибки">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -909,7 +979,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/learn-english-tenses.html" data-category="grammar" data-search="как учить времена английского грамматика грамматика времена английского лучше учить через смысловые ситуации факт процесс опыт результат план и действие в конкретный момент грамматика ошибки речь грамматика правила ошибки времена времена английского">
+        <a class="knowledge-card" href="/knowledge/learn-english-tenses.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Как учить времена английского?" data-search="как учить времена английского грамматика грамматика времена английского лучше учить через смысловые ситуации факт процесс опыт результат план и действие в конкретный момент грамматика ошибки речь грамматика правила ошибки времена времена английского">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -921,7 +991,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-long-to-learn-grammar.html" data-category="grammar" data-search="сколько времени нужно на изучение грамматики грамматика грамматика базовую грамматику можно понять за месяцы но автоматизация в речи требует регулярной практики и возвращения к ошибкам грамматика ошибки речь грамматика правила ошибки времена сколько учить грамматику">
+        <a class="knowledge-card" href="/knowledge/how-long-to-learn-grammar.html" data-category="grammar" data-category-label="Грамматика" data-reading-time="8" data-title="Сколько времени нужно на изучение грамматики?" data-search="сколько времени нужно на изучение грамматики грамматика грамматика базовую грамматику можно понять за месяцы но автоматизация в речи требует регулярной практики и возвращения к ошибкам грамматика ошибки речь грамматика правила ошибки времена сколько учить грамматику">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Грамматика</span>
       <span>8 мин чтения</span>
@@ -933,7 +1003,7 @@
       <span>грамматика</span><span>ошибки</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-cannot-understand-foreign-speech.html" data-category="listening" data-search="почему я не понимаю иностранную речь аудирование аудирование иностранная речь непонятна когда слух не узнает связки звуков скорость слишком высокая словарь пассивный а мозг пытается переводить каждое слово аудирование слух понимание аудирование слух понимать речь listening не понимаю речь аудирование">
+        <a class="knowledge-card" href="/knowledge/why-cannot-understand-foreign-speech.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Почему я не понимаю иностранную речь?" data-search="почему я не понимаю иностранную речь аудирование аудирование иностранная речь непонятна когда слух не узнает связки звуков скорость слишком высокая словарь пассивный а мозг пытается переводить каждое слово аудирование слух понимание аудирование слух понимать речь listening не понимаю речь аудирование">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -945,7 +1015,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/understand-english-by-ear.html" data-category="listening" data-search="как научиться понимать английский на слух аудирование аудирование английский на слух развивается через короткие повторы разбор транскрипта имитацию произношения и постепенное увеличение скорости аудирование слух понимание аудирование слух понимать речь listening английский на слух">
+        <a class="knowledge-card" href="/knowledge/understand-english-by-ear.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Как научиться понимать английский на слух?" data-search="как научиться понимать английский на слух аудирование аудирование английский на слух развивается через короткие повторы разбор транскрипта имитацию произношения и постепенное увеличение скорости аудирование слух понимание аудирование слух понимать речь listening английский на слух">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -957,7 +1027,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/train-speech-perception.html" data-category="listening" data-search="как тренировать восприятие речи аудирование аудирование восприятие речи тренируется через активное слушание прогноз смысла повтор фраз диктант коротких отрывков и сравнение с текстом аудирование слух понимание аудирование слух понимать речь listening восприятие речи">
+        <a class="knowledge-card" href="/knowledge/train-speech-perception.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Как тренировать восприятие речи?" data-search="как тренировать восприятие речи аудирование аудирование восприятие речи тренируется через активное слушание прогноз смысла повтор фраз диктант коротких отрывков и сравнение с текстом аудирование слух понимание аудирование слух понимать речь listening восприятие речи">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -969,7 +1039,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-much-listen-every-day.html" data-category="listening" data-search="сколько слушать язык каждый день аудирование аудирование для прогресса в аудировании достаточно 10 30 минут в день если слушать внимательно повторять фразы и возвращаться к сложным местам аудирование слух понимание аудирование слух понимать речь listening сколько слушать язык">
+        <a class="knowledge-card" href="/knowledge/how-much-listen-every-day.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Сколько слушать язык каждый день?" data-search="сколько слушать язык каждый день аудирование аудирование для прогресса в аудировании достаточно 10 30 минут в день если слушать внимательно повторять фразы и возвращаться к сложным местам аудирование слух понимание аудирование слух понимать речь listening сколько слушать язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -981,7 +1051,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/do-podcasts-help-learn-language.html" data-category="listening" data-search="помогают ли подкасты изучить язык аудирование аудирование подкасты помогают если уровень посилен темы интересны а прослушивание включает повтор выписывание фраз и проверку понимания аудирование слух понимание аудирование слух понимать речь listening подкасты аудирование">
+        <a class="knowledge-card" href="/knowledge/do-podcasts-help-learn-language.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Помогают ли подкасты изучить язык?" data-search="помогают ли подкасты изучить язык аудирование аудирование подкасты помогают если уровень посилен темы интересны а прослушивание включает повтор выписывание фраз и проверку понимания аудирование слух понимание аудирование слух понимать речь listening подкасты аудирование">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -993,7 +1063,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/get-used-to-native-speed.html" data-category="listening" data-search="как привыкнуть к скорости носителей аудирование аудирование к скорости носителей привыкают постепенно короткие фрагменты замедление повтор shadowing и увеличение скорости только после понимания аудирование слух понимание аудирование слух понимать речь listening скорость носителей">
+        <a class="knowledge-card" href="/knowledge/get-used-to-native-speed.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Как привыкнуть к скорости носителей?" data-search="как привыкнуть к скорости носителей аудирование аудирование к скорости носителей привыкают постепенно короткие фрагменты замедление повтор shadowing и увеличение скорости только после понимания аудирование слух понимание аудирование слух понимать речь listening скорость носителей">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -1005,7 +1075,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-native-speakers-talk-fast.html" data-category="listening" data-search="почему носители говорят слишком быстро аудирование аудирование носители кажутся быстрыми из за редукций связок слов привычных выражений и того что ученик пытается переводить каждую единицу отдельно аудирование слух понимание аудирование слух понимать речь listening носители говорят быстро">
+        <a class="knowledge-card" href="/knowledge/why-native-speakers-talk-fast.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Почему носители говорят слишком быстро?" data-search="почему носители говорят слишком быстро аудирование аудирование носители кажутся быстрыми из за редукций связок слов привычных выражений и того что ученик пытается переводить каждую единицу отдельно аудирование слух понимание аудирование слух понимать речь listening носители говорят быстро">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -1017,7 +1087,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/understand-movies-without-subtitles.html" data-category="listening" data-search="как понимать фильмы без субтитров аудирование аудирование понимать фильмы без субтитров помогает постепенный переход знакомая сцена английские субтитры повтор разбор фраз и просмотр без текста аудирование слух понимание аудирование слух понимать речь listening фильмы без субтитров">
+        <a class="knowledge-card" href="/knowledge/understand-movies-without-subtitles.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Как понимать фильмы без субтитров?" data-search="как понимать фильмы без субтитров аудирование аудирование понимать фильмы без субтитров помогает постепенный переход знакомая сцена английские субтитры повтор разбор фраз и просмотр без текста аудирование слух понимание аудирование слух понимать речь listening фильмы без субтитров">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -1029,7 +1099,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/should-you-use-subtitles.html" data-category="listening" data-search="нужно ли использовать субтитры аудирование аудирование субтитры полезны как мост к пониманию но их нужно использовать осознанно сначала для разбора затем убирать и слушать без текста аудирование слух понимание аудирование слух понимать речь listening субтитры аудирование">
+        <a class="knowledge-card" href="/knowledge/should-you-use-subtitles.html" data-category="listening" data-category-label="Аудирование" data-reading-time="8" data-title="Нужно ли использовать субтитры?" data-search="нужно ли использовать субтитры аудирование аудирование субтитры полезны как мост к пониманию но их нужно использовать осознанно сначала для разбора затем убирать и слушать без текста аудирование слух понимание аудирование слух понимать речь listening субтитры аудирование">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Аудирование</span>
       <span>8 мин чтения</span>
@@ -1041,7 +1111,7 @@
       <span>аудирование</span><span>слух</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/start-speaking-foreign-language.html" data-category="speaking" data-search="как начать говорить на иностранном языке разговорная практика разговорная практика начать говорить помогает не идеальная подготовка а маленькие регулярные ответы о себе дне планах просьбах и простых ситуациях говорение разговор барьер говорить разговор speaking барьер начать говорить">
+        <a class="knowledge-card" href="/knowledge/start-speaking-foreign-language.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Как начать говорить на иностранном языке?" data-search="как начать говорить на иностранном языке разговорная практика разговорная практика начать говорить помогает не идеальная подготовка а маленькие регулярные ответы о себе дне планах просьбах и простых ситуациях говорение разговор барьер говорить разговор speaking барьер начать говорить">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1053,7 +1123,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/why-speaking-is-hard.html" data-category="speaking" data-search="почему сложно говорить разговорная практика разговорная практика говорить сложно потому что нужно быстро достать слова выбрать грамматику произнести фразу и не испугаться ошибки одновременно говорение разговор барьер говорить разговор speaking барьер сложно говорить">
+        <a class="knowledge-card" href="/knowledge/why-speaking-is-hard.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Почему сложно говорить?" data-search="почему сложно говорить разговорная практика разговорная практика говорить сложно потому что нужно быстро достать слова выбрать грамматику произнести фразу и не испугаться ошибки одновременно говорение разговор барьер говорить разговор speaking барьер сложно говорить">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1065,7 +1135,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/stop-translating-in-head.html" data-category="speaking" data-search="как перестать переводить в голове разговорная практика разговорная практика перевод в голове уменьшается когда фразы учатся целиком ответы тренируются на скорость а язык связывается сразу с ситуацией говорение разговор барьер говорить разговор speaking барьер переводить в голове">
+        <a class="knowledge-card" href="/knowledge/stop-translating-in-head.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Как перестать переводить в голове?" data-search="как перестать переводить в голове разговорная практика разговорная практика перевод в голове уменьшается когда фразы учатся целиком ответы тренируются на скорость а язык связывается сразу с ситуацией говорение разговор барьер говорить разговор speaking барьер переводить в голове">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1077,7 +1147,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/start-thinking-in-foreign-language.html" data-category="speaking" data-search="как начать думать на иностранном языке разговорная практика разговорная практика думать на иностранном языке начинают с маленьких внутренних фраз описывать действия планы предметы и эмоции без русского посредника говорение разговор барьер говорить разговор speaking барьер думать на иностранном">
+        <a class="knowledge-card" href="/knowledge/start-thinking-in-foreign-language.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Как начать думать на иностранном языке?" data-search="как начать думать на иностранном языке разговорная практика разговорная практика думать на иностранном языке начинают с маленьких внутренних фраз описывать действия планы предметы и эмоции без русского посредника говорение разговор барьер говорить разговор speaking барьер думать на иностранном">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1089,7 +1159,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/practice-speaking-at-home.html" data-category="speaking" data-search="как практиковать разговорную речь дома разговорная практика разговорная практика дома можно тренировать речь через голосовые ответы пересказ roleplay чтение вслух запись себя и исправление повторяющихся ошибок говорение разговор барьер говорить разговор speaking барьер разговорная речь дома">
+        <a class="knowledge-card" href="/knowledge/practice-speaking-at-home.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Как практиковать разговорную речь дома?" data-search="как практиковать разговорную речь дома разговорная практика разговорная практика дома можно тренировать речь через голосовые ответы пересказ roleplay чтение вслух запись себя и исправление повторяющихся ошибок говорение разговор барьер говорить разговор speaking барьер разговорная речь дома">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1101,7 +1171,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/speak-without-teacher.html" data-category="speaking" data-search="можно ли научиться говорить без преподавателя разговорная практика разговорная практика говорить без преподавателя можно если заменить его функции регулярная практика обратная связь исправление ошибок и реальные диалоги говорение разговор барьер говорить разговор speaking барьер говорить без преподавателя">
+        <a class="knowledge-card" href="/knowledge/speak-without-teacher.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Можно ли научиться говорить без преподавателя?" data-search="можно ли научиться говорить без преподавателя разговорная практика разговорная практика говорить без преподавателя можно если заменить его функции регулярная практика обратная связь исправление ошибок и реальные диалоги говорение разговор барьер говорить разговор speaking барьер говорить без преподавателя">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1113,7 +1183,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/improve-spoken-language.html" data-category="speaking" data-search="как улучшить разговорный язык разговорная практика разговорная практика разговорный язык улучшается через активный словарь фразы каркасы регулярные диалоги запись голоса и работу с повторяющимися ошибками говорение разговор барьер говорить разговор speaking барьер улучшить разговорный язык">
+        <a class="knowledge-card" href="/knowledge/improve-spoken-language.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Как улучшить разговорный язык?" data-search="как улучшить разговорный язык разговорная практика разговорная практика разговорный язык улучшается через активный словарь фразы каркасы регулярные диалоги запись голоса и работу с повторяющимися ошибками говорение разговор барьер говорить разговор speaking барьер улучшить разговорный язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1125,7 +1195,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-much-speak-every-day.html" data-category="speaking" data-search="сколько нужно говорить каждый день разговорная практика разговорная практика для роста разговорного навыка достаточно 10 20 минут речи в день если это активные ответы пересказ roleplay или диалог а не чтение молча говорение разговор барьер говорить разговор speaking барьер сколько говорить каждый день">
+        <a class="knowledge-card" href="/knowledge/how-much-speak-every-day.html" data-category="speaking" data-category-label="Разговорная практика" data-reading-time="8" data-title="Сколько нужно говорить каждый день?" data-search="сколько нужно говорить каждый день разговорная практика разговорная практика для роста разговорного навыка достаточно 10 20 минут речи в день если это активные ответы пересказ roleplay или диалог а не чтение молча говорение разговор барьер говорить разговор speaking барьер сколько говорить каждый день">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Разговорная практика</span>
       <span>8 мин чтения</span>
@@ -1137,7 +1207,7 @@
       <span>говорение</span><span>разговор</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/what-is-a1-level.html" data-category="cefr" data-search="что такое уровень a1 cefr уровни cefr уровни a1 начальный уровень на котором человек понимает и использует самые простые фразы о себе семье еде дороге и базовых потребностях cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень a1 уровень a1">
+        <a class="knowledge-card" href="/knowledge/what-is-a1-level.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Что такое уровень A1?" data-search="что такое уровень a1 cefr уровни cefr уровни a1 начальный уровень на котором человек понимает и использует самые простые фразы о себе семье еде дороге и базовых потребностях cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень a1 уровень a1">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1149,7 +1219,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/what-does-a2-level-mean.html" data-category="cefr" data-search="что значит уровень a2 cefr уровни cefr уровни a2 базовый уровень где человек уже может говорить о повседневных темах понимать простые диалоги и объяснять типичные потребности cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень a2 уровень a2">
+        <a class="knowledge-card" href="/knowledge/what-does-a2-level-mean.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Что значит уровень A2?" data-search="что значит уровень a2 cefr уровни cefr уровни a2 базовый уровень где человек уже может говорить о повседневных темах понимать простые диалоги и объяснять типичные потребности cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень a2 уровень a2">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1161,7 +1231,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/what-to-know-at-b1.html" data-category="cefr" data-search="что нужно знать на b1 cefr уровни cefr уровни на b1 нужно понимать основные темы говорить о событиях и планах объяснять мнение справляться с поездками и писать простые связные тексты cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень b1 уровень b1">
+        <a class="knowledge-card" href="/knowledge/what-to-know-at-b1.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Что нужно знать на B1?" data-search="что нужно знать на b1 cefr уровни cefr уровни на b1 нужно понимать основные темы говорить о событиях и планах объяснять мнение справляться с поездками и писать простые связные тексты cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень b1 уровень b1">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1173,7 +1243,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/b1-vs-b2.html" data-category="cefr" data-search="чем отличается b1 от b2 cefr уровни cefr уровни b1 самостоятельность в знакомых ситуациях b2 более свободная речь аргументы абстрактные темы естественная скорость и меньше заметных ошибок cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень b1 b2 разница">
+        <a class="knowledge-card" href="/knowledge/b1-vs-b2.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Чем отличается B1 от B2?" data-search="чем отличается b1 от b2 cefr уровни cefr уровни b1 самостоятельность в знакомых ситуациях b2 более свободная речь аргументы абстрактные темы естественная скорость и меньше заметных ошибок cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень b1 b2 разница">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1185,7 +1255,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/what-is-c1-level.html" data-category="cefr" data-search="что означает уровень c1 cefr уровни cefr уровни c1 высокий уровень где человек понимает сложные тексты говорит гибко точно выражает оттенки смысла и адаптирует стиль к ситуации cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень c1 уровень c1">
+        <a class="knowledge-card" href="/knowledge/what-is-c1-level.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Что означает уровень C1?" data-search="что означает уровень c1 cefr уровни cefr уровни c1 высокий уровень где человек понимает сложные тексты говорит гибко точно выражает оттенки смысла и адаптирует стиль к ситуации cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень c1 уровень c1">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1197,7 +1267,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/time-for-each-language-level.html" data-category="cefr" data-search="сколько времени нужно для каждого уровня cefr уровни cefr уровни время на уровни зависит от языка и режима но каждый следующий уровень обычно требует больше часов потому что растет сложность и точность cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень время для уровня cefr">
+        <a class="knowledge-card" href="/knowledge/time-for-each-language-level.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Сколько времени нужно для каждого уровня?" data-search="сколько времени нужно для каждого уровня cefr уровни cefr уровни время на уровни зависит от языка и режима но каждый следующий уровень обычно требует больше часов потому что растет сложность и точность cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень время для уровня cefr">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1209,7 +1279,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/determine-language-level.html" data-category="cefr" data-search="как определить свой уровень языка cefr уровни cefr уровни уровень языка лучше определять по нескольким данным тест разговор письмо аудирование чтение и способность решать реальные задачи cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень определить уровень">
+        <a class="knowledge-card" href="/knowledge/determine-language-level.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Как определить свой уровень языка?" data-search="как определить свой уровень языка cefr уровни cefr уровни уровень языка лучше определять по нескольким данным тест разговор письмо аудирование чтение и способность решать реальные задачи cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень определить уровень">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1221,7 +1291,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/move-to-next-language-level.html" data-category="cefr" data-search="как перейти на следующий уровень cefr уровни cefr уровни переход на следующий уровень требует закрыть слабый навык расширить темы увеличить самостоятельность и чаще использовать язык в реальных задачах cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень следующий уровень cefr">
+        <a class="knowledge-card" href="/knowledge/move-to-next-language-level.html" data-category="cefr" data-category-label="CEFR уровни" data-reading-time="8" data-title="Как перейти на следующий уровень?" data-search="как перейти на следующий уровень cefr уровни cefr уровни переход на следующий уровень требует закрыть слабый навык расширить темы увеличить самостоятельность и чаще использовать язык в реальных задачах cefr уровень прогресс cefr a1 a2 b1 b2 c1 уровень следующий уровень cefr">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>CEFR уровни</span>
       <span>8 мин чтения</span>
@@ -1233,7 +1303,7 @@
       <span>CEFR</span><span>уровень</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-prepare-for-language-exam.html" data-category="exam" data-search="как подготовиться к языковому экзамену экзамены экзамены подготовка к языковому экзамену требует не только учить язык но и тренировать формат время критерии слабые разделы и устойчивость внимания экзамен подготовка стратегия экзамен тест ielts егэ подготовка языковой экзамен подготовка">
+        <a class="knowledge-card" href="/knowledge/how-to-prepare-for-language-exam.html" data-category="exam" data-category-label="Экзамены" data-reading-time="8" data-title="Как подготовиться к языковому экзамену?" data-search="как подготовиться к языковому экзамену экзамены экзамены подготовка к языковому экзамену требует не только учить язык но и тренировать формат время критерии слабые разделы и устойчивость внимания экзамен подготовка стратегия экзамен тест ielts егэ подготовка языковой экзамен подготовка">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Экзамены</span>
       <span>8 мин чтения</span>
@@ -1245,7 +1315,7 @@
       <span>экзамен</span><span>подготовка</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/language-exam-study-plan.html" data-category="exam" data-search="как составить план подготовки к экзамену экзамены экзамены план подготовки должен идти от даты экзамена и нужного балла диагностика слабые разделы недельные задачи пробники и финальное повторение экзамен подготовка стратегия экзамен тест ielts егэ подготовка план подготовки к экзамену">
+        <a class="knowledge-card" href="/knowledge/language-exam-study-plan.html" data-category="exam" data-category-label="Экзамены" data-reading-time="8" data-title="Как составить план подготовки к экзамену?" data-search="как составить план подготовки к экзамену экзамены экзамены план подготовки должен идти от даты экзамена и нужного балла диагностика слабые разделы недельные задачи пробники и финальное повторение экзамен подготовка стратегия экзамен тест ielts егэ подготовка план подготовки к экзамену">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Экзамены</span>
       <span>8 мин чтения</span>
@@ -1257,7 +1327,7 @@
       <span>экзамен</span><span>подготовка</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-pass-speaking-exam.html" data-category="exam" data-search="как сдать устную часть языкового экзамена экзамены экзамены устная часть требует тренировать структуру ответа скорость произношение связки примеры и умение продолжать речь даже при ошибке экзамен подготовка стратегия экзамен тест ielts егэ подготовка устная часть speaking exam">
+        <a class="knowledge-card" href="/knowledge/how-to-pass-speaking-exam.html" data-category="exam" data-category-label="Экзамены" data-reading-time="8" data-title="Как сдать устную часть языкового экзамена?" data-search="как сдать устную часть языкового экзамена экзамены экзамены устная часть требует тренировать структуру ответа скорость произношение связки примеры и умение продолжать речь даже при ошибке экзамен подготовка стратегия экзамен тест ielts егэ подготовка устная часть speaking exam">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Экзамены</span>
       <span>8 мин чтения</span>
@@ -1269,7 +1339,7 @@
       <span>экзамен</span><span>подготовка</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-prepare-writing-exam.html" data-category="exam" data-search="как подготовиться к письменной части экзамена экзамены экзамены письменная часть требует знать формат текста критерии структуру абзацев связки типичные ошибки и тренироваться с проверкой экзамен подготовка стратегия экзамен тест ielts егэ подготовка writing письменная часть">
+        <a class="knowledge-card" href="/knowledge/how-to-prepare-writing-exam.html" data-category="exam" data-category-label="Экзамены" data-reading-time="8" data-title="Как подготовиться к письменной части экзамена?" data-search="как подготовиться к письменной части экзамена экзамены экзамены письменная часть требует знать формат текста критерии структуру абзацев связки типичные ошибки и тренироваться с проверкой экзамен подготовка стратегия экзамен тест ielts егэ подготовка writing письменная часть">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Экзамены</span>
       <span>8 мин чтения</span>
@@ -1281,7 +1351,7 @@
       <span>экзамен</span><span>подготовка</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-reduce-exam-anxiety.html" data-category="exam" data-search="как снизить страх перед языковым экзаменом экзамены экзамены страх перед экзаменом снижается через знакомство с форматом пробники план времени готовые стратегии и опыт ответов в условиях похожих на реальные экзамен подготовка стратегия экзамен тест ielts егэ подготовка страх экзамена экзамен">
+        <a class="knowledge-card" href="/knowledge/how-to-reduce-exam-anxiety.html" data-category="exam" data-category-label="Экзамены" data-reading-time="8" data-title="Как снизить страх перед языковым экзаменом?" data-search="как снизить страх перед языковым экзаменом экзамены экзамены страх перед экзаменом снижается через знакомство с форматом пробники план времени готовые стратегии и опыт ответов в условиях похожих на реальные экзамен подготовка стратегия экзамен тест ielts егэ подготовка страх экзамена экзамен">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>Экзамены</span>
       <span>8 мин чтения</span>
@@ -1293,7 +1363,7 @@
       <span>экзамен</span><span>подготовка</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/can-ai-help-learn-language.html" data-category="technology" data-search="может ли ai помочь выучить язык ai и технологии ai и технологии ai может сильно помочь в изучении языка если использовать его как собеседника проверяющего объясняющего и тренирующего а не как замену собственной практике ai технологии приложения ai ии приложение технологии переводчик ai ии выучить язык">
+        <a class="knowledge-card" href="/knowledge/can-ai-help-learn-language.html" data-category="technology" data-category-label="AI и технологии" data-reading-time="8" data-title="Может ли AI помочь выучить язык?" data-search="может ли ai помочь выучить язык ai и технологии ai и технологии ai может сильно помочь в изучении языка если использовать его как собеседника проверяющего объясняющего и тренирующего а не как замену собственной практике ai технологии приложения ai ии приложение технологии переводчик ai ии выучить язык">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>AI и технологии</span>
       <span>8 мин чтения</span>
@@ -1305,7 +1375,7 @@
       <span>AI</span><span>технологии</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-use-ai-tutor.html" data-category="technology" data-search="как пользоваться ai репетитором ai и технологии ai и технологии ai репетитор полезен когда вы задаете конкретную цель объяснить ошибку провести диалог проверить текст дать упражнения или повторить слабую тему ai технологии приложения ai ии приложение технологии переводчик ai репетитор ии репетитор">
+        <a class="knowledge-card" href="/knowledge/how-to-use-ai-tutor.html" data-category="technology" data-category-label="AI и технологии" data-reading-time="8" data-title="Как пользоваться AI-репетитором?" data-search="как пользоваться ai репетитором ai и технологии ai и технологии ai репетитор полезен когда вы задаете конкретную цель объяснить ошибку провести диалог проверить текст дать упражнения или повторить слабую тему ai технологии приложения ai ии приложение технологии переводчик ai репетитор ии репетитор">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>AI и технологии</span>
       <span>8 мин чтения</span>
@@ -1317,7 +1387,7 @@
       <span>AI</span><span>технологии</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/are-translators-useful-for-language-learning.html" data-category="technology" data-search="полезны ли переводчики для изучения языка ai и технологии ai и технологии переводчики полезны как справочник и проверка смысла но вредят если заменяют попытку самому построить фразу и понять структуру ai технологии приложения ai ии приложение технологии переводчик переводчик изучение языка">
+        <a class="knowledge-card" href="/knowledge/are-translators-useful-for-language-learning.html" data-category="technology" data-category-label="AI и технологии" data-reading-time="8" data-title="Полезны ли переводчики для изучения языка?" data-search="полезны ли переводчики для изучения языка ai и технологии ai и технологии переводчики полезны как справочник и проверка смысла но вредят если заменяют попытку самому построить фразу и понять структуру ai технологии приложения ai ии приложение технологии переводчик переводчик изучение языка">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>AI и технологии</span>
       <span>8 мин чтения</span>
@@ -1329,7 +1399,7 @@
       <span>AI</span><span>технологии</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-use-speech-recognition.html" data-category="technology" data-search="как использовать распознавание речи в обучении ai и технологии ai и технологии распознавание речи помогает увидеть насколько понятно вы произносите фразы но его нужно сочетать с образцом слухом и живой коррекцией ai технологии приложения ai ии приложение технологии переводчик распознавание речи произношение">
+        <a class="knowledge-card" href="/knowledge/how-to-use-speech-recognition.html" data-category="technology" data-category-label="AI и технологии" data-reading-time="8" data-title="Как использовать распознавание речи в обучении?" data-search="как использовать распознавание речи в обучении ai и технологии ai и технологии распознавание речи помогает увидеть насколько понятно вы произносите фразы но его нужно сочетать с образцом слухом и живой коррекцией ai технологии приложения ai ии приложение технологии переводчик распознавание речи произношение">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>AI и технологии</span>
       <span>8 мин чтения</span>
@@ -1341,7 +1411,7 @@
       <span>AI</span><span>технологии</span>
     </div>
   </a>
-        <a class="knowledge-card" href="/knowledge/how-to-choose-language-learning-app.html" data-category="technology" data-search="как выбрать приложение для изучения языка ai и технологии ai и технологии хорошее приложение для языка должно давать не только красивые уроки но и речь слух повторение обратную связь ошибки прогресс и живые сценарии ai технологии приложения ai ии приложение технологии переводчик приложение для изучения языка выбрать приложение">
+        <a class="knowledge-card" href="/knowledge/how-to-choose-language-learning-app.html" data-category="technology" data-category-label="AI и технологии" data-reading-time="8" data-title="Как выбрать приложение для изучения языка?" data-search="как выбрать приложение для изучения языка ai и технологии ai и технологии хорошее приложение для языка должно давать не только красивые уроки но и речь слух повторение обратную связь ошибки прогресс и живые сценарии ai технологии приложения ai ии приложение технологии переводчик приложение для изучения языка выбрать приложение">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>AI и технологии</span>
       <span>8 мин чтения</span>
@@ -1377,7 +1447,9 @@
   const filters = Array.from(document.querySelectorAll(".knowledge-filter"));
   const reset = document.querySelector(".knowledge-reset");
   const count = document.querySelector(".knowledge-results-count");
+  const suggestions = document.querySelector(".knowledge-search__suggestions");
   let activeCategory = "";
+  let activeSuggestionIndex = -1;
 
   function tokens(value) {
     return (String(value || "").toLowerCase().replaceAll("ё", "е").match(/[\p{L}\p{N}]+/gu) || []);
@@ -1396,9 +1468,115 @@
     });
     const query = input?.value.trim() || "";
     count.textContent = query ? visible + ' материалов по запросу "' + query + '"' : visible + " материалов";
+    renderSuggestions(queryTokens);
+  }
+
+  function cardMatchesQuery(card, queryTokens) {
+    const searchText = tokens(card.dataset.search || "").join(" ");
+    return queryTokens.length === 0 || queryTokens.every((token) => searchText.includes(token));
+  }
+
+  function suggestionScore(card, queryTokens) {
+    const title = String(card.dataset.title || "").toLowerCase().replaceAll("ё", "е");
+    const search = String(card.dataset.search || "").toLowerCase().replaceAll("ё", "е");
+    return queryTokens.reduce((score, token) => {
+      if (title.startsWith(token)) return score + 8;
+      if (title.includes(token)) return score + 5;
+      if (search.includes(token)) return score + 1;
+      return score;
+    }, 0);
+  }
+
+  function setSuggestionsOpen(open) {
+    if (!suggestions || !input) return;
+    suggestions.hidden = !open;
+    input.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function renderSuggestions(queryTokens) {
+    if (!suggestions) return;
+    suggestions.replaceChildren();
+    activeSuggestionIndex = -1;
+    if (queryTokens.length === 0) {
+      setSuggestionsOpen(false);
+      return;
+    }
+    const matches = cards
+      .filter((card) => cardMatchesQuery(card, queryTokens) && (!activeCategory || card.dataset.category === activeCategory))
+      .map((card) => ({ card, score: suggestionScore(card, queryTokens) }))
+      .sort((left, right) => right.score - left.score || cards.indexOf(left.card) - cards.indexOf(right.card))
+      .slice(0, 6);
+
+    matches.forEach(({ card }, index) => {
+      const link = document.createElement("a");
+      link.className = "knowledge-search__suggestion";
+      link.id = "knowledge-search-suggestion-" + index;
+      link.href = card.getAttribute("href") || "#";
+      link.setAttribute("role", "option");
+      link.setAttribute("aria-selected", "false");
+
+      const title = document.createElement("strong");
+      title.textContent = card.dataset.title || "";
+      const meta = document.createElement("span");
+      meta.textContent = (card.dataset.categoryLabel || "") + " · " + (card.dataset.readingTime || "8") + " мин чтения";
+      link.append(title, meta);
+      suggestions.append(link);
+    });
+
+    setSuggestionsOpen(matches.length > 0);
+  }
+
+  function moveSuggestion(delta) {
+    if (!suggestions || suggestions.hidden) return;
+    const items = Array.from(suggestions.querySelectorAll(".knowledge-search__suggestion"));
+    if (items.length === 0) return;
+    activeSuggestionIndex = (activeSuggestionIndex + delta + items.length) % items.length;
+    items.forEach((item, index) => {
+      const active = index === activeSuggestionIndex;
+      item.setAttribute("aria-selected", active ? "true" : "false");
+      item.classList.toggle("is-active", active);
+    });
+    input?.setAttribute("aria-activedescendant", items[activeSuggestionIndex].id);
   }
 
   input?.addEventListener("input", applyFilters);
+  input?.addEventListener("blur", () => {
+    window.setTimeout(() => {
+      if (document.activeElement instanceof Node && suggestions?.contains(document.activeElement)) return;
+      setSuggestionsOpen(false);
+      input.removeAttribute("aria-activedescendant");
+    }, 80);
+  });
+  input?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveSuggestion(1);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveSuggestion(-1);
+      return;
+    }
+    if (event.key === "Escape") {
+      setSuggestionsOpen(false);
+      input.removeAttribute("aria-activedescendant");
+      return;
+    }
+    if (event.key === "Enter" && suggestions && activeSuggestionIndex >= 0) {
+      const active = suggestions.querySelectorAll(".knowledge-search__suggestion")[activeSuggestionIndex];
+      if (active instanceof HTMLAnchorElement) {
+        event.preventDefault();
+        active.click();
+      }
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (!suggestions || !input) return;
+    const target = event.target;
+    if (target instanceof Node && (suggestions.contains(target) || input.contains(target))) return;
+    setSuggestionsOpen(false);
+  });
   filters.forEach((button) => {
     button.addEventListener("click", () => {
       activeCategory = button.dataset.filter || "";

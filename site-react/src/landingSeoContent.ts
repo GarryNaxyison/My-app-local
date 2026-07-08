@@ -63,8 +63,8 @@ export const staticSeoGuideLinks = [
 
 export const landingSeoCopy = {
   ru: {
-    title: "NERIVA - AI-репетитор иностранных языков в Telegram",
-    description: "NERIVA: AI-уроки, разговорная практика, Telegram, web app, произношение, фото-перевод, ошибки и Premium в одном профиле.",
+    title: "NERIVA - AI-репетитор английского и изучения языков в Telegram",
+    description: "NERIVA - AI-репетитор для изучения английского и языков в Telegram и web app: уроки, разговорная практика, произношение, фото-перевод и ошибки.",
     sectionEyebrow: "Поисковые ответы",
     sectionTitle: "Ответы для поиска и AI",
     sectionIntro: "Короткие прямые ответы о NERIVA для людей, которые сравнивают AI-репетиторов, языковые Telegram-боты, speaking practice, голос и фото-перевод.",
@@ -100,7 +100,7 @@ export const landingSeoCopy = {
     questions: [
       {
         question: "Что такое NERIVA?",
-        answer: "NERIVA — это AI-репетитор иностранных языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле.",
+        answer: "NERIVA — это AI-репетитор для изучения английского и других языков в web app и Telegram-боте. Он объединяет короткие уроки, разговорную практику, произношение, перевод текста с фото, ошибки, заметки и прогресс в одном профиле.",
       },
       {
         question: "Можно ли учить английский с ИИ в Telegram?",

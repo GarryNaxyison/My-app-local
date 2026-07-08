@@ -172,7 +172,7 @@ function renderCategoryFilters() {
 }
 
 function renderArticleCard(article, featured = false) {
-  return `<a class="knowledge-card${featured ? " knowledge-card--featured" : ""}" href="${article.path}" data-category="${article.categoryId}" data-search="${escapeAttr(wordsForSearch(article))}">
+  return `<a class="knowledge-card${featured ? " knowledge-card--featured" : ""}" href="${article.path}" data-category="${article.categoryId}" data-category-label="${escapeAttr(article.category)}" data-reading-time="${article.readingTime}" data-title="${escapeAttr(article.title)}" data-search="${escapeAttr(wordsForSearch(article))}">
     <div class="knowledge-card__meta">
       <span><span class="material-symbols-outlined" aria-hidden="true">article</span>${escapeHtml(article.category)}</span>
       <span>${article.readingTime} мин чтения</span>
@@ -197,6 +197,33 @@ function renderCategoryRouteCard(route) {
 
 function renderCategoryRouteCards() {
   return knowledgeCategoryRoutes.map((route) => renderCategoryRouteCard(route)).join("\n        ");
+}
+
+function categoryLabelFor(categoryId) {
+  return knowledgeCategories.find((category) => category.id === categoryId)?.label || categoryId;
+}
+
+function renderTopicNavCard(route) {
+  const articles = articlesForCategory(route.id);
+  return `<a class="knowledge-topic-nav__link" href="${route.path}">
+    <span class="knowledge-topic-nav__count">${articles.length} материалов</span>
+    <strong>${escapeHtml(categoryLabelFor(route.id))}</strong>
+    <span class="knowledge-topic-nav__title">${escapeHtml(route.title)}</span>
+    <span class="knowledge-topic-nav__preview">${articles.slice(0, 3).map((article) => escapeHtml(article.title)).join(" · ")}</span>
+  </a>`;
+}
+
+function renderTopicNav() {
+  return `<section class="knowledge-topic-nav" aria-label="Быстрый переход по темам">
+    <div class="knowledge-section-heading knowledge-section-heading--compact">
+      <span class="knowledge-eyebrow">Быстрый переход</span>
+      <h2>Выберите тему без прокрутки 100 статей</h2>
+      <p>Маршруты собирают материалы по смыслу: можно сразу открыть нужный раздел или искать точный вопрос выше.</p>
+    </div>
+    <div class="knowledge-topic-nav__grid">
+      ${knowledgeCategoryRoutes.map((route) => renderTopicNavCard(route)).join("\n      ")}
+    </div>
+  </section>`;
 }
 
 function renderHubJsonLd() {
@@ -260,7 +287,8 @@ function renderHubPage() {
           <p>Подробные ответы о том, как учить иностранные языки, запоминать слова, говорить увереннее и не бросать занятия.</p>
           <div class="knowledge-search">
             <span class="material-symbols-outlined" aria-hidden="true">search</span>
-            <input class="knowledge-search__input" type="search" placeholder="Найти статью, вопрос или тему" autocomplete="off" />
+            <input class="knowledge-search__input" type="search" placeholder="Найти статью, вопрос или тему" autocomplete="off" aria-controls="knowledge-search-suggestions" aria-expanded="false" />
+            <div class="knowledge-search__suggestions" id="knowledge-search-suggestions" role="listbox" aria-label="Подходящие темы" hidden></div>
           </div>
           <div class="knowledge-filterbar" aria-label="Фильтры базы знаний">
             ${renderCategoryFilters()}
@@ -288,6 +316,7 @@ function renderHubPage() {
           </div>
         </aside>
       </section>
+      ${renderTopicNav()}
       <section class="knowledge-clusters" aria-label="Маршруты базы знаний">
         <div class="knowledge-section-heading">
           <span class="knowledge-eyebrow">SEO/AEO routes</span>
@@ -316,7 +345,9 @@ function renderHubScript() {
   const filters = Array.from(document.querySelectorAll(".knowledge-filter"));
   const reset = document.querySelector(".knowledge-reset");
   const count = document.querySelector(".knowledge-results-count");
+  const suggestions = document.querySelector(".knowledge-search__suggestions");
   let activeCategory = "";
+  let activeSuggestionIndex = -1;
 
   function tokens(value) {
     return (String(value || "").toLowerCase().replaceAll("ё", "е").match(/[\\p{L}\\p{N}]+/gu) || []);
@@ -335,9 +366,115 @@ function renderHubScript() {
     });
     const query = input?.value.trim() || "";
     count.textContent = query ? visible + ' материалов по запросу "' + query + '"' : visible + " материалов";
+    renderSuggestions(queryTokens);
+  }
+
+  function cardMatchesQuery(card, queryTokens) {
+    const searchText = tokens(card.dataset.search || "").join(" ");
+    return queryTokens.length === 0 || queryTokens.every((token) => searchText.includes(token));
+  }
+
+  function suggestionScore(card, queryTokens) {
+    const title = String(card.dataset.title || "").toLowerCase().replaceAll("ё", "е");
+    const search = String(card.dataset.search || "").toLowerCase().replaceAll("ё", "е");
+    return queryTokens.reduce((score, token) => {
+      if (title.startsWith(token)) return score + 8;
+      if (title.includes(token)) return score + 5;
+      if (search.includes(token)) return score + 1;
+      return score;
+    }, 0);
+  }
+
+  function setSuggestionsOpen(open) {
+    if (!suggestions || !input) return;
+    suggestions.hidden = !open;
+    input.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function renderSuggestions(queryTokens) {
+    if (!suggestions) return;
+    suggestions.replaceChildren();
+    activeSuggestionIndex = -1;
+    if (queryTokens.length === 0) {
+      setSuggestionsOpen(false);
+      return;
+    }
+    const matches = cards
+      .filter((card) => cardMatchesQuery(card, queryTokens) && (!activeCategory || card.dataset.category === activeCategory))
+      .map((card) => ({ card, score: suggestionScore(card, queryTokens) }))
+      .sort((left, right) => right.score - left.score || cards.indexOf(left.card) - cards.indexOf(right.card))
+      .slice(0, 6);
+
+    matches.forEach(({ card }, index) => {
+      const link = document.createElement("a");
+      link.className = "knowledge-search__suggestion";
+      link.id = "knowledge-search-suggestion-" + index;
+      link.href = card.getAttribute("href") || "#";
+      link.setAttribute("role", "option");
+      link.setAttribute("aria-selected", "false");
+
+      const title = document.createElement("strong");
+      title.textContent = card.dataset.title || "";
+      const meta = document.createElement("span");
+      meta.textContent = (card.dataset.categoryLabel || "") + " · " + (card.dataset.readingTime || "8") + " мин чтения";
+      link.append(title, meta);
+      suggestions.append(link);
+    });
+
+    setSuggestionsOpen(matches.length > 0);
+  }
+
+  function moveSuggestion(delta) {
+    if (!suggestions || suggestions.hidden) return;
+    const items = Array.from(suggestions.querySelectorAll(".knowledge-search__suggestion"));
+    if (items.length === 0) return;
+    activeSuggestionIndex = (activeSuggestionIndex + delta + items.length) % items.length;
+    items.forEach((item, index) => {
+      const active = index === activeSuggestionIndex;
+      item.setAttribute("aria-selected", active ? "true" : "false");
+      item.classList.toggle("is-active", active);
+    });
+    input?.setAttribute("aria-activedescendant", items[activeSuggestionIndex].id);
   }
 
   input?.addEventListener("input", applyFilters);
+  input?.addEventListener("blur", () => {
+    window.setTimeout(() => {
+      if (document.activeElement instanceof Node && suggestions?.contains(document.activeElement)) return;
+      setSuggestionsOpen(false);
+      input.removeAttribute("aria-activedescendant");
+    }, 80);
+  });
+  input?.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveSuggestion(1);
+      return;
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveSuggestion(-1);
+      return;
+    }
+    if (event.key === "Escape") {
+      setSuggestionsOpen(false);
+      input.removeAttribute("aria-activedescendant");
+      return;
+    }
+    if (event.key === "Enter" && suggestions && activeSuggestionIndex >= 0) {
+      const active = suggestions.querySelectorAll(".knowledge-search__suggestion")[activeSuggestionIndex];
+      if (active instanceof HTMLAnchorElement) {
+        event.preventDefault();
+        active.click();
+      }
+    }
+  });
+  document.addEventListener("click", (event) => {
+    if (!suggestions || !input) return;
+    const target = event.target;
+    if (target instanceof Node && (suggestions.contains(target) || input.contains(target))) return;
+    setSuggestionsOpen(false);
+  });
   filters.forEach((button) => {
     button.addEventListener("click", () => {
       activeCategory = button.dataset.filter || "";

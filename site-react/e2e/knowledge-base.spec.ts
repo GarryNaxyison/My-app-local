@@ -17,6 +17,10 @@ test.describe("NERIVA knowledge base", () => {
     await expect(page.locator(".knowledge-nav__link--knowledge")).toHaveText("База знаний");
     await expect(page.locator(".knowledge-nav__link--knowledge")).toHaveCSS("border-bottom-color", "rgb(183, 196, 255)");
     await expect(page.locator(".knowledge-search__input")).toHaveAttribute("placeholder", "Найти статью, вопрос или тему");
+    await expect(page.locator(".knowledge-search__suggestions")).toBeHidden();
+    await expect(page.locator(".knowledge-topic-nav")).toBeVisible();
+    await expect(page.locator(".knowledge-topic-nav__link")).toHaveCount(10);
+    await expect(page.locator('.knowledge-topic-nav__link[href="/knowledge/vocabulary.html"]')).toContainText("Словарный запас");
     await expect(page.locator(".knowledge-filter")).toHaveCount(10);
     await expect(page.locator(".knowledge-card")).toHaveCount(100);
     await expect(page.locator(".knowledge-card").first()).toContainText("Можно ли выучить иностранный язык самостоятельно?");
@@ -62,6 +66,34 @@ test.describe("NERIVA knowledge base", () => {
     await expect(page.locator(".knowledge-results-count")).toContainText('материалов по запросу "экзам"');
     await expect(visibleCards.first()).toContainText("Как подготовиться к языковому экзамену?");
     expect(await visibleCards.count()).toBeGreaterThanOrEqual(5);
+  });
+
+  test("search suggestions surface matching topics and open the selected article", async ({ page }) => {
+    await page.goto("/knowledge/");
+
+    await page.locator(".knowledge-search__input").fill("пам");
+    const suggestions = page.locator(".knowledge-search__suggestion");
+    await expect(page.locator(".knowledge-search__suggestions")).toBeVisible();
+    await expect(suggestions).toHaveCount(6);
+    await expect(suggestions.first()).toContainText("Как работает память при изучении языков?");
+    await expect(suggestions.filter({ hasText: "Как работает память при изучении языков?" })).toHaveCount(1);
+
+    await suggestions.first().click();
+    await expect(page).toHaveURL(/\/knowledge\/how-language-memory-works\.html$/);
+    await expect(page.locator(".knowledge-article h1")).toHaveText("Как работает память при изучении языков?");
+  });
+
+  test("quick topic navigation opens category routes without scrolling the full list", async ({ page }) => {
+    await page.goto("/knowledge/");
+
+    await expect(page.locator(".knowledge-topic-nav__link")).toHaveCount(10);
+    const vocabularyTopic = page.locator('.knowledge-topic-nav__link[href="/knowledge/vocabulary.html"]');
+    await expect(vocabularyTopic.locator(".knowledge-topic-nav__preview")).toContainText("Почему иностранные слова быстро забываются?");
+    await vocabularyTopic.click();
+
+    await expect(page).toHaveURL(/\/knowledge\/vocabulary\.html$/);
+    await expect(page.locator("body")).toHaveAttribute("data-page", "knowledge-cluster");
+    await expect(page.locator(".knowledge-card")).toHaveCount(15);
   });
 
   test("article mobile search opens the filtered knowledge hub", async ({ page }) => {
