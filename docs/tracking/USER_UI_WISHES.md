@@ -1,5 +1,14 @@
 # User UI Wishes
 
+## 2026-07-09 Neriva Dzen Article Visuals
+
+- For the Yandex Zen article about AI changing English learning, prepare 3 materially different image variants for each editorial block: cover, old-methods failure, and future/Neriva.
+- The cover must clearly contrast dusty old-school language learning with a modern AI smartphone/service mood.
+- The old-methods block should show fear, confusion, or the speaking barrier before live communication, not just generic studying.
+- The Neriva/future block should feel confident, effortless, high-tech, and premium, with AI assistance shown as abstract interface elements.
+- Keep generated images free of model-rendered readable text, fake UI words, watermarks, and distorted brand lettering; add headlines/brand copy outside the generated image when needed.
+- Use the existing ComfyUI/FLUX-style workflow for these article visuals and keep the prompt pack documented for future reuse.
+
 ## 2026-07-08 Neriva Rebrand Outro
 
 - The outro text should now support Neriva variants, especially `neriva.ru` and `NERIVA.RU`, rendered as clean deterministic text rather than generated typography.

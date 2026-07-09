@@ -1,5 +1,11 @@
 ﻿# Changelog
 
+## 2026-07-09
+
+- Added a Neriva Yandex Zen article visual pack in `comfyui_workflows/neriva_dzen_article_visuals.md`: 9 ComfyUI-ready still-image prompts, with 3 variants each for the cover, the "old approaches fail" block, and the "future with Neriva" block.
+- Added `comfyui_workflows/neriva_dzen_article_visuals_batch.json` as a machine-readable batch manifest for the same 9 prompts, including output filenames, placements, shared negative prompt, and recommended 16:9 generation settings.
+- Documented the new Dzen article prompt pack in `comfyui_workflows/README.md`.
+
 ## 2026-07-08
 
 - Added Neriva v18 luxury-minimal outro pack with five 2-second deterministic candidates: `01_noir`, `02_ivory`, `03_platinum`, `04_gallery`, and `05_emerald`. Each uses clean `NERIVA.RU` typography, restrained motion, premium negative space, and 1080x1920/32fps output for direct comparison.
