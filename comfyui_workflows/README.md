@@ -29,6 +29,7 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `render_neriva_luxury_minimal_outro_v18.py` - five premium minimalist `NERIVA.RU` direction candidates: noir, ivory, platinum, gallery, and emerald.
 - `neriva_dzen_article_visuals.md` - nine ComfyUI-ready still-image prompts for the Yandex Zen article about why learners study English for years but do not speak, with 3 variants for each article visual block.
 - `neriva_dzen_article_visuals_batch.json` - machine-readable batch manifest for the same 9 Neriva article prompts.
+- `generated/neriva_dzen_article_visuals/` - generated 1536x864 PNG set for the Neriva Yandex Zen article, including all 9 variants and a contact sheet.
 - `poliglot_outro_2s_tech_warp_v11_api.json` - v11 ComfyUI API prompt for the new dynamic technology direction.
 - `poliglot_outro_2s_tech_warp_v11_prompt.md` - v11 prompt notes and output paths.
 - `poliglot_outro_tech_warp_v11_reference_1080x1920.png` - v11 high-energy reference frame copied into ComfyUI input.
