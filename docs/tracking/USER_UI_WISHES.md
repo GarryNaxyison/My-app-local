@@ -2,6 +2,9 @@
 
 ## 2026-07-09 Neriva Dzen Article Visuals
 
+- For production-worthy image batches, use a stronger ComfyUI detailer workflow instead of raw text-to-image only: face detector/detailer, hand detector/detailer, and SAM masks when people are visible.
+- Crooked hands and faces are not acceptable in final picks; prompts should also avoid unnecessary close-up hands and keep fingers in simple natural poses.
+- Do not rely on diffusion to render exact Russian or English text. Use deterministic text overlay nodes and real fonts for headlines, domains, labels, and CTA copy.
 - For the Yandex Zen article about AI changing English learning, prepare 3 materially different image variants for each editorial block: cover, old-methods failure, and future/Neriva.
 - The cover must clearly contrast dusty old-school language learning with a modern AI smartphone/service mood.
 - The old-methods block should show fear, confusion, or the speaking barrier before live communication, not just generic studying.

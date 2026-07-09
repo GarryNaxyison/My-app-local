@@ -1,0 +1,74 @@
+{
+  "name": "neriva_dzen_article_visuals_detailer_v2",
+  "generated_at": "2026-07-09",
+  "output_dir": "comfyui_workflows/generated/neriva_dzen_article_visuals_detailer_v2",
+  "settings": {
+    "ckpt": "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors",
+    "width": 1536,
+    "height": 864,
+    "baseSteps": 34,
+    "baseCfg": 7.2,
+    "sampler": "dpmpp_2m_sde_gpu",
+    "scheduler": "karras",
+    "faceDetector": "bbox/face_yolov8m.pt",
+    "handDetector": "bbox/hand_yolov8n.pt",
+    "sam": "sam_vit_b_01ec64.pth"
+  },
+  "text_policy": "Do not ask diffusion to render readable text. Use Text Overlay or DrawText+ for Russian/English text overlays.",
+  "variants": [
+    {
+      "id": "1A",
+      "output_file": "neriva_dzen_01_cover_neon_desk_v01.png",
+      "seed": 2501000,
+      "prompt": "Explosive cinematic cyber-noir Yandex Zen article cover, 16:9. Large sleek smartphone in extreme right foreground on a wet dark wooden desk, screen facing camera, screen vividly alive with bright cyan AI language tutor visuals made only of abstract waveform lines, circles, neural grid and light particles, absolutely no letters, no words, no numbers. Left foreground: dusty old English textbooks, paper dictionary, crumpled flashcards, red-marked notes with marks only and no words, chalk dust. Rainy window, cold blue neon, volumetric light, deep shadows, glossy reflections, high contrast teal with small amber accents, premium expensive editorial photography, no people, no hands."
+    },
+    {
+      "id": "1B",
+      "output_file": "neriva_dzen_01_cover_classroom_signal_v02.png",
+      "seed": 2501177,
+      "prompt": "Premium cinematic cover inside an abandoned old language classroom at night, 16:9. A large modern smartphone and sleek monitor on a dusty desk show abstract cyan AI interface visuals made only of panels, waveform lines, circles and neural grid, absolutely no letters, no words, no numbers. Around them: old scratched desks, outdated textbooks, chalk dust, faded blank grammar posters with no words. Strong contrast of obsolete school learning versus high-tech AI future, rainy windows, teal rim light, dramatic shadows, photorealistic high-end magazine style, no people, no hands."
+    },
+    {
+      "id": "1C",
+      "output_file": "neriva_dzen_01_cover_editorial_split_v03.png",
+      "seed": 2501354,
+      "prompt": "Top-down premium editorial cover composition on dark wooden study table, 16:9. Right half: large modern smartphone/tablet with bright blue AI tutor visual made only of abstract circular HUD, waveform rings and neural glow, absolutely no letters, no words, no numbers. Left half: dusty grammar textbooks, paper dictionary, old flashcards, red correction marks but no readable words, worn notebook. Strong visual split between old learning and AI future, cinematic shadows, crisp desk texture, luxury tech contrast, no people, no hands."
+    },
+    {
+      "id": "2A",
+      "output_file": "neriva_dzen_02_old_methods_street_dictionary_v01.png",
+      "seed": 2501531,
+      "prompt": "Cinematic night street scene about fear of speaking English, 16:9. One adult man age 30+ stands alone in rain and fog, holding a crumpled paper dictionary close to chest with both hands mostly covered by sleeves, anxious but realistic expression. Wet asphalt, cold neon reflections, empty urban street, emotional speaking barrier, gritty premium photojournalism, shallow depth of field, no readable signs, natural face, natural hands."
+    },
+    {
+      "id": "2B",
+      "output_file": "neriva_dzen_02_old_methods_platform_silence_v02.png",
+      "seed": 2501708,
+      "prompt": "Cinematic metro platform scene about language barrier, 16:9. One adult person age 25+ stands waist-up on a late-night platform, holding an old pocket dictionary and folded grammar notes close to chest with simple relaxed fingers, tense silent expression. Blurred commuters and train behind, abstract speech-bubble shapes without words, cold fluorescent lights, wet reflective floor, premium photorealistic editorial style, one person only, natural face, natural hands."
+    },
+    {
+      "id": "2C",
+      "output_file": "neriva_dzen_02_old_methods_red_marks_v03.png",
+      "seed": 2501885,
+      "prompt": "Dim old classroom memory scene about fear of mistakes, 16:9. One adult learner age 30+ sits at a desk, face partly in dramatic side light, hands mostly hidden by notebook and sleeves while writing in an open notebook with vague red marks and no readable words. Dark blackboard in background, cold blue window light plus warm desk lamp, school pressure mood without horror, premium cinematic realism, natural face and posture."
+    },
+    {
+      "id": "3A",
+      "output_file": "neriva_dzen_03_future_holographic_coach_v01.png",
+      "seed": 2502062,
+      "prompt": "Confident future-learning scene for Neriva mood, 16:9. One adult woman age 25+ walking through rainy modern night city, half-body composition, smiling slightly, one hand holding a slim smartphone low and stable, the other hand relaxed. A clear glowing holographic AI language coach floats beside her with only abstract waveform lines, circles, progress arcs and simple card shapes, absolutely no letters, no words, no numbers. Background signs are blurred color panels without text. Wet asphalt, teal-orange reflections, premium high-tech editorial photography, natural face, natural hands, one person only."
+    },
+    {
+      "id": "3B",
+      "output_file": "neriva_dzen_03_future_phone_conversation_v02.png",
+      "seed": 2502239,
+      "prompt": "Warm premium lifestyle-tech scene, 16:9. One adult woman age 25+ seated by a large evening city window in a modern cafe, smiling naturally while practicing English on a smartphone held with both hands in a simple stable grip. Phone screen and subtle glow show only abstract waveform lines, circles and progress rings, absolutely no letters, no words, no numbers. Warm interior light, cool blue city reflections, accessible Neriva product mood, photorealistic editorial, natural face, natural hands."
+    },
+    {
+      "id": "3C",
+      "output_file": "neriva_dzen_03_future_crossing_fluency_v03.png",
+      "seed": 2708331,
+      "prompt": "Close cinematic portrait of exactly one adult learner age 25+ in a rainy night city crosswalk, 16:9. Single person only, centered three-quarter view, no second person, no clone, no crowd near the subject. The learner faces camera calmly and confidently, holding one smartphone at chest level with simple natural fingers. Beside the person floats a luminous AI assistant overlay made only of abstract waveform ribbon, circles, card silhouettes and particles, absolutely no letters, no words, no numbers. Background is soft bokeh color panels without readable signs, wet asphalt reflections, premium teal white amber lighting, modern energetic future mood, natural face, natural hands."
+    }
+  ]
+}
