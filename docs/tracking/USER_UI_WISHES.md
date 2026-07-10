@@ -501,3 +501,9 @@ This file is the recurring UI checklist for Poliglot AI. Check it before changin
 - The Learn Words success result should offer the same compact Notes save affordance used elsewhere: note icon plus the word/translation pair below `Next`, not an unrelated large extra button.
 - Saving from that result should store the target-language word as the phrase and the interface-language translation as the note/context.
 - Future regression tests should cover Learn Words result content, Notes saving, all 35-language level-test task localization, wrong Spelling answer reveal rules, lesson example audio language, and clean non-mojibake UI text.
+
+## 2026-07-10 Neriva Article Visual Pack Notes
+
+- Generate a separate five-image Neriva article pack with the local ComfyUI Flux.2 Dev workflow: hero crystal, dual-language translation/context phone, interactive learning barrier, music/lyrics analysis studio, and TOP language bots interface.
+- Keep the pack reproducible with saved prompts/workflow metadata and final assets in the project; do not overwrite the previous 9-image Neriva Dzen visual pack.
+- For scenes that need readable copy, prefer exact deterministic overlays after generation when diffusion text is unreliable.

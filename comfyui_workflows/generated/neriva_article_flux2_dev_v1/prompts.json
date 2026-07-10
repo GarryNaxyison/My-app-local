@@ -1,0 +1,42 @@
+{
+  "width": 1536,
+  "height": 864,
+  "steps": 24,
+  "images": [
+    {
+      "slug": "01_hero_crystal_start",
+      "file": "neriva_01_hero_crystal_start_flux2.png",
+      "seed": 76100101,
+      "title": "Hero Image / About / Start",
+      "prompt": "Luminous multifaceted geometric crystal structure, central core pulsating with warm and cool light, detailed abstract symbols of diverse languages, glyphs, characters, speech bubbles floating around it, clean lines, intricate patterns, soft background of digital data, cinematic lighting, shallow depth of field, detailed textures, high resolution, photorealistic, gritty aesthetic, cool-toned color palette. The crystal is the clear central source of knowledge and technology, powerful but elegant, with a balanced amount of negative space for article layout. Production key visual for a Russian article about Neriva AI, 16:9 landscape. Premium cinematic photorealism, high detail, editorial composition, strong article-cover readability. Leave clean readable UI surfaces where interface text appears; no watermark, no logo artifacts, no random extra text beyond the specified UI idea. Avoid deformed hands, extra fingers, distorted face, broken phone, unreadable gibberish in major focal areas, low quality, oversharpening."
+    },
+    {
+      "slug": "02_translation_context_phone",
+      "file": "neriva_02_translation_context_phone_flux2.png",
+      "seed": 76100102,
+      "title": "Translation & Context",
+      "prompt": "Close-up of human hand holding glowing smartphone, detailed skin texture, phone display shows a clean dual-language translation UI with two readable text rows and small flag icon zones, surrounding transparent context overlays like 'Emotional interpretation' and 'Metaphor check' as intricate UI, wet urban pavement in background, cold blue and warm amber neon light, gritty film grain, highly detailed, photorealistic. The phone screen should face the camera and be large enough for deterministic final typography overlay: Russian sentence 'Таким Запомни' on top and English sentence 'Remember this moment' below. Production key visual for a Russian article about Neriva AI, 16:9 landscape. Premium cinematic photorealism, high detail, editorial composition, strong article-cover readability. Leave clean readable UI surfaces where interface text appears; no watermark, no logo artifacts, no random extra text beyond the specified UI idea. Avoid deformed hands, extra fingers, distorted face, broken phone, unreadable gibberish in major focal areas, low quality, oversharpening."
+    },
+    {
+      "slug": "03_interactive_learning_barrier",
+      "file": "neriva_03_interactive_learning_barrier_flux2.png",
+      "seed": 76100103,
+      "title": "Interactive Learning / Barrier",
+      "prompt": "Close-up of young adult person wearing modern sleek headphones, detailed face and focused expression, interacting with a floating articulated AI language partner projected as a light form, smooth flowing abstract energy connecting them, detailed interface with progress charts and speech waves, urban city environment at night, cold cinematic tones, bokeh lights, shallow depth of field, high resolution, intricate textures, photorealistic. The image should visualize overcoming the language barrier through smooth AI conversation practice, calm confident learning energy, no child, no teenager. Production key visual for a Russian article about Neriva AI, 16:9 landscape. Premium cinematic photorealism, high detail, editorial composition, strong article-cover readability. Leave clean readable UI surfaces where interface text appears; no watermark, no logo artifacts, no random extra text beyond the specified UI idea. Avoid deformed hands, extra fingers, distorted face, broken phone, unreadable gibberish in major focal areas, low quality, oversharpening."
+    },
+    {
+      "slug": "04_creative_music_analysis",
+      "file": "neriva_04_creative_music_analysis_flux2.png",
+      "seed": 76100104,
+      "title": "Creative / Music Analysis",
+      "prompt": "Close-up of audio producer at mixing console, multiple transparent monitors, detailed faders and screen textures, one screen displays a clean lyrics analysis interface, another screen shows spectral audio waveforms and code, floating glowing musical notes, intricate technical details, moody studio lighting, warm tungsten and cool LED tones, gritty aesthetic, highly detailed, photorealistic. The central monitor should leave a crisp rectangular area for deterministic text overlay: 'Lyrics Analysis - Thus Remember' and notes on specific lines. Production key visual for a Russian article about Neriva AI, 16:9 landscape. Premium cinematic photorealism, high detail, editorial composition, strong article-cover readability. Leave clean readable UI surfaces where interface text appears; no watermark, no logo artifacts, no random extra text beyond the specified UI idea. Avoid deformed hands, extra fingers, distorted face, broken phone, unreadable gibberish in major focal areas, low quality, oversharpening."
+    },
+    {
+      "slug": "05_top_language_bots",
+      "file": "neriva_05_top_language_bots_flux2.png",
+      "seed": 76100105,
+      "title": "Marketing Trojan Horse / Top Lists",
+      "prompt": "Detailed high-tech interface, glowing transparent screens showing a ranked list of top language bots, one entry highlighted with glowing green emphasis, surrounding entries include generic icons and abstract app glyphs, complex digital ecosystem background, intricate data visualizations, cool blue lighting, deep shadows, cinematic photography, high resolution, precise details. The screen should have a large clean top-list layout for deterministic final typography overlay: 'ТОП-5 ИИ ДЛЯ ЯЗЫКОВ 2026', 'BEST LANGUAGE BOTS 2026', and highlighted 'Neriva AI'. Production key visual for a Russian article about Neriva AI, 16:9 landscape. Premium cinematic photorealism, high detail, editorial composition, strong article-cover readability. Leave clean readable UI surfaces where interface text appears; no watermark, no logo artifacts, no random extra text beyond the specified UI idea. Avoid deformed hands, extra fingers, distorted face, broken phone, unreadable gibberish in major focal areas, low quality, oversharpening."
+    }
+  ]
+}

@@ -31,8 +31,11 @@ This folder contains the disk-conscious ComfyUI chain for Poliglot AI ads in Sho
 - `neriva_dzen_article_visuals_batch.json` - machine-readable batch manifest for the same 9 Neriva article prompts.
 - `neriva_dzen_article_visuals_detailer_v2_api.json` - stronger API workflow sample with Impact Pack face detailer, hand detector/detailer, and deterministic text-overlay support.
 - `neriva_dzen_article_visuals_detailer_v2_prompts.json` - strengthened no-text prompt/seed pack for the detailer v2 article visuals.
+- `run_neriva_article_flux2_pack.mjs` - queues the five-image Neriva article visual pack through local Flux.2 Dev in ComfyUI.
+- `postprocess_neriva_article_flux2_pack.py` - applies deterministic readable UI text overlays to the phone, lyrics-analysis, and TOP-list images, then creates a contact sheet.
 - `generated/neriva_dzen_article_visuals/` - generated 1536x864 PNG set for the Neriva Yandex Zen article, including all 9 variants and a contact sheet.
 - `generated/neriva_dzen_article_visuals_detailer_v2/` - regenerated 1536x864 PNG set using the stronger face/hand detailer workflow, including all 9 variants and a contact sheet.
+- `generated/neriva_article_flux2_dev_v1/` - generated 1536x864 Flux.2 Dev PNG set for the five-section Neriva article pack, with exact post-render UI text and a contact sheet.
 - `poliglot_outro_2s_tech_warp_v11_api.json` - v11 ComfyUI API prompt for the new dynamic technology direction.
 - `poliglot_outro_2s_tech_warp_v11_prompt.md` - v11 prompt notes and output paths.
 - `poliglot_outro_tech_warp_v11_reference_1080x1920.png` - v11 high-energy reference frame copied into ComfyUI input.

@@ -482,3 +482,8 @@
 # 2026-05-30
 
 - Improved mobile web menu reordering: touch hold enters edit mode faster, drag targeting follows the actual finger position, and the Playwright regression now checks editable mobile rail reorder behavior.
+
+# 2026-07-10
+
+- Generated a five-image Neriva article visual pack with the local ComfyUI Flux.2 Dev workflow, including hero crystal, phone translation/context, interactive AI practice, music/lyrics analysis, and TOP language bots interface scenes.
+- Added deterministic post-render UI text overlays for the phone, lyrics-analysis, and TOP-list images plus a contact sheet and reproducible prompt/workflow metadata.
