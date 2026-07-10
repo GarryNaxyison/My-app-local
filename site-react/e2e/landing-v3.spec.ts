@@ -232,6 +232,7 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
   await expect(page.locator(".community-section")).toContainText("NERIVA channel");
   await expect(page.locator(".community-section")).not.toContainText("reviews");
   await expect(page.locator(".community-section")).not.toContainText("rating");
+  await expect(page.locator('.community-section a[href="https://t.me/neriva_app"]')).toBeVisible();
 
   await expect(page.locator(".final-cta-section")).toContainText("Phrase");
   await expect(page.locator(".final-cta-section")).toContainText("Answer");

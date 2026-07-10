@@ -5,7 +5,7 @@ export const socialProfileUrls = [
   "https://www.youtube.com/@neriva_app",
   "https://www.instagram.com/neriva.ru",
   "https://tiktok.com/@nerivaru",
-  "https://t.me/NERIVAapp_bot",
+  "https://t.me/neriva_app",
 ];
 
 export const legalLinks = {

@@ -279,10 +279,10 @@ test("public footer exposes NERIVA social channels", async ({ page }) => {
   await expect(footerSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on YouTube");
   await expect(footerSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toHaveAttribute("aria-label", "Open NERIVA on Instagram");
   await expect(footerSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toHaveAttribute("aria-label", "Open NERIVA on TikTok");
-  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
-  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("target", "_blank");
-  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toHaveAttribute("rel", "noreferrer");
-  await expect(footerSocial.locator('a[href="https://t.me/NERIVAapp_bot"] img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
+  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("aria-label", "Open NERIVA on Telegram");
+  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("target", "_blank");
+  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"]')).toHaveAttribute("rel", "noreferrer");
+  await expect(footerSocial.locator('a[href="https://t.me/neriva_app"] img[src="/assets/social/telegram-logo.png"]')).toBeVisible();
 
   await page.goto("/neriva.html?lang=ru");
   const ruFooterSocial = page.locator(".site-footer .site-footer-social");
@@ -291,7 +291,7 @@ test("public footer exposes NERIVA social channels", async ({ page }) => {
   await expect(ruFooterSocial.locator('a[href="https://www.youtube.com/@neriva_app"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://www.instagram.com/neriva.ru"]')).toBeVisible();
   await expect(ruFooterSocial.locator('a[href="https://tiktok.com/@nerivaru"]')).toBeVisible();
-  await expect(ruFooterSocial.locator('a[href="https://t.me/NERIVAapp_bot"]')).toBeVisible();
+  await expect(ruFooterSocial.locator('a[href="https://t.me/neriva_app"]')).toBeVisible();
 });
 
 test("landing visual blocks animate without breaking hero and ecosystem alignment", async ({ page }) => {

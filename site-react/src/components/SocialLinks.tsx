@@ -9,7 +9,7 @@ export const socialLinks: SocialLink[] = [
   { name: "YouTube", href: "https://www.youtube.com/@neriva_app", label: "Open NERIVA on YouTube", iconSrc: "/assets/social/youtube-full-color.svg" },
   { name: "Instagram", href: "https://www.instagram.com/neriva.ru", label: "Open NERIVA on Instagram", iconSrc: "/assets/social/instagram-logo-2022.svg" },
   { name: "TikTok", href: "https://tiktok.com/@nerivaru", label: "Open NERIVA on TikTok", iconSrc: "/assets/social/tiktok-icon.svg" },
-  { name: "Telegram", href: "https://t.me/NERIVAapp_bot", label: "Open NERIVA on Telegram", iconSrc: "/assets/social/telegram-logo.png" },
+  { name: "Telegram", href: "https://t.me/neriva_app", label: "Open NERIVA on Telegram", iconSrc: "/assets/social/telegram-logo.png" },
 ];
 
 export function SocialIconLinks({ className = "" }: { className?: string }) {
