@@ -1,5 +1,17 @@
 .env
 .env.local
+.env.*
+!.env.example
+# Local credentials and signing material — never commit these to the public repository.
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+key.properties
+local.properties
+.mimocode/
 tmp/
 .worktrees/
 .nx/
