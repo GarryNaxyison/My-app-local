@@ -6,7 +6,7 @@ Work in this repository by default: `E:\PROJECTS\New project\My app local`. Trea
 
 ## Mimo Delegation
 
-For routine delegated sub-tasks, use the locally installed Mimo CLI with the free default model `mimo/mimo-auto` (MiMo-V2.5, limited-time free), for example: `mimo run --model mimo/mimo-auto "<task>"`. The primary Codex agent remains the orchestrator: it defines the task, reviews Mimo output, validates changes, and makes final decisions. Keep Mimo agents read-only unless their file scope is explicitly isolated to prevent concurrent write conflicts.
+Always delegate routine sub-tasks to the locally installed Mimo CLI using the free default model `mimo/mimo-auto` (MiMo-V2.5, limited-time free), for example: `mimo run --model mimo/mimo-auto "<task>"`. The primary Codex agent remains the orchestrator: it defines the task, reviews Mimo output, validates changes, and makes final decisions. Keep Mimo agents read-only unless their file scope is explicitly isolated to prevent concurrent write conflicts.
 
 ## On-Demand MCP Usage
 
