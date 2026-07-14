@@ -4,6 +4,10 @@
 
 Work in this repository by default: `E:\PROJECTS\New project\My app local`. Treat the parent folder `E:\PROJECTS\New project` as a container unless the user explicitly asks to work there.
 
+## Mimo Delegation
+
+For routine delegated sub-tasks, use the locally installed Mimo CLI with the free default model `mimo/mimo-auto` (MiMo-V2.5, limited-time free), for example: `mimo run --model mimo/mimo-auto "<task>"`. The primary Codex agent remains the orchestrator: it defines the task, reviews Mimo output, validates changes, and makes final decisions. Keep Mimo agents read-only unless their file scope is explicitly isolated to prevent concurrent write conflicts.
+
 ## On-Demand MCP Usage
 
 Do not verify, start, or call MCP servers by default. Use MCP tools only when the current task directly needs that capability or local shell/file inspection is insufficient. Prefer local repository context first, and use `MCP_STARTUP.md` as an on-demand trigger map rather than a startup checklist.
