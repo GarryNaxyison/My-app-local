@@ -6702,7 +6702,7 @@ function RoleplayView({
               </Button>
               {busy === "roleplay" ? <Spinner size="small" /> : null}
             </div>
-            <div className="roleplay-dialog-scroll-v2">
+            <div className="roleplay-dialog-scroll-v2" data-testid="roleplay-output">
               {roleplayResult || sessionMessages.length ? (
                 <ChatPanel messages={sessionMessages} copy={copy} targetLanguage={user.learning_language} />
               ) : (
@@ -6720,7 +6720,7 @@ function RoleplayView({
               <span className="eyebrow">{copy("input", "Input")}</span>
               <h2>{copy("roleplay", "Roleplay")}</h2>
             </div>
-            <div className="composer-textarea-shell-v2">
+            <div className="composer-textarea-shell-v2" data-testid="roleplay-composer">
               <textarea
                 ref={roleplayTextareaRef}
                 value={draft}
@@ -6733,7 +6733,7 @@ function RoleplayView({
                   }
                 }}
               />
-              <Button className="composer-submit-v2 roleplay-submit-v2" type="button" onClick={() => void submitRoleplayAnswer(activeScenario, draft, voiceFile)} disabled={busy === "roleplay"} aria-label={copy("send", "Send")}>
+              <Button data-testid="roleplay-send" className="composer-submit-v2 roleplay-submit-v2" type="button" onClick={() => void submitRoleplayAnswer(activeScenario, draft, voiceFile)} disabled={busy === "roleplay"} aria-label={copy("send", "Send")}>
                 {busy === "roleplay" ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={17} />}
                 <span>{copy("send", "Send")}</span>
               </Button>
@@ -7337,7 +7337,7 @@ function PhraseQuickSave({
   copy: (key: string, fallback: string) => string;
 }) {
   return (
-    <section className="phrase-quick-save-v2">
+    <section className="phrase-quick-save-v2" data-testid="phrase-quick-save">
       <span className="eyebrow"><Bookmark size={14} />{copy("save_to_phrasebook", "Сохранить в заметки")}</span>
       <div className="phrase-quick-save-v2__chips">
         {candidates.slice(0, 4).map((item) => {
@@ -7564,6 +7564,9 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
   const description = mode === "words"
     ? copy("words_section_hint", "Choose the correct translation, listen to examples, and save useful phrases from new words.")
     : copy("word_game_section_hint", "Review learned words from memory and reinforce the ones that are easy to forget.");
+  const headline = result?.title || (challenge?.empty
+    ? copy("no_words_ready", "No words ready")
+    : challenge?.prompt || (busy ? copy("loading", "Loading...") : copy("start_new_round", "Start a new round")));
   useEffect(() => {
     if (!challenge && !result && !busy) void start();
   }, [mode, Boolean(challenge), Boolean(result), Boolean(busy)]);
@@ -7605,7 +7608,7 @@ function ChoiceTrainer({ mode, wordChallenge, wordResult, wordGameResult, startW
     <>
       <section className="v2-panel trainer-display">
         <span className="eyebrow">{title}</span>
-        <h2>{challenge?.empty ? copy("no_words_ready", "No words ready") : challenge?.prompt || (busy ? copy("loading", "Loading...") : copy("start_new_round", "Start a new round"))}</h2>
+        <h2>{headline}</h2>
         {!result ? <p>{challenge?.context || description}</p> : null}
         {canReportWord ? (
           <Button
@@ -7762,7 +7765,7 @@ function TrainerResultBox({
         />
       ) : null}
       {canAdvance ? (
-        <Button type="button" onClick={onNext}><ChevronRight size={17} />{copy("next_word", "Next")}</Button>
+        <Button data-testid="trainer-next-round" type="button" onClick={onNext}><ChevronRight size={17} />{copy("next_word", "Next")}</Button>
       ) : null}
       {(learnedWord || learnedExample) && savePhrase ? (
         <section className="phrase-quick-save-v2 trainer-word-save-v2">
@@ -8804,7 +8807,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setTo
           <span className="eyebrow">{copy("tools", "Tools")}</span>
           <h2>{toolMode === "translator" ? copy("quick_translator", "Quick translator") : toolMode === "voice" ? copy("voice_to_text", "Voice to text") : copy("photo_translation", "Photo translation")}</h2>
         </div>
-        <div className="tool-input-shell-v2">
+        <div className="tool-input-shell-v2" data-testid="tools-composer">
           <textarea
             ref={toolTextareaRef}
             value={draft}
@@ -8818,7 +8821,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setTo
             }}
             placeholder={toolMode === "translator" ? copy("paste_text_translate", "Paste text to translate") : copy("optional_context", "Optional context for the tool")}
           />
-          <Button className="tools-submit-v2" onClick={() => void submitTool()} disabled={toolSubmitDisabled}>
+          <Button data-testid="tools-send" className="tools-submit-v2" onClick={() => void submitTool()} disabled={toolSubmitDisabled}>
             {toolsBusy ? <Spinner size="small" className="button-spinner-v2" /> : <Send size={18} />}
             <span>{copy("send", "Send")}</span>
           </Button>

@@ -10093,26 +10093,40 @@ select {
     padding: 0 14px !important;
   }
 
+  .context-display--roleplay .roleplay-view-v2--mobile-session,
+  .context-display--roleplay .chat-workspace--roleplay,
+  .context-display--roleplay .chat-workspace--roleplay .chat-workspace__output,
+  .context-display--roleplay .roleplay-dialog-card-v2,
+  .context-display--roleplay .roleplay-dialog-scroll-v2 {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .context-display--roleplay .chat-workspace--roleplay,
   .context-display--roleplay .composer-textarea-shell-v2 {
-    grid-template-columns: minmax(0, 1fr) 56px !important;
-    align-items: start !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+    gap: 10px !important;
   }
 
   .context-display--roleplay .roleplay-submit-v2 {
     position: static !important;
-    justify-self: end !important;
-    align-self: start !important;
-    width: 56px !important;
-    min-width: 56px !important;
-    max-width: 56px !important;
-    height: 56px !important;
-    min-height: 56px !important;
-    padding: 0 !important;
+    justify-self: stretch !important;
+    align-self: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 48px !important;
+    padding: 0 14px !important;
     border-radius: 16px !important;
   }
 
   .context-display--roleplay .roleplay-submit-v2 span {
-    display: none !important;
+    display: inline !important;
   }
 
   .tools-work-v2 {
@@ -10276,7 +10290,7 @@ select {
   .context-display--tools .tool-input-shell-v2 {
     grid-template-rows: auto auto !important;
     align-items: stretch !important;
-    min-height: 196px !important;
+    min-height: 0 !important;
   }
 
   .context-display--tools .tool-input-shell-v2 textarea {
@@ -10295,6 +10309,42 @@ select {
 
   .context-display--tools .language-row-v2 {
     margin-top: 0 !important;
+  }
+
+  .context-display--tools .composer-panel-v2 .phrase-quick-save-v2,
+  .context-display--roleplay .phrase-quick-save-v2 {
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin-top: 8px !important;
+    padding-top: 10px !important;
+  }
+
+  .context-display--tools .phrase-quick-save-v2__chips,
+  .context-display--roleplay .phrase-quick-save-v2__chips {
+    flex-wrap: wrap !important;
+    overflow: visible !important;
+  }
+
+  .context-display--tools .phrase-quick-save-v2__chips button,
+  .context-display--roleplay .phrase-quick-save-v2__chips button {
+    max-width: 100% !important;
+  }
+
+  .context-display--words,
+  .context-display--word-game,
+  .context-display--spelling {
+    padding-bottom: 12px !important;
+  }
+
+  .context-display--words .trainer-display,
+  .context-display--word-game .trainer-display,
+  .context-display--spelling .trainer-display {
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    align-content: start !important;
+    padding-bottom: 12px !important;
   }
 
   .context-display--pronunciation .pronunciation-workbench-v2,

@@ -2874,12 +2874,13 @@ test("learn words result shows target word and saves word pair to notes", async 
 
   const result = page.locator(".trainer-result-v2");
   await expect(result).toBeVisible();
+  await expect(page.locator(".context-display--words .trainer-display > h2")).not.toHaveText(/Start a new round|Начните новый раунд/);
   await expect(result.locator(".trainer-correct-word-v2")).toContainText(targetWord);
   await expect(result).toContainText(targetTranslation);
   await expect(result).toContainText(targetWord === "apple" ? "\u042f \u043a\u0443\u043f\u0438\u043b \u044f\u0431\u043b\u043e\u043a\u043e." : "\u042f \u0443\u0441\u043f\u0435\u043b \u043d\u0430 \u043f\u043e\u0435\u0437\u0434.");
   await expect(result.locator(".record-details-v2")).toHaveCount(0);
 
-  const nextButton = result.getByRole("button", { name: new RegExp(ru("next_word", "Next")) });
+  const nextButton = result.getByTestId("trainer-next-round");
   const saveChips = result.locator(".trainer-word-save-v2 .phrase-quick-save-v2__chips button");
   const saveChip = saveChips.filter({ hasText: targetWord }).first();
   const exampleChip = saveChips.filter({ hasText: targetWord === "apple" ? "I bought an apple." : "I caught the train." }).first();
@@ -3276,24 +3277,29 @@ test("mobile roleplay session has readable scenario, dialogue and input without 
   await expect(page.locator(".roleplay-view-v2--session .roleplay-brief-v2")).toBeHidden();
   await expect(page.getByText(/ROLEPLAY DIALOGUE|Диалоговая сцена/)).toHaveCount(0);
   await expect(page.locator(".roleplay-dialog-head-v2 button")).toBeVisible();
-  await expect(page.locator(".roleplay-dialog-scroll-v2")).toBeVisible();
-  await expect(page.locator(".roleplay-dialog-scroll-v2")).not.toContainText("Short polite request.");
+  const roleplayOutput = page.getByTestId("roleplay-output");
+  const roleplayComposer = page.getByTestId("roleplay-composer");
+  const roleplaySend = page.getByTestId("roleplay-send");
+  await expect(roleplayOutput).toBeVisible();
+  await expect(roleplayOutput).not.toContainText("Short polite request.");
   await expect(page.locator(".roleplay-view-v2--session .composer-panel-v2")).toBeVisible();
-  await expect(page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea")).toBeVisible();
+  await expect(roleplayComposer.locator("textarea")).toBeVisible();
+  await expect(roleplaySend).toBeVisible();
   await expect(page.locator(".roleplay-composer-v2")).toHaveCount(0);
 
-  const dialog = await page.locator(".roleplay-dialog-scroll-v2").boundingBox();
+  const dialog = await roleplayOutput.boundingBox();
   const composer = await page.locator(".roleplay-view-v2--session .composer-panel-v2").boundingBox();
   expect(dialog).not.toBeNull();
   expect(composer).not.toBeNull();
   expect(composer!.y).toBeGreaterThan(dialog!.y + dialog!.height - 4);
 
-  await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").fill("Could you repeat that, please?");
-  await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").press("Enter");
+  await roleplayComposer.locator("textarea").fill("Could you repeat that, please?");
+  await roleplayComposer.locator("textarea").press("Enter");
   await expect(page.locator(".roleplay-dialog-scroll-v2").getByText("Short polite request.").first()).toBeVisible();
   const quickSave = page.locator(".roleplay-dialog-card-v2 .phrase-quick-save-v2");
   await expect(quickSave.locator("button").filter({ hasText: "Could you repeat that, please?" })).toBeVisible();
   await expect(quickSave.locator("button").filter({ hasText: "Short polite request." })).toHaveCount(0);
+  await page.locator(".context-display--roleplay").evaluate((node) => node.scrollTo(0, node.scrollHeight));
   const postAnswerMetrics = await page.locator(".roleplay-view-v2--mobile-session").evaluate((node) => {
     const panel = node.getBoundingClientRect();
     const composer = node.querySelector(".composer-panel-v2")?.getBoundingClientRect();
@@ -3696,15 +3702,17 @@ test("regression: mobile tools translator controls stack without overlap", async
   await expect(page.locator(".context-display--tools")).toBeVisible();
   await page.locator(".tool-switch-v2 button").first().click();
   await expect(page.locator(".tools-change-v2")).toBeVisible();
-  await expect(page.locator(".tools-submit-v2")).toBeDisabled();
-  await page.locator(".tool-input-shell-v2 textarea").click();
+  const toolsComposer = page.getByTestId("tools-composer");
+  const toolsSend = page.getByTestId("tools-send");
+  await expect(toolsSend).toBeDisabled();
+  await toolsComposer.locator("textarea").click();
   await expect(page.locator(".v2-status", { hasText: /Вставьте текст|Paste text/ })).toHaveCount(0);
   await page.locator(".composer-panel-v2 textarea").fill("Hello");
-  await expect(page.locator(".tools-submit-v2")).toBeEnabled();
+  await expect(toolsSend).toBeEnabled();
 
   const composer = await page.locator(".tools-work-v2 .composer-panel-v2").boundingBox();
-  const textarea = await page.locator(".tool-input-shell-v2 textarea").boundingBox();
-  const submit = await page.locator(".tools-submit-v2").boundingBox();
+  const textarea = await toolsComposer.locator("textarea").boundingBox();
+  const submit = await toolsSend.boundingBox();
   const languageRow = await page.locator(".language-row-v2").boundingBox();
   expect(composer).not.toBeNull();
   expect(textarea).not.toBeNull();
