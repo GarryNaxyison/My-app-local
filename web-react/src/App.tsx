@@ -88,6 +88,7 @@ import type {
 } from "./lib/types";
 import { asText, compactNumber, percent, prettyDate } from "./lib/format";
 import { appCopy, appNavDescription, cleanAppText, translateViewDetails } from "./lib/i18n";
+import { canonicalPhraseKey } from "./lib/phrasebook";
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
@@ -1798,7 +1799,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[], learningLanguage:
   }
   const seen = new Set<string>();
   return candidates.filter((item) => {
-    const key = item.phrase.toLowerCase();
+    const key = phrasebookKey(item.phrase);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -1806,7 +1807,7 @@ function phraseCandidatesFromMessages(messages: ChatMessage[], learningLanguage:
 }
 
 function phrasebookKey(value: string) {
-  return cleanAppText(value).replace(/\s+/g, " ").trim().toLowerCase();
+  return canonicalPhraseKey(cleanAppText(value));
 }
 
 function phraseLooksCompatibleWithLanguage(value: string, language: string) {

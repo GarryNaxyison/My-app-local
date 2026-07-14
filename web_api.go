@@ -26,6 +26,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"embed"
 )
@@ -2055,16 +2056,24 @@ func (api *webAPI) handleLessonAnswer(w http.ResponseWriter, r *http.Request) {
 	awardLessonXP := strings.TrimSpace(user.Mode) == "lesson"
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
-	raw, err := api.bot.openrouter.complete(r.Context(), feedbackPrompt(language, interfaceLanguage, user.Level, user.LastLessonPrompt, text), 0.3, 900)
-	if err != nil {
-		writeAPIError(w, http.StatusBadGateway, "Не получилось проверить ответ: "+err.Error())
-		return
+	feedback := ""
+	var mistakesJSON string
+	entries := []mistakeEntry{}
+	if !lessonAnswerMatchesOfferedPhrase(user.LastLessonPrompt, text) {
+		raw, err := api.bot.openrouter.complete(r.Context(), feedbackPrompt(language, interfaceLanguage, user.Level, user.LastLessonPrompt, text), 0.3, 900)
+		if err != nil {
+			writeAPIError(w, http.StatusBadGateway, "Не получилось проверить ответ: "+err.Error())
+			return
+		}
+		feedback, mistakesJSON = splitFeedbackAndMistakes(raw)
+		entries = parseMistakesJSON(mistakesJSON, time.Now().UTC())
+		if len(entries) == 0 && strings.TrimSpace(mistakesJSON) == "" {
+			entries = api.extractWebMistakes(r.Context(), user, language, interfaceLanguage, "lesson answer", user.LastLessonPrompt, text, feedback)
+		}
+	} else {
+		feedback = offeredLessonPhraseFeedback(interfaceLanguage)
 	}
-	feedback, mistakesJSON := splitFeedbackAndMistakes(raw)
-	entries := parseMistakesJSON(mistakesJSON, time.Now().UTC())
-	if len(entries) == 0 && strings.TrimSpace(mistakesJSON) == "" {
-		entries = api.extractWebMistakes(r.Context(), user, language, interfaceLanguage, "lesson answer", user.LastLessonPrompt, text, feedback)
-	}
+	entries = mistakesWrittenByLearner(entries, text)
 	if err := api.bot.store.addMistakes(user.TelegramID, user.LearningLanguage, entries); err != nil {
 		log.Printf("addMistakes (web lesson) for %d: %v", user.TelegramID, err)
 	}
@@ -2145,7 +2154,7 @@ func (api *webAPI) handlePractice(w http.ResponseWriter, r *http.Request) {
 	}
 	practiceMessage := practiceImageMessage(input.text, imageContext)
 	practiceHistory := trimPracticeHistory(append(user.PracticeHistory, practiceMessage), practiceMemoryLimit)
-	raw, err := api.bot.openrouter.complete(r.Context(), practicePrompt(language, interfaceLanguage, user.Level, practiceHistory, user.LearningFocus, user.PracticeCount), 0.6, 900)
+	raw, err := api.bot.openrouter.complete(r.Context(), practicePromptForWebInput(language, interfaceLanguage, user.Level, practiceHistory, user.LearningFocus, user.PracticeCount), 0.6, 900)
 	if err != nil {
 		writeAPIError(w, http.StatusBadGateway, "Не получилось ответить: "+err.Error())
 		return
@@ -2155,6 +2164,7 @@ func (api *webAPI) handlePractice(w http.ResponseWriter, r *http.Request) {
 	if len(entries) == 0 && strings.TrimSpace(mistakesJSON) == "" {
 		entries = api.extractWebMistakes(r.Context(), user, language, interfaceLanguage, "practice message", practiceMessage, input.text, reply)
 	}
+	entries = mistakesWrittenByLearner(entries, input.text)
 	if err := api.bot.store.addMistakes(user.TelegramID, user.LearningLanguage, entries); err != nil {
 		log.Printf("addMistakes (web practice) for %d: %v", user.TelegramID, err)
 	}
@@ -2184,6 +2194,61 @@ func (api *webAPI) handlePractice(w http.ResponseWriter, r *http.Request) {
 		"promoted_to":           promotedTo,
 		"user":                  api.userDTO(refreshed),
 	})
+}
+
+func practicePromptForWebInput(language learningLanguage, interfaceLanguage learningLanguage, level string, recentMessages []string, focus string, practiceCount int) []chatMessage {
+	if len(recentMessages) > 0 && strings.HasPrefix(strings.TrimSpace(recentMessages[len(recentMessages)-1]), "ROLEPLAY_TOOL_V2") {
+		return roleplayPrompt(language, interfaceLanguage, recentMessages[len(recentMessages)-1], focus)
+	}
+	return practicePrompt(language, interfaceLanguage, level, recentMessages, focus, practiceCount)
+}
+
+func normalizeLearningText(value string) string {
+	var normalized strings.Builder
+	separator := true
+	for _, char := range strings.ToLower(strings.TrimSpace(value)) {
+		if unicode.IsLetter(char) || unicode.IsNumber(char) {
+			normalized.WriteRune(char)
+			separator = false
+			continue
+		}
+		if !separator {
+			normalized.WriteByte(' ')
+			separator = true
+		}
+	}
+	return strings.TrimSpace(normalized.String())
+}
+
+func lessonAnswerMatchesOfferedPhrase(task string, answer string) bool {
+	normalizedAnswer := normalizeLearningText(answer)
+	return len(normalizedAnswer) >= 6 && strings.Contains(normalizeLearningText(task), normalizedAnswer)
+}
+
+func offeredLessonPhraseFeedback(interfaceLanguage learningLanguage) string {
+	switch interfaceLanguage.Code {
+	case "ru":
+		return "Отлично: вы повторили предложенную модельную фразу. Ошибок в ответе нет."
+	case "uk":
+		return "Чудово: ви повторили запропоновану модельну фразу. У відповіді немає помилок."
+	default:
+		return "Great job: you repeated the offered model phrase. There are no mistakes in your answer."
+	}
+}
+
+func mistakesWrittenByLearner(entries []mistakeEntry, learnerAnswer string) []mistakeEntry {
+	normalizedAnswer := normalizeLearningText(learnerAnswer)
+	if normalizedAnswer == "" {
+		return nil
+	}
+	filtered := make([]mistakeEntry, 0, len(entries))
+	for _, entry := range entries {
+		word := normalizeLearningText(entry.Word)
+		if word != "" && strings.Contains(normalizedAnswer, word) {
+			filtered = append(filtered, entry)
+		}
+	}
+	return filtered
 }
 
 func (api *webAPI) extractWebMistakes(ctx context.Context, user userState, language learningLanguage, interfaceLanguage learningLanguage, source string, task string, learnerAnswer string, feedback string) []mistakeEntry {

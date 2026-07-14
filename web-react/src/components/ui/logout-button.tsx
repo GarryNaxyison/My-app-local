@@ -44,8 +44,8 @@ export default function LogoutButton({ onConfirm, disabled, label, cancelLabel, 
             layoutId="logoutButton"
             onClick={() => handleClick(true)}
             whileTap={{ scale: 0.95 }}
-            style={{ pointerEvents: isAnimating || disabled ? "none" : "auto" }}
-            initial={{ backgroundColor: "#FFEDF1", filter: "blur(1px)", opacity: 1 }}
+            style={{ pointerEvents: isAnimating || disabled ? "none" : "auto", minWidth: iconOnly ? 44 : 104, minHeight: 44, visibility: "visible" }}
+            initial={{ backgroundColor: "#FE322A", filter: "blur(0px)", opacity: 1 }}
             animate={{ backgroundColor: "#FE322A", filter: "blur(0px)", opacity: 1 }}
             exit={{ backgroundColor: "#FFEDF1", filter: "blur(1px)", opacity: 0 }}
             className="logout-button-v2 flex items-center justify-center gap-2 overflow-hidden rounded-full px-5 py-3 text-white"
@@ -81,7 +81,7 @@ export default function LogoutButton({ onConfirm, disabled, label, cancelLabel, 
             layoutId="logoutButton"
             onClick={() => handleClick(false)}
             whileTap={{ scale: 0.95 }}
-            style={{ pointerEvents: isAnimating || disabled ? "none" : "auto" }}
+            style={{ pointerEvents: isAnimating || disabled ? "none" : "auto", minWidth: 44, minHeight: 44, visibility: "visible" }}
             initial={{ backgroundColor: "#FE322A", filter: "blur(1px)", opacity: 0 }}
             animate={{ backgroundColor: "#FFEDF1", filter: "blur(0px)", opacity: 1 }}
             exit={{ backgroundColor: "#FE322A", filter: "blur(1px)", opacity: 0 }}
@@ -111,7 +111,7 @@ export default function LogoutButton({ onConfirm, disabled, label, cancelLabel, 
             layoutId="logoutButton"
             onClick={() => handleClick(false)}
             whileTap={{ scale: 0.95 }}
-            style={{ pointerEvents: isAnimating || disabled ? "none" : "auto" }}
+            style={{ pointerEvents: isAnimating || disabled ? "none" : "auto", minWidth: 104, minHeight: 44, visibility: "visible" }}
             initial={{ backgroundColor: "#FE322A", filter: "blur(1px)", opacity: 0 }}
             animate={{ backgroundColor: "#FFEDF1", filter: "blur(0px)", opacity: 1 }}
             exit={{ backgroundColor: "#FE322A", filter: "blur(1px)", opacity: 0 }}

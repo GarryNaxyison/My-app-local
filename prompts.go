@@ -349,7 +349,7 @@ func roleplayPrompt(language learningLanguage, interfaceLanguage learningLanguag
 	if variationInstruction != "" {
 		payload += "\n" + variationInstruction
 	}
-	fallback := payload + "\n\nAfter the learner-facing roleplay answer, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of any learner mistakes if the payload includes a learner line; otherwise write []."
+	fallback := payload + "\n\nEvaluate only the exact text after `Learner line:` when that field exists. Never evaluate, correct, or contradict the scenario description, role labels, an offered example, or any earlier coach message. If the learner repeats an offered model phrase with only capitalization, spacing, or terminal-punctuation differences, return no mistakes.\n\nAfter the learner-facing roleplay answer, on a new line write exactly: ---MISTAKES---\nThen write a JSON array of any learner mistakes if the payload includes a learner line; otherwise write []."
 	return []chatMessage{
 		{Role: "system", Content: coachSystemPrompt(language, interfaceLanguage) + "\nYou are now inside the dedicated AI roleplay tool. Do not use the generic practice-chat structure unless the roleplay payload explicitly requests it."},
 		{

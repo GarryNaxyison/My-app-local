@@ -4445,3 +4445,91 @@ test("regression: mobile leaderboard stays readable above bottom menu", async ({
   expect(scrollMetrics.windowScrollY).toBe(0);
   expect(scrollMetrics.overflowX).toBeLessThanOrEqual(1);
 });
+
+test("regression: desktop 2048 canvas keeps workspaces full width and logout visible", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  await page.setViewportSize({ width: 2048, height: 1050 });
+
+  await page.goto("/app/?view=roleplay");
+  await expect(page.locator(".context-display--roleplay")).toBeVisible();
+  await expect(page.locator(".logout-button-v2")).toBeVisible();
+  const roleplayMetrics = await page.evaluate(() => {
+    const topbar = document.querySelector<HTMLElement>(".v2-topbar");
+    const context = document.querySelector<HTMLElement>(".context-display--roleplay");
+    const workspace = document.querySelector<HTMLElement>(".roleplay-view-v2");
+    const topbarBox = topbar?.getBoundingClientRect();
+    const contextBox = context?.getBoundingClientRect();
+    const workspaceBox = workspace?.getBoundingClientRect();
+    return {
+      topbarRight: topbarBox?.right || 0,
+      contextRight: contextBox?.right || 0,
+      contextWidth: contextBox?.width || 0,
+      contextHeight: context?.clientHeight || 0,
+      workspaceRight: workspaceBox?.right || 0,
+      workspaceWidth: workspaceBox?.width || 0,
+      workspaceHeight: workspaceBox?.height || 0,
+      viewportWidth: window.innerWidth,
+    };
+  });
+  expect(roleplayMetrics.topbarRight).toBeGreaterThanOrEqual(roleplayMetrics.viewportWidth - 8);
+  expect(roleplayMetrics.contextRight).toBeGreaterThanOrEqual(roleplayMetrics.viewportWidth - 16);
+  expect(roleplayMetrics.workspaceRight).toBeGreaterThanOrEqual(roleplayMetrics.contextRight - 28);
+  expect(roleplayMetrics.workspaceWidth).toBeGreaterThan(roleplayMetrics.contextWidth - 48);
+  expect(roleplayMetrics.workspaceHeight).toBeGreaterThan(roleplayMetrics.contextHeight * 0.94);
+
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: { ...sessionPayload.user, premium: true, plan: "premium", premium_until: "2027-01-01T00:00:00Z" },
+  };
+  await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".context-display--pronunciation")).toBeVisible();
+  await expect(page.locator(".pronunciation-dashboard-v2")).toBeVisible();
+  const pronunciationMetrics = await page.evaluate(() => {
+    const context = document.querySelector<HTMLElement>(".context-display--pronunciation");
+    const dashboard = document.querySelector<HTMLElement>(".pronunciation-dashboard-v2");
+    const contextBox = context?.getBoundingClientRect();
+    const dashboardBox = dashboard?.getBoundingClientRect();
+    return {
+      contextRight: contextBox?.right || 0,
+      dashboardRight: dashboardBox?.right || 0,
+      contextWidth: contextBox?.width || 0,
+      dashboardWidth: dashboardBox?.width || 0,
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+    };
+  });
+  expect(pronunciationMetrics.dashboardRight).toBeGreaterThanOrEqual(pronunciationMetrics.contextRight - 28);
+  expect(pronunciationMetrics.dashboardWidth).toBeGreaterThan(pronunciationMetrics.contextWidth - 48);
+  expect(pronunciationMetrics.documentWidth).toBeLessThanOrEqual(pronunciationMetrics.viewportWidth + 1);
+});
+
+test("regression: desktop captcha failure cannot create a horizontal login scroll", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop auth assertion");
+  await mockAnonymousAuth(page);
+  await page.setViewportSize({ width: 2048, height: 1050 });
+  await page.goto("/app/login");
+  await expect(page.locator("[data-testid='auth-captcha']")).toBeVisible();
+  await page.locator("[data-testid='auth-captcha']").evaluate((slot) => {
+    const iframe = document.createElement("iframe");
+    iframe.title = "captcha error fixture";
+    iframe.style.width = "960px";
+    iframe.style.height = "72px";
+    slot.append(iframe);
+  });
+  const metrics = await page.evaluate(() => {
+    const card = document.querySelector<HTMLElement>(".sign-in-page-v2__form-card");
+    const slot = document.querySelector<HTMLElement>("[data-testid='auth-captcha']");
+    return {
+      documentWidth: document.documentElement.scrollWidth,
+      viewportWidth: window.innerWidth,
+      cardOverflowX: card ? getComputedStyle(card).overflowX : "",
+      slotOverflowX: slot ? getComputedStyle(slot).overflowX : "",
+      iframeWidth: slot?.querySelector("iframe")?.getBoundingClientRect().width || 0,
+      slotWidth: slot?.getBoundingClientRect().width || 0,
+    };
+  });
+  expect(metrics.cardOverflowX).toBe("hidden");
+  expect(metrics.slotOverflowX).toBe("hidden");
+  expect(metrics.iframeWidth).toBeLessThanOrEqual(metrics.slotWidth + 1);
+  expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+});
