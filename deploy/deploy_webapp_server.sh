@@ -89,7 +89,18 @@ done < <(find "${VOCAB_SRC}" -maxdepth 1 -type f -name 'vocabulary_words*.json' 
 
 systemctl restart aibot.service
 systemctl is-active --quiet aibot.service
-curl -fsS --max-time 15 http://127.0.0.1:8080/healthz >/dev/null
+
+for attempt in {1..30}; do
+  if curl -fsS --max-time 5 http://127.0.0.1:8080/healthz >/dev/null; then
+    break
+  fi
+  if [[ "${attempt}" -eq 30 ]]; then
+    echo "local healthcheck did not become ready" >&2
+    exit 1
+  fi
+  sleep 2
+done
+
 curl -fsS --max-time 15 https://neriva.ru/healthz >/dev/null
 curl -fsS --max-time 15 https://neriva.ru/app/ >/dev/null
 
