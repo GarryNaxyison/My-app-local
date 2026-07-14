@@ -29,9 +29,6 @@ rollback() {
     rm -rf "${WEB_ROOT}"
     mv "${WEB_OLD}" "${WEB_ROOT}"
   fi
-  if compgen -G "${BACKUP_DIR}/vocabulary_words*.json" >/dev/null; then
-    cp -a "${BACKUP_DIR}"/vocabulary_words*.json "${APP_ROOT}/"
-  fi
   systemctl restart aibot.service || true
 }
 
@@ -56,7 +53,6 @@ fi
 if [[ -d "${WEB_ROOT}" ]]; then
   tar -czf "${BACKUP_DIR}/web.tgz" -C "${APP_ROOT}" web
 fi
-find "${APP_ROOT}" -maxdepth 1 -type f -name 'vocabulary_words*.json' -exec cp -a {} "${BACKUP_DIR}/" \;
 
 mkdir -p "${STAGING}/package"
 tar -xzf "${WEB_ARCHIVE}" -C "${STAGING}/package"
@@ -84,7 +80,12 @@ if [[ -d "${WEB_ROOT}" ]]; then
   mv "${WEB_ROOT}" "${WEB_OLD}"
 fi
 mv "${WEB_NEW}" "${WEB_ROOT}"
-find "${VOCAB_SRC}" -maxdepth 1 -type f -name 'vocabulary_words*.json' -exec install -m 0644 -o root -g root {} "${APP_ROOT}/" \;
+while IFS= read -r -d '' source; do
+  destination="${APP_ROOT}/$(basename "${source}")"
+  if [[ ! -f "${destination}" ]] || ! cmp -s "${source}" "${destination}"; then
+    install -m 0644 -o root -g root "${source}" "${destination}"
+  fi
+done < <(find "${VOCAB_SRC}" -maxdepth 1 -type f -name 'vocabulary_words*.json' -print0)
 
 systemctl restart aibot.service
 systemctl is-active --quiet aibot.service
