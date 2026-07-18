@@ -1,19 +1,8 @@
 package ru.neriva.app.ui
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookOnline
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Forum
-import androidx.compose.material.icons.filled.MenuBook
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -110,28 +99,19 @@ fun MainScaffold(
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
-                bottomNavItems.forEach { screen ->
-                    NavigationBarItem(
-                        icon = { Icon(screenIcon(screen), contentDescription = screen.title) },
-                        label = { Text(screen.title) },
-                        selected = current == screen.route,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                popUpTo(Screen.Home.route) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.MoreHoriz, contentDescription = "More") },
-                    label = { Text("More") },
-                    selected = showMoreSheet,
-                    onClick = { showMoreSheet = true }
-                )
-            }
+            ru.neriva.app.ui.components.BottomNavBar(
+                items = bottomNavItems,
+                currentRoute = current,
+                onNavigate = { screen ->
+                    navController.navigate(screen.route) {
+                        popUpTo(Screen.Home.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onMore = { showMoreSheet = true },
+                moreSelected = showMoreSheet,
+            )
         }
     ) { padding ->
         androidx.compose.foundation.layout.Box(modifier = Modifier.padding(padding)) {
@@ -154,10 +134,3 @@ fun MainScaffold(
     }
 }
 
-private fun screenIcon(screen: Screen) = when (screen) {
-    Screen.Home -> Icons.Default.Dashboard
-    Screen.Tutor -> Icons.Default.BookOnline
-    Screen.Practice -> Icons.Default.Forum
-    Screen.Words -> Icons.Default.MenuBook
-    else -> Icons.Default.ChevronRight
-}

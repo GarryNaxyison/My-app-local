@@ -13,8 +13,34 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 
 /**
+ * Centralised asset URL helpers — mirror the web app's `menuAssetUrl()`
+ * (web-react/src/App.tsx:9154) and ComfyUI asset generator output.
+ *
+ * URL pattern: /app/assets/icon-{slug}-{light|dark}.png?v={MENU_ASSET_VERSION}
+ *   - tutor → brand-logo-mini.png (no theme suffix, no icon- prefix)
+ *   - dashboard → progress slug
+ */
+internal const val MENU_ASSET_VERSION = "flux2-20260526-pronunciation-phrases-offline-roleplay"
+internal const val ASSETS_BASE = "https://neriva.ru/app/assets"
+
+/** Same slug mapping as the web app's `assetSlug()`. */
+fun assetSlug(viewId: String): String =
+    if (viewId == "dashboard") "progress" else viewId
+
+/**
+ * Build the server URL for a menu/nav icon — matches the web app exactly.
+ * `tutor` uses the brand mini-logo; everything else uses icon-{slug}-{theme}.
+ */
+fun menuAssetUrl(viewId: String, darkTheme: Boolean): String {
+    if (viewId == "tutor") return "$ASSETS_BASE/brand-logo-mini.png?v=$MENU_ASSET_VERSION"
+    val theme = if (darkTheme) "dark" else "light"
+    val slug = assetSlug(viewId)
+    return "$ASSETS_BASE/icon-$slug-$theme.png?v=$MENU_ASSET_VERSION"
+}
+
+/**
  * Loads an icon PNG from the NERIVA web assets CDN.
- * Web path: /app/assets/icon-{view}-{light|dark}.png
+ * Web path: /app/assets/icon-{view}-{light|dark}.png?v=...
  */
 @Composable
 fun ServerIcon(
@@ -24,8 +50,7 @@ fun ServerIcon(
     size: Dp = 28.dp,
     contentDescription: String? = null,
 ) {
-    val themeSuffix = if (darkTheme) "-dark" else "-light"
-    val url = "https://neriva.ru/app/assets/icon-$viewId$themeSuffix.png"
+    val url = menuAssetUrl(viewId, darkTheme)
     val ctx = LocalContext.current
     AsyncImage(
         model = ImageRequest.Builder(ctx).data(url).crossfade(true).build(),

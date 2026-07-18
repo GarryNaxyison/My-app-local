@@ -1,6 +1,6 @@
 package ru.neriva.app.ui.nav
 
-sealed class Screen(val route: String, val title: String) {
+sealed class Screen(val route: String, val title: String, val viewId: String = route) {
     data object Auth : Screen("auth", "Sign In")
     data object Onboarding : Screen("onboarding", "Setup")
     data object Home : Screen("home", "Today")
@@ -27,10 +27,10 @@ sealed class Screen(val route: String, val title: String) {
     data object Settings : Screen("settings", "Settings")
     data object Referral : Screen("referral", "Referral")
     data object BugReport : Screen("bug-report", "Bug Report")
-    data object CompletedLessons : Screen("completed-lessons", "Completed Lessons")
-    data object MistakePractice : Screen("mistake-practice", "Mistake Practice")
-    data object RoleplayScenarios : Screen("roleplay-scenarios", "Roleplay")
-    data object Dashboard : Screen("dashboard", "Dashboard")
+    data object CompletedLessons : Screen("completed-lessons", "Completed Lessons", viewId = "progress")
+    data object MistakePractice : Screen("mistake-practice", "Mistake Practice", viewId = "mistakes")
+    data object RoleplayScenarios : Screen("roleplay-scenarios", "Roleplay", viewId = "roleplay")
+    data object Dashboard : Screen("dashboard", "Dashboard", viewId = "progress")
 }
 
 val bottomNavItems = listOf(

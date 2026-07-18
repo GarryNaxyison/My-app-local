@@ -55,12 +55,10 @@ fun MoreSheet(
                 modifier = Modifier.heightIn(max = 480.dp)
             ) {
                 items(items) { screen ->
-                    val viewId = viewIdForScreen(screen.route)
-                    val fallback = iconForScreen(screen.route)
                     MoreTile(
                         title = screen.title,
-                        viewId = viewId,
-                        fallback = fallback,
+                        viewId = screen.viewId,
+                        fallback = iconForScreen(screen.viewId),
                         darkTheme = darkTheme,
                     ) { onSelect(screen) }
                 }
@@ -69,32 +67,8 @@ fun MoreSheet(
     }
 }
 
-/** Map screen routes to web view IDs for icon loading. */
-private fun viewIdForScreen(route: String) = when (route) {
-    "roleplay" -> "roleplay"
-    "pronunciation" -> "pronunciation"
-    "shadowing" -> "shadowing"
-    "spelling" -> "spelling"
-    "word-game" -> "word-game"
-    "vocabulary" -> "vocabulary"
-    "phrasebook" -> "phrasebook"
-    "offline" -> "offline"
-    "level-test" -> "level"
-    "progress" -> "progress"
-    "awards" -> "awards"
-    "leaderboard" -> "leaderboard"
-    "limits" -> "limits"
-    "mistakes" -> "mistakes"
-    "tools" -> "tools"
-    "premium" -> "premium"
-    "settings" -> "settings"
-    "referral" -> "referral"
-    "bug-report" -> "progress"
-    else -> "tools"
-}
-
-/** Map screen routes to Material icons for fallback. */
-private fun iconForScreen(route: String): ImageVector = when (route) {
+/** Material fallback icons keyed by web app viewId. */
+private fun iconForScreen(viewId: String): ImageVector = when (viewId) {
     "roleplay" -> Icons.Default.TheaterComedy
     "pronunciation" -> Icons.Default.Mic
     "shadowing" -> Icons.Default.RecordVoiceOver
@@ -103,7 +77,7 @@ private fun iconForScreen(route: String): ImageVector = when (route) {
     "vocabulary" -> Icons.Default.MenuBook
     "phrasebook" -> Icons.Default.Bookmarks
     "offline" -> Icons.Default.WifiOff
-    "level-test" -> Icons.Default.Assessment
+    "level" -> Icons.Default.Assessment
     "progress" -> Icons.Default.BarChart
     "awards" -> Icons.Default.EmojiEvents
     "leaderboard" -> Icons.Default.Leaderboard
@@ -166,8 +140,7 @@ fun ServerOrFallbackIcon(
     contentDescription: String?,
     tint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
 ) {
-    val themeSuffix = if (darkTheme) "-dark" else "-light"
-    val url = "https://neriva.ru/app/assets/icon-$viewId$themeSuffix.png"
+    val url = ru.neriva.app.ui.components.menuAssetUrl(viewId, darkTheme)
     val ctx = LocalContext.current
     Box(modifier = Modifier.size(size), contentAlignment = Alignment.Center) {
         Icon(imageVector = fallback, contentDescription = contentDescription, tint = tint, modifier = Modifier.size(size))
@@ -179,8 +152,8 @@ fun ServerOrFallbackIcon(
             loading = { },
             error = { },
             success = { state ->
-                AsyncImage(
-                    model = state.painter,
+                androidx.compose.foundation.Image(
+                    painter = state.painter,
                     contentDescription = contentDescription,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.size(size),
