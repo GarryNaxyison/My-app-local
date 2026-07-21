@@ -3386,6 +3386,43 @@ test("regression: roleplay accepts a voice answer and shows the transcript", asy
   expect(roleplayUploadSeen).toBe(true);
 });
 
+test("regression: every roleplay scenario starts and sends its own scenario prompt", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop interaction assertion");
+  const prompts: string[] = [];
+  await page.unroute("**/api/practice");
+  await page.route("**/api/practice", async (route) => {
+    const body = JSON.parse(route.request().postData() || "{}") as { text?: string };
+    prompts.push(body.text || "");
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        explanation: "Scenario reply is ready.",
+        correction_audio_text: "Scenario reply is ready.",
+      }),
+    });
+  });
+
+  await page.goto("/app/?view=roleplay");
+  const cards = page.locator(".roleplay-grid-v2 button");
+  await expect(cards).toHaveCount(roleplayScenarioIds.length);
+
+  for (let index = 0; index < roleplayScenarioIds.length; index += 1) {
+    await cards.nth(index).click();
+    await expect(page.locator(".roleplay-view-v2--desktop-session")).toBeVisible();
+    const answer = `Scenario answer ${index + 1}`;
+    await page.locator(".roleplay-view-v2--session .composer-textarea-shell-v2 textarea").fill(answer);
+    await page.locator(".roleplay-submit-v2").click();
+    await expect(page.locator(".roleplay-dialog-scroll-v2")).toContainText("Scenario reply is ready.");
+    await page.locator(".roleplay-dialog-head-v2 button").click();
+    await expect(cards).toHaveCount(roleplayScenarioIds.length);
+  }
+
+  expect(prompts).toHaveLength(roleplayScenarioIds.length);
+  expect(prompts.every((prompt, index) => prompt.includes("ROLEPLAY_TOOL_V2") && prompt.includes(`Learner line: Scenario answer ${index + 1}`))).toBe(true);
+  expect(new Set(prompts.map((prompt) => prompt.match(/^Scenario: (.+)$/m)?.[1] || "")).size).toBe(roleplayScenarioIds.length);
+});
+
 test("regression: roleplay quick save offers separate useful reply sentences", async ({ page, isMobile }) => {
   test.skip(isMobile, "desktop interaction assertion");
   await page.unroute("**/api/practice");
