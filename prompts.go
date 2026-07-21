@@ -287,6 +287,7 @@ func practicePrompt(language learningLanguage, interfaceLanguage learningLanguag
 		variationInstruction +
 		"Use the recent learner messages as short context, but answer the latest message. " +
 		"Reply mostly in " + interfaceLanguage.NativeName + " with one short " + language.NativeName + " phrase or question. " +
+		"First check whether the latest learner message is a complete, grammatical sentence. If it is a fragment, never praise it as correct: say that it is incomplete, show one complete natural version, and include that issue in the mistakes JSON. " +
 		"If there are mistakes, briefly correct only the most useful one in " + interfaceLanguage.NativeName + "; if a previous mistake or weak phrase appears in the recent context, recycle it naturally once. " +
 		"Keep the learner speaking: model one natural chunk, then ask for one small answer that reuses it. " +
 		"The " + labels.ModelPhrase + " block must contain only one clean " + language.NativeName + " sentence for pronunciation. Do not add translations, transliteration, explanations, or parenthesized interface-language text inside that block. " +

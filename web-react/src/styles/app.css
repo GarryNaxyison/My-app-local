@@ -10499,4 +10499,48 @@ select {
   .payment-back-v2 {
     min-width: 44px;
   }
+
+  /* Keep long audio, notes, and roleplay readable inside their own panels. */
+  .audio-wave-button-v2__text {
+    display: block !important;
+    max-height: 5.2em;
+    padding-right: 4px;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-line-clamp: unset !important;
+    -webkit-box-orient: initial !important;
+  }
+
+  .tutor-note-strip-v2 {
+    align-items: stretch;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .tutor-note-strip-v2__chips {
+    flex-direction: column;
+    align-items: stretch;
+    max-height: min(28dvh, 220px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    white-space: normal;
+  }
+
+  .tutor-note-strip-v2__chips button {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .context-display--roleplay:has(.roleplay-view-v2--mobile-session) {
+    overflow-y: hidden !important;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-dialog-scroll-v2 {
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }

@@ -7248,19 +7248,18 @@ function ChatWorkView({
           )}
         </div>
       ) : null}
-      <section className="v2-panel composer-panel-v2">
-        {isShadowing && shadowingTarget ? (
-          <div className="task-box-v2">
-            <span>{copy("spoken_model", "Spoken model")}</span>
-            <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget, showText: false }]} />
-            <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
-              <ChevronRight size={16} />
-              {copy("next_phrase", "Next phrase")}
-            </Button>
-          </div>
-        ) : null}
-        {!lessonComposerLocked ? (
-          <>
+      {!lessonComposerLocked ? (
+        <section className="v2-panel composer-panel-v2">
+          {isShadowing && shadowingTarget ? (
+            <div className="task-box-v2">
+              <span>{copy("spoken_model", "Spoken model")}</span>
+              <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget, showText: false }]} />
+              <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
+                <ChevronRight size={16} />
+                {copy("next_phrase", "Next phrase")}
+              </Button>
+            </div>
+          ) : null}
             <div className="panel-head composer-panel-head-v2">
               <span className="eyebrow">{copy("input", "Input")}</span>
               <h2>{isLesson ? copy("lesson_answer", "Lesson answer") : isPractice ? copy("practice", "Practice") : copy("listening_answer", "Listening answer")}</h2>
@@ -7285,9 +7284,8 @@ function ChatWorkView({
             </div>
             <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
             {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
-          </>
-        ) : null}
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 }

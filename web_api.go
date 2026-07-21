@@ -2120,6 +2120,10 @@ func (api *webAPI) handlePractice(w http.ResponseWriter, r *http.Request) {
 	}
 	language := userLearningLanguage(user)
 	interfaceLanguage := userInterfaceLanguage(user)
+	if !input.fromVoice && len(input.imageBytes) == 0 && practiceInputNeedsCompleteSentence(input.text, language) {
+		writeAPIError(w, http.StatusBadRequest, practiceCompleteSentenceMessage(interfaceLanguage))
+		return
+	}
 	imageContext := ""
 	if len(input.imageBytes) > 0 {
 		if api.bot.openrouter == nil {
@@ -3772,6 +3776,43 @@ type webPracticeInput struct {
 	pronunciation *pronunciationAssessment
 	imageBytes    []byte
 	imageName     string
+}
+
+// practiceInputNeedsCompleteSentence rejects only obvious English fragments before
+// they can be mistakenly praised by the generative practice response. Other
+// languages remain model-checked because a reliable finite-verb heuristic is
+// language-specific.
+func practiceInputNeedsCompleteSentence(text string, language learningLanguage) bool {
+	if language.Code != "en" {
+		return false
+	}
+	words := strings.Fields(strings.ToLower(strings.TrimSpace(text)))
+	if len(words) < 3 || strings.ContainsAny(text, "?!") {
+		return false
+	}
+	finiteVerbs := map[string]struct{}{
+		"am": {}, "are": {}, "is": {}, "was": {}, "were": {}, "be": {}, "been": {}, "being": {},
+		"have": {}, "has": {}, "had": {}, "do": {}, "does": {}, "did": {}, "can": {}, "could": {},
+		"will": {}, "would": {}, "shall": {}, "should": {}, "may": {}, "might": {}, "must": {},
+		"go": {}, "goes": {}, "went": {}, "come": {}, "comes": {}, "came": {}, "want": {}, "wants": {},
+		"like": {}, "likes": {}, "liked": {}, "need": {}, "needs": {}, "needed": {}, "live": {}, "lives": {},
+		"work": {}, "works": {}, "worked": {}, "stay": {}, "stays": {}, "stayed": {}, "visit": {}, "visited": {},
+		"travel": {}, "traveled": {}, "walk": {}, "walked": {}, "meet": {}, "met": {}, "think": {}, "thought": {},
+	}
+	for _, word := range words {
+		word = strings.Trim(word, ".,;:()[]{}")
+		if _, ok := finiteVerbs[word]; ok {
+			return false
+		}
+	}
+	return true
+}
+
+func practiceCompleteSentenceMessage(interfaceLanguage learningLanguage) string {
+	if interfaceLanguage.Code == "ru" {
+		return "Пожалуйста, напишите законченное предложение: в этой фразе нет сказуемого."
+	}
+	return "Please write a complete sentence: this phrase has no verb."
 }
 
 func (api *webAPI) readPracticeInput(w http.ResponseWriter, r *http.Request, user userState) (webPracticeInput, bool) {

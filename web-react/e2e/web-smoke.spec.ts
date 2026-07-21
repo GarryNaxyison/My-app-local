@@ -2509,6 +2509,7 @@ test("regression: lesson tab keeps one active task until the learner submits", a
   await page.locator(".context-display--lesson").getByRole("button", { name: /Отправить|Send/ }).click();
   await expect(page.locator(".context-display--lesson")).toContainText("Use under the name for reservations.");
   await expect(page.locator(".context-display--lesson textarea")).toHaveCount(0);
+  await expect(page.locator(".context-display--lesson .composer-panel-v2")).toHaveCount(0);
   const panelNextButton = page.locator(".context-display--lesson .lesson-panel-next-v2");
   await expect(panelNextButton).toBeVisible();
   await expect(panelNextButton).toContainText("Следующий урок");
@@ -2602,6 +2603,26 @@ test("regression: mobile composer and recording controls expose clear labels", a
   const checkButton = page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Проверить|Check/ }).first();
   await expect(checkButton).toBeVisible();
   await expect(checkButton).toContainText("Проверить");
+});
+
+test("regression: mobile audio text, notes, and roleplay keep their own readable scroll areas", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  await page.goto("/app/?view=lesson");
+  await page.locator(".lesson-empty-v2 button").click();
+
+  const audioText = page.locator(".audio-wave-button-v2__text").first();
+  await expect(audioText).toBeVisible();
+  const audioTextStyle = await audioText.evaluate((node) => getComputedStyle(node).webkitLineClamp);
+  expect(audioTextStyle).toBe("none");
+
+  await page.goto("/app/?view=roleplay");
+  await page.locator(".roleplay-grid-v2 button").first().click();
+  await expect(page.locator(".roleplay-dialog-scroll-v2")).toBeVisible();
+  const roleplayScroll = page.locator(".roleplay-dialog-scroll-v2");
+  const roleplayStyle = await roleplayScroll.evaluate((node) => getComputedStyle(node).overflowY);
+  expect(roleplayStyle).toBe("auto");
+  const contextStyle = await page.locator(".context-display--roleplay").evaluate((node) => getComputedStyle(node).overflowY);
+  expect(contextStyle).toBe("hidden");
 });
 
 test("regression: mobile XP gain notice stays compact", async ({ page, isMobile }) => {

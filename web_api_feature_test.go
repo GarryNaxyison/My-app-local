@@ -1220,6 +1220,29 @@ func TestWebLessonAndPracticeFallbackPersistMistakes(t *testing.T) {
 	}
 }
 
+func TestWebPracticeRejectsObviousEnglishPhraseFragments(t *testing.T) {
+	api, _, cookie := newTestWebAPI(t)
+	modelCalls := 0
+	api.bot.openrouter = newOpenRouterClient("test-key", "practice-model", "http://localhost", "test", &http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			modelCalls++
+			return nil, io.EOF
+		}),
+	})
+
+	status, response := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/practice", map[string]any{"text": "beach in Spain"})
+	if status != http.StatusBadRequest {
+		t.Fatalf("practice fragment status = %d, want %d: %#v", status, http.StatusBadRequest, response)
+	}
+	errorPayload, _ := response["error"].(map[string]any)
+	if message, _ := errorPayload["message"].(string); !strings.Contains(message, "законченное предложение") {
+		t.Fatalf("practice fragment error = %#v, want a complete-sentence explanation", response)
+	}
+	if modelCalls != 0 {
+		t.Fatalf("practice fragment called the model %d times", modelCalls)
+	}
+}
+
 func TestWebPhrasebookAutoTranslatesEmptyNote(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	api.cfg.OpenRouterTranslatorModel = "translator-test"
