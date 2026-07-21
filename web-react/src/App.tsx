@@ -1242,16 +1242,23 @@ function pronunciationStorageKey(session: SessionData, user: UserProfile) {
 }
 
 function pronunciationFingerprint(report: PronunciationAssessment) {
-  const words = (report.problem_words || [])
-    .map((item) => `${cleanPronunciationWord(item.word)}:${cleanPronunciationWord(item.spoken)}:${asText(item.issue, "")}`)
-    .join("|");
-  return [
-    cleanAppText(report.expected),
-    cleanAppText(report.spoken),
-    normalizedPronunciationScore(report),
-    cleanAppText(report.feedback),
-    words,
-  ].join("::");
+  return JSON.stringify({
+    expected: cleanAppText(report.expected),
+    spoken: cleanAppText(report.spoken),
+    score: normalizedPronunciationScore(report),
+    feedback: cleanAppText(report.feedback),
+    problemWords: (report.problem_words || []).map((item) => ({
+      word: cleanPronunciationWord(item.word),
+      spoken: cleanPronunciationWord(item.spoken),
+      issue: asText(item.issue, ""),
+      tip: asText(item.tip, ""),
+    })),
+    phonemeIssues: report.phoneme_issues || [],
+    stress: cleanAppText(report.stress),
+    rhythm: cleanAppText(report.rhythm),
+    intonation: cleanAppText(report.intonation),
+    tips: (report.tips || []).map((tip) => cleanAppText(tip)),
+  });
 }
 
 function readPronunciationHistory(key: string): StoredPronunciationAssessment[] {
@@ -6801,6 +6808,10 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
   const fallbackWords: PronunciationProblem[] = mistakes.slice(0, 8).map((item) => ({ word: item.word || item.correction || "", issue: item.explanation || copy("mistake", "Mistake") }));
   const tokens = compactPronunciationMap(uniquePronunciationProblems(problemWords.length ? problemWords : fallbackWords), user, copy);
   const focusItems = pronunciationFocusItems(tokens, copy);
+  const mapTips = Array.from(new Set(reports
+    .flatMap((report) => recordList(report.tips))
+    .map((tip) => localizePronunciationCoachText(tip, user, copy))
+    .filter(Boolean)));
   const [practiceResult, setPracticeResult] = useState<PronunciationAssessment | null>(null);
   useEffect(() => {
     if (!pronunciationTarget && !busy) void startPronunciation();
@@ -6888,6 +6899,12 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
             </span>
           ))}
         </div>
+        {mapTips.length ? (
+          <div className="pronunciation-map-tips-v2">
+            <strong>{copy("pronunciation_tips", "Tips")}</strong>
+            {mapTips.map((tip) => <span key={tip}>{tip}</span>)}
+          </div>
+        ) : null}
       </section>
       <section className="v2-panel pronunciation-history-v2">
         <span className="eyebrow"><Clock size={15} />{copy("history", "History")}</span>
@@ -7253,7 +7270,7 @@ function ChatWorkView({
           {isShadowing && shadowingTarget ? (
             <div className="task-box-v2">
               <span>{copy("spoken_model", "Spoken model")}</span>
-              <AudioActionRow clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget, showText: false }]} />
+              <AudioActionRow compact clips={[{ label: copy("spoken_model", "Spoken model"), text: shadowingTarget, showText: false }]} />
               <Button className="task-box-v2__next" variant="outline" size="sm" type="button" onClick={() => void startShadowing()} disabled={busy === "shadowing"}>
                 <ChevronRight size={16} />
                 {copy("next_phrase", "Next phrase")}
@@ -7469,7 +7486,7 @@ function RecordDetails({
   );
 }
 
-function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string; showText?: boolean }> }) {
+function AudioActionRow({ clips, compact = false }: { clips: Array<{ label: string; text: string; wordId?: string; targetLanguage?: string; showText?: boolean }>; compact?: boolean }) {
   const uniqueClips = clips
     .map((clip) => {
       const generic = /^(Раздел|Section|Mục)$/i.test(cleanAppText(clip.label));
@@ -7482,8 +7499,8 @@ function AudioActionRow({ clips }: { clips: Array<{ label: string; text: string;
   if (!uniqueClips.length) return null;
   return (
     <div className="audio-action-row-v2">
-      {uniqueClips.map((clip, index) => (
-        <AudioWaveButton key={`${clip.label}-${clip.wordId || clip.text || index}-${clip.targetLanguage || ""}`} label={clip.label} text={clip.text} wordId={clip.wordId} targetLanguage={clip.targetLanguage} showText={clip.showText} />
+      {uniqueClips.map((clip) => (
+        <AudioWaveButton key={`${clip.label}-${clip.wordId || clip.text}-${clip.targetLanguage || ""}`} label={clip.label} text={clip.text} wordId={clip.wordId} targetLanguage={clip.targetLanguage} showText={clip.showText} compact={compact} />
       ))}
     </div>
   );

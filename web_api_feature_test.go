@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -842,6 +843,38 @@ func TestWebTranslatorSpeechRequiresPaidAudioBudget(t *testing.T) {
 	}
 	if user.VoiceToday != 1 {
 		t.Fatalf("premium audio budget used = %d; want 1", user.VoiceToday)
+	}
+}
+
+func TestWebTranslatorSpeechRetriesProviderOnceThenReturnsAudio(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	api.cfg.OpenRouterTTSModel = "google/gemini-3.1-flash-tts-preview"
+	api.bot.cfg = api.cfg
+	if _, err := store.extendPremium(-42, "test-premium-audio-retry", 24*time.Hour, "premium"); err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	api.bot.openrouter = newOpenRouterClient("test-key", "google/gemini-3.1-flash", "http://localhost", "test", &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		calls++
+		if calls == 1 {
+			return nil, errors.New("temporary upstream failure")
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{"Content-Type": []string{"audio/wav"}},
+			Body:       io.NopCloser(bytes.NewReader(wrapPCM16LEAsWAV([]byte{0x01, 0x02}, 24000, 1))),
+		}, nil
+	})})
+
+	body, code := requestRaw(t, api, cookie, http.MethodPost, "/api/tools/translator-speech", map[string]any{"text": "Hello", "target_language": "en"})
+	if code != http.StatusOK {
+		t.Fatalf("translator speech status = %d, want %d", code, http.StatusOK)
+	}
+	if calls != 2 {
+		t.Fatalf("provider calls = %d, want 2", calls)
+	}
+	if len(body) == 0 {
+		t.Fatal("translator speech returned empty audio")
 	}
 }
 

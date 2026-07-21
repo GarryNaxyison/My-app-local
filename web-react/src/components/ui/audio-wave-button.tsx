@@ -101,7 +101,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
       setLoading(false);
     }
   };
-  const visibleLabel = error ? "Audio unavailable" : loading ? "Loading..." : label;
+  const visibleLabel = error ? "Retry audio" : loading ? "Loading..." : label;
   const visibleText = showText ? text.trim() : "";
 
   return (

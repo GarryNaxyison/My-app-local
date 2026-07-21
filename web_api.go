@@ -2565,7 +2565,7 @@ func (api *webAPI) handleWordPronunciation(w http.ResponseWriter, r *http.Reques
 		writePronunciationAudio(w, word, audio)
 		return
 	}
-	audio, err := api.bot.openrouter.synthesizeSpeech(r.Context(), api.cfg.OpenRouterTTSModel, api.cfg.OpenRouterTTSVoice, word.English)
+	audio, err := api.synthesizeSpeechWithRetry(r.Context(), word.English)
 	if err != nil {
 		writeAPIError(w, http.StatusBadGateway, "Не получилось озвучить слово: "+err.Error())
 		return
@@ -3618,7 +3618,7 @@ func (api *webAPI) handleToolTranslatorSpeech(w http.ResponseWriter, r *http.Req
 		writeToolAudio(w, "translation.mp3", audio)
 		return
 	}
-	audio, err := api.bot.openrouter.synthesizeSpeech(r.Context(), api.cfg.OpenRouterTTSModel, api.cfg.OpenRouterTTSVoice, text)
+	audio, err := api.synthesizeSpeechWithRetry(r.Context(), text)
 	if err != nil {
 		writeAPIError(w, http.StatusBadGateway, "Не получилось озвучить перевод: "+err.Error())
 		return
@@ -3638,6 +3638,22 @@ func userLearnedWord(user userState, wordID string) bool {
 		}
 	}
 	return false
+}
+
+func (api *webAPI) synthesizeSpeechWithRetry(ctx context.Context, text string) ([]byte, error) {
+	var lastErr error
+	for attempt := 0; attempt < 2; attempt++ {
+		audio, err := api.bot.openrouter.synthesizeSpeech(ctx, api.cfg.OpenRouterTTSModel, api.cfg.OpenRouterTTSVoice, text)
+		if err == nil && len(audio) > 0 {
+			return audio, nil
+		}
+		if err != nil {
+			lastErr = err
+		} else {
+			lastErr = errors.New("tts provider returned empty audio")
+		}
+	}
+	return nil, lastErr
 }
 
 func (api *webAPI) cachedPronunciation(key string) ([]byte, bool) {

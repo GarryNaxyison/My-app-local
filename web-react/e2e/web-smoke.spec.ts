@@ -776,7 +776,15 @@ test("app shell embeds branded loader before JavaScript hydrates", () => {
 
 test("PWA service worker cache is bumped for the current offline deck release", () => {
   const worker = readFileSync("public/offline-deck-sw.js", "utf8");
-  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-offline-decks-20260624-tutor-copy"');
+  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-static-shell-20260721"');
+});
+
+test("PWA caches static app assets without caching API responses", () => {
+  const worker = readFileSync("public/offline-deck-sw.js", "utf8");
+  expect(worker).toContain('if (url.pathname.startsWith("/api/")) return;');
+  expect(worker).toContain("function isStaticAsset(request, url)");
+  expect(worker).toContain("caches.match(request).then((cached) => cached || fetchAndCache(request))");
+  expect(worker).toContain("precacheAppShell");
 });
 
 test("v2 required labels are localized for all 35 interface languages", () => {
@@ -2605,6 +2613,14 @@ test("regression: mobile composer and recording controls expose clear labels", a
   await expect(checkButton).toContainText("Проверить");
 });
 
+test("regression: mobile listening uses one compact spoken-model player", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  usePremiumSession();
+  await page.goto("/app/?view=shadowing");
+  await expect(page.locator(".context-display--shadowing .task-box-v2 .audio-wave-button-v2.is-compact")).toBeVisible();
+  await expect(page.locator(".context-display--shadowing .task-box-v2 .audio-wave-button-v2")).toHaveCount(1);
+});
+
 test("regression: mobile audio text, notes, and roleplay keep their own readable scroll areas", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=lesson");
@@ -4057,6 +4073,27 @@ test("regression: audio buttons show a loading status while speech is generated"
   await expect(audioButton).not.toContainText(/Загрузка|Loading/);
 });
 
+test("regression: audio buttons offer a retry after a server failure", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: () => Promise.resolve() });
+  });
+  let attempts = 0;
+  await page.unroute("**/api/tools/translator-speech");
+  await page.route("**/api/tools/translator-speech", async (route) => {
+    attempts += 1;
+    await route.fulfill(attempts === 1
+      ? { status: 502, contentType: "application/json", body: JSON.stringify({ error: "TTS failed" }) }
+      : { status: 200, contentType: "audio/mpeg", body: Buffer.from("test-audio") });
+  });
+  await page.goto("/app/?view=phrasebook");
+  const audioButton = page.locator(".phrasebook-card-v2 .audio-wave-button-v2").first();
+  await audioButton.click();
+  await expect(audioButton).toContainText("Retry audio");
+  await audioButton.click();
+  await expect.poll(() => attempts).toBe(2);
+  await expect(audioButton).not.toContainText("Retry audio");
+});
+
 test("regression: pronunciation history normalizes over-limit score", async ({ page }) => {
   usePremiumSession();
   await page.addInitScript(() => {
@@ -4074,6 +4111,32 @@ test("regression: pronunciation history normalizes over-limit score", async ({ p
   await expect(page.locator(".pronunciation-score-v2")).toContainText("22/100");
   await expect(page.locator(".pronunciation-history-v2")).toContainText("22/100");
   await expect(page.locator(".pronunciation-history-v2")).not.toContainText("222/100");
+});
+
+test("regression: pronunciation map keeps distinct advice for otherwise matching attempts", async ({ page }) => {
+  usePremiumSession();
+  await page.addInitScript(() => {
+    localStorage.setItem("poliglot-pronunciation-v2:demor22", JSON.stringify([
+      {
+        expected: "Can we meet earlier?",
+        spoken: "Can we meet earlier?",
+        score: 70,
+        tips: ["Keep the final consonant clear."],
+        createdAt: "2026-07-21T10:00:00.000Z",
+      },
+      {
+        expected: "Can we meet earlier?",
+        spoken: "Can we meet earlier?",
+        score: 70,
+        tips: ["Link meet and earlier smoothly."],
+        createdAt: "2026-07-21T10:01:00.000Z",
+      },
+    ]));
+  });
+  await page.goto("/app/?view=pronunciation");
+  await expect(page.locator(".pronunciation-history-v2__rows > div")).toHaveCount(2);
+  await expect(page.locator(".pronunciation-map-tips-v2")).toContainText("Keep the final consonant clear.");
+  await expect(page.locator(".pronunciation-map-tips-v2")).toContainText("Link meet and earlier smoothly.");
 });
 
 test("regression: auth language menu is layered above privacy and captcha blocks", async ({ page }) => {
