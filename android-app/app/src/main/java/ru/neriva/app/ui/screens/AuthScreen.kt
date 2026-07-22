@@ -1,10 +1,13 @@
 package ru.neriva.app.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -20,16 +23,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ru.neriva.app.NERIVAApp
+import ru.neriva.app.ThemeManager
 import ru.neriva.app.ui.components.AnimatedBackground
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthScreen(onAuthSuccess: () -> Unit) {
+fun AuthScreen(
+    onAuthSuccess: () -> Unit,
+    onThemeChange: (ThemeManager.ThemeMode) -> Unit = {},
+    currentThemeMode: ThemeManager.ThemeMode = ThemeManager.ThemeMode.SYSTEM,
+) {
     val app = NERIVAApp.instance
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val systemDark = isSystemInDarkTheme()
+    val darkTheme = when (currentThemeMode) {
+        ThemeManager.ThemeMode.DARK -> true
+        ThemeManager.ThemeMode.LIGHT -> false
+        ThemeManager.ThemeMode.SYSTEM -> systemDark
+    }
     var mode by remember { mutableStateOf("login") }
     var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -42,7 +56,21 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            CenterAlignedTopAppBar(title = { Text("NERIVA", fontWeight = FontWeight.Bold) })
+            CenterAlignedTopAppBar(
+                title = { Text("NERIVA", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = {
+                        val next = if (darkTheme) ThemeManager.ThemeMode.LIGHT else ThemeManager.ThemeMode.DARK
+                        ThemeManager.setThemeMode(context, next)
+                        onThemeChange(next)
+                    }) {
+                        Icon(
+                            if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = "Toggle theme",
+                        )
+                    }
+                }
+            )
         }
     ) { padding ->
         AnimatedBackground(modifier = Modifier.padding(padding)) {
@@ -55,10 +83,11 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
             ) {
                 Spacer(Modifier.height(24.dp))
 
-                // Hero image from server
+                // Theme-aware hero image (light/dark variant) — mirrors web App.tsx:3675
+                val heroSuffix = if (darkTheme) "dark" else "light"
                 AsyncImage(
                     model = ImageRequest.Builder(context)
-                        .data("https://neriva.ru/app/assets/auth-login-hero.png")
+                        .data("https://neriva.ru/app/assets/auth-login-hero-$heroSuffix.png")
                         .crossfade(true)
                         .build(),
                     contentDescription = "NERIVA hero",

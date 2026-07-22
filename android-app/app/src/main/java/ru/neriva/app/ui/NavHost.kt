@@ -40,7 +40,9 @@ fun NavHost(onThemeChange: (ru.neriva.app.ThemeManager.ThemeMode) -> Unit = {}, 
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Auth.route) { inclusive = true }
                     }
-                }
+                },
+                onThemeChange = onThemeChange,
+                currentThemeMode = currentThemeMode,
             )
         }
 
