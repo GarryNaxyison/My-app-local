@@ -32,9 +32,11 @@ class PersistentCookieJar(private val prefs: SharedPreferences) : CookieJar {
 
     private fun save() {
         prefs.edit().apply {
-            val all = cookies.values.flatten()
-            val jsonArr = all.map { c ->
-                "${c.name}=${c.value}|${c.path}|${c.hostOnly}|${c.secure}|${c.httpOnly}|${c.persistent}|${c.expiresAt}"
+            val all = cookies.flatMap { (host, list) ->
+                list.map { c -> host to c }
+            }
+            val jsonArr = all.map { (host, c) ->
+                "${c.name}=${c.value}|${c.path}|${c.hostOnly}|${c.secure}|${c.httpOnly}|${c.persistent}|${c.expiresAt}|$host"
             }
             putString("cookies_json", jsonArr.joinToString(separator = "§"))
             apply()
@@ -48,18 +50,19 @@ class PersistentCookieJar(private val prefs: SharedPreferences) : CookieJar {
             for (item in list) {
                 if (item.isBlank()) continue
                 val parts = item.split("|")
-                if (parts.size < 7) continue
+                if (parts.size < 8) continue
                 val nv = parts[0].split("=", limit = 2)
                 if (nv.size < 2) continue
+                val domain = parts[7]
                 val builder = Cookie.Builder()
                     .name(nv[0]).value(nv[1])
-                    .domain("api.neriva.ru")
+                    .domain(domain)
                     .path(parts[1])
                 if (parts[3].toBoolean()) builder.secure()
                 if (parts[4].toBoolean()) builder.httpOnly()
                 builder.expiresAt(parts[6].toLong())
                 val cookie = builder.build()
-                cookies.getOrPut("api.neriva.ru") { mutableListOf() }.add(cookie)
+                cookies.getOrPut(domain) { mutableListOf() }.add(cookie)
             }
         } catch (_: Exception) {}
     }

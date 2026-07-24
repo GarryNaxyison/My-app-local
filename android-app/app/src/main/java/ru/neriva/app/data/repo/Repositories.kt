@@ -104,7 +104,7 @@ class PracticeRepository(private val api: NerivaApi) {
 
     /** Upload a recorded voice message (WAV/AAC) and receive the AI reply. */
     suspend fun sendVoice(audioFile: java.io.File, message: String? = null, sessionId: String? = null): PracticeMessage {
-        val reqFile = audioFile.asRequestBody()
+        val reqFile = audioFile.asRequestBody("audio/*".toMediaTypeOrNull())
         val voicePart = okhttp3.MultipartBody.Part.createFormData(
             "voice", audioFile.name, reqFile
         )
@@ -121,7 +121,7 @@ class PracticeRepository(private val api: NerivaApi) {
 
     /** Upload a recording for the shadowing "listen & repeat" exercise. */
     suspend fun answerShadowingVoice(audioFile: java.io.File, target: String? = null, text: String? = null): ShadowingResponse {
-        val reqFile = audioFile.asRequestBody()
+        val reqFile = audioFile.asRequestBody("audio/*".toMediaTypeOrNull())
         val voicePart = okhttp3.MultipartBody.Part.createFormData(
             "voice", audioFile.name, reqFile
         )
@@ -136,7 +136,7 @@ class PracticeRepository(private val api: NerivaApi) {
 
     /** Upload a recording and receive a pronunciation score. */
     suspend fun checkPronunciationVoice(audioFile: java.io.File, sessionId: String? = null): PronunciationCheckResponse {
-        val reqFile = audioFile.asRequestBody()
+        val reqFile = audioFile.asRequestBody("audio/*".toMediaTypeOrNull())
         val voicePart = okhttp3.MultipartBody.Part.createFormData(
             "voice", audioFile.name, reqFile
         )
@@ -176,7 +176,7 @@ class ToolsRepository(private val api: NerivaApi) {
 
     /** Transcribe an uploaded voice file and translate it (tools voice-to-text mode). */
     suspend fun voiceToTextFile(audioFile: java.io.File, targetLanguage: String? = null): TranslatorResult {
-        val reqFile = audioFile.asRequestBody()
+        val reqFile = audioFile.asRequestBody("audio/*".toMediaTypeOrNull())
         val voicePart = okhttp3.MultipartBody.Part.createFormData("voice", audioFile.name, reqFile)
         val langPart = targetLanguage?.toRequestBody("text/plain".toMediaTypeOrNull())
         return api.voiceToTextMultipart(voicePart, langPart)
@@ -184,8 +184,9 @@ class ToolsRepository(private val api: NerivaApi) {
 
     /** Translate text from an uploaded image (tools photo-translation mode). */
     suspend fun imageTranslate(imageFile: java.io.File, targetLanguage: String): TranslatorResult {
-        val reqFile = imageFile.asRequestBody()
+        val reqFile = imageFile.asRequestBody("image/*".toMediaTypeOrNull())
         val imagePart = okhttp3.MultipartBody.Part.createFormData("image", imageFile.name, reqFile)
-        return api.imageTranslate(imagePart, targetLanguage)
+        val langPart = targetLanguage.toRequestBody("text/plain".toMediaTypeOrNull())
+        return api.imageTranslate(imagePart, langPart)
     }
 }

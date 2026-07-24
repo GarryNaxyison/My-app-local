@@ -181,7 +181,7 @@ interface NerivaApi {
     @POST("api/tools/image-translate")
     suspend fun imageTranslate(
         @Part image: okhttp3.MultipartBody.Part,
-        @Part("language") language: String
+        @Part("language") language: okhttp3.RequestBody,
     ): TranslatorResult
 
     // Progress
