@@ -37,6 +37,7 @@ import {
   Mic,
   PenLine,
   Play,
+  Pencil,
   RefreshCw,
   Repeat2,
   Search,
@@ -3456,6 +3457,7 @@ export function App() {
     claimDailyBonus,
     openBugReport: () => setBugReportOpen(true),
     openGuide: () => setGuideOpen(true),
+    openOnboarding: () => setOnboardingOpen(true),
   };
   const handleContextPaste = (event: ClipboardEvent<HTMLElement>) => {
     if (activeView !== "tools" || toolMode !== "image" || event.defaultPrevented) return;
@@ -5726,6 +5728,7 @@ type ViewRendererProps = {
   claimDailyBonus: () => Promise<void>;
   openBugReport: () => void;
   openGuide: () => void;
+  openOnboarding: () => void;
 };
 
 function ViewRenderer(props: ViewRendererProps) {
@@ -6514,7 +6517,7 @@ function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, sav
 }
 
 function HomeView(props: ViewRendererProps) {
-  const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus } = props;
+  const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus, openOnboarding } = props;
   const todayKey = localDateKey();
   const completedDates = Object.entries(habitLog).filter(([, day]) => day.complete).map(([date]) => date);
   const loginDates = Object.entries(habitLog).filter(([, day]) => day.login).map(([date]) => date);
@@ -6586,6 +6589,10 @@ function HomeView(props: ViewRendererProps) {
             );
           })}
         </div>
+        <Button className="home-plan-v2__edit" type="button" variant="outline" size="sm" onClick={openOnboarding}>
+          <Pencil size={15} />
+          {copy("change_week_plan", "Изменить план на неделю")}
+        </Button>
       </section>
       <section className="v2-panel daily-quests-v2">
         <span className="eyebrow"><Flame size={15} />{copy("daily_quests", "Daily quests")}</span>
@@ -7302,7 +7309,18 @@ function ChatWorkView({
             <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
             {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
         </section>
-      ) : null}
+      ) : (
+        <section className="v2-panel composer-panel-v2 composer-panel-v2--locked">
+          <div className="panel-head composer-panel-head-v2">
+            <span className="eyebrow">{copy("answer_received", "Ответ получен")}</span>
+            <h2>{copy("lesson_continue_hint", "Ответ принят. Перейдите к следующему шагу урока.")}</h2>
+          </div>
+          <Button className="lesson-panel-next-v2" type="button" onClick={() => void startLesson()} disabled={busy === "lesson"}>
+            {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
+            {copy("ai_tutor_next_lesson", "Next lesson")}
+          </Button>
+        </section>
+      )}
     </div>
   );
 }

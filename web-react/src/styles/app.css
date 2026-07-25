@@ -2312,6 +2312,11 @@ select {
   line-height: 1.35;
 }
 
+.home-plan-v2__edit {
+  justify-self: start;
+  margin-top: 4px;
+}
+
 .home-plan-v2__steps button:hover {
   border-color: color-mix(in srgb, var(--primary) 48%, var(--line));
   background: color-mix(in srgb, var(--primary) 12%, var(--surface-strong));
@@ -2732,6 +2737,17 @@ select {
   min-height: 160px;
   max-height: 240px;
   resize: none;
+}
+
+.composer-panel-v2--locked .composer-panel-head-v2 h2 {
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 0;
+}
+
+.composer-panel-v2--locked .composer-panel-head-v2 .eyebrow {
+  color: color-mix(in srgb, var(--primary) 70%, var(--muted));
 }
 
 .task-box-v2 {
@@ -4175,9 +4191,10 @@ select {
 }
 
 .tools-layout-v2 {
-  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
   grid-template-rows: auto minmax(0, 1fr);
-  align-content: start;
+  align-content: stretch;
+  justify-content: stretch;
 }
 
 .tool-switch-v2 {
@@ -6803,9 +6820,15 @@ select {
 }
 
 .pronunciation-tool-actions-v2 {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+.pronunciation-tool-actions-v2 > * {
+  margin: 0;
 }
 
 .pronunciation-report-window-v2 .pronunciation-report-v2 {
@@ -7196,10 +7219,38 @@ select {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 10px 12px;
   font: inherit;
   font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
   cursor: pointer;
+  overflow: hidden;
   transition: transform 180ms ease, border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
+}
+
+.onboarding-choice-grid-v2 button > span,
+.onboarding-format-grid-v2 button > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .onboarding-choice-grid-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .onboarding-format-grid-v2 {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-choice-grid-v2 button,
+  .onboarding-format-grid-v2 button {
+    min-height: 64px;
+    font-size: 13px;
+  }
 }
 
 .onboarding-choice-grid-v2 button:hover,
@@ -7968,7 +8019,6 @@ select {
   }
 
   .context-display > *,
-  .home-grid,
   .chat-workspace,
   .tools-layout-v2,
   .mistake-layout-v2,
@@ -7988,6 +8038,29 @@ select {
     min-height: 0;
     max-height: none;
     overflow: visible;
+  }
+
+  .roleplay-view-v2--session {
+    min-height: 100%;
+    height: 100%;
+    display: grid;
+    align-content: stretch;
+  }
+
+  .roleplay-view-v2--session .roleplay-stage-v2 {
+    min-height: 0;
+  }
+
+  .home-grid {
+    height: 100%;
+    min-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    align-content: start;
+    gap: 10px;
+    padding-right: 3px;
   }
 
   .home-mobile-level-v2 {
@@ -8074,7 +8147,8 @@ select {
     z-index: 8;
     min-height: 0;
     max-height: none;
-    overflow: auto;
+    overflow: visible;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
   .composer-panel-v2 textarea {
@@ -8911,6 +8985,23 @@ select {
   .tools-submit-v2 span,
   .roleplay-submit-v2 span {
     display: none;
+  }
+
+  .composer-submit-v2,
+  .tools-submit-v2,
+  .roleplay-submit-v2 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    min-width: 46px;
+    min-height: 46px;
+  }
+
+  .composer-submit-v2 svg,
+  .tools-submit-v2 svg,
+  .roleplay-submit-v2 svg {
+    margin: 0;
   }
 
   .composer-panel-v2 .phrase-quick-save-v2 {
@@ -10507,8 +10598,19 @@ select {
     padding-right: 4px;
     overflow-y: auto !important;
     overscroll-behavior: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
     -webkit-line-clamp: unset !important;
     -webkit-box-orient: initial !important;
+  }
+
+  .audio-wave-button-v2,
+  .audio-action-row-v2 .audio-wave-button-v2 {
+    overflow: visible;
+  }
+
+  .audio-wave-button-v2__meta {
+    overflow: visible;
   }
 
   .tutor-note-strip-v2 {
