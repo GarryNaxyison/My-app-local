@@ -5775,6 +5775,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
   const [restartingLessonId, setRestartingLessonId] = useState("");
   const [previewStage, setPreviewStage] = useState("");
   const completedRecordedRef = useRef("");
+  const [stageHistory, setStageHistory] = useState<Record<string, { text?: string; choice?: string; feedback?: { ok?: boolean; message?: string } }>>({});
   const accountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
   const completedLessonsKey = `poliglot-tutor-completed-v3:${accountKey}`;
 
@@ -5895,8 +5896,19 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
       return id && text ? { id, text } : null;
     })
     .filter((option): option is { id: string; text: string } => Boolean(option));
-  const feedbackMessage = isPreviewing ? "" : display(aiTutorFeedback?.message);
-  const feedbackOK = aiTutorFeedback?.ok !== false;
+  const feedbackMessage = isPreviewing ? display(stageHistory[previewStage]?.feedback?.message) : display(aiTutorFeedback?.message);
+  const feedbackOK = isPreviewing ? stageHistory[previewStage]?.feedback?.ok !== false : aiTutorFeedback?.ok !== false;
+
+  useEffect(() => {
+    if (!isPreviewing && aiTutorFeedback?.message && aiTutorStep?.stage) {
+      const stage = aiTutorStep.stage;
+      const incoming = aiTutorFeedback;
+      setStageHistory((prev) => {
+        if (prev[stage]?.feedback?.message === incoming.message) return prev;
+        return { ...prev, [stage]: { ...prev[stage], feedback: { ok: incoming.ok, message: incoming.message } } };
+      });
+    }
+  }, [isPreviewing, aiTutorFeedback?.message, aiTutorFeedback?.ok, aiTutorStep?.stage]);
   const parsedFeedback = useMemo(() => parseAITutorFeedbackJSON(aiTutorFeedback?.json), [aiTutorFeedback?.json]);
   const phraseCandidates = useMemo(() => aiTutorPhraseCandidates(parsedFeedback, savePhrase, user.learning_language || ""), [parsedFeedback, savePhrase, user.learning_language]);
   const mistakeCandidates = useMemo(() => aiTutorMistakeCandidates(parsedFeedback, savePhrase, user.learning_language || ""), [parsedFeedback, savePhrase, user.learning_language]);
@@ -5940,19 +5952,24 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
 
   const submitCurrentStep = () => {
     if (!aiTutorStep || busy === "tutor") return;
+    const stage = aiTutorStep.stage;
     if (canContinue) {
       void submitAiTutorStep("", "continue");
       return;
     }
     if (isChoiceStage) {
       if (!selectedChoice && !isReviewChoiceStage) return;
-      void submitAiTutorStep("", selectedChoice || defaultReviewChoice);
+      const choice = selectedChoice || defaultReviewChoice;
+      setStageHistory((prev) => ({ ...prev, [stage]: { ...prev[stage], choice, text: prev[stage]?.text } }));
+      void submitAiTutorStep("", choice);
       return;
     }
     if (needsText) {
       if (!tutorDraft.trim()) return;
       if (isProduction && productionSentenceCount < 2) return;
-      void submitAiTutorStep(tutorDraft.trim(), "");
+      const text = tutorDraft.trim();
+      setStageHistory((prev) => ({ ...prev, [stage]: { ...prev[stage], text, choice: prev[stage]?.choice } }));
+      void submitAiTutorStep(text, "");
     }
   };
 
@@ -6003,7 +6020,11 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     setRestartingLessonId(lessonId);
     const ok = await restartTutorLesson(lessonId);
     setRestartingLessonId("");
-    if (ok) setCompletedLessonsOpen(false);
+    if (ok) {
+      setStageHistory({});
+      setPreviewStage("");
+      setCompletedLessonsOpen(false);
+    }
   };
 
   const renderWord = () => {
@@ -6210,6 +6231,22 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
 
             {isPreviewing ? (
               <div className="tutor-composer-v2 tutor-composer-v2--preview">
+                {(() => {
+                  const record = previewStage ? stageHistory[previewStage] : null;
+                  const answerText = display(record?.text);
+                  const answerChoice = record?.choice;
+                  const choiceLabel = answerChoice
+                    ? options.find((option) => option.id === answerChoice)?.text || answerChoice
+                    : "";
+                  const hasAnswer = Boolean(answerText || choiceLabel);
+                  return hasAnswer ? (
+                    <div className="tutor-preview-answer-v2">
+                      <span className="eyebrow">{copy("tutor_your_answer", "Ваш ответ")}</span>
+                      {answerText ? <p className="tutor-preview-answer-v2__text">{answerText}</p> : null}
+                      {choiceLabel ? <p className="tutor-preview-answer-v2__text">{choiceLabel}</p> : null}
+                    </div>
+                  ) : null;
+                })()}
                 <Button type="button" variant="outline" onClick={() => setPreviewStage("")}>
                   <ChevronRight size={16} />
                   <span>{copy("tutor_back_to_current", "Back to current step")}</span>
