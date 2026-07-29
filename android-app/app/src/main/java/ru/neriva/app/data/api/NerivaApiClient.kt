@@ -70,6 +70,8 @@ class PersistentCookieJar(private val prefs: SharedPreferences) : CookieJar {
 
 object NerivaApiClient {
 
+    fun normalizeBaseUrl(baseUrl: String): String = baseUrl.trimEnd('/') + "/"
+
     /** Build the shared OkHttp client from a pre-built [cookieJar]. */
     fun buildClient(cookieJar: PersistentCookieJar): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
@@ -95,7 +97,7 @@ object NerivaApiClient {
         val client = buildClient(cookieJar)
 
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(normalizeBaseUrl(baseUrl))
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()

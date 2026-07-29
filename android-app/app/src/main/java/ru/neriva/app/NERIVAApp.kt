@@ -55,7 +55,7 @@ class NERIVAApp : Application() {
         cookieJar = PersistentCookieJar(encryptedPrefs)
         sharedHttpClient = NerivaApiClient.buildClient(cookieJar)
         apiClient = NerivaApiClient.create(
-            baseUrl = "https://api.neriva.ru",
+            baseUrl = "https://api.neriva.ru/",
             cookieJar = cookieJar
         )
 
