@@ -4355,7 +4355,7 @@ select {
 .sign-in-page-v2 {
   position: relative;
   isolation: isolate;
-  width: 100dvw;
+  width: 100%;
   min-height: 100dvh;
   display: grid;
   place-items: center;

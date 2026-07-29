@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="manifest" href="/app/manifest.webmanifest" />
     <title>NERIVA App</title>
     <style>
@@ -140,6 +140,15 @@
 
         .poliglot-boot__title {
           font-size: 20px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .poliglot-boot,
+        .poliglot-boot::before,
+        .poliglot-boot::after,
+        .poliglot-boot__spinner {
+          animation: none;
         }
       }
     </style>

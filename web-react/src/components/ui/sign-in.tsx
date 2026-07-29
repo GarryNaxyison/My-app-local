@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { AuthGenerativeScene } from "./auth-generative-scene";
+import { useIsMobile, usePrefersReducedMotion } from "@/lib/platform";
+
+// Three.js/WebGL-сцена подгружается лениво и только на десктопе:
+// чанк canvas (~879 KB) не блокирует первую загрузку и не тратит батарею на мобильных.
+const AuthGenerativeScene = lazy(() => import("./auth-generative-scene"));
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 48 48" aria-hidden="true">
@@ -89,12 +93,22 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const isRegister = mode === "register";
   const hasSocialSignIn = Boolean(onGoogleSignIn);
+  const isMobile = useIsMobile();
+  const reducedMotion = usePrefersReducedMotion();
+  // На мобильных и при prefers-reduced-motion — статичный CSS-градиент вместо WebGL.
+  const useStaticScene = isMobile || reducedMotion;
   void heroImageSrc;
   void testimonials;
 
   return (
     <div className="sign-in-page-v2 bg-[color:var(--bg)] text-[color:var(--text)]">
-      <AuthGenerativeScene className="sign-in-page-v2__background-scene" />
+      {useStaticScene ? (
+        <div className="sign-in-page-v2__static-scene" aria-hidden="true" />
+      ) : (
+        <Suspense fallback={null}>
+          <AuthGenerativeScene className="sign-in-page-v2__background-scene" />
+        </Suspense>
+      )}
       <section className="sign-in-page-v2__form-section flex items-center justify-center">
         <div className="sign-in-page-v2__form-card w-full max-w-md">
           <div className="flex flex-col gap-6">
@@ -106,7 +120,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               <div className="animate-element animate-delay-300">
                 <label className="text-sm font-medium text-[color:var(--muted)]">{labels.login || "Email Address"}</label>
                 <GlassInputWrapper>
-                  <input name="login" type="text" autoComplete="username" placeholder={labels.loginPlaceholder || "Enter your email address"} className="w-full rounded-2xl border-0 bg-transparent p-4 text-sm focus:outline-none focus:ring-0" />
+                  <input name="login" type="text" autoComplete="username" placeholder={labels.loginPlaceholder || "Enter your email address"} className="w-full rounded-2xl border-0 bg-transparent p-4 text-base md:text-sm focus:outline-none focus:ring-0" />
                 </GlassInputWrapper>
               </div>
 
@@ -114,7 +128,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                 <label className="text-sm font-medium text-[color:var(--muted)]">{labels.password || "Password"}</label>
                 <GlassInputWrapper>
                   <div className="relative">
-                    <input name="password" type={showPassword ? "text" : "password"} autoComplete={isRegister ? "new-password" : "current-password"} placeholder={labels.passwordPlaceholder || "Enter your password"} className="w-full rounded-2xl border-0 bg-transparent p-4 pr-12 text-sm focus:outline-none focus:ring-0" />
+                    <input name="password" type={showPassword ? "text" : "password"} autoComplete={isRegister ? "new-password" : "current-password"} placeholder={labels.passwordPlaceholder || "Enter your password"} className="w-full rounded-2xl border-0 bg-transparent p-4 pr-12 text-base md:text-sm focus:outline-none focus:ring-0" />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-3 flex items-center" aria-label={showPassword ? labels.hidePassword || "Hide password" : labels.showPassword || "Show password"}>
                       {showPassword ? <EyeOff className="h-5 w-5 text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]" /> : <Eye className="h-5 w-5 text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]" />}
                     </button>
@@ -128,7 +142,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                   <label className="text-sm font-medium text-[color:var(--muted)]">{labels.passwordConfirm || "Repeat password"}</label>
                   <GlassInputWrapper>
                     <div className="relative">
-                      <input name="password_confirm" type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" placeholder={labels.passwordConfirmPlaceholder || "Repeat password"} className="w-full rounded-2xl border-0 bg-transparent p-4 pr-12 text-sm focus:outline-none focus:ring-0" />
+                      <input name="password_confirm" type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" placeholder={labels.passwordConfirmPlaceholder || "Repeat password"} className="w-full rounded-2xl border-0 bg-transparent p-4 pr-12 text-base md:text-sm focus:outline-none focus:ring-0" />
                       <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-3 flex items-center" aria-label={showConfirmPassword ? labels.hidePassword || "Hide password" : labels.showPassword || "Show password"}>
                         {showConfirmPassword ? <EyeOff className="h-5 w-5 text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]" /> : <Eye className="h-5 w-5 text-[color:var(--muted)] transition-colors hover:text-[color:var(--text)]" />}
                       </button>
@@ -142,7 +156,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                 <div className="animate-element animate-delay-500">
                   <label className="text-sm font-medium text-[color:var(--muted)]">{labels.referral || "Referral code"}</label>
                   <GlassInputWrapper>
-                    <input name="referral_code" type="text" autoComplete="off" placeholder={labels.referralPlaceholder || "Optional"} className="w-full rounded-2xl border-0 bg-transparent p-4 text-sm focus:outline-none focus:ring-0" />
+                    <input name="referral_code" type="text" autoComplete="off" placeholder={labels.referralPlaceholder || "Optional"} className="w-full rounded-2xl border-0 bg-transparent p-4 text-base md:text-sm focus:outline-none focus:ring-0" />
                   </GlassInputWrapper>
                 </div>
               ) : null}

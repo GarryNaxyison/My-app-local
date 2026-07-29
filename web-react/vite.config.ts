@@ -77,9 +77,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ["react", "react-dom"],
-          motion: ["framer-motion"],
-          shaders: ["@paper-design/shaders-react"],
-          canvas: ["three", "@react-three/fiber"]
+          motion: ["framer-motion"]
         }
       }
     }

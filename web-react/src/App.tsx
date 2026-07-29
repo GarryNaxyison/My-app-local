@@ -1,5 +1,5 @@
 import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ClipboardEvent } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
@@ -101,7 +101,7 @@ import MorphingArrowButton from "./components/ui/morphing-arrow-button";
 import { MorphButton } from "./components/ui/morph-button";
 import LogoutButton from "./components/ui/logout-button";
 import OTPDialog from "./components/ui/otpdialog";
-import SignInPage, { type SignInMode, type Testimonial } from "./components/ui/sign-in";
+import type { SignInMode, Testimonial } from "./components/ui/sign-in";
 import NotFoundPage from "./components/ui/404-page-not-found";
 import { AudioUploadCard } from "./components/ui/audio-upload-card";
 import { PasswordInputField } from "./components/ui/password-input";
@@ -117,6 +117,14 @@ import {
   DialogFooter,
   DialogTitle,
 } from "./components/ui/dialog";
+import { usePlatform, usePlatformAttribute } from "./lib/platform";
+
+// Страница входа (вместе с WebGL/three.js-сценой) подгружается лениво —
+// чанк canvas (~879 KB) не попадает в первую загрузку приложения.
+const SignInPage = lazy(async () => {
+  const module = await import("./components/ui/sign-in");
+  return { default: module.SignInPage };
+});
 
 type Theme = "light" | "dark";
 type ApiRecord = Record<string, unknown>;
@@ -787,31 +795,10 @@ function currentNotFoundPath() {
 }
 
 function useMobileUiLayout() {
-  const queryText = "(max-width: 760px)";
-  const getMobileState = () => {
-    if (window.matchMedia(queryText).matches) return true;
-    if (window.innerWidth <= 760) return true;
-    if (window.matchMedia("(pointer: coarse)").matches) return true;
-    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  };
-  const [isMobile, setIsMobile] = useState(getMobileState);
-
-  useEffect(() => {
-    const query = window.matchMedia(queryText);
-    const pointerQuery = window.matchMedia("(pointer: coarse)");
-    const update = () => setIsMobile(getMobileState());
-    update();
-    query.addEventListener("change", update);
-    pointerQuery.addEventListener("change", update);
-    window.addEventListener("resize", update);
-    return () => {
-      query.removeEventListener("change", update);
-      pointerQuery.removeEventListener("change", update);
-      window.removeEventListener("resize", update);
-    };
-  }, []);
-
-  return isMobile;
+  // Единый источник истины — lib/platform.ts: только ширина вьюпорта (760px),
+  // синхронно с CSS @media (max-width: 760px). Без pointer:coarse/UA-эвристик,
+  // чтобы JS- и CSS-определение мобильной раскладки не расходились на планшетах.
+  return usePlatform() === "mobile";
 }
 
 function useAutoResizeTextarea(value: string) {
@@ -1930,6 +1917,10 @@ export function App() {
   const [activeView, setActiveView] = useState<ViewId>(() => normalizeView(new URLSearchParams(location.search).get("view")));
   const [notFoundPath, setNotFoundPath] = useState(() => currentNotFoundPath());
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem("poliglot-theme") === "dark" ? "dark" : "light"));
+  // Платформа (mobile|desktop) — единый источник истины из lib/platform.ts,
+  // синхронный с CSS @media (max-width: 760px). Выставляет data-platform на <html>
+  // и переключает платформенную навигацию (FunctionRibbon на ПК / MobileBottomNav на мобильных).
+  const platform = usePlatformAttribute();
   const [brightness, setBrightness] = useState(() => {
     const saved = Number(localStorage.getItem("poliglot-brightness") || 100);
     return Number.isFinite(saved) ? Math.min(125, Math.max(65, saved)) : 100;
@@ -2009,6 +2000,18 @@ export function App() {
   useEffect(() => {
     localStorage.setItem("poliglot-brightness", String(brightness));
   }, [brightness]);
+
+  // Синхронизация платформенного URL-префикса: /app/mobile ↔ /app/desktop.
+  // /app — универсальный вход, адаптируется под устройство без редиректа;
+  // явные платформенные пути нормализуются под текущую платформу.
+  useEffect(() => {
+    const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase();
+    if (normalizedPath !== "/app/mobile" && normalizedPath !== "/app/desktop") return;
+    const targetPath = platform === "mobile" ? "/app/mobile" : "/app/desktop";
+    if (normalizedPath !== targetPath) {
+      window.history.replaceState(window.history.state, "", `${targetPath}${location.search}${location.hash}`);
+    }
+  }, [platform]);
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -3468,7 +3471,7 @@ export function App() {
   };
 
   return (
-    <div className="v2-shell" data-v2-shell="ios-function-ribbon" style={{ "--v2-brightness": brightness / 100 } as CSSProperties}>
+    <div className={cn("v2-shell", `v2-shell--${platform}`)} data-platform={platform} data-v2-shell="ios-function-ribbon" style={{ "--v2-brightness": brightness / 100 } as CSSProperties}>
       <ThemeBackground theme={theme} />
       <AppCookieConsentBanner language={user.interface_language || "ru"} />
       <div className="v2-app">
@@ -3487,7 +3490,7 @@ export function App() {
           onBugReport={() => setBugReportOpen(true)}
           onGuide={() => setGuideOpen(true)}
         />
-        {activeView === "home" ? (
+        {platform === "mobile" && activeView === "home" ? (
           <MobileQuickControls
             user={user}
             session={session}
@@ -3512,16 +3515,18 @@ export function App() {
             </span>
           </div>
         ) : null}
-        <FunctionRibbon
-          nav={nav}
-          activeView={activeView}
-          setView={activateView}
-          theme={theme}
-          copy={copy}
-          accountKey={accountKey}
-          navigationLayout={user.navigation_layout || {}}
-          onNavigationLayoutChange={(patch) => saveNavigationLayout(patch)}
-        />
+        {platform === "desktop" ? (
+          <FunctionRibbon
+            nav={nav}
+            activeView={activeView}
+            setView={activateView}
+            theme={theme}
+            copy={copy}
+            accountKey={accountKey}
+            navigationLayout={user.navigation_layout || {}}
+            onNavigationLayoutChange={(patch) => saveNavigationLayout(patch)}
+          />
+        ) : null}
         {payment ? (
           <PaymentModal
             payment={payment}
@@ -3583,16 +3588,18 @@ export function App() {
             <ViewRenderer {...viewProps} />
           )}
         </main>
-        <MobileBottomNav
-          nav={nav}
-          activeView={activeView}
-          setView={activateView}
-          theme={theme}
-          copy={copy}
-          accountKey={accountKey}
-          navigationLayout={user.navigation_layout || {}}
-          onNavigationLayoutChange={(patch) => saveNavigationLayout(patch)}
-        />
+        {platform === "mobile" ? (
+          <MobileBottomNav
+            nav={nav}
+            activeView={activeView}
+            setView={activateView}
+            theme={theme}
+            copy={copy}
+            accountKey={accountKey}
+            navigationLayout={user.navigation_layout || {}}
+            onNavigationLayoutChange={(patch) => saveNavigationLayout(patch)}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -3669,7 +3676,10 @@ function AuthStandaloneView({
   const [busy, setBusy] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState("");
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
-  const captchaRef = useRef<HTMLDivElement | null>(null);
+  // Callback-ref вместо useRef: SignInPage грузится лениво (React.lazy), поэтому
+  // слот капчи монтируется ПОСЛЕ первого коммита AuthStandaloneView — эффект
+  // капчи должен перезапуститься, когда элемент реально появится в DOM.
+  const [captchaEl, setCaptchaEl] = useState<HTMLDivElement | null>(null);
   const captchaWidgetRef = useRef("");
   const interfaceLanguages = session?.interface_languages?.length
     ? session.interface_languages
@@ -3711,12 +3721,12 @@ function AuthStandaloneView({
   }, [language]);
 
   useEffect(() => {
-    if (!captchaEnabled || !captchaRef.current || captchaWidgetRef.current) return;
+    if (!captchaEnabled || !captchaEl || captchaWidgetRef.current) return;
     let cancelled = false;
     const currentWindow = window as Window & { turnstile?: TurnstileAPI };
     const renderCaptcha = () => {
-      if (cancelled || !captchaRef.current || !currentWindow.turnstile || captchaWidgetRef.current) return;
-      captchaWidgetRef.current = currentWindow.turnstile.render(captchaRef.current, {
+      if (cancelled || !currentWindow.turnstile || captchaWidgetRef.current) return;
+      captchaWidgetRef.current = currentWindow.turnstile.render(captchaEl, {
         sitekey: captcha?.site_key || "",
         callback: (token) => setCaptchaToken(token || ""),
         "expired-callback": () => setCaptchaToken(""),
@@ -3746,7 +3756,7 @@ function AuthStandaloneView({
       if (captchaWidgetRef.current) currentWindow.turnstile?.remove?.(captchaWidgetRef.current);
       captchaWidgetRef.current = "";
     };
-  }, [captcha?.site_key, captchaEnabled, copy]);
+  }, [captcha?.site_key, captchaEnabled, copy, captchaEl]);
 
   const afterAuth = (payload: unknown) => {
     const nextSession = payload as SessionData;
@@ -3812,7 +3822,7 @@ function AuthStandaloneView({
   };
 
   const captchaSlot = captchaEnabled ? (
-    <div className="auth-turnstile-slot-v2" ref={captchaRef} data-testid="auth-captcha" aria-label={copy("captcha_required", "Confirm you are not a robot.")} />
+    <div className="auth-turnstile-slot-v2" ref={setCaptchaEl} data-testid="auth-captcha" aria-label={copy("captcha_required", "Confirm you are not a robot.")} />
   ) : null;
   const authTitle = mode === "register" ? copy("auth_create_account", "Create account") : keepShortAuthPrefix(copy("auth_welcome", "Welcome back"));
 
@@ -3851,7 +3861,8 @@ function AuthStandaloneView({
 
   return (
     <>
-      <SignInPage
+      <Suspense fallback={<LoadingScreen theme={theme} />}>
+        <SignInPage
         mode={mode}
         title={<span>{authTitle}</span>}
         description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_fill_required", "Enter login and password.")}
@@ -3888,7 +3899,8 @@ function AuthStandaloneView({
         onResetPassword={() => window.open("https://t.me/NERIVAapp_bot", "_blank", "noopener,noreferrer")}
         onCreateAccount={() => setMode("register")}
         onLoginMode={() => setMode("login")}
-      />
+        />
+      </Suspense>
       <AppCookieConsentBanner language={language} />
     </>
   );
@@ -7346,18 +7358,7 @@ function ChatWorkView({
             <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
             {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
         </section>
-      ) : (
-        <section className="v2-panel composer-panel-v2 composer-panel-v2--locked">
-          <div className="panel-head composer-panel-head-v2">
-            <span className="eyebrow">{copy("answer_received", "Ответ получен")}</span>
-            <h2>{copy("lesson_continue_hint", "Ответ принят. Перейдите к следующему шагу урока.")}</h2>
-          </div>
-          <Button className="lesson-panel-next-v2" type="button" onClick={() => void startLesson()} disabled={busy === "lesson"}>
-            {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
-            {copy("ai_tutor_next_lesson", "Next lesson")}
-          </Button>
-        </section>
-      )}
+      ) : null}
     </div>
   );
 }

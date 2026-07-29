@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="manifest" href="/app/manifest.webmanifest" />
     <title>NERIVA App</title>
     <style>
@@ -142,12 +142,20 @@
           font-size: 20px;
         }
       }
+
+      @media (prefers-reduced-motion: reduce) {
+        .poliglot-boot,
+        .poliglot-boot::before,
+        .poliglot-boot::after,
+        .poliglot-boot__spinner {
+          animation: none;
+        }
+      }
     </style>
-    <script type="module" crossorigin src="/app/assets/index-BaHpT9Gc.js"></script>
-    <link rel="modulepreload" crossorigin href="/app/assets/motion-vONb87kk.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/canvas-BEsb2JFa.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/react-Bh-o_lGT.js">
-    <link rel="stylesheet" crossorigin href="/app/assets/index-7fmrkHc5.css">
+    <script type="module" crossorigin src="/app/assets/index-bdLXLaV3.js"></script>
+    <link rel="modulepreload" crossorigin href="/app/assets/motion-C6pxIoi0.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/react-DAhuuUAm.js">
+    <link rel="stylesheet" crossorigin href="/app/assets/index-C_P4rkNl.css">
   </head>
   <body>
     <div id="root">

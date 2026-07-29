@@ -1590,7 +1590,10 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
     },
   };
   await page.goto("/app/?view=tutor");
-  await expect(page.locator('.function-ribbon [data-view="tutor"]')).toContainText("AI Репетитор");
+  const tutorNavEntry = isMobile
+    ? page.locator('.mobile-bottom-nav-v2 [data-view="tutor"]')
+    : page.locator('.function-ribbon [data-view="tutor"]');
+  await expect(tutorNavEntry).toContainText("AI Репетитор");
   await expect(page.locator(".tutor-workspace")).toContainText("Утренняя рутина");
   await expect(page.locator(".tutor-session-v2")).toBeVisible();
   await expect(page.locator(".tutor-step-v2")).toHaveCount(21);
@@ -1989,7 +1992,7 @@ test("premium plans show AI Tutor as a paid-only upgrade ladder", async ({ page 
   await expect(cards.nth(2)).toContainText(ru("platinum_feature_priority", "Best tier for heavy daily learning"));
 });
 
-test("auth login page uses React sign-in component, Cloudflare slot and current login API", async ({ page }) => {
+test("auth login page uses React sign-in component, Cloudflare slot and current login API", async ({ page, isMobile }) => {
   await mockAnonymousAuth(page);
   let loginPayload: Record<string, unknown> | null = null;
   await page.route("**/api/auth/login", async (route) => {
@@ -2002,9 +2005,17 @@ test("auth login page uses React sign-in component, Cloudflare slot and current 
   await expect(page.locator(".sign-in-page-v2")).not.toContainText("Раздел");
   await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_welcome"));
   await expect(page.locator(".sign-in-page-v2")).toContainText(appCopy("en", "auth_fill_required"));
-  expect(await page.locator(".auth-generative-scene-v2 canvas").count()).toBeGreaterThan(0);
+  // WebGL-сцена — только в ПК-версии (ленивый чанк, поэтому ждём появления);
+  // на мобильных вместо неё — статичный CSS-градиент (см. lib/platform.ts).
+  const sceneSelector = isMobile ? ".sign-in-page-v2__static-scene" : ".auth-generative-scene-v2";
+  if (isMobile) {
+    await expect(page.locator(".sign-in-page-v2__static-scene")).toHaveCount(1);
+    expect(await page.locator(".auth-generative-scene-v2 canvas").count()).toBe(0);
+  } else {
+    await expect(page.locator(".auth-generative-scene-v2 canvas")).toHaveCount(1);
+  }
   await expect(page.locator(".sign-in-page-v2__hero-wrap, .sign-in-page-v2__hero, .sign-in-page-v2__side-panel, .sign-in-page-v2__testimonials")).toHaveCount(0);
-  const layout = await page.evaluate(() => {
+  const layout = await page.evaluate((sceneSel) => {
     const toRect = (element: Element | null) => {
       const rect = element?.getBoundingClientRect();
       return rect ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height } : null;
@@ -2013,14 +2024,13 @@ test("auth login page uses React sign-in component, Cloudflare slot and current 
       viewport: { width: window.innerWidth, height: window.innerHeight },
       card: toRect(document.querySelector(".sign-in-page-v2__form-card")),
       section: toRect(document.querySelector(".sign-in-page-v2__form-section")),
-      scene: toRect(document.querySelector(".auth-generative-scene-v2")),
-      canvas: toRect(document.querySelector(".auth-generative-scene-v2 canvas")),
+      scene: toRect(document.querySelector(sceneSel)),
+      canvas: toRect(document.querySelector(`${sceneSel} canvas`)),
     };
-  });
+  }, sceneSelector);
   expect(layout.card).not.toBeNull();
   expect(layout.section).not.toBeNull();
   expect(layout.scene).not.toBeNull();
-  expect(layout.canvas).not.toBeNull();
   const cardCenterX = layout.card!.x + layout.card!.width / 2;
   const cardCenterY = layout.card!.y + layout.card!.height / 2;
   const sceneCenterX = layout.scene!.x + layout.scene!.width / 2;
@@ -2029,8 +2039,11 @@ test("auth login page uses React sign-in component, Cloudflare slot and current 
   expect(Math.abs(cardCenterY - layout.viewport.height / 2)).toBeLessThan(layout.viewport.height * 0.14);
   expect(Math.abs(sceneCenterX - layout.viewport.width / 2)).toBeLessThan(2);
   expect(Math.abs(sceneCenterY - layout.viewport.height / 2)).toBeLessThan(2);
-  expect(layout.canvas!.width).toBeGreaterThanOrEqual(layout.viewport.width - 2);
-  expect(layout.canvas!.height).toBeGreaterThanOrEqual(layout.viewport.height - 2);
+  if (!isMobile) {
+    expect(layout.canvas).not.toBeNull();
+    expect(layout.canvas!.width).toBeGreaterThanOrEqual(layout.viewport.width - 2);
+    expect(layout.canvas!.height).toBeGreaterThanOrEqual(layout.viewport.height - 2);
+  }
   await expect(page.locator('[data-testid="auth-captcha"]')).toBeVisible();
   await page.locator('input[name="login"]').fill("demor22");
   await page.locator('input[name="password"]').fill("strong-password");
