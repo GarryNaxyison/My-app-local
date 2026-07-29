@@ -7,6 +7,48 @@ const png = Buffer.from(
   "base64",
 );
 
+const zoomViewportMatrix = [
+  { zoom: "80%", desktop: { width: 1800, height: 1125 }, mobile: { width: 488, height: 1055 } },
+  { zoom: "100%", desktop: { width: 1440, height: 900 }, mobile: { width: 390, height: 844 } },
+  { zoom: "125%", desktop: { width: 1152, height: 720 }, mobile: { width: 312, height: 675 } },
+  { zoom: "150%", desktop: { width: 960, height: 600 }, mobile: { width: 260, height: 563 } },
+  { zoom: "200%", desktop: { width: 720, height: 450 }, mobile: { width: 195, height: 422 } },
+] as const;
+
+const longPronunciationCheckPayload = {
+  transcript: "better than most people would expect from a difficult presentation",
+  pronunciation: {
+    score: 68,
+    accent_strength: 24,
+    fluency: 74,
+    feedback: "Your pronunciation is clear, but confidence is low. Keep a steady pace and speak with slightly more volume throughout the sentence.",
+    stress: "Keep the primary stress clear in presentation and difficult, then finish the sentence without dropping the final consonants.",
+    rhythm: "Connect better than most people smoothly so the phrase has one steady rhythm instead of several short pauses.",
+    intonation: "Let the final phrase fall naturally to show that the statement is complete and confident.",
+    problem_words: [
+      { word: "better", confidence: 0.65, issue: "low_confidence", tip: "Focus on the tt sound; in American English it becomes a quick d, like bed-der." },
+      { word: "than", confidence: 0.68, issue: "low_confidence", tip: "Voice the th by placing the tongue gently between the teeth and vibrating the vocal cords." },
+      { word: "most", confidence: 0.61, issue: "missing", tip: "Keep the final t audible before moving into the next word." },
+      { word: "people", confidence: 0.57, issue: "low_confidence", tip: "Keep both syllables distinct instead of shortening the vowel in the first syllable." },
+      { word: "expect", confidence: 0.54, issue: "low_confidence", tip: "Stress the second syllable and release the final ct clearly." },
+      { word: "presentation", confidence: 0.49, issue: "low_confidence", tip: "Use the long ay sound in the stressed syllable and keep every remaining syllable audible." },
+    ],
+    phoneme_issues: [
+      { word: "better", expected_sound: "/t/", heard_sound: "/d/", confidence: 0.65, tip: "Use a quick flap without pausing between the vowels." },
+      { word: "than", expected_sound: "/dh/", heard_sound: "/z/", confidence: 0.68, tip: "Keep the tongue visible between the teeth for the voiced th." },
+      { word: "expect", expected_sound: "/kt/", heard_sound: "/k/", confidence: 0.54, tip: "Release the final consonant cluster before the next word." },
+    ],
+    tips: [
+      "Practice better than as one connected phrase without pausing between the words.",
+      "Repeat the sentence at a slower speed, then increase the tempo while keeping each final consonant audible.",
+      "Record the sentence once at a comfortable volume and once slightly louder to build a steadier delivery.",
+      "Listen back for every stressed syllable before trying the full sentence again.",
+      "Use one breath group for most people would expect so the middle of the sentence remains connected.",
+    ],
+  },
+  correction_audio_text: "Better than most people would expect from a difficult presentation.",
+};
+
 const ru = (key: string, fallback = key) => appCopy("ru", key, fallback);
 const mojibakePattern = /пїЅ|Гђ|Г‘|\u0420[\u201a\u0403\u201e\u2026\u2020\u2021\u20ac\u2030\u0409\u2039\u040a\u040b\u040f]|\u0421[\u201a\u0403\u201e\u2026\u2020\u2021\u20ac\u2030\u0409\u2039\u040a\u040b\u040f]/u;
 
@@ -2491,13 +2533,170 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   });
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
   await expect(page.locator(".pronunciation-target-primary-v2")).toBeVisible();
-  await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toContainText("67/100");
-  await expect(page.locator(".pronunciation-tools-v2")).toContainText("Stress is late");
-  await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
+  await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toContainText("67/100");
+  await expect(page.locator(".pronunciation-result-window-v2")).toContainText("Stress is late");
+  await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toHaveCount(0);
 
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
   await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
-  await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toHaveCount(0);
+  await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
+});
+
+test.skip("regression: desktop pronunciation report opens below the recording workspace", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  usePremiumSession();
+
+  await page.goto("/app/?view=pronunciation");
+  const workbench = page.locator(".pronunciation-workbench-v2");
+  const tools = page.locator(".pronunciation-tools-v2");
+  const report = page.locator(".pronunciation-result-window-v2");
+  await expect(workbench).toBeVisible();
+  await tools.locator('input[type="file"]').setInputFiles({
+    name: "pronunciation.webm",
+    mimeType: "audio/webm",
+    buffer: Buffer.from("pronunciation-test"),
+  });
+  await tools.getByRole("button", { name: /Record and check|Р—Р°РїРёСЃР°С‚СЊ|РџСЂРѕРІРµСЂРёС‚СЊ/ }).click();
+  await expect(report).toContainText("67/100");
+
+  const workbenchBox = await workbench.boundingBox();
+  const reportBox = await report.boundingBox();
+  const viewport = page.viewportSize();
+  expect(workbenchBox).not.toBeNull();
+  expect(reportBox).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(reportBox!.y).toBeGreaterThanOrEqual(workbenchBox!.y + workbenchBox!.height - 1);
+  expect(reportBox!.x).toBeGreaterThanOrEqual(0);
+  expect(reportBox!.x + reportBox!.width).toBeLessThanOrEqual(viewport!.width + 1);
+});
+
+test.skip("regression: mobile pronunciation report follows the target and recording controls", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  usePremiumSession();
+
+  await page.goto("/app/?view=pronunciation");
+  const target = page.locator(".pronunciation-target-primary-v2");
+  const controls = page.locator(".pronunciation-tool-card-v2").first();
+  const report = page.locator(".pronunciation-result-window-v2");
+  await expect(target).toBeVisible();
+  await page.locator(".pronunciation-tools-v2 input[type='file']").setInputFiles({
+    name: "pronunciation.webm",
+    mimeType: "audio/webm",
+    buffer: Buffer.from("pronunciation-test"),
+  });
+  await page.getByRole("button", { name: /Check|РџСЂРѕРІРµСЂРёС‚СЊ/ }).click();
+  await expect(report).toContainText("67/100");
+
+  const targetBox = await target.boundingBox();
+  const controlsBox = await controls.boundingBox();
+  const reportBox = await report.boundingBox();
+  const viewport = page.viewportSize();
+  expect(targetBox).not.toBeNull();
+  expect(controlsBox).not.toBeNull();
+  expect(reportBox).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(controlsBox!.y).toBeGreaterThanOrEqual(targetBox!.y + targetBox!.height - 1);
+  expect(reportBox!.y).toBeGreaterThanOrEqual(controlsBox!.y + controlsBox!.height - 1);
+  expect(reportBox!.x).toBeGreaterThanOrEqual(0);
+  expect(reportBox!.x + reportBox!.width).toBeLessThanOrEqual(viewport!.width + 1);
+});
+
+test("regression: pronunciation report follows the desktop workspace across zoom-equivalent viewports", async ({ page, isMobile }) => {
+  test.skip(isMobile, "desktop layout assertion");
+  test.setTimeout(120_000);
+  usePremiumSession();
+
+  for (const { zoom, desktop } of zoomViewportMatrix) {
+    await page.setViewportSize(desktop);
+    await page.goto("/app/?view=pronunciation");
+    const workbench = page.locator(".pronunciation-workbench-v2");
+    const tools = page.locator(".pronunciation-tools-v2");
+    const report = page.locator(".pronunciation-result-window-v2");
+    await expect(workbench, `${zoom}: recording workspace`).toBeVisible();
+    await tools.locator('input[type="file"]').setInputFiles({
+      name: "pronunciation.webm",
+      mimeType: "audio/webm",
+      buffer: Buffer.from("pronunciation-test"),
+    });
+    await tools.locator(".pronunciation-tool-actions-v2 button").first().click();
+    await expect(report, `${zoom}: standalone report`).toContainText("67/100");
+
+    const workbenchBox = await workbench.boundingBox();
+    const reportBox = await report.boundingBox();
+    const viewport = page.viewportSize();
+    const pageOverflowX = await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - window.innerWidth));
+    expect(workbenchBox, `${zoom}: workbench geometry`).not.toBeNull();
+    expect(reportBox, `${zoom}: report geometry`).not.toBeNull();
+    expect(viewport, `${zoom}: viewport geometry`).not.toBeNull();
+    expect(reportBox!.y, `${zoom}: result follows workspace`).toBeGreaterThanOrEqual(workbenchBox!.y + workbenchBox!.height - 1);
+    expect(reportBox!.x, `${zoom}: report starts inside viewport`).toBeGreaterThanOrEqual(0);
+    expect(reportBox!.x + reportBox!.width, `${zoom}: report ends inside viewport`).toBeLessThanOrEqual(viewport!.width + 1);
+    expect(pageOverflowX, `${zoom}: application has no horizontal overflow`).toBeLessThanOrEqual(1);
+  }
+});
+
+test("regression: long pronunciation report keeps mobile flow across zoom-equivalent viewports", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  test.setTimeout(120_000);
+  usePremiumSession();
+  await page.unroute("**/api/pronunciation/check");
+  await page.route("**/api/pronunciation/check", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(longPronunciationCheckPayload),
+    }),
+  );
+
+  for (const { zoom, mobile } of zoomViewportMatrix) {
+    await page.setViewportSize(mobile);
+    await page.goto("/app/?view=pronunciation");
+    const workbench = page.locator(".pronunciation-workbench-v2");
+    const target = page.locator(".pronunciation-target-primary-v2");
+    const controls = page.locator(".pronunciation-tool-card-v2").first();
+    const report = page.locator(".pronunciation-result-window-v2");
+    const bottomNav = page.locator(".mobile-bottom-nav-v2");
+    await expect(target, `${zoom}: target`).toBeVisible();
+    await page.locator(".pronunciation-tools-v2 input[type='file']").setInputFiles({
+      name: "pronunciation.webm",
+      mimeType: "audio/webm",
+      buffer: Buffer.from("pronunciation-test"),
+    });
+    await page.locator(".pronunciation-tool-actions-v2 button").first().click();
+    await expect(report, `${zoom}: standalone long report`).toContainText("68/100");
+    await expect(report).toContainText("presentation");
+    await page.evaluate(() => window.scrollTo({ left: 0, top: window.scrollY }));
+
+    const workbenchBox = await workbench.boundingBox();
+    const targetBox = await target.boundingBox();
+    const controlsBox = await controls.boundingBox();
+    const reportBox = await report.boundingBox();
+    const viewport = page.viewportSize();
+    const viewportOffsetLeft = await page.evaluate(() => window.visualViewport?.offsetLeft || 0);
+    const pageOverflowX = await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - window.innerWidth));
+    expect(workbenchBox, `${zoom}: workbench geometry`).not.toBeNull();
+    expect(targetBox, `${zoom}: target geometry`).not.toBeNull();
+    expect(controlsBox, `${zoom}: controls geometry`).not.toBeNull();
+    expect(reportBox, `${zoom}: report geometry`).not.toBeNull();
+    expect(viewport, `${zoom}: viewport geometry`).not.toBeNull();
+    expect(controlsBox!.y, `${zoom}: controls follow target`).toBeGreaterThanOrEqual(targetBox!.y + targetBox!.height - 1);
+    expect(reportBox!.y, `${zoom}: report follows controls`).toBeGreaterThanOrEqual(controlsBox!.y + controlsBox!.height - 1);
+    expect(reportBox!.y, `${zoom}: report follows workbench`).toBeGreaterThanOrEqual(workbenchBox!.y + workbenchBox!.height - 1);
+    expect(reportBox!.x, `${zoom}: report starts inside visual viewport`).toBeGreaterThanOrEqual(-viewportOffsetLeft);
+    expect(reportBox!.x + reportBox!.width, `${zoom}: report ends inside visual viewport`).toBeLessThanOrEqual(viewport!.width - viewportOffsetLeft + 1);
+    expect(pageOverflowX, `${zoom}: application has no horizontal overflow`).toBeLessThanOrEqual(1);
+
+    const finalReportSection = report.locator(".pronunciation-problems-v2").last();
+    await page.locator(".context-display--pronunciation").evaluate((node) => {
+      const container = node as HTMLElement;
+      container.scrollTop = container.scrollHeight;
+    });
+    const finalReportSectionBox = await finalReportSection.boundingBox();
+    const bottomNavBox = await bottomNav.boundingBox();
+    expect(finalReportSectionBox, `${zoom}: final report section geometry`).not.toBeNull();
+    expect(bottomNavBox, `${zoom}: mobile navigation geometry`).not.toBeNull();
+    expect(finalReportSectionBox!.y + finalReportSectionBox!.height, `${zoom}: final report content remains reachable above bottom navigation`).toBeLessThanOrEqual(bottomNavBox!.y - 4);
+  }
 });
 
 test("regression: lesson tab keeps one active task until the learner submits", async ({ page }) => {
@@ -2709,8 +2908,8 @@ test("desktop pronunciation workspace makes the target phrase the primary panel"
   });
   await toolsPanel.getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
   await expect(targetPanel).toBeVisible();
-  await expect(toolsPanel.locator(".pronunciation-report-v2")).toContainText("67/100");
-  await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
+  await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toContainText("67/100");
+  await expect(toolsPanel.locator(".pronunciation-report-v2")).toHaveCount(0);
 });
 
 test("regression: desktop function ribbon arrows stay inside the menu frame", async ({ page, isMobile }) => {
@@ -2781,8 +2980,8 @@ test("regression: mobile pronunciation blocks keep vertical order after checking
     buffer: Buffer.from("pronunciation-test"),
   });
   await page.getByRole("button", { name: /Check|Проверить/ }).click();
-  await expect(page.locator(".pronunciation-report-v2")).toContainText("67/100");
-  const boxes = await page.locator(".pronunciation-workbench-v2").evaluate((node) => {
+  await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toContainText("67/100");
+  const boxes = await page.locator(".pronunciation-dashboard-v2").evaluate((node) => {
     const rect = (element: Element | null) => {
       if (!element) return null;
       const box = element.getBoundingClientRect();
@@ -2792,8 +2991,8 @@ test("regression: mobile pronunciation blocks keep vertical order after checking
       target: rect(node.querySelector(".pronunciation-target-primary-v2")),
       tools: rect(node.querySelector(".pronunciation-tools-v2")),
       controls: rect(node.querySelector(".pronunciation-tool-card-v2")),
-      report: rect(node.querySelector(".pronunciation-report-window-v2")),
-      workbench: rect(node),
+      report: rect(node.querySelector(".pronunciation-result-window-v2")),
+      workbench: rect(node.querySelector(".pronunciation-workbench-v2")),
     };
   });
   expect(boxes.target).not.toBeNull();
@@ -2802,7 +3001,7 @@ test("regression: mobile pronunciation blocks keep vertical order after checking
   expect(boxes.report).not.toBeNull();
   expect(boxes.tools!.top).toBeGreaterThanOrEqual(boxes.target!.bottom - 1);
   expect(boxes.report!.top).toBeGreaterThanOrEqual(boxes.controls!.bottom - 1);
-  expect(boxes.workbench!.bottom).toBeGreaterThanOrEqual(boxes.report!.bottom - 1);
+  expect(boxes.report!.top).toBeGreaterThanOrEqual(boxes.workbench!.bottom - 1);
 });
 
 test("regression: desktop tools selector buttons stay compact", async ({ page, isMobile }) => {

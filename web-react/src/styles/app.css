@@ -6863,6 +6863,44 @@ select {
   margin-top: 0;
 }
 
+.v2-shell--desktop .pronunciation-dashboard-v2,
+.v2-shell--mobile .pronunciation-dashboard-v2 {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  max-height: none;
+  overflow: visible;
+}
+
+.v2-shell--desktop .pronunciation-dashboard-v2 > * + *,
+.v2-shell--mobile .pronunciation-dashboard-v2 > * + * {
+  margin-top: 16px;
+}
+
+.v2-shell--desktop .pronunciation-result-window-v2,
+.v2-shell--mobile .pronunciation-result-window-v2 {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.v2-shell--mobile .pronunciation-result-window-v2 {
+  width: min(100%, calc(100vw - 24px));
+  margin-inline: auto;
+  margin-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+@media (max-width: 240px) {
+  .v2-shell--mobile .pronunciation-result-window-v2 {
+    position: relative;
+    left: calc((100vw - 100%) / 2);
+  }
+}
+
 .pronunciation-work-window-v2 {
   align-content: start;
 }

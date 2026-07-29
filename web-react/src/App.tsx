@@ -6921,15 +6921,15 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
               </Button>
             </div>
           </div>
-          {practiceResult ? (
-            <div className="pronunciation-tool-card-v2 pronunciation-report-window-v2">
-              <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
-              <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
-              <PronunciationReport pronunciation={practiceResult} user={user} copy={copy} />
-            </div>
-          ) : null}
         </aside>
       </section>
+      {practiceResult ? (
+        <section className="v2-panel pronunciation-result-window-v2">
+          <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
+          <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
+          <PronunciationReport pronunciation={practiceResult} user={user} copy={copy} />
+        </section>
+      ) : null}
       <section className="v2-panel pronunciation-hero-v2">
         <span className="eyebrow"><Activity size={15} />{copy("pronunciation", p.title)}</span>
         <h2>{copy("pronunciation_dashboard", p.title)}</h2>
