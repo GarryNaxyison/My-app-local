@@ -10,6 +10,7 @@ import ru.neriva.app.data.api.NerivaApiClient
 import ru.neriva.app.data.api.PersistentCookieJar
 import ru.neriva.app.data.db.NerivaDatabase
 import ru.neriva.app.data.repo.AuthRepository
+import ru.neriva.app.data.repo.NerivaPhrasebookRemoteDataSource
 import ru.neriva.app.data.repo.PhrasebookRepository
 import ru.neriva.app.data.repo.SessionRepository
 import kotlinx.coroutines.CoroutineScope
@@ -61,7 +62,7 @@ class NERIVAApp : Application() {
 
         authRepo = AuthRepository(apiClient, encryptedPrefs)
         sessionRepo = SessionRepository(apiClient)
-        phrasebookRepo = PhrasebookRepository(database.phrasebookDao())
+        phrasebookRepo = PhrasebookRepository(NerivaPhrasebookRemoteDataSource(apiClient), database.phrasebookDao())
     }
 
     companion object {

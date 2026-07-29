@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -17,9 +18,18 @@ interface PhrasebookDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: PhrasebookEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<PhrasebookEntity>)
+
     @Query("DELETE FROM phrasebook WHERE id = :id")
     suspend fun delete(id: String)
 
     @Query("DELETE FROM phrasebook")
     suspend fun clear()
+
+    @Transaction
+    suspend fun replaceAll(items: List<PhrasebookEntity>) {
+        clear()
+        insertAll(items)
+    }
 }

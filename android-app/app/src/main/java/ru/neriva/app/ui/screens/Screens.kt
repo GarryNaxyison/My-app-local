@@ -515,19 +515,136 @@ fun VocabularyScreen(navController: androidx.navigation.NavHostController) {
 @Composable
 fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
     val app = NERIVAApp.instance
-    var phrases by remember { mutableStateOf<List<PhrasebookItem>>(emptyList()) }
+    val scope = rememberCoroutineScope()
+    val phrases by app.phrasebookRepo.observeAll().collectAsState(initial = emptyList())
+    var phrase by remember { mutableStateOf("") }
+    var translation by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) { try { phrases = app.sessionRepo.getSession().user?.phrasebook ?: emptyList() } catch (_: Exception) {} finally { loading = false } }
+    var saving by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    fun refresh() {
+        scope.launch {
+            loading = true
+            error = null
+            try {
+                app.phrasebookRepo.refresh()
+            } catch (e: Exception) {
+                error = e.message ?: "Could not update the phrasebook."
+            } finally {
+                loading = false
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) { refresh() }
 
     ScreenScaffold("Phrasebook", navController) { padding ->
-        if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
-        else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
-            items(phrases) { p ->
+        LazyColumn(
+            Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 16.dp),
+        ) {
+            item {
                 Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text(p.phrase, fontWeight = FontWeight.SemiBold)
-                        p.translation?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                        p.note?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Add phrase", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        OutlinedTextField(
+                            value = phrase,
+                            onValueChange = { phrase = it },
+                            label = { Text("Phrase") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                        )
+                        OutlinedTextField(
+                            value = translation,
+                            onValueChange = { translation = it },
+                            label = { Text("Translation") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                        )
+                        OutlinedTextField(
+                            value = note,
+                            onValueChange = { note = it },
+                            label = { Text("Note") },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    saving = true
+                                    error = null
+                                    try {
+                                        app.phrasebookRepo.save(
+                                            phrase = phrase.trim(),
+                                            translation = translation.trim().ifBlank { null },
+                                            note = note.trim().ifBlank { null },
+                                            source = "manual",
+                                            language = ru.neriva.app.LanguageManager.getLearningLanguage(NERIVAApp.context()),
+                                        )
+                                        phrase = ""
+                                        translation = ""
+                                        note = ""
+                                    } catch (e: Exception) {
+                                        error = e.message ?: "Could not save the phrase."
+                                    } finally {
+                                        saving = false
+                                    }
+                                }
+                            },
+                            enabled = phrase.isNotBlank() && !saving,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { Text(if (saving) "Saving..." else "Save phrase") }
+                    }
+                }
+            }
+            if (loading && phrases.isEmpty()) {
+                item { Box(Modifier.fillMaxWidth().padding(24.dp), Alignment.Center) { CircularProgressIndicator() } }
+            }
+            error?.let { message ->
+                item {
+                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(message, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
+                            TextButton(onClick = ::refresh) { Text("Retry") }
+                        }
+                    }
+                }
+            }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Saved phrases", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    TextButton(onClick = ::refresh, enabled = !loading) { Text("Refresh") }
+                }
+            }
+            if (!loading && phrases.isEmpty()) {
+                item { Text("No phrases yet. Add one above to keep it on all your devices.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+            items(phrases, key = { it.id }) { item ->
+                Card(Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+                        Column(Modifier.weight(1f)) {
+                            Text(item.phrase, fontWeight = FontWeight.SemiBold)
+                            item.translation?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                            item.note?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                        }
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    saving = true
+                                    error = null
+                                    try {
+                                        app.phrasebookRepo.delete(item.id)
+                                    } catch (e: Exception) {
+                                        error = e.message ?: "Could not delete the phrase."
+                                    } finally {
+                                        saving = false
+                                    }
+                                }
+                            },
+                            enabled = !saving,
+                        ) { Icon(Icons.Default.Delete, contentDescription = "Delete phrase") }
                     }
                 }
             }

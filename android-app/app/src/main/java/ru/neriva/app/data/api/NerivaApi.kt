@@ -144,6 +144,9 @@ interface NerivaApi {
     @POST("api/phrasebook")
     suspend fun savePhrase(@Body body: PhraseSaveRequest): OkResponse
 
+    @DELETE("api/phrasebook")
+    suspend fun deletePhrase(@Query("id") id: String): OkResponse
+
     // Mistakes
     @GET("api/mistakes")
     suspend fun getMistakes(): MistakesResponse

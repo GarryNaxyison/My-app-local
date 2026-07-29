@@ -2634,6 +2634,8 @@ func (api *webAPI) handlePhrasebook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	switch r.Method {
+	case http.MethodGet:
+		writeJSON(w, http.StatusOK, map[string]any{"items": user.Phrasebook})
 	case http.MethodPost:
 		var req phrasebookEntry
 		if !decodeJSONRequest(w, r, &req) {

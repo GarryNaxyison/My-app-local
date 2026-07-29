@@ -159,11 +159,56 @@ class MistakesRepository(private val api: NerivaApi) {
     suspend fun clearAll() = api.clearMistakes()
 }
 
-class PhrasebookRepository(private val dao: PhrasebookDao) {
+interface PhrasebookRemoteDataSource {
+    suspend fun getPhrasebook(): PhrasebookResponse
+    suspend fun savePhrase(request: PhraseSaveRequest): OkResponse
+    suspend fun deletePhrase(id: String): OkResponse
+}
+
+class NerivaPhrasebookRemoteDataSource(private val api: NerivaApi) : PhrasebookRemoteDataSource {
+    override suspend fun getPhrasebook(): PhrasebookResponse = api.getPhrasebook()
+    override suspend fun savePhrase(request: PhraseSaveRequest): OkResponse = api.savePhrase(request)
+    override suspend fun deletePhrase(id: String): OkResponse = api.deletePhrase(id)
+}
+
+class PhrasebookRepository(
+    private val remote: PhrasebookRemoteDataSource,
+    private val dao: PhrasebookDao,
+) {
     suspend fun getCached(): List<PhrasebookEntity> = dao.getAll()
-    suspend fun insert(item: PhrasebookEntity) = dao.insert(item)
-    suspend fun delete(id: String) = dao.delete(id)
+
+    suspend fun refresh() {
+        val cachedItems = remote.getPhrasebook().items.orEmpty().map { it.toEntity() }
+        dao.replaceAll(cachedItems)
+    }
+
+    suspend fun save(
+        phrase: String,
+        translation: String? = null,
+        note: String? = null,
+        source: String? = null,
+        language: String? = null,
+    ) {
+        remote.savePhrase(PhraseSaveRequest(phrase, translation, note, source, language))
+        refresh()
+    }
+
+    suspend fun delete(id: String) {
+        remote.deletePhrase(id)
+        refresh()
+    }
+
     fun observeAll() = dao.observeAll()
+
+    private fun PhrasebookItem.toEntity() = PhrasebookEntity(
+        id = id,
+        phrase = phrase,
+        translation = translation,
+        note = note,
+        source = source,
+        language = language,
+        createdAt = createdAt,
+    )
 }
 
 class ToolsRepository(private val api: NerivaApi) {

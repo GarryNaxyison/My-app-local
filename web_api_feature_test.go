@@ -1049,6 +1049,26 @@ func TestWebPhrasebookPersistsInStoreAndSession(t *testing.T) {
 	}
 }
 
+func TestWebPhrasebookGetReturnsSavedItems(t *testing.T) {
+	api, _, cookie := newTestWebAPI(t)
+	requestJSON(t, api, cookie, http.MethodPost, "/api/phrasebook", map[string]any{
+		"id":       "phrase-get-1",
+		"phrase":   "Where is the station?",
+		"source":   "manual",
+		"language": "en",
+	})
+
+	got := requestJSON(t, api, cookie, http.MethodGet, "/api/phrasebook", nil)
+	items, _ := got["items"].([]any)
+	if len(items) != 1 {
+		t.Fatalf("GET phrasebook items = %#v, want one saved item", got)
+	}
+	item, _ := items[0].(map[string]any)
+	if item["id"] != "phrase-get-1" || item["phrase"] != "Where is the station?" {
+		t.Fatalf("GET phrasebook item = %#v, want saved phrase", item)
+	}
+}
+
 func TestWebSessionPersistsHabitLoginInDatabase(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	session := requestJSON(t, api, cookie, http.MethodGet, "/api/session", nil)
