@@ -155,7 +155,7 @@ class MistakesRepository(private val api: NerivaApi) {
     suspend fun startPractice() = api.mistakePracticeStart()
     suspend fun answerPractice(answer: String, sessionId: String? = null) =
         api.mistakePracticeAnswer(AnswerRequest(answer, sessionId))
-    suspend fun delete(id: String) = api.deleteMistake(IdRequest(id))
+    suspend fun delete(index: Int) = api.deleteMistake(MistakeDeleteRequest(index))
     suspend fun clearAll() = api.clearMistakes()
 }
 

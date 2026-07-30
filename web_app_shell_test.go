@@ -369,7 +369,7 @@ func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 		`const hadController = !!navigator.serviceWorker.controller`,
 		`registration.update()`,
 		`SKIP_WAITING`,
-		`poliglot-v2-offline-decks-20260624-tutor-copy`,
+		`poliglot-v2-static-shell-20260721`,
 		`fetch(request)`,
 		`request.mode === "navigate"`,
 	} {
@@ -391,7 +391,7 @@ func TestReactFrontendIncludesPremiumDashboardSurfaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	shaderSource, err := os.ReadFile(filepath.Join("web-react", "src", "components", "ui", "shaders-hero-section.tsx"))
+	authSceneSource, err := os.ReadFile(filepath.Join("web-react", "src", "components", "ui", "auth-generative-scene.tsx"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -399,14 +399,14 @@ func TestReactFrontendIncludesPremiumDashboardSurfaces(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	page := string(source) + "\n" + string(fallingPatternSource) + "\n" + string(shaderSource) + "\n" + string(chatSource)
+	page := string(source) + "\n" + string(fallingPatternSource) + "\n" + string(authSceneSource) + "\n" + string(chatSource)
 	for _, want := range []string{
 		`data-v2-shell="ios-function-ribbon"`,
 		"FunctionRibbon",
 		"ContextHeader",
 		"ThemeBackground",
 		"FallingPattern",
-		"ShaderBackground",
+		"AuthGenerativeScene",
 		"ChatComponent",
 		"ChoiceTrainer",
 		"ToolsView",

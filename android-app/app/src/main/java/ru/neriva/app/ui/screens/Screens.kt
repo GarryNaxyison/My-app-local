@@ -879,11 +879,18 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
     var confirmClear by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     suspend fun reload() {
         loading = true
-        try { mistakes = repo.getAll().items ?: emptyList() } catch (_: Exception) {}
-        loading = false
+        error = null
+        try {
+            mistakes = repo.getAll().items ?: emptyList()
+        } catch (e: Exception) {
+            error = e.message ?: "Could not load mistakes."
+        } finally {
+            loading = false
+        }
     }
     LaunchedEffect(Unit) { reload() }
 
@@ -898,7 +905,15 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                         confirmClear = false
                         scope.launch {
                             busy = true
-                            try { repo.clearAll(); reload() } catch (_: Exception) {} finally { busy = false }
+                            error = null
+                            try {
+                                repo.clearAll()
+                                reload()
+                            } catch (e: Exception) {
+                                error = e.message ?: "Could not clear mistakes."
+                            } finally {
+                                busy = false
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
@@ -911,6 +926,16 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
     ScreenScaffold("Mistakes", navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+            error?.let { message ->
+                item {
+                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(message, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
+                            TextButton(onClick = { scope.launch { reload() } }) { Text("Retry") }
+                        }
+                    }
+                }
+            }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (mistakes.isNotEmpty()) {
@@ -939,9 +964,17 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                             IconButton(onClick = {
                                 scope.launch {
                                     busy = true
-                                    try { repo.delete((index + 1).toString()); reload() } catch (_: Exception) {} finally { busy = false }
+                                    error = null
+                                    try {
+                                        repo.delete(m.index ?: index)
+                                        reload()
+                                    } catch (e: Exception) {
+                                        error = e.message ?: "Could not delete the mistake."
+                                    } finally {
+                                        busy = false
+                                    }
                                 }
-                            }) {
+                            }, enabled = !busy) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }

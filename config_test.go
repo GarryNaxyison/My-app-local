@@ -5,6 +5,7 @@ import "testing"
 func TestLoadConfigUsesNerivaProductionDefaults(t *testing.T) {
 	t.Setenv("TELEGRAM_BOT_TOKEN", "test-token")
 	t.Setenv("OPENROUTER_API_KEY", "test-openrouter-key")
+	t.Setenv("WEB_API_SESSION_SECRET", "test-session-secret")
 	for _, key := range []string{"WEB_CORS_ORIGINS", "WEB_APP_URL", "WEB_PAYMENT_RETURN_URL"} {
 		t.Setenv(key, "")
 	}

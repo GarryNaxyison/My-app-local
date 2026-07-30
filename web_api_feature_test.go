@@ -59,6 +59,30 @@ func TestWebGeneratedVisualAssets(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultsToSecureWebCookies(t *testing.T) {
+	t.Setenv("TELEGRAM_BOT_TOKEN", "test-token")
+	t.Setenv("OPENROUTER_API_KEY", "test-key")
+	t.Setenv("WEB_API_SESSION_SECRET", "test-session-secret")
+	t.Setenv("WEB_COOKIE_SECURE", "")
+	cfg, err := configFromEnv()
+	if err != nil {
+		t.Fatalf("configFromEnv() error = %v", err)
+	}
+	if !cfg.WebCookieSecure {
+		t.Fatal("WebCookieSecure must default to true")
+	}
+}
+
+func TestConfigRequiresWebSessionSecret(t *testing.T) {
+	t.Setenv("TELEGRAM_BOT_TOKEN", "test-token")
+	t.Setenv("OPENROUTER_API_KEY", "test-key")
+	t.Setenv("WEB_API_SESSION_SECRET", "")
+	_, err := configFromEnv()
+	if err == nil || !strings.Contains(err.Error(), "WEB_API_SESSION_SECRET") {
+		t.Fatalf("configFromEnv() error = %v, want missing WEB_API_SESSION_SECRET", err)
+	}
+}
+
 func TestClientRateKeyIgnoresForwardedForFromUntrustedRemote(t *testing.T) {
 	api := newWebAPI(config{WebAPISessionSecret: "test-session-secret"}, nil)
 	request := httptest.NewRequest(http.MethodGet, "/api/session", nil)
@@ -1490,6 +1514,7 @@ func TestConfigTelegramOpsRecipientsAlwaysIncludesDefaultOperators(t *testing.T)
 func TestConfigFromEnvReadsTelegramOpsRecipients(t *testing.T) {
 	t.Setenv("TELEGRAM_BOT_TOKEN", "bot-token")
 	t.Setenv("OPENROUTER_API_KEY", "openrouter-key")
+	t.Setenv("WEB_API_SESSION_SECRET", "test-session-secret")
 	t.Setenv("TELEGRAM_OPS_RECIPIENTS", "12345, @poliglot_owner")
 
 	cfg, err := configFromEnv()

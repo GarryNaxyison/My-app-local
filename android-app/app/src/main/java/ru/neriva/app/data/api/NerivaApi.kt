@@ -158,7 +158,7 @@ interface NerivaApi {
     suspend fun mistakePracticeAnswer(@Body body: AnswerRequest): MistakePracticeResponse
 
     @POST("api/mistakes/delete")
-    suspend fun deleteMistake(@Body body: IdRequest): OkResponse
+    suspend fun deleteMistake(@Body body: MistakeDeleteRequest): OkResponse
 
     @POST("api/mistakes/clear")
     suspend fun clearMistakes(): OkResponse
@@ -327,6 +327,9 @@ data class WordReportRequest(
 
 @kotlinx.serialization.Serializable
 data class IdRequest(val id: String)
+
+@kotlinx.serialization.Serializable
+data class MistakeDeleteRequest(val index: Int)
 
 @kotlinx.serialization.Serializable
 data class PaymentRequest(

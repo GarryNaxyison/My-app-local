@@ -6,6 +6,14 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+fun releaseSigningValue(name: String): String? =
+    providers.gradleProperty(name).orElse(providers.environmentVariable(name)).orNull?.trim()?.takeIf { it.isNotEmpty() }
+
+val releaseStoreFile = releaseSigningValue("NERIVA_KEYSTORE_FILE") ?: "release-key.jks"
+val releaseStorePassword = releaseSigningValue("NERIVA_KEYSTORE_PASSWORD")
+val releaseKeyAlias = releaseSigningValue("NERIVA_KEY_ALIAS")
+val releaseKeyPassword = releaseSigningValue("NERIVA_KEY_PASSWORD")
+
 android {
     namespace = "ru.neriva.app"
     compileSdk = 35
@@ -21,10 +29,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("${rootProject.projectDir}/release-key.jks")
-            storePassword = "neriva123"
-            keyAlias = "neriva"
-            keyPassword = "neriva123"
+            storeFile = rootProject.file(releaseStoreFile)
+            storePassword = releaseStorePassword.orEmpty()
+            keyAlias = releaseKeyAlias.orEmpty()
+            keyPassword = releaseKeyPassword.orEmpty()
         }
     }
 
@@ -48,6 +56,14 @@ android {
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true; buildConfig = true }
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
+}
+
+tasks.matching { it.name == "validateSigningRelease" }.configureEach {
+    doFirst {
+        check(releaseStorePassword != null && releaseKeyAlias != null && releaseKeyPassword != null) {
+            "Release signing requires NERIVA_KEYSTORE_PASSWORD, NERIVA_KEY_ALIAS, and NERIVA_KEY_PASSWORD."
+        }
+    }
 }
 
 dependencies {
