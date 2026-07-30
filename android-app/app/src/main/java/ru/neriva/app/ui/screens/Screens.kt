@@ -1,6 +1,7 @@
 package ru.neriva.app.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import android.app.Activity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -1183,7 +1184,8 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
 
     val interfaceLang = ru.neriva.app.LanguageManager.getInterfaceLanguage(context)
     val learningLang = ru.neriva.app.LanguageManager.getLearningLanguage(context)
-    val locales = ru.neriva.app.LanguageManager.getSupportedLocales()
+    val interfaceLocales = ru.neriva.app.LanguageManager.getSupportedLocales()
+    val learningLocales = ru.neriva.app.LanguageManager.getSupportedLearningLanguages()
 
     ScreenScaffold("Settings", navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1208,15 +1210,18 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                     modifier = Modifier.fillMaxWidth().menuAnchor()
                 )
                 ExposedDropdownMenu(expanded = interfaceLangExpanded, onDismissRequest = { interfaceLangExpanded = false }) {
-                    locales.forEach { code ->
+                    interfaceLocales.forEach { code ->
                         DropdownMenuItem(
                             text = { Text(ru.neriva.app.LanguageManager.getLanguageName(code)) },
                             onClick = {
                                 ru.neriva.app.LanguageManager.setInterfaceLanguage(context, code)
                                 interfaceLangExpanded = false
-                                // Update server settings
-                                scope.launch {
-                                    try { app.sessionRepo.updateSettings(interfaceLanguage = code); vm.refresh() } catch (_: Exception) {}
+                                app.appScope.launch {
+                                    try { app.sessionRepo.updateSettings(interfaceLanguage = code) } catch (_: Exception) {}
+                                }
+                                (context as? Activity)?.let {
+                                    ru.neriva.app.LanguageManager.applyLocale(it, code)
+                                    it.recreate()
                                 }
                             }
                         )
@@ -1235,7 +1240,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                     modifier = Modifier.fillMaxWidth().menuAnchor()
                 )
                 ExposedDropdownMenu(expanded = learningLangExpanded, onDismissRequest = { learningLangExpanded = false }) {
-                    locales.forEach { code ->
+                    learningLocales.forEach { code ->
                         DropdownMenuItem(
                             text = { Text(ru.neriva.app.LanguageManager.getLanguageName(code)) },
                             onClick = {

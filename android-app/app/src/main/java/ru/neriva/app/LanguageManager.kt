@@ -11,49 +11,49 @@ object LanguageManager {
     private const val KEY_INTERFACE_LANG = "interface_language"
     private const val KEY_LEARNING_LANG = "learning_language"
 
-    private val supportedLocales = listOf(
+    private val supportedInterfaceLocales = listOf("ru", "en")
+    private val supportedLearningLanguages = listOf(
         "ru", "en", "es", "de", "fr", "it", "zh", "ja", "ko",
         "tg", "uz", "tt", "hy", "kk", "ky", "ka", "uk", "pl", "ro", "pt",
         "ar", "bn", "cs", "el", "hi", "hu", "id", "nl", "sv",
-        "ta", "te", "th", "tl", "tr", "vi"
+        "ta", "te", "th", "tl", "tr", "vi",
     )
-
     private val languageNames = mapOf(
         "ru" to "Русский",
         "en" to "English",
-        "es" to "Espanol",
-        "de" to "Deutsch",
-        "fr" to "Francais",
-        "it" to "Italiano",
-        "zh" to "中文",
-        "ja" to "日本語",
-        "ko" to "한국어",
-        "tg" to "Тоҷикӣ",
-        "uz" to "O'zbekcha",
-        "tt" to "Татарча",
-        "hy" to "Հայերեն",
-        "kk" to "Қазақша",
-        "ky" to "Кыргызча",
-        "ka" to "ქართული",
-        "uk" to "Українська",
-        "pl" to "Polski",
-        "ro" to "Romana",
-        "pt" to "Portugues",
-        "ar" to "العربية",
-        "bn" to "বাংলা",
-        "cs" to "Cestina",
-        "el" to "Ελληνικά",
-        "hi" to "हिंदी",
-        "hu" to "Magyar",
-        "id" to "Bahasa Indonesia",
-        "nl" to "Nederlands",
-        "sv" to "svenska",
-        "ta" to "தமிழ்",
-        "te" to "తెలుగు",
-        "th" to "ภาษาไทย",
+        "es" to "Spanish",
+        "de" to "German",
+        "fr" to "French",
+        "it" to "Italian",
+        "zh" to "Chinese",
+        "ja" to "Japanese",
+        "ko" to "Korean",
+        "tg" to "Tajik",
+        "uz" to "Uzbek",
+        "tt" to "Tatar",
+        "hy" to "Armenian",
+        "kk" to "Kazakh",
+        "ky" to "Kyrgyz",
+        "ka" to "Georgian",
+        "uk" to "Ukrainian",
+        "pl" to "Polish",
+        "ro" to "Romanian",
+        "pt" to "Portuguese",
+        "ar" to "Arabic",
+        "bn" to "Bengali",
+        "cs" to "Czech",
+        "el" to "Greek",
+        "hi" to "Hindi",
+        "hu" to "Hungarian",
+        "id" to "Indonesian",
+        "nl" to "Dutch",
+        "sv" to "Swedish",
+        "ta" to "Tamil",
+        "te" to "Telugu",
+        "th" to "Thai",
         "tl" to "Tagalog",
-        "tr" to "Turkce",
-        "vi" to "Tieng Viet"
+        "tr" to "Turkish",
+        "vi" to "Vietnamese",
     )
 
     private fun prefs(context: Context): SharedPreferences =
@@ -73,10 +73,11 @@ object LanguageManager {
         prefs(context).edit().putString(KEY_LEARNING_LANG, lang).apply()
     }
 
-    fun getLanguageName(code: String): String =
-        languageNames[code] ?: code.uppercase()
+    fun getLanguageName(code: String): String = languageNames[code] ?: code.uppercase()
 
-    fun getSupportedLocales(): List<String> = supportedLocales
+    fun getSupportedLocales(): List<String> = supportedInterfaceLocales
+
+    fun getSupportedLearningLanguages(): List<String> = supportedLearningLanguages
 
     fun applyLocale(activity: Activity, langCode: String) {
         val locale = Locale(langCode)
