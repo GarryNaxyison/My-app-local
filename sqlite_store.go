@@ -328,6 +328,10 @@ func (s *sqliteStore) init() error {
 			updated_at TEXT NOT NULL,
 			last_login_at TEXT NOT NULL DEFAULT ''
 		)`,
+		`CREATE TABLE IF NOT EXISTS telegram_runtime (
+			id INTEGER PRIMARY KEY CHECK (id = 1),
+			update_offset INTEGER NOT NULL DEFAULT 0
+		)`,
 	}
 	for _, stmt := range statements {
 		if _, err := s.db.Exec(stmt); err != nil {
@@ -2860,6 +2864,24 @@ func (s *sqliteStore) extendPremium(telegramID int64, chargeID string, duration 
 		user.LastPaymentChargeID = chargeID
 	})
 	return until, err
+}
+
+func (s *sqliteStore) telegramUpdateOffset() (int64, error) {
+	var offset int64
+	err := s.db.QueryRow(`SELECT update_offset FROM telegram_runtime WHERE id = 1`).Scan(&offset)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return offset, err
+}
+
+func (s *sqliteStore) advanceTelegramUpdateOffset(updateID int64) error {
+	if updateID <= 0 {
+		return nil
+	}
+	_, err := s.db.Exec(`INSERT INTO telegram_runtime (id, update_offset) VALUES (1, ?)
+		ON CONFLICT(id) DO UPDATE SET update_offset = MAX(telegram_runtime.update_offset, excluded.update_offset)`, updateID)
+	return err
 }
 
 func (s *sqliteStore) dueReminderUsers(now time.Time, limit int) ([]reminderTarget, error) {

@@ -85,6 +85,43 @@ func TestSQLiteStoreUsesSingleConnectionPool(t *testing.T) {
 	}
 }
 
+func TestSQLiteStorePersistsTelegramUpdateOffset(t *testing.T) {
+	databasePath := filepath.Join(t.TempDir(), "test.sqlite")
+	store, err := newSQLiteStore(databasePath, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if got, err := store.telegramUpdateOffset(); err != nil || got != 0 {
+		t.Fatalf("initial telegram update offset = %d, %v; want 0, nil", got, err)
+	}
+	if err := store.advanceTelegramUpdateOffset(42); err != nil {
+		t.Fatalf("advanceTelegramUpdateOffset() error = %v", err)
+	}
+	if err := store.advanceTelegramUpdateOffset(41); err != nil {
+		t.Fatalf("advanceTelegramUpdateOffset() with stale update error = %v", err)
+	}
+	if err := store.db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.aiTutorDB.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	reopened, err := newSQLiteStore(databasePath, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = reopened.db.Close()
+		_ = reopened.aiTutorDB.Close()
+	})
+
+	if got, err := reopened.telegramUpdateOffset(); err != nil || got != 42 {
+		t.Fatalf("persisted telegram update offset = %d, %v; want 42, nil", got, err)
+	}
+}
+
 func TestSQLiteResetLearningStatePreservesAccountAndCommercialData(t *testing.T) {
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
 	if err != nil {

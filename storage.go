@@ -122,6 +122,7 @@ type userState struct {
 type jsonStore struct {
 	path                           string
 	mu                             sync.Mutex
+	lastTelegramUpdateID           int64
 	users                          map[int64]userState
 	tutorLessons                   map[string]tutorLesson
 	tutorUserLessons               map[int64]map[string]time.Time
@@ -235,6 +236,8 @@ type store interface {
 	markReminderSent(telegramID int64, localDate string) error
 	setReminderEnabled(telegramID int64, enabled bool) error
 	setTimezone(telegramID int64, offsetMinutes int) error
+	telegramUpdateOffset() (int64, error)
+	advanceTelegramUpdateOffset(updateID int64) error
 }
 
 func newStore(cfg config) (store, error) {
@@ -275,12 +278,54 @@ func newJSONStore(path string) (*jsonStore, error) {
 		return nil, err
 	}
 	if len(bytes) == 0 {
-		return store, nil
+		return store, store.loadTelegramUpdateOffset()
 	}
 	if err := json.Unmarshal(bytes, &store.users); err != nil {
 		return nil, err
 	}
-	return store, nil
+	return store, store.loadTelegramUpdateOffset()
+}
+
+func (s *jsonStore) telegramUpdateOffsetPath() string {
+	return s.path + ".telegram-offset"
+}
+
+func (s *jsonStore) loadTelegramUpdateOffset() error {
+	bytes, err := os.ReadFile(s.telegramUpdateOffsetPath())
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	offset, err := strconv.ParseInt(strings.TrimSpace(string(bytes)), 10, 64)
+	if err != nil || offset < 0 {
+		return errors.New("invalid Telegram update offset")
+	}
+	s.lastTelegramUpdateID = offset
+	return nil
+}
+
+func (s *jsonStore) telegramUpdateOffset() (int64, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.lastTelegramUpdateID, nil
+}
+
+func (s *jsonStore) advanceTelegramUpdateOffset(updateID int64) error {
+	if updateID <= 0 {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if updateID <= s.lastTelegramUpdateID {
+		return nil
+	}
+	if err := os.WriteFile(s.telegramUpdateOffsetPath(), []byte(strconv.FormatInt(updateID, 10)), 0600); err != nil {
+		return err
+	}
+	s.lastTelegramUpdateID = updateID
+	return nil
 }
 
 func (s *jsonStore) getOrCreateUser(telegramID int64, firstName string) (userState, error) {

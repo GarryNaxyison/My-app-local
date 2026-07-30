@@ -9,9 +9,68 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
+
+func TestBotRunLoadsDurableTelegramUpdateOffset(t *testing.T) {
+	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "test.sqlite"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = store.db.Close()
+		_ = store.aiTutorDB.Close()
+	})
+	if err := store.advanceTelegramUpdateOffset(42); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	secondRequest := make(chan string, 1)
+	var requests int
+	var requestsMu sync.Mutex
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestsMu.Lock()
+		requests++
+		requestNumber := requests
+		requestsMu.Unlock()
+		if requestNumber == 1 {
+			if got := r.URL.Query().Get("offset"); got != "43" {
+				t.Errorf("getUpdates offset = %q, want 43", got)
+			}
+			_, _ = w.Write([]byte(`{"ok":true,"result":[]}`))
+			return
+		}
+		secondRequest <- r.URL.Query().Get("offset")
+		<-r.Context().Done()
+	}))
+	defer server.Close()
+
+	b := &bot{store: store, telegram: &telegramClient{baseURL: server.URL, http: server.Client()}}
+	done := make(chan error, 1)
+	go func() { done <- b.run(ctx) }()
+
+	select {
+	case got := <-secondRequest:
+		if got != "43" {
+			t.Fatalf("next getUpdates offset = %q, want 43", got)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("bot did not poll Telegram a second time")
+	}
+	cancel()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("bot.run() error = nil, want context cancellation")
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("bot.run() did not stop after context cancellation")
+	}
+}
 
 func TestSendInlineMessageEditsCallbackMessage(t *testing.T) {
 	var method string

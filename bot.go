@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -264,6 +265,15 @@ type messageThrottle struct {
 }
 
 func (b *bot) run(ctx context.Context) error {
+	if b.store == nil {
+		return errors.New("bot store is required")
+	}
+	offset, err := b.store.telegramUpdateOffset()
+	if err != nil {
+		return fmt.Errorf("load Telegram update offset: %w", err)
+	}
+	b.offset = offset + 1
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -277,10 +287,19 @@ func (b *bot) run(ctx context.Context) error {
 		}
 
 		for _, update := range updates {
-			b.offset = update.UpdateID + 1
 			if err := b.handleUpdate(ctx, update); err != nil {
 				log.Printf("failed to handle update %d: %v", update.UpdateID, err)
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-time.After(time.Second):
+				}
+				break
 			}
+			if err := b.store.advanceTelegramUpdateOffset(update.UpdateID); err != nil {
+				return fmt.Errorf("save Telegram update offset %d: %w", update.UpdateID, err)
+			}
+			b.offset = update.UpdateID + 1
 		}
 	}
 }
