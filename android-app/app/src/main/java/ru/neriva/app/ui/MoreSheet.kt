@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import ru.neriva.app.ui.nav.Screen
 import androidx.compose.material3.Icon
 import coil.compose.AsyncImage
@@ -56,7 +57,7 @@ fun MoreSheet(
             ) {
                 items(items) { screen ->
                     MoreTile(
-                        title = screen.title,
+                        title = stringResource(screen.titleRes),
                         viewId = screen.viewId,
                         fallback = iconForScreen(screen.viewId),
                         darkTheme = darkTheme,

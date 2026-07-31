@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +30,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import androidx.compose.runtime.getValue
 import ru.neriva.app.ui.nav.Screen
+import ru.neriva.app.R
 
 /**
  * Asset URL builder — mirrors web app's `menuAssetUrl()` (App.tsx:9154).
@@ -70,6 +72,7 @@ fun BottomNavBar(
     ) {
         items.forEach { screen ->
             val selected = currentRoute == screen.route
+            val label = stringResource(screen.titleRes)
             NavigationBarItem(
                 icon = {
                     NavIcon(
@@ -77,12 +80,12 @@ fun BottomNavBar(
                         fallback = fallbackIcon(screen.viewId),
                         darkTheme = darkTheme,
                         selected = selected,
-                        contentDescription = screen.title,
+                        contentDescription = label,
                     )
                 },
                 label = {
                     Text(
-                        text = screen.title,
+                        text = label,
                         fontSize = 11.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                     )
@@ -103,14 +106,14 @@ fun BottomNavBar(
             icon = {
                 Icon(
                     Icons.Filled.MoreHoriz,
-                    contentDescription = "More",
+                    contentDescription = stringResource(R.string.more),
                     tint = if (moreSelected) MaterialTheme.colorScheme.primary
                            else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
             label = {
                 Text(
-                    text = "More",
+                    text = stringResource(R.string.more),
                     fontSize = 11.sp,
                     fontWeight = if (moreSelected) FontWeight.Bold else FontWeight.Medium,
                 )

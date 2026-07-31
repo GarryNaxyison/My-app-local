@@ -1,5 +1,7 @@
 const fs = require('fs');
 const path = require('path');
+const ts = require('../web-react/node_modules/typescript');
+const vm = require('vm');
 
 const i18nPath = 'E:\\PROJECTS\\New project\\My app local\\web-react\\src\\lib\\i18n.ts';
 const outputBase = 'E:\\PROJECTS\\New project\\My app local\\android-app\\app\\src\\main\\res';
@@ -125,97 +127,72 @@ function extractAnswerFallbacks(content) {
   return result;
 }
 
-// Extract all dictionaries
-const en = extractDict(fileContent, 'en');
-const ruBase = extractDict(fileContent, 'ru');
+function loadCanonicalWebLocales() {
+  const source = `${fileContent}\nexport { en, localeOverrides };`;
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const module = { exports: {} };
+  vm.runInNewContext(compiled, {
+    module,
+    exports: module.exports,
+    console,
+    Object,
+    Array,
+    String,
+    Number,
+    Boolean,
+    Math,
+    Set,
+    Map,
+  });
+  return module.exports;
+}
 
-// Extract override blocks
-const localeOverrides = extractOverrideBlock(fileContent, 'localeOverrides');
-const authLocaleOverrides = extractOverrideBlock(fileContent, 'authLocaleOverrides');
-const v2UiLocaleOverrides = extractOverrideBlock(fileContent, 'v2UiLocaleOverrides');
-const v2MenuLocaleOverrides = extractOverrideBlock(fileContent, 'v2MenuLocaleOverrides');
-const notesAndAuthLocaleOverrides = extractOverrideBlock(fileContent, 'notesAndAuthLocaleOverrides');
-const authPageLocaleOverrides = extractOverrideBlock(fileContent, 'authPageLocaleOverrides');
-const authPrivacyLocaleOverrides = extractOverrideBlock(fileContent, 'authPrivacyLocaleOverrides');
-
-// Extract answerFieldPlaceholderFallbacks
-const answerFallbacks = extractAnswerFallbacks(fileContent);
-
-const coreLanguages = ['ru','en','es','de','fr','it','zh','ja','ko','tg','uz','tt','hy','kk','ky','ka','uk','pl','ro','pt'];
-const fallbackLanguages = ['ar','bn','cs','el','hi','hu','id','nl','sv','ta','te','th','tl','tr','vi'];
+const { en, localeOverrides } = loadCanonicalWebLocales();
+const allLanguages = ['ru','en','es','de','fr','it','zh','ja','ko','tg','uz','tt','hy','kk','ky','ka','uk','pl','ro','pt','ar','bn','cs','el','hi','hu','id','nl','sv','ta','te','th','tl','tr','vi'];
+const baseDictionary = { ...en };
+for (const locale of allLanguages) {
+  for (const [key, value] of Object.entries(localeOverrides[locale] || {})) {
+    if (baseDictionary[key] == null && value) {
+      baseDictionary[key] = value;
+    }
+  }
+}
 
 function escapeXml(str) {
   if (!str) return '';
   return str
+    .replace(/\\/g, '\\\\')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/'/g, '&apos;')
+    .replace(/'/g, "\\" + "'")
     .replace(/"/g, '&quot;')
     .replace(/\n/g, '\\n');
 }
 
 function buildMergedDict(lang) {
-  const merged = { ...en };
-  
-  // Add ru base if lang is ru
-  if (lang === 'ru') {
-    Object.assign(merged, ruBase);
-  }
-  
-  // Apply localeOverrides
-  if (localeOverrides[lang]) {
-    Object.assign(merged, localeOverrides[lang]);
-  }
-  
-  // Apply authLocaleOverrides
-  if (authLocaleOverrides[lang]) {
-    Object.assign(merged, authLocaleOverrides[lang]);
-  }
-  
-  // Apply v2UiLocaleOverrides
-  if (v2UiLocaleOverrides[lang]) {
-    Object.assign(merged, v2UiLocaleOverrides[lang]);
-  }
-  
-  // Apply v2MenuLocaleOverrides
-  if (v2MenuLocaleOverrides[lang]) {
-    Object.assign(merged, v2MenuLocaleOverrides[lang]);
-  }
-  
-  // Apply notesAndAuthLocaleOverrides
-  if (notesAndAuthLocaleOverrides[lang]) {
-    Object.assign(merged, notesAndAuthLocaleOverrides[lang]);
-  }
-  
-  // Apply authPageLocaleOverrides
-  if (authPageLocaleOverrides[lang]) {
-    Object.assign(merged, authPageLocaleOverrides[lang]);
-  }
-  
-  // Apply authPrivacyLocaleOverrides
-  if (authPrivacyLocaleOverrides[lang]) {
-    Object.assign(merged, authPrivacyLocaleOverrides[lang]);
-  }
-  
-  // Apply answerFieldPlaceholderFallbacks
-  if (answerFallbacks[lang]) {
-    merged.answer_field_placeholder = answerFallbacks[lang];
-  }
-  
-  return merged;
+  return { ...baseDictionary, ...(localeOverrides[lang] || {}) };
 }
 
 function generateXml(dict) {
   const sortedKeys = Object.keys(dict).sort();
+  const androidNames = new Map();
   let xml = '<?xml version="1.0" encoding="utf-8"?>\n';
   xml += '<resources>\n';
   xml += '    <string name="app_name">NERIVA</string>\n';
   
   for (const key of sortedKeys) {
+    const androidKey = key.replace(/[^a-z0-9_]/g, '_').replace(/^[^a-z_]/, '_');
+    const previousKey = androidNames.get(androidKey);
+    if (previousKey && previousKey !== key) {
+      throw new Error(`Android resource key collision: ${previousKey} and ${key} -> ${androidKey}`);
+    }
+    androidNames.set(androidKey, key);
     const value = escapeXml(dict[key]);
     if (value) {
-      xml += `    <string name="${key}">${value}</string>\n`;
+      xml += `    <string name="${androidKey}">${value}</string>\n`;
     }
   }
   
@@ -232,8 +209,6 @@ function ensureDir(dir) {
 const keyCounts = {};
 
 // Generate for all 35 languages
-const allLanguages = [...coreLanguages, ...fallbackLanguages];
-
 for (const lang of allLanguages) {
   const dict = buildMergedDict(lang);
   const xml = generateXml(dict);

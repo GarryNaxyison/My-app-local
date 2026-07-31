@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import ru.neriva.app.NERIVAApp
+import ru.neriva.app.R
 import ru.neriva.app.data.api.*
 import ru.neriva.app.data.model.*
 
@@ -68,7 +70,7 @@ fun LessonScreen(navController: androidx.navigation.NavHostController) {
         try { val r = repo.startLesson(); prompt = r.prompt; message = r.message } catch (e: Exception) { error = e.message } finally { loading = false }
     }
 
-    ScreenScaffold("Lesson", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.new_lesson), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (loading) return@Column
             prompt?.let { Text(it, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) }
@@ -152,7 +154,7 @@ fun RoleplayScreen(navController: androidx.navigation.NavHostController) {
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
 
-    ScreenScaffold("Roleplay", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.roleplay), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
             if (selected == null) {
                 Text("Choose scenario", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -208,7 +210,7 @@ fun ShadowingScreen(navController: androidx.navigation.NavHostController) {
 
     LaunchedEffect(Unit) { try { text = repo.startShadowing().text } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Listening", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.shadowing), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             if (loading) CircularProgressIndicator()
             else {
@@ -274,7 +276,7 @@ fun PronunciationScreen(navController: androidx.navigation.NavHostController) {
 
     LaunchedEffect(Unit) { try { text = repo.startPronunciation().text } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Pronunciation", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.pronunciation), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             if (loading) CircularProgressIndicator()
             else {
@@ -349,7 +351,7 @@ fun WordGameScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { try { challenge = repo.nextGame() } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Review Game", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.word_game), navController) { padding ->
         Box(Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
             if (loading) CircularProgressIndicator(Modifier.align(Alignment.Center))
             else challenge?.let { ch ->
@@ -399,7 +401,7 @@ fun SpellingScreen(navController: androidx.navigation.NavHostController) {
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { try { ch = repo.startSpelling() } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Spelling", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.spelling), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (loading) { CircularProgressIndicator(); return@Column }
             ch?.let { c ->
@@ -490,7 +492,7 @@ fun VocabularyScreen(navController: androidx.navigation.NavHostController) {
         )
     }
 
-    ScreenScaffold("Vocabulary", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.vocabulary), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
             items(words) { w ->
@@ -541,7 +543,7 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
 
     LaunchedEffect(Unit) { refresh() }
 
-    ScreenScaffold("Phrasebook", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.phrasebook), navController) { padding ->
         LazyColumn(
             Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -662,7 +664,7 @@ fun OfflineScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { try { cached = app.phrasebookRepo.getCached() } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Offline Decks", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.offline_decks), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
             items(cached) { p ->
@@ -691,7 +693,7 @@ fun LevelTestScreen(navController: androidx.navigation.NavHostController) {
     var resultScore by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) { try { question = app.apiClient.levelTestStart().question } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Level Test", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.level_test), navController) { padding ->
         Box(Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
             if (loading) CircularProgressIndicator(Modifier.align(Alignment.Center))
             else if (finished) {
@@ -737,7 +739,7 @@ fun ProgressScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { try { progress = app.sessionRepo.getProgress() } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Progress", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.progress), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             progress?.let { p ->
@@ -774,7 +776,7 @@ fun AwardsScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { try { user = app.sessionRepo.getSession().user } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Awards", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.awards), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else {
             val currentLevel = (user?.xpLevel ?: 1).coerceIn(1, 20)
@@ -833,7 +835,7 @@ fun LeaderboardScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { try { entries = app.sessionRepo.getLeaderboard().items ?: emptyList() } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Leaderboard", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.leaders), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
             items(entries) { e ->
@@ -856,7 +858,7 @@ fun LimitsScreen(navController: androidx.navigation.NavHostController) {
     val state by vm.state.collectAsState()
     val u = state.session?.user
 
-    ScreenScaffold("Limits", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.limits), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             MetricCard("Lessons", "${u?.lessonsToday ?: 0} / ${u?.lessonLimit ?: 0}")
             MetricCard("Practice", "${u?.practiceToday ?: 0} / ${u?.practiceLimit ?: 0}")
@@ -923,7 +925,7 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
         )
     }
 
-    ScreenScaffold("Mistakes", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.mistakes), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
             error?.let { message ->
@@ -1057,7 +1059,7 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
         }
     }
 
-    ScreenScaffold("Tools", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.tools), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Mode tabs (mirrors web tool-switch)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1182,7 +1184,7 @@ fun PremiumScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) { try { plans = app.sessionRepo.getPremiumPlans().plans ?: emptyList() } catch (_: Exception) {} finally { loading = false } }
 
-    ScreenScaffold("Premium", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.premium), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(plans) { plan ->
@@ -1220,7 +1222,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
     val interfaceLocales = ru.neriva.app.LanguageManager.getSupportedLocales()
     val learningLocales = ru.neriva.app.LanguageManager.getSupportedLearningLanguages()
 
-    ScreenScaffold("Settings", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.settings), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Theme toggle
             Text("Theme", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -1441,7 +1443,7 @@ fun ReferralScreen(navController: androidx.navigation.NavHostController) {
     val state by vm.state.collectAsState()
     val user = state.session?.user
 
-    ScreenScaffold("Referral", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.referrals), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Your code", style = MaterialTheme.typography.labelLarge)
             Text(user?.referralCode ?: "-", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
@@ -1465,7 +1467,7 @@ fun BugReportScreen(navController: androidx.navigation.NavHostController) {
     var sent by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
 
-    ScreenScaffold("Bug Report", navController) { padding ->
+    ScreenScaffold(stringResource(R.string.report_bug), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (sent) {
                 Text("Report sent. Thank you!", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.titleMedium)

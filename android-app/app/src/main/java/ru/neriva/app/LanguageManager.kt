@@ -11,7 +11,6 @@ object LanguageManager {
     private const val KEY_INTERFACE_LANG = "interface_language"
     private const val KEY_LEARNING_LANG = "learning_language"
 
-    private val supportedInterfaceLocales = listOf("ru", "en")
     private val supportedLearningLanguages = listOf(
         "ru", "en", "es", "de", "fr", "it", "zh", "ja", "ko",
         "tg", "uz", "tt", "hy", "kk", "ky", "ka", "uk", "pl", "ro", "pt",
@@ -75,7 +74,7 @@ object LanguageManager {
 
     fun getLanguageName(code: String): String = languageNames[code] ?: code.uppercase()
 
-    fun getSupportedLocales(): List<String> = supportedInterfaceLocales
+    fun getSupportedLocales(): List<String> = supportedLearningLanguages
 
     fun getSupportedLearningLanguages(): List<String> = supportedLearningLanguages
 
