@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +36,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Practice") },
+            title = { Text(stringResource(R.string.practice)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
         )
     }) { padding ->
@@ -65,7 +69,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
             ) {
                 OutlinedTextField(
                     value = input, onValueChange = { input = it },
-                    label = { Text("Message") },
+                    label = { Text(stringResource(R.string.input)) },
                     modifier = Modifier.weight(1f),
                     maxLines = 4
                 )

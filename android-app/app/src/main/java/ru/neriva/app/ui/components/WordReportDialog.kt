@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.components
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,7 +45,7 @@ fun WordReportDialog(
     AlertDialog(
         onDismissRequest = { if (!pending) onDismiss() },
         icon = { Icon(Icons.Default.ReportProblem, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-        title = { Text("Report word", fontWeight = FontWeight.SemiBold) },
+        title = { Text(stringResource(R.string.ai_tutor_word_report_button), fontWeight = FontWeight.SemiBold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(word, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
@@ -51,7 +55,7 @@ fun WordReportDialog(
                 OutlinedTextField(
                     value = comment,
                     onValueChange = { comment = it },
-                    label = { Text("What's wrong? (optional)") },
+                    label = { Text(stringResource(R.string.ai_tutor_word_report_comment_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                 )
@@ -67,11 +71,11 @@ fun WordReportDialog(
                 if (pending) {
                     CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onError)
                 }
-                Text("Send report")
+                Text(stringResource(R.string.ai_tutor_word_report_submit))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !pending) { Text("Cancel") }
+            TextButton(onClick = onDismiss, enabled = !pending) { Text(stringResource(R.string.cancel)) }
         },
     )
 }

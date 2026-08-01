@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,7 +31,7 @@ fun CompletedLessonsScreen(navController: androidx.navigation.NavHostController)
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Completed Lessons") },
+            title = { Text(stringResource(R.string.tutor_completed_lessons)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
         )
     }) { padding ->
@@ -35,7 +39,7 @@ fun CompletedLessonsScreen(navController: androidx.navigation.NavHostController)
             Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
         } else if (lessons.isEmpty()) {
             Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text("No completed lessons yet.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.tutor_completed_lessons_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         } else {
             LazyColumn(

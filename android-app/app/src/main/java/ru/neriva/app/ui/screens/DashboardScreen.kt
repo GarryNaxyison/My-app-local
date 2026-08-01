@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,19 +29,19 @@ fun DashboardScreen(navController: androidx.navigation.NavHostController) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Dashboard") },
+            title = { Text(stringResource(R.string.dashboard)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
         )
     }) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             progress?.let { p ->
-                Text("Overall Progress", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.progress_without_leaderboard), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 HorizontalDivider()
                 StatRow("Total XP", "${p.xp}")
                 StatRow("Level", "${p.xpLevel} — ${p.xpTitle ?: ""}")
                 HorizontalDivider()
-                Text("Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.activity), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 StatRow("Lessons completed", "${p.lessonCount}")
                 StatRow("Practice sessions", "${p.practiceCount}")
                 StatRow("Word games played", "${p.wordGameCount}")
@@ -47,7 +51,7 @@ fun DashboardScreen(navController: androidx.navigation.NavHostController) {
                 HorizontalDivider()
                 if (p.premium) {
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
-                        Text("Premium Active", Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.premium), Modifier.padding(16.dp), fontWeight = FontWeight.Bold)
                     }
                 }
             }

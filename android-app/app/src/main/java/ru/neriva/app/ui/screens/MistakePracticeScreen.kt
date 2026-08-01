@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -40,23 +44,23 @@ fun MistakePracticeScreen(navController: androidx.navigation.NavHostController) 
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Mistake Practice") },
+            title = { Text(stringResource(R.string.mistake_repair_plan)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
         )
     }) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (loading) { Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }; return@Column }
             if (done) {
-                Text("All mistakes practiced!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.done), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 if (xp > 0) Text("+$xp XP", color = MaterialTheme.colorScheme.primary)
                 return@Column
             }
             word?.let {
-                Text("Original:", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.mistake_original), style = MaterialTheme.typography.labelLarge)
                 Text(it, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             }
             correction?.let {
-                Text("Correct form:", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.correct), style = MaterialTheme.typography.labelLarge)
                 Text(it, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             }
             context?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -64,7 +68,7 @@ fun MistakePracticeScreen(navController: androidx.navigation.NavHostController) 
             Spacer(Modifier.weight(1f))
             OutlinedTextField(
                 value = answer, onValueChange = { answer = it },
-                label = { Text("Type the correct form") },
+                label = { Text(stringResource(R.string.type_answer)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Button(
@@ -84,7 +88,7 @@ fun MistakePracticeScreen(navController: androidx.navigation.NavHostController) 
                 },
                 enabled = !loading && answer.isNotBlank() && !done,
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Submit") }
+            ) { Text(stringResource(R.string.send)) }
         }
     }
 }

@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
@@ -57,7 +61,7 @@ fun AuthScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("NERIVA", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = {
                         val next = if (darkTheme) ThemeManager.ThemeMode.LIGHT else ThemeManager.ThemeMode.DARK
@@ -95,21 +99,21 @@ fun AuthScreen(
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Text("AI Language Tutor", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-                Text("Premium daily practice", style = MaterialTheme.typography.bodyMedium,
+                Text(stringResource(R.string.ai_tutor), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
+                Text(stringResource(R.string.premium_month_body), style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(32.dp))
 
                 // Mode toggle
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = mode == "login", onClick = { mode = "login" }, label = { Text("Sign In") }, modifier = Modifier.weight(1f))
-                    FilterChip(selected = mode == "register", onClick = { mode = "register" }, label = { Text("Register") }, modifier = Modifier.weight(1f))
+                    FilterChip(selected = mode == "login", onClick = { mode = "login" }, label = { Text(stringResource(R.string.auth_login)) }, modifier = Modifier.weight(1f))
+                    FilterChip(selected = mode == "register", onClick = { mode = "register" }, label = { Text(stringResource(R.string.auth_create)) }, modifier = Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(20.dp))
 
                 OutlinedTextField(
                     value = login, onValueChange = { login = it },
-                    label = { Text("Login") },
+                    label = { Text(stringResource(R.string.auth_username)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                 )
@@ -117,7 +121,7 @@ fun AuthScreen(
 
                 OutlinedTextField(
                     value = password, onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(stringResource(R.string.auth_password)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -133,7 +137,7 @@ fun AuthScreen(
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
                         value = passwordConfirm, onValueChange = { passwordConfirm = it },
-                        label = { Text("Confirm Password") },
+                        label = { Text(stringResource(R.string.confirm_password)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -142,7 +146,7 @@ fun AuthScreen(
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(
                         value = referral, onValueChange = { referral = it },
-                        label = { Text("Referral code (optional)") },
+                        label = { Text(stringResource(R.string.auth_referral)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                     )

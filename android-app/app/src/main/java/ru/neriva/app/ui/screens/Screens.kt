@@ -79,7 +79,7 @@ fun LessonScreen(navController: androidx.navigation.NavHostController) {
             Spacer(Modifier.weight(1f))
             OutlinedTextField(
                 value = answer, onValueChange = { answer = it },
-                label = { Text("Your answer") },
+                label = { Text(stringResource(R.string.lesson_answer)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Button(
@@ -92,7 +92,7 @@ fun LessonScreen(navController: androidx.navigation.NavHostController) {
                 },
                 enabled = !loading && answer.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Submit") }
+            ) { Text(stringResource(R.string.send)) }
         }
     }
 }
@@ -109,16 +109,16 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Setup") }) }) { padding ->
+    Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text(stringResource(R.string.auth_finish_account)) }) }) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("Choose your learning language", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.learning_language), style = MaterialTheme.typography.titleMedium)
             val langs = listOf("en", "es", "de", "fr", "it", "zh", "ja", "ko")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 langs.forEach { l ->
                     FilterChip(selected = learningLang == l, onClick = { learningLang = l }, label = { Text(l.uppercase()) })
                 }
             }
-            Text("Your level", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.level_label), style = MaterialTheme.typography.titleMedium)
             val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 levels.forEach { lv ->
@@ -136,7 +136,7 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 },
                 enabled = !loading,
                 modifier = Modifier.fillMaxWidth()
-            ) { if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text("Start Learning") }
+            ) { if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text(stringResource(R.string.start)) }
         }
     }
 }
@@ -157,7 +157,7 @@ fun RoleplayScreen(navController: androidx.navigation.NavHostController) {
     ScreenScaffold(stringResource(R.string.roleplay), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
             if (selected == null) {
-                Text("Choose scenario", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.roleplay), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(12.dp))
                 scenarios.forEach { s ->
                     Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), onClick = { selected = s }) {
@@ -176,7 +176,7 @@ fun RoleplayScreen(navController: androidx.navigation.NavHostController) {
                     }
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
-                    OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("Reply") }, modifier = Modifier.weight(1f))
+                    OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text(stringResource(R.string.send)) }, modifier = Modifier.weight(1f))
                     IconButton(onClick = {
                         if (input.isNotBlank() && !loading) {
                             val msg = input; input = ""
@@ -280,7 +280,7 @@ fun PronunciationScreen(navController: androidx.navigation.NavHostController) {
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             if (loading) CircularProgressIndicator()
             else {
-                Text("Repeat:", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.shadowing_target), style = MaterialTheme.typography.labelLarge)
                 Text(text ?: "", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(24.dp))
 
@@ -291,7 +291,7 @@ fun PronunciationScreen(navController: androidx.navigation.NavHostController) {
                                 color = if (score >= 80) MaterialTheme.colorScheme.secondary else if (score >= 60) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error)
                             feedback?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                             if (weakWords.isNotEmpty()) {
-                                Text("Weak words:", style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(R.string.weak_words), style = MaterialTheme.typography.labelLarge)
                                 Text(weakWords.joinToString(", "), style = MaterialTheme.typography.bodySmall)
                             }
                         }
@@ -421,7 +421,7 @@ fun SpellingScreen(navController: androidx.navigation.NavHostController) {
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                OutlinedTextField(value = answer, onValueChange = { answer = it }, label = { Text("Spell the word") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = answer, onValueChange = { answer = it }, label = { Text(stringResource(R.string.start_spelling)) }, modifier = Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = {
                         scope.launch {
@@ -437,12 +437,12 @@ fun SpellingScreen(navController: androidx.navigation.NavHostController) {
                                 answer = ""
                             } catch (_: Exception) {} finally { loading = false }
                         }
-                    }, enabled = !loading && answer.isNotBlank() && !gaveUp, modifier = Modifier.weight(1f)) { Text("Check") }
+                    }, enabled = !loading && answer.isNotBlank() && !gaveUp, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.check)) }
                     if (!showHint && !gaveUp) {
-                        OutlinedButton(onClick = { showHint = true }) { Text("Hint") }
+                        OutlinedButton(onClick = { showHint = true }) { Text(stringResource(R.string.spelling_hint)) }
                     }
                     if (!gaveUp && attempts >= 2) {
-                        OutlinedButton(onClick = { gaveUp = true; result = "The word was: ${c.wordId ?: ""}" }) { Text("Give up") }
+                        OutlinedButton(onClick = { gaveUp = true; result = "The word was: ${c.wordId ?: ""}" }) { Text(stringResource(R.string.give_up)) }
                     }
                 }
             }
@@ -552,25 +552,25 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Add phrase", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.add_sample), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         OutlinedTextField(
                             value = phrase,
                             onValueChange = { phrase = it },
-                            label = { Text("Phrase") },
+                            label = { Text(stringResource(R.string.phrasebook_phrase_placeholder)) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                         )
                         OutlinedTextField(
                             value = translation,
                             onValueChange = { translation = it },
-                            label = { Text("Translation") },
+                            label = { Text(stringResource(R.string.phrasebook_note_placeholder)) },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                         )
                         OutlinedTextField(
                             value = note,
                             onValueChange = { note = it },
-                            label = { Text("Note") },
+                            label = { Text(stringResource(R.string.phrasebook)) },
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Button(
@@ -610,19 +610,19 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
                     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(message, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
-                            TextButton(onClick = ::refresh) { Text("Retry") }
+                            TextButton(onClick = ::refresh) { Text(stringResource(R.string.retry)) }
                         }
                     }
                 }
             }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Saved phrases", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                    TextButton(onClick = ::refresh, enabled = !loading) { Text("Refresh") }
+                    Text(stringResource(R.string.saved_phrases), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    TextButton(onClick = ::refresh, enabled = !loading) { Text(stringResource(R.string.refresh)) }
                 }
             }
             if (!loading && phrases.isEmpty()) {
-                item { Text("No phrases yet. Add one above to keep it on all your devices.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item { Text(stringResource(R.string.empty_phrasebook), color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
             items(phrases, key = { it.id }) { item ->
                 Card(Modifier.fillMaxWidth()) {
@@ -675,7 +675,7 @@ fun OfflineScreen(navController: androidx.navigation.NavHostController) {
                     }
                 }
             }
-            if (cached.isEmpty()) item { Text("No offline cards yet. Save phrases to learn offline.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            if (cached.isEmpty()) item { Text(stringResource(R.string.offline_short_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
     }
 }
@@ -698,7 +698,7 @@ fun LevelTestScreen(navController: androidx.navigation.NavHostController) {
             if (loading) CircularProgressIndicator(Modifier.align(Alignment.Center))
             else if (finished) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.align(Alignment.Center)) {
-                    Text("Test Complete!", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.done), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                     resultLevel?.let { Text("Your level: $it", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary) }
                     if (resultScore > 0) Text("Score: $resultScore", style = MaterialTheme.typography.titleMedium)
                 }
@@ -797,7 +797,7 @@ fun AwardsScreen(navController: androidx.navigation.NavHostController) {
                 }
                 // Grid of 20 award tiles
                 item {
-                    Text("All trophies", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
+                    Text(stringResource(R.string.awards), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth())
                 }
                 items((1..20).toList()) { level ->
                     val unlocked = currentLevel >= level
@@ -864,7 +864,7 @@ fun LimitsScreen(navController: androidx.navigation.NavHostController) {
             MetricCard("Practice", "${u?.practiceToday ?: 0} / ${u?.practiceLimit ?: 0}")
             if ((u?.voiceLimit ?: 0) > 0) MetricCard("Voice", "${u?.voiceToday ?: 0} / ${u?.voiceLimit ?: 0}")
             if (u?.premium != true) {
-                Button(onClick = { navController.navigate("premium") }, modifier = Modifier.fillMaxWidth()) { Text("Upgrade to Premium") }
+                Button(onClick = { navController.navigate("premium") }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.tutor_premium_cta)) }
             }
         }
     }
@@ -899,7 +899,7 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
-            title = { Text("Clear all mistakes?") },
+            title = { Text(stringResource(R.string.confirm_clear_mistakes)) },
             text = { Text("This will remove all ${mistakes.size} saved mistakes.") },
             confirmButton = {
                 Button(
@@ -919,9 +919,9 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                ) { Text("Yes, clear") }
+                ) { Text(stringResource(R.string.yes_clear)) }
             },
-            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 
@@ -933,7 +933,7 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
                         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(message, color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
-                            TextButton(onClick = { scope.launch { reload() } }) { Text("Retry") }
+                            TextButton(onClick = { scope.launch { reload() } }) { Text(stringResource(R.string.retry)) }
                         }
                     }
                 }
@@ -945,12 +945,12 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                             onClick = { navController.navigate("mistake-practice") },
                             modifier = Modifier.weight(1f),
                             enabled = !busy,
-                        ) { Text("Practice") }
+                        ) { Text(stringResource(R.string.practice)) }
                         OutlinedButton(
                             onClick = { confirmClear = true },
                             modifier = Modifier.weight(1f),
                             enabled = !busy,
-                        ) { Text("Clear all") }
+                        ) { Text(stringResource(R.string.clear)) }
                     }
                 }
             }
@@ -984,7 +984,7 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                 }
             }
             if (mistakes.isEmpty()) {
-                item { Text("No mistakes yet. Practice to fill this list.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item { Text(stringResource(R.string.no_mistakes_loaded), color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
         }
     }
@@ -1084,7 +1084,7 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                 "translator" -> {
                     OutlinedTextField(
                         value = input, onValueChange = { input = it },
-                        label = { Text("Paste text to translate") },
+                        label = { Text(stringResource(R.string.paste_text_translate)) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 3,
                     )
@@ -1118,19 +1118,19 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                 }
                 "image" -> {
                     imageUri?.let {
-                        Text("Image selected", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } ?: Text("Pick a photo containing text to translate", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.image_message), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } ?: Text(stringResource(R.string.image_message), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedButton(onClick = { imagePicker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) {
                         Icon(androidx.compose.material.icons.Icons.Default.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Choose image")
+                        Text(stringResource(R.string.attach_screenshot))
                     }
                 }
             }
 
             // Target language selector
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Target:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.target_language), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 var langExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(expanded = langExpanded, onExpandedChange = { langExpanded = it }) {
                     OutlinedTextField(
@@ -1158,14 +1158,14 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                else Text("Send")
+                else Text(stringResource(R.string.send))
             }
 
             error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             result?.let {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("Result", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.result), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(4.dp))
                         Text(it, style = MaterialTheme.typography.bodyLarge)
                     }
@@ -1225,17 +1225,17 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
     ScreenScaffold(stringResource(R.string.settings), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Theme toggle
-            Text("Theme", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.toggle_theme), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.LIGHT, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.LIGHT) }, label = { Text("Light") }, leadingIcon = { Icon(Icons.Default.LightMode, null, modifier = Modifier.size(18.dp)) })
-                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.DARK, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.DARK) }, label = { Text("Dark") }, leadingIcon = { Icon(Icons.Default.DarkMode, null, modifier = Modifier.size(18.dp)) })
-                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.SYSTEM, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.SYSTEM) }, label = { Text("System") }, leadingIcon = { Icon(Icons.Default.PhoneAndroid, null, modifier = Modifier.size(18.dp)) })
+                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.LIGHT, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.LIGHT) }, label = { Text(stringResource(R.string.toggle_theme)) }, leadingIcon = { Icon(Icons.Default.LightMode, null, modifier = Modifier.size(18.dp)) })
+                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.DARK, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.DARK) }, label = { Text(stringResource(R.string.toggle_theme)) }, leadingIcon = { Icon(Icons.Default.DarkMode, null, modifier = Modifier.size(18.dp)) })
+                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.SYSTEM, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.SYSTEM) }, label = { Text(stringResource(R.string.toggle_theme)) }, leadingIcon = { Icon(Icons.Default.PhoneAndroid, null, modifier = Modifier.size(18.dp)) })
             }
 
             HorizontalDivider()
 
             // Interface language
-            Text("Interface Language", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.interface_language), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             ExposedDropdownMenuBox(expanded = interfaceLangExpanded, onExpandedChange = { interfaceLangExpanded = it }) {
                 OutlinedTextField(
                     value = ru.neriva.app.LanguageManager.getLanguageName(interfaceLang),
@@ -1265,7 +1265,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             }
 
             // Learning language
-            Text("Learning Language", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.learning_language), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             ExposedDropdownMenuBox(expanded = learningLangExpanded, onExpandedChange = { learningLangExpanded = it }) {
                 OutlinedTextField(
                     value = ru.neriva.app.LanguageManager.getLanguageName(learningLang),
@@ -1295,7 +1295,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             // Level selector
             var levelExpanded by remember { mutableStateOf(false) }
             val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
-            Text("Level", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.level_label), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             ExposedDropdownMenuBox(expanded = levelExpanded, onExpandedChange = { levelExpanded = it }) {
                 OutlinedTextField(
                     value = user?.level ?: "A1",
@@ -1321,24 +1321,24 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
 
             // Learning focus
             var focusText by remember { mutableStateOf("") }
-            Text("Learning Focus", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.learning_focus), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
                 value = focusText, onValueChange = { focusText = it },
-                label = { Text("e.g. travel, business, exam prep") },
+                label = { Text(stringResource(R.string.learning_focus_placeholder)) },
                 modifier = Modifier.fillMaxWidth()
             )
             Button(onClick = {
                 scope.launch {
                     try { app.sessionRepo.updateSettings(learningFocus = focusText.ifBlank { null }); vm.refresh() } catch (_: Exception) {}
                 }
-            }, modifier = Modifier.fillMaxWidth()) { Text("Save Focus") }
+            }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.save_settings)) }
 
             HorizontalDivider()
 
             // Activation key
             var activationKey by remember { mutableStateOf("") }
             var activationResult by remember { mutableStateOf<String?>(null) }
-            Text("Activation Key", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.activation_key), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
                 value = activationKey, onValueChange = { activationKey = it },
                 label = { Text("XXXX-XXXX-XXXX-XXXX") },
@@ -1349,7 +1349,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                     try { app.sessionRepo.activateKey(activationKey); activationResult = "Key activated!"; vm.refresh() }
                     catch (e: Exception) { activationResult = e.message }
                 }
-            }, enabled = activationKey.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text("Activate") }
+            }, enabled = activationKey.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.activate)) }
             activationResult?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
 
             HorizontalDivider()
@@ -1359,16 +1359,16 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             var newPass by remember { mutableStateOf("") }
             var confirmPass by remember { mutableStateOf("") }
             var passResult by remember { mutableStateOf<String?>(null) }
-            Text("Change Password", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            OutlinedTextField(value = oldPass, onValueChange = { oldPass = it }, label = { Text("Current password") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = newPass, onValueChange = { newPass = it }, label = { Text("New password") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = confirmPass, onValueChange = { confirmPass = it }, label = { Text("Confirm new password") }, modifier = Modifier.fillMaxWidth())
+            Text(stringResource(R.string.change_password), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            OutlinedTextField(value = oldPass, onValueChange = { oldPass = it }, label = { Text(stringResource(R.string.current_password)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = newPass, onValueChange = { newPass = it }, label = { Text(stringResource(R.string.new_password)) }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = confirmPass, onValueChange = { confirmPass = it }, label = { Text(stringResource(R.string.confirm_password)) }, modifier = Modifier.fillMaxWidth())
             Button(onClick = {
                 scope.launch {
                     try { app.authRepo.changePassword(oldPass, newPass, confirmPass); passResult = "Password changed!" }
                     catch (e: Exception) { passResult = e.message }
                 }
-            }, enabled = oldPass.isNotBlank() && newPass.isNotBlank() && newPass == confirmPass, modifier = Modifier.fillMaxWidth()) { Text("Change Password") }
+            }, enabled = oldPass.isNotBlank() && newPass.isNotBlank() && newPass == confirmPass, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.change_password)) }
             passResult?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
 
             HorizontalDivider()
@@ -1384,13 +1384,12 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             val telegramIntent = remember(bot) {
                 android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://t.me/$bot"))
             }
-            Text("Telegram", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.telegram), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             if (telegramLinked) {
                 telegramAccount?.name?.let { Text("Linked: $it", style = MaterialTheme.typography.bodyMedium) }
                 telegramAccount?.id?.let { Text("Telegram ID: $it", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             } else {
-                Text(
-                    "Link Telegram to share progress between bot and app.",
+                Text(stringResource(R.string.telegram_link_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1402,7 +1401,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                 ) {
                     Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Open")
+                    Text(stringResource(R.string.open_telegram))
                 }
                 if (!telegramLinked) {
                     Button(
@@ -1411,15 +1410,15 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                             context.startActivity(telegramIntent)
                         },
                         modifier = Modifier.weight(1f),
-                    ) { Text("Send code") }
+                    ) { Text(stringResource(R.string.send_code)) }
                 }
             }
 
             HorizontalDivider()
 
             // Social channels
-            Text("Social channels", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text("Follow NERIVA — short lessons, updates, and product tips.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.social_channels), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.poliglot_social_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             SocialLinkButton("Telegram", "https://t.me/NERIVAapp_bot", Icons.Default.Send, context)
             SocialLinkButton("YouTube", "https://www.youtube.com/@neriva_app", Icons.Default.PlayCircle, context)
             SocialLinkButton("Instagram", "https://www.instagram.com/neriva.ru", Icons.Default.CameraAlt, context)
@@ -1430,7 +1429,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                 onClick = { scope.launch { app.authRepo.logout(); vm.logout() } },
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Log Out") }
+            ) { Text(stringResource(R.string.logout)) }
         }
     }
 }
@@ -1445,12 +1444,12 @@ fun ReferralScreen(navController: androidx.navigation.NavHostController) {
 
     ScreenScaffold(stringResource(R.string.referrals), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Your code", style = MaterialTheme.typography.labelLarge)
+            Text(stringResource(R.string.referral_code), style = MaterialTheme.typography.labelLarge)
             Text(user?.referralCode ?: "-", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text("Invited: ${user?.referralCount ?: 0}")
             Text("Balance: ${user?.referralBalance ?: "0"}")
             user?.referralInvitees?.takeIf { it.isNotEmpty() }?.let {
-                Text("Invitees", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.referral_invitees), style = MaterialTheme.typography.titleMedium)
                 it.forEach { inv -> Text("• ${inv.name} — ${inv.xp} XP") }
             }
         }
@@ -1470,9 +1469,9 @@ fun BugReportScreen(navController: androidx.navigation.NavHostController) {
     ScreenScaffold(stringResource(R.string.report_bug), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (sent) {
-                Text("Report sent. Thank you!", color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.bug_report_sent), color = MaterialTheme.colorScheme.secondary, style = MaterialTheme.typography.titleMedium)
             }
-            OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text("Describe the issue") }, modifier = Modifier.fillMaxWidth(), minLines = 4)
+            OutlinedTextField(value = desc, onValueChange = { desc = it }, label = { Text(stringResource(R.string.problem_description)) }, modifier = Modifier.fillMaxWidth(), minLines = 4)
             Button(onClick = {
                 scope.launch {
                     loading = true
@@ -1483,7 +1482,7 @@ fun BugReportScreen(navController: androidx.navigation.NavHostController) {
                     } catch (_: Exception) {} finally { loading = false }
                 }
             }, enabled = !loading && desc.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
-                if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text("Send Report")
+                if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp) else Text(stringResource(R.string.send_report))
             }
         }
     }

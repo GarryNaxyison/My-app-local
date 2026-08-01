@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -37,7 +41,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Today", fontWeight = FontWeight.SemiBold) },
+                title = { Text(stringResource(R.string.today), fontWeight = FontWeight.SemiBold) },
                 actions = {
                     IconButton(onClick = { navController.navigate("bug-report") }) {
                         Icon(Icons.Default.BugReport, contentDescription = "Report")
@@ -57,7 +61,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                 // Progress card
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Your progress", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.progress), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                             StatItem("XP", "${user?.xp ?: 0}")
                             StatItem("Level", "${user?.xpLevel ?: 0}")
@@ -74,7 +78,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                 // Daily limits card
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("Daily activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        Text(stringResource(R.string.learning_activity), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         LimitRow("Lessons", user?.lessonsToday ?: 0, user?.lessonLimit ?: 0)
                         LimitRow("Practice", user?.practiceToday ?: 0, user?.practiceLimit ?: 0)
                         if ((user?.voiceLimit ?: 0) > 0) {
@@ -107,7 +111,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                         }
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Daily Bonus", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.claim_daily_bonus), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                             Text(
                                 bonusResult ?: "Claim your daily XP bonus",
                                 style = MaterialTheme.typography.bodySmall,
@@ -139,8 +143,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                 }
 
                 // Quick actions
-                Text(
-                    "Learning Lab",
+                Text(stringResource(R.string.v2_learning_lab),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground,

@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,7 +36,7 @@ fun WordsScreen(navController: androidx.navigation.NavHostController) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("Learn Words") },
+            title = { Text(stringResource(R.string.learn_words)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
         )
     }) { padding ->

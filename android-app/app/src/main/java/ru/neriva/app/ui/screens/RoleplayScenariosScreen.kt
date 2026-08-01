@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,7 +40,7 @@ fun RoleplayScenariosScreen(navController: androidx.navigation.NavHostController
     )
 
     Scaffold(topBar = {
-        TopAppBar(title = { Text("Roleplay Scenarios") })
+        TopAppBar(title = { Text(stringResource(R.string.roleplay)) })
     }) { padding ->
         LazyColumn(
             Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp),

@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,7 +39,7 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
 
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text("AI Tutor") },
+            title = { Text(stringResource(R.string.ai_tutor)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
         )
     }) { padding ->
@@ -60,7 +64,7 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
                         }
                     }
                     if (lesson.words.isNotEmpty()) {
-                        Text("New words", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.tutor_words), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         lesson.words.forEach { w ->
                             Card(modifier = Modifier.fillMaxWidth()) {
                                 Column(Modifier.padding(12.dp)) {
@@ -91,14 +95,14 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
                     }
                 }
                 resp.feedback?.let {
-                    if (it.ok == true) Text("Correct!", color = MaterialTheme.colorScheme.secondary)
+                    if (it.ok == true) Text(stringResource(R.string.correct), color = MaterialTheme.colorScheme.secondary)
                     it.message?.let { msg -> Text(msg) }
                 }
             }
 
             OutlinedTextField(
                 value = answer, onValueChange = { answer = it },
-                label = { Text("Your answer") },
+                label = { Text(stringResource(R.string.lesson_answer)) },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     IconButton(onClick = {

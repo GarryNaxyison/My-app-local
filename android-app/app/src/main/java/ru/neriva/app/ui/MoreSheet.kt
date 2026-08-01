@@ -1,5 +1,7 @@
 package ru.neriva.app.ui
 
+import ru.neriva.app.R
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -42,7 +44,7 @@ fun MoreSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("More", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.more), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }

@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.screens
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -21,10 +25,10 @@ fun ReviewScheduleDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Schedule Review") },
+        title = { Text(stringResource(R.string.tutor_review)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("When do you want to review this lesson?")
+                Text(stringResource(R.string.tutor_srs))
                 options.forEach { (value, label) ->
                     OutlinedButton(
                         onClick = { onSelect(value); onDismiss() },
@@ -35,7 +39,7 @@ fun ReviewScheduleDialog(
         },
         confirmButton = {},
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }
