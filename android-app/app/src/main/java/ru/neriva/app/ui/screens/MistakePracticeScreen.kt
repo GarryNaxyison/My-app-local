@@ -45,7 +45,7 @@ fun MistakePracticeScreen(navController: androidx.navigation.NavHostController) 
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.mistake_repair_plan)) },
-            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
         )
     }) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -79,7 +79,7 @@ fun MistakePracticeScreen(navController: androidx.navigation.NavHostController) 
                             val r = repo.answerPractice(answer)
                             if (r.empty) { done = true } else {
                                 word = r.word; correction = r.correction; context = r.context
-                                result = if (r.xp != null && r.xp > 0) "+${r.xp} XP" else "Try again"
+                                result = if (r.xp != null && r.xp > 0) "+${r.xp} XP" else ru.neriva.app.NERIVAApp.instance.getString(R.string.retry)
                                 xp += r.xp ?: 0
                             }
                             answer = ""

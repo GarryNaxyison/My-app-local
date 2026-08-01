@@ -37,7 +37,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.practice)) },
-            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
         )
     }) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
@@ -55,7 +55,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
                         )
                     ) {
                         Column(Modifier.padding(12.dp)) {
-                            Text(if (isUser) "You" else "AI", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(if (isUser) ru.neriva.app.NERIVAApp.instance.getString(R.string.you) else "AI", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(text, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
@@ -83,7 +83,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
                             val file = recorder.stopRecording()
                             isRecording = false
                             if (file != null) {
-                                messages = messages + ("user" to "🎤 Voice message")
+                                messages = messages + ("user" to ru.neriva.app.NERIVAApp.instance.getString(R.string.voice_message))
                                 scope.launch {
                                     loading = true; error = null
                                     try {
@@ -105,7 +105,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     )
-                ) { Icon(Icons.Default.Mic, if (isRecording) "Stop" else "Record") }
+                ) { Icon(Icons.Default.Mic, if (isRecording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice)) }
                 Spacer(Modifier.width(8.dp))
                 IconButton(
                     onClick = {
@@ -122,7 +122,7 @@ fun PracticeScreen(navController: androidx.navigation.NavHostController) {
                             }
                         }
                     }
-                ) { Icon(Icons.AutoMirrored.Filled.Send, "Send") }
+                ) { Icon(Icons.AutoMirrored.Filled.Send, ru.neriva.app.NERIVAApp.instance.getString(R.string.send)) }
             }
         }
     }

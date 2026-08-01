@@ -30,7 +30,7 @@ fun DashboardScreen(navController: androidx.navigation.NavHostController) {
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.dashboard)) },
-            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
         )
     }) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
@@ -38,16 +38,16 @@ fun DashboardScreen(navController: androidx.navigation.NavHostController) {
             progress?.let { p ->
                 Text(stringResource(R.string.progress_without_leaderboard), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 HorizontalDivider()
-                StatRow("Total XP", "${p.xp}")
-                StatRow("Level", "${p.xpLevel} — ${p.xpTitle ?: ""}")
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.xp_gained_label), "${p.xp}")
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.level_label), "${p.xpLevel} — ${p.xpTitle ?: ""}")
                 HorizontalDivider()
                 Text(stringResource(R.string.activity), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                StatRow("Lessons completed", "${p.lessonCount}")
-                StatRow("Practice sessions", "${p.practiceCount}")
-                StatRow("Word games played", "${p.wordGameCount}")
-                StatRow("Words learned", "${p.learnedWords}")
-                StatRow("Mistakes remaining", "${p.mistakes}")
-                p.streak?.let { StatRow("Streak", "$it days") }
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.lessons_completed), "${p.lessonCount}")
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.practices_total), "${p.practiceCount}")
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.word_game), "${p.wordGameCount}")
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.words_learned), "${p.learnedWords}")
+                StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.mistakes), "${p.mistakes}")
+                p.streak?.let { StatRow(ru.neriva.app.NERIVAApp.instance.getString(R.string.habit_calendar), "$it") }
                 HorizontalDivider()
                 if (p.premium) {
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {

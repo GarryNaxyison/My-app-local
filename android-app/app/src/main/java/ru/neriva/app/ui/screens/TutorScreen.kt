@@ -40,7 +40,7 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.ai_tutor)) },
-            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
         )
     }) { padding ->
         Column(
@@ -111,7 +111,7 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
                             try { response = repo.answer(answer, response?.session?.id); answer = "" }
                             catch (e: Exception) { error = e.message } finally { loading = false }
                         }
-                    }) { Icon(Icons.AutoMirrored.Filled.Send, "Send") }
+                    }) { Icon(Icons.AutoMirrored.Filled.Send, ru.neriva.app.NERIVAApp.instance.getString(R.string.send)) }
                 }
             )
         }

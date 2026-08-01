@@ -1,5 +1,9 @@
 package ru.neriva.app.ui.components
 
+import ru.neriva.app.R
+
+import androidx.compose.ui.res.stringResource
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -90,7 +94,7 @@ fun AudioWaveButton(
             when (state) {
                 PlaybackState.IDLE -> Icon(
                     Icons.Filled.VolumeUp,
-                    contentDescription = "Play audio",
+                    contentDescription = ru.neriva.app.NERIVAApp.instance.getString(R.string.listen),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(18.dp),
                 )

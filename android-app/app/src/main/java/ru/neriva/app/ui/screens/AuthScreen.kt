@@ -70,7 +70,7 @@ fun AuthScreen(
                     }) {
                         Icon(
                             if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle theme",
+                            contentDescription = ru.neriva.app.NERIVAApp.instance.getString(R.string.toggle_theme),
                         )
                     }
                 }
@@ -173,7 +173,7 @@ fun AuthScreen(
                                 }
                                 onAuthSuccess()
                             } catch (e: Exception) {
-                                error = e.message ?: "Login failed"
+                                error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.auth_failed)
                             } finally { isLoading = false }
                         }
                     },
@@ -181,7 +181,7 @@ fun AuthScreen(
                     enabled = !isLoading && login.isNotBlank() && password.isNotBlank(),
                 ) {
                     if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                    else Text(if (mode == "login") "Sign In" else "Create Account")
+                    else Text(if (mode == "login") ru.neriva.app.NERIVAApp.instance.getString(R.string.auth_login) else ru.neriva.app.NERIVAApp.instance.getString(R.string.auth_create_account))
                 }
 
                 Spacer(Modifier.height(12.dp))

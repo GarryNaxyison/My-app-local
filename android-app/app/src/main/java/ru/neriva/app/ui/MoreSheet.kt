@@ -46,7 +46,7 @@ fun MoreSheet(
             ) {
                 Text(stringResource(R.string.more), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
+                    Icon(Icons.Default.Close, contentDescription = ru.neriva.app.NERIVAApp.instance.getString(R.string.close_menu))
                 }
             }
             Spacer(Modifier.height(12.dp))

@@ -41,7 +41,7 @@ private fun ScreenScaffold(
         topBar = {
             TopAppBar(
                 title = { Text(title) },
-                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
             )
         }
     ) { content(it) }
@@ -148,7 +148,7 @@ fun RoleplayScreen(navController: androidx.navigation.NavHostController) {
     val app = NERIVAApp.instance
     val repo = remember { ru.neriva.app.data.repo.PracticeRepository(app.apiClient) }
     val scope = rememberCoroutineScope()
-    val scenarios = listOf("Travel", "Work", "Exam", "Speaking")
+    val scenarios = listOf(ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_travel), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_work), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_exam), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay))
     var selected by remember { mutableStateOf<String?>(null) }
     var messages by remember { mutableStateOf(listOf<Pair<String, String>>()) }
     var input by remember { mutableStateOf("") }
@@ -169,7 +169,7 @@ fun RoleplayScreen(navController: androidx.navigation.NavHostController) {
                     items(messages) { (role, text) ->
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(12.dp)) {
-                                Text(if (role == "user") "You" else "AI", style = MaterialTheme.typography.labelSmall)
+                                Text(if (role == "user") ru.neriva.app.NERIVAApp.instance.getString(R.string.you) else "AI", style = MaterialTheme.typography.labelSmall)
                                 Text(text, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
@@ -187,7 +187,7 @@ fun RoleplayScreen(navController: androidx.navigation.NavHostController) {
                                 catch (_: Exception) {} finally { loading = false }
                             }
                         }
-                    }) { Icon(Icons.Default.Send, "Send") }
+                    }) { Icon(Icons.Default.Send, ru.neriva.app.NERIVAApp.instance.getString(R.string.send)) }
                 }
             }
         }
@@ -214,7 +214,7 @@ fun ShadowingScreen(navController: androidx.navigation.NavHostController) {
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             if (loading) CircularProgressIndicator()
             else {
-                Text(text ?: "Listen and repeat", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(text ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.listening_phrase_fallback), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(24.dp))
                 feedback?.let {
                     Card(Modifier.fillMaxWidth()) {
@@ -235,7 +235,7 @@ fun ShadowingScreen(navController: androidx.navigation.NavHostController) {
                                 scope.launch {
                                     try {
                                         val r = repo.answerShadowingVoice(file, text = text)
-                                        feedback = r.text ?: "Good attempt!"
+                                        feedback = r.text ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.retry)
                                         xp += r.xp ?: 0
                                     } catch (_: Exception) {} finally { loading = false }
                                 }
@@ -250,9 +250,9 @@ fun ShadowingScreen(navController: androidx.navigation.NavHostController) {
                         containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Icon(Icons.Default.Mic, if (isRecording) "Stop" else "Record", modifier = Modifier.size(36.dp))
+                    Icon(Icons.Default.Mic, if (isRecording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice), modifier = Modifier.size(36.dp))
                 }
-                Text(if (isRecording) "Recording... tap to stop" else "Tap to record", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(if (isRecording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -329,9 +329,9 @@ fun PronunciationScreen(navController: androidx.navigation.NavHostController) {
                             containerColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Icon(Icons.Default.Mic, if (isRecording) "Stop" else "Record", modifier = Modifier.size(36.dp))
+                        Icon(Icons.Default.Mic, if (isRecording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice), modifier = Modifier.size(36.dp))
                     }
-                    Text(if (isRecording) "Recording... tap to stop" else "Tap to record", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(if (isRecording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -358,7 +358,7 @@ fun WordGameScreen(navController: androidx.navigation.NavHostController) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(ch.prompt ?: ch.word ?: "", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     ch.context?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    result?.let { Text(it, color = if (it.startsWith("Correct")) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error) }
+                    result?.let { Text(it, color = if (it.startsWith(ru.neriva.app.NERIVAApp.instance.getString(R.string.correct))) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error) }
                     if (xp > 0) Text("Total: +$xp XP", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     ch.options.forEach { opt ->
@@ -408,7 +408,7 @@ fun SpellingScreen(navController: androidx.navigation.NavHostController) {
                 Text(c.prompt ?: c.message ?: "", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 c.context?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 if (attempts > 0) Text("Attempts: $attempts", style = MaterialTheme.typography.bodySmall)
-                result?.let { Text(it, color = if (it?.startsWith("Correct") == true) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error) }
+                result?.let { Text(it, color = if (it?.startsWith(ru.neriva.app.NERIVAApp.instance.getString(R.string.correct)) == true) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error) }
                 if (xp > 0) Text("+$xp XP", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 if (showHint && !gaveUp) {
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
@@ -485,7 +485,7 @@ fun VocabularyScreen(navController: androidx.navigation.NavHostController) {
                         repo.reportWord(wid)
                         reportTarget = null
                     } catch (e: Exception) {
-                        reportError = e.message ?: "Failed to send report"
+                        reportError = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
                     } finally { reportPending = false }
                 }
             },
@@ -501,7 +501,7 @@ fun VocabularyScreen(navController: androidx.navigation.NavHostController) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(w.word, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                             IconButton(onClick = { reportTarget = w }) {
-                                Icon(Icons.Default.ReportProblem, contentDescription = "Report word", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(Icons.Default.ReportProblem, contentDescription = ru.neriva.app.NERIVAApp.instance.getString(R.string.ai_tutor_word_report_button), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                         w.translation?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
@@ -534,7 +534,7 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
             try {
                 app.phrasebookRepo.refresh()
             } catch (e: Exception) {
-                error = e.message ?: "Could not update the phrasebook."
+                error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
             } finally {
                 loading = false
             }
@@ -590,7 +590,7 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
                                         translation = ""
                                         note = ""
                                     } catch (e: Exception) {
-                                        error = e.message ?: "Could not save the phrase."
+                                        error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
                                     } finally {
                                         saving = false
                                     }
@@ -598,7 +598,7 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
                             },
                             enabled = phrase.isNotBlank() && !saving,
                             modifier = Modifier.fillMaxWidth(),
-                        ) { Text(if (saving) "Saving..." else "Save phrase") }
+                        ) { Text(if (saving) ru.neriva.app.NERIVAApp.instance.getString(R.string.save_to_phrasebook) else ru.neriva.app.NERIVAApp.instance.getString(R.string.save_to_phrasebook)) }
                     }
                 }
             }
@@ -640,14 +640,14 @@ fun PhrasebookScreen(navController: androidx.navigation.NavHostController) {
                                     try {
                                         app.phrasebookRepo.delete(item.id)
                                     } catch (e: Exception) {
-                                        error = e.message ?: "Could not delete the phrase."
+                                        error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
                                     } finally {
                                         saving = false
                                     }
                                 }
                             },
                             enabled = !saving,
-                        ) { Icon(Icons.Default.Delete, contentDescription = "Delete phrase") }
+                        ) { Icon(Icons.Default.Delete, contentDescription = ru.neriva.app.NERIVAApp.instance.getString(R.string.remove)) }
                     }
                 }
             }
@@ -744,14 +744,14 @@ fun ProgressScreen(navController: androidx.navigation.NavHostController) {
         else Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             progress?.let { p ->
                 MetricCard("XP", "${p.xp}")
-                MetricCard("Level", "${p.xpLevel}")
-                MetricCard("Title", p.xpTitle ?: "-")
-                MetricCard("Lessons", "${p.lessonCount}")
-                MetricCard("Practice", "${p.practiceCount}")
-                MetricCard("Words learned", "${p.learnedWords}")
-                MetricCard("Mistakes", "${p.mistakes}")
-                p.streak?.let { MetricCard("Streak", "$it days") }
-                if (p.premium) MetricCard("Status", "Premium")
+                MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.level_label), "${p.xpLevel}")
+                MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.level_label), p.xpTitle ?: "-")
+                MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.lessons_total), "${p.lessonCount}")
+                MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.practice), "${p.practiceCount}")
+                MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.words_learned), "${p.learnedWords}")
+                MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.mistakes), "${p.mistakes}")
+                p.streak?.let { MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.habit_calendar), "$it") }
+                if (p.premium) MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.status), ru.neriva.app.NERIVAApp.instance.getString(R.string.premium))
             }
         }
     }
@@ -814,7 +814,7 @@ fun AwardsScreen(navController: androidx.navigation.NavHostController) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Level $level", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                             Text(
-                                if (unlocked) "Unlocked" else "Locked",
+                                if (unlocked) ru.neriva.app.NERIVAApp.instance.getString(R.string.awards_unlocked) else ru.neriva.app.NERIVAApp.instance.getString(R.string.awards_locked),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (unlocked) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -860,9 +860,9 @@ fun LimitsScreen(navController: androidx.navigation.NavHostController) {
 
     ScreenScaffold(stringResource(R.string.limits), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            MetricCard("Lessons", "${u?.lessonsToday ?: 0} / ${u?.lessonLimit ?: 0}")
-            MetricCard("Practice", "${u?.practiceToday ?: 0} / ${u?.practiceLimit ?: 0}")
-            if ((u?.voiceLimit ?: 0) > 0) MetricCard("Voice", "${u?.voiceToday ?: 0} / ${u?.voiceLimit ?: 0}")
+            MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.lessons_total), "${u?.lessonsToday ?: 0} / ${u?.lessonLimit ?: 0}")
+            MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.practice), "${u?.practiceToday ?: 0} / ${u?.practiceLimit ?: 0}")
+            if ((u?.voiceLimit ?: 0) > 0) MetricCard(ru.neriva.app.NERIVAApp.instance.getString(R.string.voices_today), "${u?.voiceToday ?: 0} / ${u?.voiceLimit ?: 0}")
             if (u?.premium != true) {
                 Button(onClick = { navController.navigate("premium") }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.tutor_premium_cta)) }
             }
@@ -889,7 +889,7 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
         try {
             mistakes = repo.getAll().items ?: emptyList()
         } catch (e: Exception) {
-            error = e.message ?: "Could not load mistakes."
+            error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
         } finally {
             loading = false
         }
@@ -912,7 +912,7 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                                 repo.clearAll()
                                 reload()
                             } catch (e: Exception) {
-                                error = e.message ?: "Could not clear mistakes."
+                                error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
                             } finally {
                                 busy = false
                             }
@@ -971,13 +971,13 @@ fun MistakesScreen(navController: androidx.navigation.NavHostController) {
                                         repo.delete(m.index ?: index)
                                         reload()
                                     } catch (e: Exception) {
-                                        error = e.message ?: "Could not delete the mistake."
+                                        error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
                                     } finally {
                                         busy = false
                                     }
                                 }
                             }, enabled = !busy) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Icon(Icons.Default.Delete, contentDescription = ru.neriva.app.NERIVAApp.instance.getString(R.string.remove), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     }
@@ -1040,13 +1040,13 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                         result = r.translation ?: r.result ?: r.sourceText
                     }
                     "voice" -> {
-                        val f = voiceFile ?: throw IllegalStateException("Record a voice message first")
+                        val f = voiceFile ?: throw IllegalStateException(ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice))
                         val r = repo.voiceToTextFile(f, targetLanguage = targetLang)
                         result = r.translation ?: r.result ?: r.sourceText
                         voiceFile = null
                     }
                     "image" -> {
-                        val uri = imageUri ?: throw IllegalStateException("Pick an image first")
+                        val uri = imageUri ?: throw IllegalStateException(ru.neriva.app.NERIVAApp.instance.getString(R.string.image_message))
                         val tmp = copyUriToTempFile(context, uri, "tool-image")
                         val r = repo.imageTranslate(tmp, targetLang)
                         result = r.translation ?: r.result ?: r.sourceText
@@ -1054,7 +1054,7 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                     }
                 }
             } catch (e: Exception) {
-                error = e.message ?: "Tool failed"
+                error = e.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed)
             } finally { loading = false }
         }
     }
@@ -1063,7 +1063,7 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Mode tabs (mirrors web tool-switch)
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("translator" to "Text", "voice" to "Voice", "image" to "Photo").forEach { (m, label) ->
+                listOf("translator" to ru.neriva.app.NERIVAApp.instance.getString(R.string.text_translator), "voice" to ru.neriva.app.NERIVAApp.instance.getString(R.string.voices_today), "image" to ru.neriva.app.NERIVAApp.instance.getString(R.string.photo_translation)).forEach { (m, label) ->
                     FilterChip(
                         selected = mode == m,
                         onClick = { mode = m; result = null; error = null },
@@ -1074,9 +1074,9 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
             }
 
             val title = when (mode) {
-                "translator" -> "Quick translator"
-                "voice" -> "Voice to text"
-                else -> "Photo translation"
+                "translator" -> ru.neriva.app.NERIVAApp.instance.getString(R.string.quick_translator)
+                "voice" -> ru.neriva.app.NERIVAApp.instance.getString(R.string.voice_to_text)
+                else -> ru.neriva.app.NERIVAApp.instance.getString(R.string.photo_translation)
             }
             Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
 
@@ -1091,7 +1091,7 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                 }
                 "voice" -> {
                     Text(
-                        if (recording) "Recording… tap to stop" else (voiceFile?.let { "Voice ready (${it.name})" } ?: "Record your voice"),
+                        if (recording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else (voiceFile?.let { "Voice ready (${it.name})" } ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.tutor_voice_hint)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -1113,7 +1113,7 @@ fun ToolsScreen(navController: androidx.navigation.NavHostController) {
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text(if (recording) "Stop" else "Record")
+                        Text(if (recording) ru.neriva.app.NERIVAApp.instance.getString(R.string.stop_recording) else ru.neriva.app.NERIVAApp.instance.getString(R.string.record_voice))
                     }
                 }
                 "image" -> {
@@ -1346,7 +1346,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             )
             Button(onClick = {
                 scope.launch {
-                    try { app.sessionRepo.activateKey(activationKey); activationResult = "Key activated!"; vm.refresh() }
+                    try { app.sessionRepo.activateKey(activationKey); activationResult = ru.neriva.app.NERIVAApp.instance.getString(R.string.ready_title); vm.refresh() }
                     catch (e: Exception) { activationResult = e.message }
                 }
             }, enabled = activationKey.isNotBlank(), modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.activate)) }
@@ -1365,7 +1365,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             OutlinedTextField(value = confirmPass, onValueChange = { confirmPass = it }, label = { Text(stringResource(R.string.confirm_password)) }, modifier = Modifier.fillMaxWidth())
             Button(onClick = {
                 scope.launch {
-                    try { app.authRepo.changePassword(oldPass, newPass, confirmPass); passResult = "Password changed!" }
+                    try { app.authRepo.changePassword(oldPass, newPass, confirmPass); passResult = ru.neriva.app.NERIVAApp.instance.getString(R.string.password_changed) }
                     catch (e: Exception) { passResult = e.message }
                 }
             }, enabled = oldPass.isNotBlank() && newPass.isNotBlank() && newPass == confirmPass, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.change_password)) }
@@ -1419,7 +1419,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
             // Social channels
             Text(stringResource(R.string.social_channels), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             Text(stringResource(R.string.poliglot_social_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            SocialLinkButton("Telegram", "https://t.me/NERIVAapp_bot", Icons.Default.Send, context)
+            SocialLinkButton(ru.neriva.app.NERIVAApp.instance.getString(R.string.telegram), "https://t.me/NERIVAapp_bot", Icons.Default.Send, context)
             SocialLinkButton("YouTube", "https://www.youtube.com/@neriva_app", Icons.Default.PlayCircle, context)
             SocialLinkButton("Instagram", "https://www.instagram.com/neriva.ru", Icons.Default.CameraAlt, context)
             SocialLinkButton("TikTok", "https://tiktok.com/@nerivaru", Icons.Default.MusicNote, context)
@@ -1498,7 +1498,7 @@ private fun copyUriToTempFile(context: android.content.Context, uri: android.net
     val tmp = java.io.File.createTempFile(prefix, suffix, context.cacheDir)
     context.contentResolver.openInputStream(uri)?.use { input ->
         tmp.outputStream().use { output -> input.copyTo(output) }
-    } ?: throw IllegalStateException("Cannot read selected image")
+    } ?: throw IllegalStateException(ru.neriva.app.NERIVAApp.instance.getString(R.string.request_failed))
     return tmp
 }
 

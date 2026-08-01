@@ -101,7 +101,7 @@ fun BottomNavBar(
                 ),
             )
         }
-        // "More" button — opens the MoreSheet (always uses a Material icon)
+        // ru.neriva.app.NERIVAApp.instance.getString(R.string.more) button — opens the MoreSheet (always uses a Material icon)
         NavigationBarItem(
             icon = {
                 Icon(

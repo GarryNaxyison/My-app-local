@@ -93,6 +93,89 @@ const literalToResource = {
   "Comment (optional)": "ai_tutor_word_report_comment_label",
   "Send report": "ai_tutor_word_report_submit",
   "Cancel": "cancel",
+  "Back": "back",
+  "More": "more",
+  "Close": "close_menu",
+  "Play audio": "listen",
+  "Toggle theme": "toggle_theme",
+  "Login failed": "auth_failed",
+  "Create Account": "auth_create_account",
+  "Lesson": "lesson",
+  "Total XP": "xp_gained_label",
+  "Lessons": "lessons_total",
+  "Practice sessions": "practices_total",
+  "Word games played": "word_game",
+  "Mistakes remaining": "mistakes",
+  "Streak": "streak",
+  "Report": "report_bug",
+  "Voice": "voices_today",
+  "Claim your daily XP bonus": "claim_daily_bonus",
+  "Claimed!": "bonus_claimed",
+  "Claim": "claim_daily_bonus",
+  "Try again": "retry",
+  "Voice message": "voice_message",
+  "Stop": "stop_recording",
+  "Record": "record_voice",
+  "Send": "send",
+  "Restaurant": "roleplay_scenario_restaurant",
+  "Work": "roleplay_scenario_work",
+  "Travel": "roleplay_scenario_travel",
+  "Exam Prep": "roleplay_scenario_exam",
+  "Small Talk": "roleplay_scenario_small_talk",
+  "Hotel": "roleplay_scenario_hotel",
+  "Shopping": "roleplay_scenario_shopping",
+  "Doctor": "roleplay_scenario_doctor",
+  "Job Interview": "roleplay_scenario_job_interview",
+  "Bank": "roleplay_scenario_bank",
+  "Text": "text_translator",
+  "Photo": "photo_translation",
+  "Quick translator": "quick_translator",
+  "Voice to text": "voice_to_text",
+  "Photo translation": "photo_translation",
+  "Locked": "awards_locked",
+  "Unlocked": "awards_unlocked",
+  "Status": "status",
+  "Premium": "premium",
+  "Save phrase": "save_to_phrasebook",
+  "Delete": "delete",
+  "Delete phrase": "remove",
+  "Good attempt!": "retry",
+  "Listen and repeat": "listening_phrase_fallback",
+  "Recording... tap to stop": "stop_recording",
+  "Recording… tap to stop": "stop_recording",
+  "Tap to record": "record_voice",
+  "Record your voice": "tutor_voice_hint",
+  "Record a voice message first": "record_voice",
+  "Pick an image first": "image_message",
+  "Tool failed": "request_failed",
+  "Failed to send report": "request_failed",
+  "Could not update the phrasebook.": "request_failed",
+  "Could not save the phrase.": "request_failed",
+  "Could not delete the phrase.": "request_failed",
+  "Could not load mistakes.": "request_failed",
+  "Could not clear mistakes.": "request_failed",
+  "Could not delete the mistake.": "request_failed",
+  "Saving...": "save_to_phrasebook",
+  "Key activated!": "ready_title",
+  "Password changed!": "password_changed",
+  "No words available": "empty_panel",
+  "🎤 Voice message": "voice_message",
+  "Title": "level_label",
+  "Mistakes": "mistakes",
+  "Cannot read selected image": "request_failed",
+  "Exam": "roleplay_scenario_exam",
+  "Speaking": "roleplay",
+  "Order food, ask about menu, handle complaints": "roleplay_scenario_restaurant_description",
+  "Office meetings, presentations, small talk with colleagues": "roleplay_scenario_work_description",
+  "Airport, hotel, asking for directions, sightseeing": "roleplay_scenario_travel_description",
+  "IELTS/TOEFL speaking practice, timed responses": "roleplay_scenario_exam_description",
+  "Casual conversations, weather, hobbies, weekend plans": "roleplay_scenario_small_talk_description",
+  "Check-in, room service, complaints, checkout": "roleplay_scenario_hotel_description",
+  "Ask for sizes, bargain, returns, compare products": "roleplay_scenario_shopping_description",
+  "Describe symptoms, understand prescriptions, follow-up": "roleplay_scenario_doctor_description",
+  "Introduce yourself, describe experience, salary negotiation": "roleplay_scenario_job_interview_description",
+  "Open account, transfer money, explain issues": "roleplay_scenario_bank_description",
+  "Report word": "ai_tutor_word_report_button",
 };
 
 function decodeXml(value) {
@@ -126,20 +209,20 @@ function visit(directory) {
 
     const original = fs.readFileSync(file, "utf8");
     let changed = false;
-    const source = original.replace(/\bText\(\s*"((?:\\.|[^"\\])*)"/g, (full, rawValue) => {
+    const source = original.replace(/"((?:\\.|[^"\\])*)"/g, (full, rawValue) => {
       let value;
       try {
         value = JSON.parse(`"${rawValue}"`);
       } catch {
         return full;
       }
-      if (value.includes("$") || /^X+(?:-X+)+$/.test(value) || value.startsWith("Demo Mode") || value.startsWith("Telegram login:")) return full;
+      if (value.includes("$") || /^X+(?:-X+)+$/.test(value) || value.startsWith("Demo Mode") || value.startsWith("Telegram login:") || value.startsWith("http") || /^[a-z][a-z0-9-]*$/.test(value) || /^[a-z]{2}(?:_[A-Z]{2})?$/.test(value) || /^(?:image|text)\//.test(value)) return full;
       const mappedKey = literalToResource[value];
       const keys = valueToKeys.get(value);
       const key = mappedKey || (keys?.length === 1 ? keys[0] : null);
       if (!key) return full;
       changed = true;
-      return `Text(stringResource(R.string.${key})`;
+      return `ru.neriva.app.NERIVAApp.instance.getString(R.string.${key})`;
     });
     if (!changed) continue;
 

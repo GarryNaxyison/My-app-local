@@ -17,10 +17,10 @@ fun ReviewScheduleDialog(
     onSelect: (schedule: String) -> Unit
 ) {
     val options = listOf(
-        "tomorrow" to "Tomorrow",
-        "3_days" to "In 3 days",
-        "1_week" to "In 1 week",
-        "no_review" to "No review"
+        "tomorrow" to ru.neriva.app.NERIVAApp.instance.getString(R.string.ai_tutor_option_tomorrow),
+        "3_days" to ru.neriva.app.NERIVAApp.instance.getString(R.string.ai_tutor_option_3_days),
+        "1_week" to ru.neriva.app.NERIVAApp.instance.getString(R.string.ai_tutor_option_1_week),
+        "no_review" to ru.neriva.app.NERIVAApp.instance.getString(R.string.ai_tutor_option_no_review)
     )
 
     AlertDialog(

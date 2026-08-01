@@ -37,7 +37,7 @@ fun WordsScreen(navController: androidx.navigation.NavHostController) {
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.learn_words)) },
-            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
         )
     }) { padding ->
         Box(Modifier.padding(padding).fillMaxSize().padding(16.dp)) {
@@ -46,7 +46,7 @@ fun WordsScreen(navController: androidx.navigation.NavHostController) {
             } else {
                 challenge?.let { ch ->
                     if (ch.empty) {
-                        Text(ch.message ?: "No words available", modifier = Modifier.align(Alignment.Center))
+                        Text(ch.message ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.empty_panel), modifier = Modifier.align(Alignment.Center))
                     } else {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(ch.prompt ?: ch.word ?: "", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)

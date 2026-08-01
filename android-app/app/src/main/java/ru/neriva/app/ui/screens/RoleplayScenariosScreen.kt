@@ -27,16 +27,16 @@ data class RoleplayScenario(
 @Composable
 fun RoleplayScenariosScreen(navController: androidx.navigation.NavHostController) {
     val scenarios = listOf(
-        RoleplayScenario("restaurant", "Restaurant", "Order food, ask about menu, handle complaints", Icons.Default.Restaurant),
-        RoleplayScenario("work", "Work", "Office meetings, presentations, small talk with colleagues", Icons.Default.Work),
-        RoleplayScenario("travel", "Travel", "Airport, hotel, asking for directions, sightseeing", Icons.Default.Flight),
-        RoleplayScenario("exam", "Exam Prep", "IELTS/TOEFL speaking practice, timed responses", Icons.Default.Quiz),
-        RoleplayScenario("small-talk", "Small Talk", "Casual conversations, weather, hobbies, weekend plans", Icons.Default.Chat),
-        RoleplayScenario("hotel", "Hotel", "Check-in, room service, complaints, checkout", Icons.Default.Hotel),
-        RoleplayScenario("shopping", "Shopping", "Ask for sizes, bargain, returns, compare products", Icons.Default.ShoppingBag),
-        RoleplayScenario("doctor", "Doctor", "Describe symptoms, understand prescriptions, follow-up", Icons.Default.LocalHospital),
-        RoleplayScenario("job-interview", "Job Interview", "Introduce yourself, describe experience, salary negotiation", Icons.Default.BusinessCenter),
-        RoleplayScenario("bank", "Bank", "Open account, transfer money, explain issues", Icons.Default.AccountBalance),
+        RoleplayScenario("restaurant", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_restaurant), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_restaurant_description), Icons.Default.Restaurant),
+        RoleplayScenario("work", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_work), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_work_description), Icons.Default.Work),
+        RoleplayScenario("travel", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_travel), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_travel_description), Icons.Default.Flight),
+        RoleplayScenario("exam", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_exam), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_exam_description), Icons.Default.Quiz),
+        RoleplayScenario("small-talk", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_small_talk), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_small_talk_description), Icons.Default.Chat),
+        RoleplayScenario("hotel", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_hotel), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_hotel_description), Icons.Default.Hotel),
+        RoleplayScenario("shopping", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_shopping), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_shopping_description), Icons.Default.ShoppingBag),
+        RoleplayScenario("doctor", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_doctor), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_doctor_description), Icons.Default.LocalHospital),
+        RoleplayScenario("job-interview", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_job_interview), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_job_interview_description), Icons.Default.BusinessCenter),
+        RoleplayScenario("bank", ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_bank), ru.neriva.app.NERIVAApp.instance.getString(R.string.roleplay_scenario_bank_description), Icons.Default.AccountBalance),
     )
 
     Scaffold(topBar = {

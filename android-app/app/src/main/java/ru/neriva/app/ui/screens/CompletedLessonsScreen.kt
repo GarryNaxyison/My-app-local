@@ -32,7 +32,7 @@ fun CompletedLessonsScreen(navController: androidx.navigation.NavHostController)
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.tutor_completed_lessons)) },
-            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }
+            navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
         )
     }) { padding ->
         if (loading) {
@@ -50,7 +50,7 @@ fun CompletedLessonsScreen(navController: androidx.navigation.NavHostController)
                 items(lessons) { lesson ->
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(lesson.title ?: "Lesson", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            Text(lesson.title ?: ru.neriva.app.NERIVAApp.instance.getString(R.string.new_lesson_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             lesson.topic?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 lesson.level?.let { Text("Level: $it", style = MaterialTheme.typography.bodySmall) }
