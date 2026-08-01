@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -56,6 +57,31 @@ func TestWebGeneratedVisualAssets(t *testing.T) {
 	if recorder.Code == http.StatusOK {
 		body, _ := io.ReadAll(recorder.Body)
 		t.Fatalf("expected traversal request to be rejected, got %d: %s", recorder.Code, string(body))
+	}
+}
+
+func TestHashedWebAppAssetsAreCachedImmutably(t *testing.T) {
+	api := newWebAPI(config{WebAPISessionSecret: "test-session-secret"}, nil)
+	mux := http.NewServeMux()
+	api.register(mux)
+
+	index, err := os.ReadFile(filepath.Join("web", "index.html"))
+	if err != nil {
+		t.Fatalf("read web/index.html: %v", err)
+	}
+	match := regexp.MustCompile(`/app/assets/(index-[^"]+\.js)`).FindStringSubmatch(string(index))
+	if len(match) != 2 {
+		t.Fatal("web/index.html does not reference a hashed application script")
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "/app/assets/"+match[1], nil)
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("GET hashed app asset returned %d", recorder.Code)
+	}
+	if cacheControl := recorder.Header().Get("Cache-Control"); cacheControl != "public, max-age=31536000, immutable" {
+		t.Fatalf("hashed app asset Cache-Control = %q, want immutable one-year cache", cacheControl)
 	}
 }
 

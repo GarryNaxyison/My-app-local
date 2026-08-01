@@ -44,7 +44,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                 title = { Text(stringResource(R.string.today), fontWeight = FontWeight.SemiBold) },
                 actions = {
                     IconButton(onClick = { navController.navigate("bug-report") }) {
-                        Icon(Icons.Default.BugReport, contentDescription = "Report")
+                        Icon(Icons.Default.BugReport, contentDescription = stringResource(R.string.send_report))
                     }
                 }
             )
@@ -64,8 +64,8 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                         Text(stringResource(R.string.progress), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                             StatItem("XP", "${user?.xp ?: 0}")
-                            StatItem("Level", "${user?.xpLevel ?: 0}")
-                            StatItem("Words", "${user?.learnedWords ?: 0}")
+                            StatItem(stringResource(R.string.level_label), "${user?.xpLevel ?: 0}")
+                            StatItem(stringResource(R.string.words), "${user?.learnedWords ?: 0}")
                         }
                         XpProgressBar(
                             currentXp = user?.xpCurrent ?: 0,
@@ -79,10 +79,10 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(stringResource(R.string.learning_activity), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        LimitRow("Lessons", user?.lessonsToday ?: 0, user?.lessonLimit ?: 0)
-                        LimitRow("Practice", user?.practiceToday ?: 0, user?.practiceLimit ?: 0)
+                        LimitRow(stringResource(R.string.lessons_today), user?.lessonsToday ?: 0, user?.lessonLimit ?: 0)
+                        LimitRow(stringResource(R.string.practice_today), user?.practiceToday ?: 0, user?.practiceLimit ?: 0)
                         if ((user?.voiceLimit ?: 0) > 0) {
-                            LimitRow("Voice", user?.voiceToday ?: 0, user?.voiceLimit ?: 0)
+                            LimitRow(stringResource(R.string.voices_today), user?.voiceToday ?: 0, user?.voiceLimit ?: 0)
                         }
                     }
                 }
@@ -91,6 +91,8 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                 var claimingBonus by remember { mutableStateOf(false) }
                 val app = ru.neriva.app.NERIVAApp.instance
                 val scope = androidx.compose.runtime.rememberCoroutineScope()
+                val claimDailyBonus = stringResource(R.string.claim_daily_bonus)
+                val bonusClaimed = stringResource(R.string.bonus_claimed)
                 var bonusResult by remember { mutableStateOf<String?>(null) }
 
                 GlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -113,7 +115,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                         Column(modifier = Modifier.weight(1f)) {
                 Text(stringResource(R.string.claim_daily_bonus), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                             Text(
-                                bonusResult ?: "Claim your daily XP bonus",
+                                bonusResult ?: claimDailyBonus,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -128,7 +130,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                                         scope.launch {
                                             try {
                                                 val res = app.sessionRepo.claimDailyBonus()
-                                                bonusResult = if (res.xp != null) "+${res.xp} XP!" else "Claimed!"
+                                                bonusResult = if (res.xp != null) "+${res.xp} XP!" else bonusClaimed
                                                 vm.refresh()
                                             } catch (e: Exception) {
                                                 bonusResult = e.message
@@ -136,7 +138,7 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                                         }
                                     }
                                 },
-                                text = "Claim",
+                                text = claimDailyBonus,
                             )
                         }
                     }
@@ -182,12 +184,12 @@ private data class LabTile(val route: String, val label: String, val viewId: Str
 fun QuickActionGrid(navController: androidx.navigation.NavHostController) {
     val darkTheme = isSystemInDarkTheme()
     val tiles = listOf(
-        LabTile("tutor", "AI Tutor", "tutor"),
-        LabTile("practice", "Practice", "practice"),
-        LabTile("words", "Learn Words", "words"),
-        LabTile("roleplay", "Roleplay", "roleplay"),
-        LabTile("pronunciation", "Pronunciation", "pronunciation"),
-        LabTile("tools", "Tools", "tools"),
+        LabTile("tutor", stringResource(R.string.ai_tutor), "tutor"),
+        LabTile("practice", stringResource(R.string.practice), "practice"),
+        LabTile("words", stringResource(R.string.learn_words), "words"),
+        LabTile("roleplay", stringResource(R.string.roleplay), "roleplay"),
+        LabTile("pronunciation", stringResource(R.string.pronunciation), "pronunciation"),
+        LabTile("tools", stringResource(R.string.tools), "tools"),
     )
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         tiles.chunked(2).forEach { row ->

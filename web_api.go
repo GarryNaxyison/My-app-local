@@ -534,7 +534,7 @@ func (api *webAPI) handleGeneratedAsset(w http.ResponseWriter, r *http.Request) 
 		http.NotFound(w, r)
 		return
 	}
-	api.writeAssetBytes(w, r, contentType, data)
+	api.writeGeneratedAssetBytes(w, r, name, contentType, data)
 }
 
 func webAssetContentType(name string) string {
@@ -588,9 +588,39 @@ func (api *webAPI) writeAsset(w http.ResponseWriter, r *http.Request, contentTyp
 }
 
 func (api *webAPI) writeAssetBytes(w http.ResponseWriter, r *http.Request, contentType string, data []byte) {
+	api.writeAssetResponse(w, r, contentType, "public, max-age=604800", data)
+}
+
+func (api *webAPI) writeGeneratedAssetBytes(w http.ResponseWriter, r *http.Request, name, contentType string, data []byte) {
+	cacheControl := "public, max-age=604800"
+	if isHashedWebBuildAsset(name) {
+		cacheControl = "public, max-age=31536000, immutable"
+	}
+	api.writeAssetResponse(w, r, contentType, cacheControl, data)
+}
+
+func isHashedWebBuildAsset(name string) bool {
+	extension := strings.ToLower(path.Ext(name))
+	if extension != ".js" && extension != ".css" {
+		return false
+	}
+	stem := strings.TrimSuffix(path.Base(name), extension)
+	separator := strings.LastIndex(stem, "-")
+	if separator <= 0 || len(stem)-separator-1 < 8 {
+		return false
+	}
+	for _, char := range stem[separator+1:] {
+		if !((char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z') || (char >= '0' && char <= '9') || char == '_' || char == '-') {
+			return false
+		}
+	}
+	return true
+}
+
+func (api *webAPI) writeAssetResponse(w http.ResponseWriter, r *http.Request, contentType, cacheControl string, data []byte) {
 	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Cache-Control", "public, max-age=604800")
+	w.Header().Set("Cache-Control", cacheControl)
 	if r.Method == http.MethodHead {
 		w.WriteHeader(http.StatusOK)
 		return
