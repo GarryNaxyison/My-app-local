@@ -16,7 +16,7 @@ function visit(directory) {
     const matcher = /\b(?:Text|ScreenScaffold)\(\s*"((?:\\.|[^"\\])*)"/g;
     for (const match of source.matchAll(matcher)) {
       const value = match[1];
-      if (value === "•" || value.includes("$") || /^X+(?:-X+)+$/.test(value) || value.startsWith("Demo Mode") || value.startsWith("Telegram login:")) continue;
+      if (value === "" || value === "•" || value.includes("$") || /^X+(?:-X+)+$/.test(value) || value.startsWith("Demo Mode") || value.startsWith("Telegram login:")) continue;
       const line = source.slice(0, match.index).split("\n").length;
       violations.push(`${path.relative(process.cwd(), file)}:${line}: ${value}`);
     }
