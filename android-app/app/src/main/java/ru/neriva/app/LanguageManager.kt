@@ -2,6 +2,7 @@ package ru.neriva.app
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import android.content.SharedPreferences
 import android.os.Build
 import java.util.Locale
@@ -81,7 +82,7 @@ object LanguageManager {
     fun applyLocale(activity: Activity, langCode: String) {
         val locale = Locale(langCode)
         Locale.setDefault(locale)
-        val config = activity.resources.configuration
+        val config = Configuration(activity.resources.configuration)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             config.setLocale(locale)
         } else {
@@ -89,5 +90,16 @@ object LanguageManager {
             config.locale = locale
         }
         activity.resources.updateConfiguration(config, activity.resources.displayMetrics)
+
+        // Non-composable handlers use the application context for localized text.
+        val appResources = activity.application.resources
+        val appConfig = Configuration(appResources.configuration)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            appConfig.setLocale(locale)
+        } else {
+            @Suppress("DEPRECATION")
+            appConfig.locale = locale
+        }
+        appResources.updateConfiguration(appConfig, appResources.displayMetrics)
     }
 }
