@@ -1,0 +1,16 @@
+{
+  "name": "codex-orchestrator-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js",
+    "test:e2e": "playwright test",
+    "test:install-browser": "playwright install chromium",
+    "test:profile": "node test/profile-smoke.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
