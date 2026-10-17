@@ -1651,15 +1651,12 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Вопрос 1");
   await expect(page.locator(".tutor-message-v2.is-active")).toContainText("What time does the person wake up?");
-  const retellFeedbackOrder = await page.locator(".tutor-context-v2").evaluate((node) => {
-    const text = node.textContent || "";
-    return {
-      feedback: text.indexOf("Ответ сохранён"),
-      question: text.indexOf("What time does the person wake up?"),
-    };
-  });
-  expect(retellFeedbackOrder.feedback).toBeGreaterThanOrEqual(0);
-  expect(retellFeedbackOrder.feedback).toBeLessThan(retellFeedbackOrder.question);
+  await expect(page.locator(".tutor-context-v2")).not.toContainText("Ответ сохранён");
+  await page.locator(".tutor-step-v2").filter({ hasText: "Пересказ" }).click();
+  await expect(page.locator(".tutor-context-v2")).toContainText("Ответ сохранён");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Mia wakes up at seven and goes to work.");
+  await page.locator(".tutor-context-v2").getByRole("button", { name: appCopy("ru", "tutor_back_to_current") }).last().click();
+  await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Вопрос 1");
   const questionCardText = await page.locator(".tutor-message-v2.is-active").innerText();
   expect((questionCardText.match(/What time does the person wake up\?/g) || []).length).toBe(1);
   expect(questionCardText).not.toContain("Question 1");

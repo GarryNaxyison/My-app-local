@@ -1941,6 +1941,7 @@ export function App() {
   const [aiTutorSessionId, setAiTutorSessionId] = useState("");
   const [aiTutorStep, setAiTutorStep] = useState<AiTutorStep | null>(null);
   const [aiTutorFeedback, setAiTutorFeedback] = useState<AiTutorFeedbackState | null>(null);
+  const [aiTutorFeedbackStage, setAiTutorFeedbackStage] = useState("");
   const [tutorLoadError, setTutorLoadError] = useState("");
   const [spellingChallenge, setSpellingChallenge] = useState<SpellingChallenge | null>(null);
   const [spellingResult, setSpellingResult] = useState<TrainerResult | null>(null);
@@ -2393,6 +2394,7 @@ export function App() {
       setAiTutorSessionId("");
       setAiTutorStep(null);
       setAiTutorFeedback(null);
+      setAiTutorFeedbackStage("");
       setTutorLoadError(text);
       setStatus({ kind: "info", text });
       setView("premium");
@@ -2401,6 +2403,7 @@ export function App() {
     setAiTutorSessionId("");
     setAiTutorStep(null);
     setAiTutorFeedback(null);
+    setAiTutorFeedbackStage("");
     setTutorLoadError("");
     const payload = await runAction("tutor", async () => {
       const controller = new AbortController();
@@ -2431,6 +2434,7 @@ export function App() {
     setAiTutorSessionId(sessionID);
     setAiTutorStep(step);
     setAiTutorFeedback(response.feedback || null);
+    setAiTutorFeedbackStage(step.stage);
     setMessages((current) => [
       panelMessage(
         aiTutorHistoryBody(lessonPayload, step),
@@ -2483,6 +2487,7 @@ export function App() {
     setAiTutorSessionId(sessionID);
     setAiTutorStep(step);
     setAiTutorFeedback(response.feedback || null);
+    setAiTutorFeedbackStage(step.stage);
     setMessages((current) => [
       panelMessage(
         aiTutorHistoryBody(lessonPayload, step),
@@ -2497,7 +2502,7 @@ export function App() {
     return true;
   };
 
-  const submitAiTutorStep = async (text: string, choice = "") => {
+  const submitAiTutorStep = async (stage: string, text: string, choice = "") => {
     if (!user.premium) {
       const notice = copy("tutor_premium_required", "AI Tutor is available with Premium.");
       setTutorLoadError(notice);
@@ -2515,6 +2520,7 @@ export function App() {
     const response = payload as AiTutorResponse;
     const sessionID = String(response.session?.id || response.session?.ID || aiTutorSessionId);
     if (sessionID) setAiTutorSessionId(sessionID);
+    setAiTutorFeedbackStage(stage);
     setAiTutorStep(response.next_step || null);
     setAiTutorFeedback(response.feedback || null);
   };
@@ -2548,6 +2554,7 @@ export function App() {
     if (sessionID) setAiTutorSessionId(sessionID);
     setAiTutorStep(response.next_step || null);
     setAiTutorFeedback(response.feedback || null);
+    setAiTutorFeedbackStage(input.stage);
     return true;
   };
 
@@ -3371,6 +3378,7 @@ export function App() {
     setView: activateView,
     aiTutorStep,
     aiTutorFeedback,
+    aiTutorFeedbackStage,
     submitAiTutorStep,
     reportAiTutorWord,
     tutorLoadError,
@@ -5651,7 +5659,8 @@ type ViewRendererProps = {
   setView: (view: ViewId) => void;
   aiTutorStep: AiTutorStep | null;
   aiTutorFeedback: AiTutorFeedbackState | null;
-  submitAiTutorStep: (text: string, choice?: string) => Promise<void>;
+  aiTutorFeedbackStage: string;
+  submitAiTutorStep: (stage: string, text: string, choice?: string) => Promise<void>;
   reportAiTutorWord: (input: { stage: string; proposedWord: string; proposedTranslation: string; comment: string }) => Promise<boolean>;
   tutorLoadError: string;
   startTutor: () => Promise<void>;
@@ -5767,7 +5776,7 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
+function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
@@ -5908,19 +5917,23 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
       return id && text ? { id, text } : null;
     })
     .filter((option): option is { id: string; text: string } => Boolean(option));
-  const feedbackMessage = isPreviewing ? display(stageHistory[previewStage]?.feedback?.message) : display(aiTutorFeedback?.message);
-  const feedbackOK = isPreviewing ? stageHistory[previewStage]?.feedback?.ok !== false : aiTutorFeedback?.ok !== false;
+  const feedbackMessage = isPreviewing
+    ? display(stageHistory[previewStage]?.feedback?.message)
+    : display(aiTutorFeedbackStage === aiTutorStep?.stage ? aiTutorFeedback?.message : "");
+  const feedbackOK = isPreviewing
+    ? stageHistory[previewStage]?.feedback?.ok !== false
+    : aiTutorFeedback?.ok !== false;
 
   useEffect(() => {
-    if (!isPreviewing && aiTutorFeedback?.message && aiTutorStep?.stage) {
-      const stage = aiTutorStep.stage;
+    if (!isPreviewing && aiTutorFeedback?.message && aiTutorFeedbackStage) {
+      const stage = aiTutorFeedbackStage;
       const incoming = aiTutorFeedback;
       setStageHistory((prev) => {
         if (prev[stage]?.feedback?.message === incoming.message) return prev;
         return { ...prev, [stage]: { ...prev[stage], feedback: { ok: incoming.ok, message: incoming.message } } };
       });
     }
-  }, [isPreviewing, aiTutorFeedback?.message, aiTutorFeedback?.ok, aiTutorStep?.stage]);
+  }, [isPreviewing, aiTutorFeedback?.message, aiTutorFeedback?.ok, aiTutorFeedbackStage]);
   const parsedFeedback = useMemo(() => parseAITutorFeedbackJSON(aiTutorFeedback?.json), [aiTutorFeedback?.json]);
   const phraseCandidates = useMemo(() => aiTutorPhraseCandidates(parsedFeedback, savePhrase, user.learning_language || ""), [parsedFeedback, savePhrase, user.learning_language]);
   const mistakeCandidates = useMemo(() => aiTutorMistakeCandidates(parsedFeedback, savePhrase, user.learning_language || ""), [parsedFeedback, savePhrase, user.learning_language]);
@@ -5966,14 +5979,14 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
     if (!aiTutorStep || busy === "tutor") return;
     const stage = aiTutorStep.stage;
     if (canContinue) {
-      void submitAiTutorStep("", "continue");
+      void submitAiTutorStep(aiTutorStep?.stage || "", "", "continue");
       return;
     }
     if (isChoiceStage) {
       if (!selectedChoice && !isReviewChoiceStage) return;
       const choice = selectedChoice || defaultReviewChoice;
       setStageHistory((prev) => ({ ...prev, [stage]: { ...prev[stage], choice, text: prev[stage]?.text } }));
-      void submitAiTutorStep("", choice);
+      void submitAiTutorStep(aiTutorStep?.stage || "", "", choice);
       return;
     }
     if (needsText) {
@@ -5981,7 +5994,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, submitAiTutorS
       if (isProduction && productionSentenceCount < 2) return;
       const text = tutorDraft.trim();
       setStageHistory((prev) => ({ ...prev, [stage]: { ...prev[stage], text, choice: prev[stage]?.choice } }));
-      void submitAiTutorStep(text, "");
+      void submitAiTutorStep(aiTutorStep?.stage || "", text, "");
     }
   };
 

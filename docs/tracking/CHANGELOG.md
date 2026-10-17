@@ -4,6 +4,7 @@
 
 - Recorded the requested responsive desktop/mobile redesign and new-account AI Tutor behavior in `docs/superpowers/specs/2026-10-17-ai-tutor-onboarding-and-responsive-workspace-design.md`, `docs/WEB_APP_AUDIT_2026-10-17.md`, and `docs/tracking/USER_UI_WISHES.md`.
 - AI Tutor lesson startup now retries generation, validation, and preflight failures up to three times before returning an error; topic rotation advances between attempts. Added backend regression coverage for recovery and bounded failure.
+- Fixed AI Tutor feedback appearing under the next question after a successful answer; feedback now belongs to the submitted stage and can be reviewed there. Added desktop/mobile Playwright coverage.
 
 ## 2026-05-30
 

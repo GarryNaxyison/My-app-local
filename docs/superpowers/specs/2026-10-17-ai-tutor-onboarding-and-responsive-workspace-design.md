@@ -25,6 +25,7 @@ Ensure a newly registered learner can start an AI Tutor lesson after learning on
 ## Observable behavior
 
 - A model timeout, malformed lesson, local validation failure, or preflight rejection triggers a bounded retry and does not immediately strand the learner on their first attempt.
+- Tutor answer feedback stays attached to the submitted stage; when an accepted answer advances to a new question, its feedback does not appear to describe the new question.
 - After retry exhaustion, the API returns a stable, understandable error and logs the reason without exposing raw provider internals to the UI.
 - At 320px, 390px, tablet, and desktop widths, the app shell and tutor view have no horizontal page overflow, duplicate overlays, or overlapping primary controls.
 - With Android large-text/display scaling, content cards expand to their text, composer attachments and submit controls remain distinct, and content remains reachable without clipped nested scroll regions.
@@ -35,10 +36,11 @@ Ensure a newly registered learner can start an AI Tutor lesson after learning on
 1. Generation retries transient and quality/validation failures up to a small fixed cap; successful later attempts create exactly one session and lesson.
 2. A new user with an empty or short vocabulary can start a tutor lesson; the tutor generator remains the lesson word source.
 3. Backend tests cover success-after-retry, exhausted retries, and no partial session persistence on failure.
-4. Playwright covers tutor startup and layout invariants on desktop and phone, including long translated text and narrow viewport.
-5. App shell/tutor redesign is checked at desktop, tablet, and phone widths, with no page-level horizontal scrolling or visible overlap.
-6. Representative mobile views are checked with enlarged system text and post-submit content, not only default Playwright device emulation.
-7. The audit records tested viewports, observed findings, changed areas, and any remaining unverified surfaces.
+4. Playwright covers tutor feedback-to-stage association on desktop and phone.
+5. Playwright covers tutor startup and layout invariants on desktop and phone, including long translated text and narrow viewport.
+6. App shell/tutor redesign is checked at desktop, tablet, and phone widths, with no page-level horizontal scrolling or visible overlap.
+7. Representative mobile views are checked with enlarged system text and post-submit content, not only default Playwright device emulation.
+8. The audit records tested viewports, observed findings, changed areas, and any remaining unverified surfaces.
 
 ## Verification
 

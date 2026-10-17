@@ -10,6 +10,8 @@ Reviewed the AI Tutor start path, the shared lesson generator/validator, the Rea
 
 The engine now retries generation and preflight up to three times and varies the topic rotation per attempt. Backend tests cover recovery after an invalid draft and exhaustion without creating a session.
 
+The accepted-answer feedback misattribution is also fixed in the web tutor: feedback is stored against the stage that was submitted and appears when reviewing that completed stage, rather than being shown as feedback for the newly opened question. Desktop and mobile Playwright regression coverage passes for this behavior.
+
 ## Visual findings from supplied captures
 
 ### Mobile, Android browser
@@ -62,4 +64,4 @@ The default Playwright device emulation does not reproduce the supplied Android 
 
 ## Status
 
-Spec and wishes are recorded; the lesson-start retry fix is implemented and verified. The cross-app visual redesign and the additional functional bugs listed above are not yet implemented or verified. Production deployment has not been performed.
+Spec and wishes are recorded; the lesson-start retry and web tutor feedback-stage fixes are implemented and verified. The cross-app visual redesign and remaining functional bugs listed above are not yet implemented or verified. Production deployment has not been performed.
