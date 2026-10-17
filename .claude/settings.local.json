@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la nx.json)",
+      "Bash(ls package.json site-react/package.json)",
+      "Bash(which claude *)",
+      "Bash(claude --version)",
+      "Bash(cat .mcp.json)",
+      "Bash(head -40 package.json)",
+      "Bash(grep -iE \"playwright|nx\" site-react/package.json package.json)",
+      "WebFetch(domain:github.com)",
+      "Bash(claude mcp *)",
+      "Bash(claude plugin *)"
+    ]
+  }
+}
