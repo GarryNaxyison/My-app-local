@@ -78,6 +78,7 @@ type aiTutorWord struct {
 	ID                          string `json:"id"`
 	Target                      string `json:"target"`
 	InterfaceTranslation        string `json:"interface_translation"`
+	RussianTranslation          string `json:"russian_translation,omitempty"`
 	PartOfSpeech                string `json:"part_of_speech"`
 	ExampleSentenceTarget       string `json:"example_sentence_target"`
 	ExampleTranslationInterface string `json:"example_translation_interface"`

@@ -32,15 +32,154 @@ func initializeVocabularyRuntime(cfg config) (*sql.DB, error) {
 		return nil, err
 	}
 	configureSQLiteVocabulary(db)
+	if err := migrateSQLiteVocabularyToAIGenerated(db); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+	if err := ensureSQLiteVocabularyIndexes(db); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
 	log.Printf("SQLite vocabulary opened: %s", cfg.VocabularyDatabasePath)
-	go func() {
-		if err := syncSQLiteVocabularyFromJSON(db); err != nil {
-			log.Printf("failed to sync SQLite vocabulary in background: %v", err)
-			return
-		}
-		log.Printf("SQLite vocabulary ready: %s", cfg.VocabularyDatabasePath)
-	}()
+	log.Printf("SQLite vocabulary ready with AI-generated shared word pool: %s", cfg.VocabularyDatabasePath)
 	return db, nil
+}
+
+// migrateSQLiteVocabularyToAIGenerated rebuilds the hot dictionary tables from
+// the accepted AI tables. Dropping the legacy tables avoids scanning millions
+// of imported rows just to remove a static dictionary that is no longer used.
+func migrateSQLiteVocabularyToAIGenerated(db *sql.DB) error {
+	if db == nil {
+		return nil
+	}
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec(`DROP TABLE vocabulary_translations`); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DROP TABLE vocabulary_words`); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`CREATE TABLE vocabulary_words (
+		id TEXT PRIMARY KEY,
+		language TEXT NOT NULL,
+		word TEXT NOT NULL,
+		russian TEXT NOT NULL,
+		context TEXT NOT NULL DEFAULT '',
+		level TEXT NOT NULL DEFAULT '',
+		topic TEXT NOT NULL DEFAULT '',
+		part_of_speech TEXT NOT NULL DEFAULT '',
+		source TEXT NOT NULL DEFAULT '',
+		frequency_rank INTEGER NOT NULL DEFAULT 0,
+		position INTEGER NOT NULL DEFAULT 0
+	)`); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`CREATE TABLE vocabulary_translations (
+		word_id TEXT NOT NULL,
+		language TEXT NOT NULL,
+		text TEXT NOT NULL,
+		PRIMARY KEY (word_id, language),
+		FOREIGN KEY (word_id) REFERENCES vocabulary_words(id) ON DELETE CASCADE
+	)`); err != nil {
+		return err
+	}
+	wordRows, err := tx.Query(`SELECT id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, translations_json
+		FROM vocabulary_ai_words ORDER BY language, frequency_rank, id`)
+	if err != nil {
+		return err
+	}
+	insertWord, err := tx.Prepare(`INSERT INTO vocabulary_words
+		(id, language, word, russian, context, level, topic, part_of_speech, source, frequency_rank, position)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		_ = wordRows.Close()
+		return err
+	}
+	insertTranslation, err := tx.Prepare(`INSERT OR REPLACE INTO vocabulary_translations (word_id, language, text) VALUES (?, ?, ?)`)
+	if err != nil {
+		_ = wordRows.Close()
+		_ = insertWord.Close()
+		return err
+	}
+	positions := map[string]int{}
+	for wordRows.Next() {
+		var id, language, word, russian, context, level, topic, partOfSpeech, source, translationsJSON string
+		var frequencyRank int
+		if err := wordRows.Scan(&id, &language, &word, &russian, &context, &level, &topic, &partOfSpeech, &source, &frequencyRank, &translationsJSON); err != nil {
+			_ = wordRows.Close()
+			_ = insertWord.Close()
+			_ = insertTranslation.Close()
+			return err
+		}
+		language = normalizeLearningLanguage(language)
+		position := positions[language]
+		positions[language] = position + 1
+		if _, err := insertWord.Exec(id, language, word, russian, context, level, topic, partOfSpeech, source, frequencyRank, position); err != nil {
+			_ = wordRows.Close()
+			_ = insertWord.Close()
+			_ = insertTranslation.Close()
+			return err
+		}
+		translations := map[string]string{}
+		if err := json.Unmarshal([]byte(translationsJSON), &translations); err != nil {
+			_ = wordRows.Close()
+			_ = insertWord.Close()
+			_ = insertTranslation.Close()
+			return fmt.Errorf("decode translations for %s: %w", id, err)
+		}
+		if strings.TrimSpace(russian) != "" {
+			translations["ru"] = russian
+		}
+		for code, text := range translations {
+			code = normalizeInterfaceLanguage(code)
+			text = cleanDictionaryDisplay(text)
+			if code == "" || text == "" {
+				continue
+			}
+			if _, err := insertTranslation.Exec(id, code, text); err != nil {
+				_ = wordRows.Close()
+				_ = insertWord.Close()
+				_ = insertTranslation.Close()
+				return err
+			}
+		}
+	}
+	if err := wordRows.Err(); err != nil {
+		_ = wordRows.Close()
+		_ = insertWord.Close()
+		_ = insertTranslation.Close()
+		return err
+	}
+	if err := wordRows.Close(); err != nil {
+		_ = insertWord.Close()
+		_ = insertTranslation.Close()
+		return err
+	}
+	if err := insertWord.Close(); err != nil {
+		_ = insertTranslation.Close()
+		return err
+	}
+	if _, err := tx.Exec(`INSERT OR REPLACE INTO vocabulary_translations (word_id, language, text)
+		SELECT t.word_id, t.target_language, t.translation FROM vocabulary_ai_translations t
+		JOIN vocabulary_ai_words w ON w.id = t.word_id`); err != nil {
+		_ = insertTranslation.Close()
+		return err
+	}
+	if err := insertTranslation.Close(); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(`DELETE FROM vocabulary_sources`); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	invalidateSQLiteVocabularyIDCache()
+	return nil
 }
 
 func configureSQLiteVocabulary(db *sql.DB) {
@@ -1071,6 +1210,13 @@ func sqliteVocabularyApplyWordCorrection(db *sql.DB, correction sqliteVocabulary
 	if strings.TrimSpace(meta.Source) == "" {
 		meta.Source = "admin_report"
 	}
+	if marker := strings.TrimSpace(correction.Source); marker != "" && !strings.Contains(meta.Source, marker) {
+		if meta.Source == "" {
+			meta.Source = marker
+		} else {
+			meta.Source += ";" + marker
+		}
+	}
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -1215,7 +1361,7 @@ func sqliteNextUnlearnedWord(user userState) (vocabWord, bool, bool, error) {
 		return vocabWord{}, false, true, err
 	}
 	if !hasLanguage {
-		return vocabWord{}, false, false, nil
+		return vocabWord{}, false, true, nil
 	}
 
 	learnedIDs := sqliteLearnedVocabularyIDs(user, language)
@@ -1396,7 +1542,7 @@ func scanSQLiteVocabularyRows(rows *sql.Rows, visit func(vocabWord) bool) error 
 }
 
 func sqliteRandomUnlearnedWordID(db *sql.DB, language string, level string, learnedIDs []string, exactLevel bool) (string, bool, error) {
-	where := []string{"w.language = ?"}
+	where := []string{"w.language = ?", "w.id IN (SELECT id FROM vocabulary_ai_words)"}
 	args := []any{language}
 
 	levelSQL, levelArgs := sqliteLearningLevelSQL(level, exactLevel)
@@ -1716,7 +1862,7 @@ func sqliteFirstVocabularyOptionIDs(db *sql.DB, language string, level string, c
 }
 
 func sqliteVocabularyOptionWhere(language string, level string, exclude map[string]bool) ([]string, []any) {
-	where := []string{"w.language = ?"}
+	where := []string{"w.language = ?", "w.id IN (SELECT id FROM vocabulary_ai_words)"}
 	args := []any{language}
 	if strings.TrimSpace(level) != "" {
 		band := cefrOptionBand(level)

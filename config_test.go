@@ -18,6 +18,19 @@ func TestLoadConfigUsesNerivaProductionDefaults(t *testing.T) {
 	if cfg.WebAppURL != "https://neriva.ru/app" {
 		t.Fatalf("default WEB_APP_URL = %q, want Neriva app URL", cfg.WebAppURL)
 	}
+	if cfg.OpenRouterPronunciationAudioModel != "google/gemini-3-flash-preview" {
+		t.Fatalf("default audio pronunciation model = %q, want google/gemini-3-flash-preview", cfg.OpenRouterPronunciationAudioModel)
+	}
+	for name, got := range map[string]string{
+		"main":                cfg.OpenRouterModel,
+		"translator":          cfg.OpenRouterTranslatorModel,
+		"vocabulary":          cfg.OpenRouterVocabularyModel,
+		"pronunciation coach": cfg.OpenRouterPronunciationModel,
+	} {
+		if got != "openai/gpt-6-luna" {
+			t.Errorf("default %s model = %q, want openai/gpt-6-luna", name, got)
+		}
+	}
 	for _, want := range []string{"https://neriva.ru", "https://www.neriva.ru", "https://api.neriva.ru", "https://poliglotai.ru", "https://poliglotai.online"} {
 		if !stringSliceContains(cfg.WebCORSOrigins, want) {
 			t.Fatalf("default WEB_CORS_ORIGINS missing %q: %#v", want, cfg.WebCORSOrigins)

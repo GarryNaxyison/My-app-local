@@ -12,6 +12,7 @@ import {
   CalendarGridHeader as CalendarGridHeaderRac,
   CalendarHeaderCell as CalendarHeaderCellRac,
   Heading as HeadingRac,
+  I18nProvider,
   RangeCalendar as RangeCalendarRac,
   composeRenderProps,
 } from "react-aria-components";
@@ -19,6 +20,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 
 interface BaseCalendarProps {
   className?: string;
+  locale?: string;
 }
 
 type CalendarProps = ComponentProps<typeof CalendarRac> & BaseCalendarProps & {
@@ -85,17 +87,20 @@ const CalendarGridComponent = ({
   );
 };
 
-const Calendar = ({ className, completedDates, loginDates, ...props }: CalendarProps) => {
+const Calendar = ({ className, completedDates, loginDates, locale = "en", ...props }: CalendarProps) => {
   return (
-    <CalendarRac
-      {...props}
-      className={composeRenderProps(className, (value) =>
-        cn("calendar-rac", value),
-      )}
-    >
-      <CalendarHeader />
-      <CalendarGridComponent completedDates={completedDates} loginDates={loginDates} />
-    </CalendarRac>
+    <I18nProvider locale={locale}>
+      <CalendarRac
+        {...props}
+        firstDayOfWeek={props.firstDayOfWeek || "mon"}
+        className={composeRenderProps(className, (value) =>
+          cn("calendar-rac", value),
+        )}
+      >
+        <CalendarHeader />
+        <CalendarGridComponent completedDates={completedDates} loginDates={loginDates} />
+      </CalendarRac>
+    </I18nProvider>
   );
 };
 

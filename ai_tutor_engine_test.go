@@ -61,6 +61,59 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 	}
 }
 
+func TestAITutorStartsForNewLearnerAndSeedsEmptySharedVocabulary(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, nil)
+	store := newTestJSONStore(t)
+	payload := validAITutorLessonPayloadForTest()
+	for i := range payload.Words {
+		payload.Words[i].RussianTranslation = []string{"просыпаться", "вода", "магазин", "хлеб", "спасибо", "дом"}[i]
+	}
+	body, _ := json.Marshal(payload)
+	ai := &fakeAITutorClient{responses: []string{
+		string(body),
+		`{"approved":true,"score":91,"critical_issues":[],"fix_suggestions":[],"reasons":["ok"]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 78001, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	result, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("new learner Start() with empty vocabulary failed: %v", err)
+	}
+	if result.Session.ID == "" {
+		t.Fatal("new learner did not receive a lesson session")
+	}
+	var count int
+	if err := currentSQLiteVocabularyDB().QueryRow(`SELECT COUNT(*) FROM vocabulary_ai_words WHERE language = 'en'`).Scan(&count); err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Fatalf("seeded dictionary words = %d, want 4 single-word entries (multiword chunks excluded)", count)
+	}
+	if ai.calls != 2 {
+		t.Fatalf("AI calls = %d, want one lesson generation and one quality check", ai.calls)
+	}
+}
+
+func TestAITutorCheckerRequiresExplicitValidDecision(t *testing.T) {
+	for _, test := range []struct {
+		name string
+		raw  string
+		want bool
+	}{
+		{name: "explicit accepted", raw: `{"ok":true}`, want: true},
+		{name: "explicit rejected", raw: `{"correct":false}`, want: false},
+		{name: "malformed", raw: `not json`, want: false},
+		{name: "missing decision", raw: `{"message":"looks good"}`, want: false},
+		{name: "null", raw: `null`, want: false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := aiTutorCheckerAccepted(test.raw); got != test.want {
+				t.Fatalf("aiTutorCheckerAccepted(%q) = %v, want %v", test.raw, got, test.want)
+			}
+		})
+	}
+}
+
 func TestAITutorStartRetriesInvalidDraftBeforeCreatingSession(t *testing.T) {
 	store := newTestJSONStore(t)
 	invalid, _ := json.Marshal(aiTutorLessonPayload{Title: "broken"})

@@ -163,7 +163,7 @@ func (b *bot) buildPronunciationAssessment(ctx context.Context, user userState, 
 	}
 	model := strings.TrimSpace(b.cfg.OpenRouterPronunciationModel)
 	if model == "" {
-		model = "google/gemini-3.1-flash-lite"
+		model = "openai/gpt-6-luna"
 	}
 	raw, err := b.openrouter.completeWithModel(ctx, model, pronunciationCoachPrompt(report), 0.1, 700)
 	if err != nil {

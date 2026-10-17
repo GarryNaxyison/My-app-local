@@ -555,7 +555,9 @@ async function mockApi(page: Page) {
     }
     if (request.method() === "POST") {
       const item = request.postDataJSON();
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: [item, ...phrasebookItems] }) });
+      testPhrasebookItemsOverride = [item, ...phrasebookItems.filter((entry: any) => entry.phrase !== item.phrase)];
+      sessionPayload.user.phrasebook = testPhrasebookItemsOverride;
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, items: testPhrasebookItemsOverride }) });
       return;
     }
     if (request.method() === "DELETE") {
@@ -802,6 +804,7 @@ function usePremiumSession(overrides: Partial<typeof sessionPayload.user> = {}) 
 test.beforeEach(async ({ page }) => {
   testSessionPayloadOverride = null;
   testPhrasebookItemsOverride = null;
+  sessionPayload.user.phrasebook = phrasebookSeed;
   await mockApi(page);
 });
 
@@ -2531,7 +2534,7 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
   await expect(page.locator(".pronunciation-target-primary-v2")).toBeVisible();
   await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toContainText("67/100");
-  await expect(page.locator(".pronunciation-result-window-v2")).toContainText("Stress is late");
+  await expect(page.locator(".pronunciation-result-window-v2")).toContainText("Ударение в слове падает слишком поздно: coffee.");
   await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toHaveCount(0);
 
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
@@ -3628,7 +3631,7 @@ test("regression: every roleplay scenario starts and sends its own scenario prom
   }
 
   expect(prompts).toHaveLength(roleplayScenarioIds.length);
-  expect(prompts.every((prompt, index) => prompt.includes("ROLEPLAY_TOOL_V2") && prompt.includes(`Learner line: Scenario answer ${index + 1}`))).toBe(true);
+  expect(prompts.every((prompt, index) => prompt.includes("ROLEPLAY_TOOL_V2") && prompt.includes(`Learner line: Scenario answer ${index + 1}`) && prompt.includes("do not repeat a correction already given"))).toBe(true);
   expect(new Set(prompts.map((prompt) => prompt.match(/^Scenario: (.+)$/m)?.[1] || "")).size).toBe(roleplayScenarioIds.length);
 });
 
@@ -4034,6 +4037,35 @@ test("regression: mobile tools hide empty output and show a taller result panel 
   expect(composer!.y).toBeGreaterThanOrEqual(output!.y + output!.height + 8);
 });
 
+test("regression: add sample confirms a persisted note before showing success", async ({ page }) => {
+  await page.goto("/app/?view=phrasebook");
+  const sample = "Could you say that again, please?";
+  await page.locator(".phrasebook-list-v2").getByRole("button", { name: /add example|добавить пример/i }).click();
+  await expect(page.locator(".phrasebook-list-v2")).toContainText(sample);
+  await expect(page.locator(".v2-status")).toContainText(/added|добавлена/i);
+  await page.reload();
+  await expect(page.locator(".phrasebook-list-v2")).toContainText(sample);
+});
+
+test("regression: narrow mobile composer controls stay in separate rows after submit", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile layout assertion");
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/app/?view=practice");
+  await page.locator(".composer-panel-v2 textarea").fill("Can you repeat?");
+  await page.locator(".composer-submit-v2").click();
+  await expect(page.locator(".phrase-quick-save-v2")).toBeVisible();
+  const textarea = await page.locator(".composer-textarea-shell-v2 textarea").boundingBox();
+  const submit = await page.locator(".composer-submit-v2").boundingBox();
+  const files = await page.locator(".composer-panel-v2 .file-controls-v2").boundingBox();
+  expect(textarea).not.toBeNull();
+  expect(submit).not.toBeNull();
+  expect(files).not.toBeNull();
+  expect(submit!.y).toBeGreaterThanOrEqual(textarea!.y + textarea!.height);
+  expect(files!.y).toBeGreaterThanOrEqual(submit!.y + submit!.height - 1);
+  const overflow = await page.evaluate(() => Math.max(0, document.documentElement.scrollWidth - window.innerWidth));
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
 test("mobile mistakes dictionary paginates after ten cards", async ({ page, isMobile }) => {
   test.skip(!isMobile, "mobile layout assertion");
   await page.goto("/app/?view=mistakes");
@@ -4319,24 +4351,22 @@ test("regression: audio buttons show a loading status while speech is generated"
   await expect(audioButton).not.toContainText(/Загрузка|Loading/);
 });
 
-test("regression: audio buttons offer a retry after a server failure", async ({ page }) => {
+test("regression: audio falls back to browser speech when the server is unavailable", async ({ page }) => {
   await page.addInitScript(() => {
-    Object.defineProperty(HTMLMediaElement.prototype, "play", { configurable: true, value: () => Promise.resolve() });
+    (window as any).__spokenFallbackText = "";
+    if ("speechSynthesis" in window) {
+      Object.defineProperty(window.speechSynthesis, "speak", {
+        configurable: true,
+        value: (utterance: SpeechSynthesisUtterance) => { (window as any).__spokenFallbackText = utterance.text; },
+      });
+    }
   });
-  let attempts = 0;
   await page.unroute("**/api/tools/translator-speech");
-  await page.route("**/api/tools/translator-speech", async (route) => {
-    attempts += 1;
-    await route.fulfill(attempts === 1
-      ? { status: 502, contentType: "application/json", body: JSON.stringify({ error: "TTS failed" }) }
-      : { status: 200, contentType: "audio/mpeg", body: Buffer.from("test-audio") });
-  });
+  await page.route("**/api/tools/translator-speech", (route) => route.fulfill({ status: 502, contentType: "application/json", body: JSON.stringify({ error: "TTS failed" }) }));
   await page.goto("/app/?view=phrasebook");
   const audioButton = page.locator(".phrasebook-card-v2 .audio-wave-button-v2").first();
   await audioButton.click();
-  await expect(audioButton).toContainText("Retry audio");
-  await audioButton.click();
-  await expect.poll(() => attempts).toBe(2);
+  await expect.poll(() => page.evaluate(() => (window as any).__spokenFallbackText)).toBe("I have a reservation under the name Ivan Petrov.");
   await expect(audioButton).not.toContainText("Retry audio");
 });
 
@@ -4381,8 +4411,8 @@ test("regression: pronunciation map keeps distinct advice for otherwise matching
   });
   await page.goto("/app/?view=pronunciation");
   await expect(page.locator(".pronunciation-history-v2__rows > div")).toHaveCount(2);
-  await expect(page.locator(".pronunciation-map-tips-v2")).toContainText("Keep the final consonant clear.");
-  await expect(page.locator(".pronunciation-map-tips-v2")).toContainText("Link meet and earlier smoothly.");
+  await expect(page.locator(".pronunciation-map-tips-v2")).toContainText("Чётко произноси конечный согласный звук.");
+  await expect(page.locator(".pronunciation-map-tips-v2")).toContainText("Связывай слова в одну плавную фразу: meet and earlier.");
 });
 
 test("regression: auth language menu is layered above privacy and captcha blocks", async ({ page }) => {

@@ -10,9 +10,12 @@ Ensure a newly registered learner can start an AI Tutor lesson after learning on
 - Make lesson generation resilient to transient model failures and invalid/rejected drafts.
 - Audit the authenticated shell and high-density learning views at desktop, tablet, and phone widths; record concrete overlap, nesting, and overflow issues.
 - Include the user's Android browser screenshots and attached bug reports as first-class reproduction evidence, including large text scaling and post-submit states.
+- Resolve the remaining defects in the attached September bug report: fail-closed tutor checking, vocabulary answer matching, durable sample-note feedback, calendar localization/week start, audio discoverability, and compact responsive learning/tool views.
+- Audit and fix reported mobile layout issues in Words, Practice, Lesson, Roleplay, Listening, Pronunciation, Spelling, Translator, and voice/photo tools, including post-submit states and large text scaling.
 - Simplify the tutor workspace hierarchy and responsive sizing without removing its lesson stages, vocabulary, navigation, or account functions.
 - Add Playwright coverage for new-account tutor startup and responsive layout invariants, plus backend tests for generation retries.
 - Record the user's UI preferences in `docs/tracking/USER_UI_WISHES.md` and progress in `docs/tracking/CHANGELOG.md`.
+- Use GPT-6 Luna for general text generation, translation, vocabulary assistance, and text-only pronunciation feedback; retain specialist STT, audio analysis, and TTS models.
 
 ## Constraints and assumptions
 
@@ -41,6 +44,12 @@ Ensure a newly registered learner can start an AI Tutor lesson after learning on
 6. App shell/tutor redesign is checked at desktop, tablet, and phone widths, with no page-level horizontal scrolling or visible overlap.
 7. Representative mobile views are checked with enlarged system text and post-submit content, not only default Playwright device emulation.
 8. The audit records tested viewports, observed findings, changed areas, and any remaining unverified surfaces.
+9. Invalid or incomplete AI checker output cannot advance a tutor stage; explicit accepted output advances exactly one stage.
+10. Selecting the correct word answer succeeds even when dictionary and stored IDs use equivalent legacy prefixes.
+11. “Add example” only reports success after the server confirms the note and the item remains visible after reload.
+12. Calendar labels follow the selected interface language and weeks begin on Monday.
+13. Mobile composers keep the textarea, submit action, recording, and image controls in separate non-overlapping layout rows; long system responses and audio remain discoverable.
+14. GPT-6 Luna is the default for supported text-only chat functions; audio-specific models are unchanged.
 
 ## Verification
 

@@ -6,7 +6,7 @@ Approved for implementation on 2026-06-08 after the production server ran out of
 
 ## Goal
 
-Make SQLite the only runtime vocabulary store, keep JSON dictionaries as read-only seed files, and preserve all AI-filled vocabulary without spending AI tokens again after restart, reimport, or deploy.
+Historical design. Superseded on 2026-10-17 by `docs/superpowers/specs/2026-10-17-shared-ai-vocabulary-spec.md`: SQLite remains the sole runtime store, and imported JSON dictionaries are retired rather than used as read-only seeds.
 
 ## Problem
 

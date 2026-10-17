@@ -2,7 +2,7 @@
 
 ## Status
 
-Approved for implementation on 2026-06-08 by user direction: keep SQLite as the hot vocabulary store, fill gaps through AI, and remove excess downloaded raw dictionary sources.
+Superseded on 2026-10-17 by `docs/superpowers/specs/2026-10-17-shared-ai-vocabulary-spec.md`, following the user's decision to retire all imported local word banks and build the shared dictionaries in SQLite from validated AI-generated cards.
 
 ## Goal
 

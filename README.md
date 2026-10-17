@@ -50,13 +50,12 @@ CRYPTO_USDT_PLATINUM_YEAR_AMOUNT=
 CRYPTO_USDT_RUB_RATE=72
 STORAGE_DRIVER=sqlite
 DATABASE_PATH=english_coach.sqlite
-VOCABULARY_DIR=data/vocabulary
 VOCABULARY_DATABASE_PATH=vocabulary.sqlite
 ACTIVATION_KEYS_DATABASE_PATH=activation_keys.sqlite
 ACTIVATION_KEYS_FILE=activation_keys.txt
 MEMORY_LIMIT_MB=512
 OPENROUTER_STT_MODEL=openai/gpt-4o-transcribe
-OPENROUTER_PRONUNCIATION_MODEL=google/gemini-3.1-flash-lite
+OPENROUTER_PRONUNCIATION_MODEL=openai/gpt-6-luna
 OPENROUTER_TTS_MODEL=google/gemini-3.1-flash-tts-preview
 OPENROUTER_TTS_VOICE=Kore
 MAX_VOICE_SECONDS=30
@@ -107,12 +106,11 @@ The web API also applies per-IP and per-session request limits, and the browser 
 
 ### Low-memory server mode
 
-For a 1 GB VPS, keep multilingual vocabulary JSON files on disk instead of embedding them into the binary. The app imports those JSON files into indexed SQLite vocabulary tables in `VOCABULARY_DATABASE_PATH` on startup, then uses SQLite for hot lookups. JSON files remain read-only seed files for import/rebuilds.
+Vocabulary is stored in the shared SQLite database at `VOCABULARY_DATABASE_PATH`. Retired multilingual JSON dictionaries are not imported, used as runtime fallbacks, or deployed.
 
 Recommended Linux `.env` values:
 
 ```env
-VOCABULARY_DIR=/opt/aibot
 MEMORY_LIMIT_MB=512
 ```
 
@@ -122,11 +120,9 @@ Recommended production build:
 go build -ldflags "-s -w" -o aibot .
 ```
 
-Deploy the `data/vocabulary/vocabulary_words*.json` files together with the `aibot` binary in `VOCABULARY_DIR`.
+The shared learning dictionary lives in `VOCABULARY_DATABASE_PATH` SQLite. It is built from validated AI-generated cards and shared across users; new cards are generated for the learner's language and CEFR level only when that pool has no unused suitable word. Do not deploy the retired `data/vocabulary/vocabulary_words*.json` seed files.
 
-On the first production start, allow extra time for the SQLite vocabulary import. Later starts skip the import while the JSON file size and imported SQLite word count still match; mtime-only changes are ignored so routine deploys do not trigger expensive reimports. The vocabulary database is separate from `DATABASE_PATH`, so user-data backups stay small and the static dictionary can be regenerated.
-
-AI-filled vocabulary is mutable runtime data. Preserve `VOCABULARY_DATABASE_PATH` (`vocabulary.sqlite` by default) during deploys and include it in production backups, or export the `vocabulary_ai_words` and `vocabulary_ai_translations` tables before replacing the database. These tables prevent repeated AI token spending after restart, JSON reimport, or deploy.
+AI-filled vocabulary is mutable shared runtime data. Keep `VOCABULARY_DATABASE_PATH` (`vocabulary.sqlite` by default) in place during deployments; the deploy process does not create database backups.
 
 По умолчанию данные хранятся в SQLite-файле `english_coach.sqlite`. Если рядом есть старый `english_coach_data.json`, пустая SQLite-база импортирует его при первом запуске.
 
@@ -166,9 +162,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/enable-dev-toolchain.p
 
 ## Выбор модели
 
-Модель меняется через `OPENROUTER_MODEL`. По умолчанию используется `google/gemini-3.1-flash-lite`, а позже можно выбрать другую в каталоге OpenRouter.
+Основные текстовые сценарии, перевод, словарь и текстовая обратная связь по произношению используют `openai/gpt-6-luna` через OpenRouter. Модель можно переопределить переменными `OPENROUTER_MODEL`, `OPENROUTER_TRANSLATOR_MODEL`, `OPENROUTER_VOCABULARY_MODEL` и `OPENROUTER_PRONUNCIATION_MODEL`. STT, анализ аудио и TTS остаются на специализированных моделях.
 
-Voice recognition uses `OPENROUTER_STT_MODEL=openai/gpt-4o-transcribe` through OpenRouter. Pronunciation coaching uses `OPENROUTER_PRONUNCIATION_MODEL=google/gemini-3.1-flash-lite`: the model receives only transcript/confidence/fluency JSON and returns learner-friendly feedback, not raw audio.
+Voice recognition uses `OPENROUTER_STT_MODEL=openai/gpt-4o-transcribe` through OpenRouter. Pronunciation coaching uses `OPENROUTER_PRONUNCIATION_MODEL=openai/gpt-6-luna`: the model receives only transcript/confidence/fluency JSON and returns learner-friendly feedback, not raw audio.
 Text-to-speech uses `OPENROUTER_TTS_MODEL=google/gemini-3.1-flash-tts-preview` and `OPENROUTER_TTS_VOICE=Kore`; the backend wraps OpenRouter PCM output into WAV for Telegram and web playback.
 
 ## Как можно развивать до подписки

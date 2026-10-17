@@ -2,9 +2,24 @@
 
 ## 2026-10-17
 
+- Fixed misleading AI Tutor loading copy and documented that new users can start before studying words. Successfully validated lesson vocabulary now seeds the shared SQLite pool with single words only; dictionary write failures cannot block the lesson.
+- Switched pronunciation audio assessment from Gemini 2.5 Pro to the audio-capable Gemini 3 Flash Preview model, which is listed at $0.50/M input and $3/M output versus $1.25/M and $10/M for Gemini 2.5 Pro. Audio-specific quality still needs production sample evaluation.
+- Added a one-time SQLite migration to reset every user's learning history, XP, learned words, notes, mistakes, habits, and tutor sessions while preserving accounts, credentials, language preferences, reminders, referrals, and navigation settings. The migration is transactional and will not repeat at later restarts.
+- Stopped importing downloaded vocabulary JSON files; SQLite now serves only accepted shared AI-generated cards. Web Learn Words requests and persists a new level-matched card when its shared eligible pool is exhausted, and duplicate suggestions are retried.
+- Switched text generation defaults to `openai/gpt-6-luna` for the main assistant, translation, vocabulary generation, and text-only pronunciation coaching; specialized transcription, audio analysis, and speech synthesis remain on their current models.
+- Refined mobile/desktop tutor and utility layouts, calendar localization, audio fallback, and phrasebook save confirmation; full Playwright suite passed (177 passed, 51 platform skips).
+- Made the AI Tutor checker fail closed unless it returns valid JSON with an explicit acceptance decision, preventing malformed checker output from advancing a learner.
+- Made Learn Words and Review accept compatible word IDs across legacy dictionary prefixes; added a regression case for a correct answer with a legacy alias.
+- Localized the habit calendar to the selected interface language and set Monday as the first day of the week.
+- Changed mobile lesson, practice, roleplay, and tool composers to place the send button in its own row; attachments now follow it in a separate row. Reduced nested result shells and compacted spoken-sample controls.
+- Added browser speech playback as a fallback when server audio is unavailable, including in Mistakes playback cards.
+- Replaced unmatched English pronunciation coaching text with localized generic guidance for Russian interface users.
+- Changed Phrasebook sample saving to show success only after the server confirms the note; added Playwright coverage for the saved note surviving reload.
+- Added a 320px mobile post-submit regression that checks send/attachment separation and page horizontal overflow.
 - Recorded the requested responsive desktop/mobile redesign and new-account AI Tutor behavior in `docs/superpowers/specs/2026-10-17-ai-tutor-onboarding-and-responsive-workspace-design.md`, `docs/WEB_APP_AUDIT_2026-10-17.md`, and `docs/tracking/USER_UI_WISHES.md`.
 - AI Tutor lesson startup now retries generation, validation, and preflight failures up to three times before returning an error; topic rotation advances between attempts. Added backend regression coverage for recovery and bounded failure.
 - Fixed AI Tutor feedback appearing under the next question after a successful answer; feedback now belongs to the submitted stage and can be reviewed there. Added desktop/mobile Playwright coverage.
+- Deployed through the permanent `.online` upload service. Verified all four public health/app/upload URLs return HTTP 200; main, transition, and upload services are active. Post-deploy server load remained low (0.05 one-minute load average); old server JSON vocabulary directory is absent, and both app services use the shared SQLite vocabulary file.
 
 ## 2026-05-30
 
@@ -451,3 +466,5 @@
 # 2026-05-30
 
 - Improved mobile web menu reordering: touch hold enters edit mode faster, drag targeting follows the actual finger position, and the Playwright regression now checks editable mobile rail reorder behavior.
+- 2026-10-17: Set GPT-6 Luna as the default OpenRouter model for text generation, translation, vocabulary, and text-only pronunciation coaching. Kept dedicated speech recognition, audio analysis, and TTS models unchanged.
+- 2026-10-17: Retired the imported local language dictionaries as runtime sources. SQLite now retains only shared AI-generated cards for word selection, removes legacy imported rows during startup migration, and falls back to CEFR-matched AI generation when a learner's shared pool is exhausted. Existing per-user learning progress is kept. Duplicate AI suggestions are rejected and retried.

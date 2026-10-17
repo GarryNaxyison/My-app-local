@@ -558,7 +558,7 @@ func TestWebLearningActionsAwardXPAndReturnUpdatedUser(t *testing.T) {
 		t.Fatalf("expected active word mode, got %q", user.Mode)
 	}
 	before = currentXP()
-	word := requestJSON(t, api, cookie, http.MethodPost, "/api/words/answer", map[string]any{"answer_id": wordID})
+	word := requestJSON(t, api, cookie, http.MethodPost, "/api/words/answer", map[string]any{"answer_id": "legacy:" + legacyVocabID(wordID)})
 	assertXPDelta("word", before, 15, word)
 
 	_ = requestJSON(t, api, cookie, http.MethodPost, "/api/word-game/next", map[string]any{})

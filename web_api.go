@@ -2326,6 +2326,12 @@ func (api *webAPI) handleWordNext(w http.ResponseWriter, r *http.Request) {
 	}
 	word, ok := nextUnlearnedWord(user)
 	if !ok {
+		if generated, generatedOK := api.bot.generateVocabularyWord(r.Context(), user, "learn word"); generatedOK {
+			word = generated
+			ok = true
+		}
+	}
+	if !ok {
 		writeJSON(w, http.StatusOK, map[string]any{"empty": true})
 		return
 	}
@@ -2383,7 +2389,7 @@ func (api *webAPI) handleWordAnswer(w http.ResponseWriter, r *http.Request) {
 		writeAPIError(w, http.StatusNotFound, "Word not found.")
 		return
 	}
-	if req.AnswerID != correctID {
+	if strings.TrimSpace(req.AnswerID) == "" || legacyVocabID(req.AnswerID) != legacyVocabID(correctID) {
 		prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "learn word")
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, err.Error())
@@ -2882,7 +2888,7 @@ func (api *webAPI) handleWordGameAnswer(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	ids := reviewWordIDs(user)
-	if req.AnswerID != correctID {
+	if strings.TrimSpace(req.AnswerID) == "" || legacyVocabID(req.AnswerID) != legacyVocabID(correctID) {
 		prompt, err := api.webVocabularyPrompt(r.Context(), user, word, "review word")
 		if err != nil {
 			writeAPIError(w, http.StatusInternalServerError, err.Error())

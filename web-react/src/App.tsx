@@ -2189,7 +2189,7 @@ export function App() {
   );
 
   const savePhrase = useCallback(
-    (phrase: string, source: PhrasebookSource, details?: ApiRecord) => {
+    async (phrase: string, source: PhrasebookSource, details?: ApiRecord) => {
       const cleaned = cleanAppText(phrase).trim();
       if (!cleaned) return;
       const translation = cleanAppText(recordField(details || {}, ["translation", "prompt", "message"]));
@@ -2204,17 +2204,16 @@ export function App() {
         language: user.learning_language,
         createdAt: new Date().toISOString(),
       };
-      setPhrasebook((current) => {
-        const next = normalizePhrasebookItems([item, ...current.filter((entry) => phrasebookKey(entry.phrase) !== phrasebookKey(cleaned))]);
-        setStatus({ kind: "ok", text: copy("phrase_saved", "Фраза добавлена в phrasebook") });
-        return next;
-      });
-      void api<ApiRecord>("/api/phrasebook", { method: "POST", body: item })
-        .then((payload) => {
-          const next = normalizePhrasebookItems(payload.items);
-          setPhrasebook(next);
-        })
-        .catch(() => undefined);
+      try {
+        const payload = await api<ApiRecord>("/api/phrasebook", { method: "POST", body: item });
+        const serverItems = Array.isArray(payload.items) ? normalizePhrasebookItems(payload.items) : [];
+        const confirmed = serverItems.some((entry) => phrasebookKey(entry.phrase) === phrasebookKey(cleaned));
+        if (!confirmed) throw new Error("Phrasebook did not confirm the saved item");
+        setPhrasebook(serverItems);
+        setStatus({ kind: "ok", text: copy("phrase_saved", "Фраза добавлена в заметки") });
+      } catch {
+        setStatus({ kind: "error", text: copy("phrase_save_failed", "Не удалось сохранить заметку. Попробуйте ещё раз.") });
+      }
     },
     [copy, user.learning_language],
   );
@@ -4131,12 +4130,21 @@ function localizePronunciationCoachText(value: unknown, user: UserProfile, copy:
   if (match) return `${copy("pronunciation_tip_clear_sound", "Сделай звук четким и немного более протяжным")}: ${word(match, 1)}.`;
   match = text.match(/Focus on the stress:\s*(.+)$/i);
   if (match) return `${copy("pronunciation_tip_focus_stress", "Поставь ударение по схеме")}: ${cleanAppText(match[1])}`;
+  match = text.match(/Stress is late on ['"]?([^.'"]+)/i);
+  if (match) return `${copy("pronunciation_tip_stress_late", "Ударение в слове падает слишком поздно")}: ${word(match, 1)}.`;
   match = text.match(/Make sure to pronounce ['"]([^'"]+)['"] clearly as a long ['"]ai['"] sound/i);
   if (match) return `${copy("pronunciation_tip_long_ai", "Произнеси четко как долгий звук ай")}: ${word(match, 1)}.`;
   match = text.match(/Try to speak at a steady pace/i);
   if (match) return copy("pronunciation_tip_steady_pace", "Говори ровнее и отделяй каждое слово.");
   match = text.match(/Pay attention to the ['"]([^'"]+)['"] sound at the end of ['"]([^'"]+)['"]/i);
   if (match) return `${copy("pronunciation_tip_ending_sound", "Обрати внимание на звук в конце слова")}: ${word(match, 1)} / ${word(match, 2)}.`;
+  match = text.match(/Keep the final consonant clear\.?$/i);
+  if (match) return copy("pronunciation_tip_final_consonant", "Чётко произноси конечный согласный звук.");
+  match = text.match(/Link (.+) smoothly\.?$/i);
+  if (match) return `${copy("pronunciation_tip_link_words", "Связывай слова в одну плавную фразу")}: ${cleanAppText(match[1])}.`;
+  if (/[a-z]{3,}/i.test(text) && !/[а-яё]/i.test(text)) {
+    return copy("pronunciation_tip_general", "Произнеси фразу ещё раз в ровном темпе, чётко проговаривая каждое слово.");
+  }
   return text;
 }
 
@@ -4144,6 +4152,9 @@ function pronunciationProblemText(item: PronunciationProblem, user: UserProfile,
   const issue = asText(item.issue, "").trim().toLowerCase();
   const tip = localizePronunciationCoachText(item.tip || "", user, copy);
   const ru = languageCode(user.interface_language) === "ru";
+  if (ru && tip.startsWith(copy("pronunciation_tip_general", "Произнеси фразу ещё раз в ровном темпе, чётко проговаривая каждое слово."))) {
+    return `${copy("pronunciation_tip_practice_word", "Повтори слово отдельно, затем произнеси его в полной фразе")}: ${cleanPronunciationWord(item.word)}.`;
+  }
   if (tip && !/low_confidence|substituted_or_unclear|missing/i.test(tip)) return tip;
   if (issue.includes("missing")) {
     return ru
@@ -4341,7 +4352,7 @@ function buildRoleplayScenarioPrompt(
     `Use ${interfaceName} for setup, task text, and short correction notes.`,
     `Use ${learningName} only for the character dialogue, model phrase, corrected phrase, and the next character line.`,
     learnerLine
-      ? "The learner has already answered. First give one compact correction if needed, then continue the scene with one natural character line/question. Do not show a generic practice prompt."
+      ? "The learner has already answered. Correct only this latest learner line. Check the earlier roleplay turns in the supplied conversation history; do not repeat a correction already given for an earlier line. If this latest line is correct, do not invent or repeat a correction. Then continue the scene with one natural character line/question. Do not show a generic practice prompt."
       : "This is the first turn. Start with a short scene setup, one AI character line in the target language, the learner's task, and one optional example answer. Do not ask a separate 'next question' block before the learner answers.",
     "Do not invent corrections. If you name a problem, quote the exact learner fragment and the exact replacement. If a word or preposition is already present, do not say to add it.",
     "Keep labels learner-friendly. Do not write raw prompt names, system words, or technical wording. Keep it concise.",
@@ -6690,7 +6701,7 @@ function HomeView(props: ViewRendererProps) {
         <span className="eyebrow"><CalendarDays size={15} />{copy("habit_calendar", "Календарь привычки")}</span>
         <h2>{copy("habit_calendar_title", "Streak и дейлики")}</h2>
         <div className="habit-calendar-v2__layout">
-          <Calendar className="calendar-rac--habit" completedDates={completedDates} loginDates={loginDates} aria-label={copy("habit_calendar", "Календарь привычки")} />
+          <Calendar className="calendar-rac--habit" completedDates={completedDates} loginDates={loginDates} locale={languageCode(user.interface_language || "en")} firstDayOfWeek="mon" aria-label={copy("habit_calendar", "Календарь привычки")} />
           <div className="habit-calendar-v2__side">
             <strong>{formatStreakLabel(streak, user, copy)}</strong>
             <span>{copy("habit_green_hint", "Зеленые дни - вход и выполненный дейлик.")}</span>
@@ -7576,7 +7587,7 @@ function AudioActionRow({ clips, compact = false }: { clips: Array<{ label: stri
 }
 
 function PronunciationReport({ pronunciation, user, copy, compact = false }: { pronunciation: PronunciationAssessment; user: UserProfile; copy: (key: string, fallback: string) => string; compact?: boolean }) {
-  const problems = Array.isArray(pronunciation.problem_words) ? pronunciation.problem_words.slice(0, compact ? 3 : 5) : [];
+  const problems = Array.isArray(pronunciation.problem_words) ? pronunciation.problem_words.slice(0, compact ? 8 : 12) : [];
   const phonemes = Array.isArray(pronunciation.phoneme_issues) ? pronunciation.phoneme_issues.slice(0, compact ? 2 : 5) : [];
   const tips = recordList(pronunciation.tips).map((item) => localizePronunciationCoachText(item, user, copy)).filter(Boolean).slice(0, compact ? 2 : 4);
   const diagnostics = [pronunciation.stress, pronunciation.rhythm, pronunciation.intonation].map((item) => localizePronunciationCoachText(item, user, copy)).filter(Boolean).slice(0, compact ? 2 : 3);
@@ -8084,7 +8095,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
             <span className="eyebrow">{copy("saved_phrases", "Saved phrases")}</span>
             <h2>{filteredPhrasebook.length ? `${filteredPhrasebook.length} ${copy("phrases", "phrases")}` : phrasebook.length ? copy("empty_phrasebook_filter", "No notes in this block") : copy("empty_phrasebook", "Phrasebook is empty")}</h2>
           </div>
-          <Button variant="outline" onClick={() => savePhrase(copy("sample_phrase", "Could you say that again, please?"), "manual")}>
+          <Button variant="outline" onClick={() => void savePhrase(copy("sample_phrase", "Could you say that again, please?"), "manual")}>
             <Bookmark size={16} />
             {copy("add_sample", "Добавить пример")}
           </Button>

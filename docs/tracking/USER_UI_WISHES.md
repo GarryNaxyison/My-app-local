@@ -2,6 +2,17 @@
 
 This file is the recurring UI checklist for NERIVA. Check it before changing the web app, public site, generated assets, or mobile layout.
 
+## 2026-10-17 Responsive App Audit Follow-up
+
+- Keep every mobile composer control in normal document flow: text entry, send, microphone, and image attachment must have their own non-overlapping space before and after a response, including at 320px and large browser text scaling.
+- Reduce nested card borders/backgrounds and reclaim blank vertical space in Words, Practice, Roleplay, Listening, Pronunciation, Spelling, and translation tools while keeping long responses and audio reachable.
+- Make playback controls compact when the spoken sample is only an audio action, and keep a browser speech fallback when the server audio endpoint is rate limited or unavailable.
+- Display the habit calendar in the selected interface language with Monday as the first day.
+- Treat malformed or decision-free AI Tutor checker output as unaccepted; the learner must remain on the same task until the checker explicitly accepts.
+- Match word answers through stable dictionary IDs even if their legacy language prefixes differ.
+- Show a saved-note success message only after the server confirms that the item was stored and can be returned in the Phrasebook list.
+- Russian pronunciation guidance must not mix in unmatched English coaching sentences; retain target-language word examples where possible and localize generic advice.
+
 ## 2026-05-30 Mobile Web Menu Reorder
 
 - Auth and registration system messages must be localized through the same 35-language V2 layer as the rest of the app. Backend auth errors should carry stable codes, and the login UI must never show generic fallback labels such as `Раздел`, `Section`, or `Mục` instead of the real error.
@@ -464,3 +475,16 @@ This file is the recurring UI checklist for NERIVA. Check it before changing the
 - Audit the project and verify the redesigned experience with Playwright before deployment.
 - Mobile Android screenshots show enlarged text, layered nested panels, clipped inner content, excess blank space, oversized audio controls, and send/upload/voice controls that overlap after submitting.
 - Specific attached bug reports require tutor feedback to stay attached to the answer/question that produced it, fair vocabulary answer checking, no repeated roleplay correction for unrelated replies, complete lesson progression, one consistent interface language for advice, working mistake audio, localized Monday-first calendars, and truthful feedback when saving Notes examples.
+## 2026-10-17 — модель GPT-6 Luna
+
+- Заменить Gemini Flash Lite на `openai/gpt-6-luna` во всех текстовых функциях, где используется лёгкая генеративная модель.
+- Не заменять специализированные распознавание речи, анализ аудио и синтез речи.
+- Реализовано в настройках по умолчанию для основного чата, переводчика, словаря и текстового наставника по произношению; добавлена проверка конфигурации.
+## 2026-10-17 — собственные общие словари
+
+- Убрать загруженные локальные словари для 30+ языков и формировать собственный словарь в SQLite.
+- Новые пользователи получают слова из общего уже сформированного пула. При исчерпании личных новых слов генерировать карточку через AI с учётом изучаемого языка и CEFR.
+- Повторное AI-предложение уже существующего слова отклонять и запрашивать другое; не создавать дубль.
+- Старые файлы словарей удалить с сервера.
+- Уточнённое пожелание: выполнить полный сброс истории учебного прогресса всех пользователей при сохранении аккаунтов и настроек входа. Сброс одноразовый, данные прогресса необратимо удаляются; это требование заменяет первоначальную просьбу сохранить прогресс.
+- Если у нового пользователя нет изученных слов или общий словарь для его уровня и языка пуст, ИИ должен собрать A1-A2 урок без предварительных условий. Проверенные одиночные слова из такого урока нужно добавлять в общий SQLite-словарь, чтобы следующие пользователи могли брать их сразу.

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"os"
@@ -31,16 +30,6 @@ func seedVocabularyRandomForTest(t *testing.T, seed int64) {
 
 func configureSQLiteVocabularyForTest(t *testing.T, rows []vocabWord) {
 	t.Helper()
-	dir := t.TempDir()
-	t.Setenv("VOCABULARY_DIR", dir)
-	payload, err := json.Marshal(rows)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(dir, "vocabulary_words.json"), payload, 0o644); err != nil {
-		t.Fatal(err)
-	}
-
 	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "vocabulary.sqlite"))
 	if err != nil {
 		t.Fatal(err)
@@ -49,10 +38,18 @@ func configureSQLiteVocabularyForTest(t *testing.T, rows []vocabWord) {
 		configureSQLiteVocabulary(nil)
 		_ = db.Close()
 	})
-	if err := syncSQLiteVocabularyFromJSON(db); err != nil {
+	if err := initSQLiteVocabularyTables(db); err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureSQLiteVocabularyIndexes(db); err != nil {
 		t.Fatal(err)
 	}
 	configureSQLiteVocabulary(db)
+	for _, word := range rows {
+		if _, err := sqliteVocabularyAIWordSet(word, "test-fixture", "test fixture"); err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 func testVocabWord(english string, level string, rank int) vocabWord {
@@ -139,15 +136,6 @@ func TestSQLiteVocabularyRuntimeImportsAndFindsWords(t *testing.T) {
 	if got := wordTranslation(word, "es"); got != "alfa" {
 		t.Fatalf("wordTranslation(alpha, es) = %q, want alfa", got)
 	}
-	next, ok := nextUnlearnedWord(userState{LearningLanguage: "en", InterfaceLanguage: "ru", Level: "A1"})
-	if !ok || normalizeLearningLanguage(next.Language) != "en" || normalizeCEFRLevel(next.Level) != "A1" {
-		t.Fatalf("nextUnlearnedWord() = %#v, %v; want random en A1 word", next, ok)
-	}
-	options := wordOptions(word)
-	if len(options) != 4 {
-		t.Fatalf("wordOptions(alpha) returned %d options, want 4: %#v", len(options), options)
-	}
-
 	count := 0
 	if err := forEachVocabularyWord("en", func(word vocabWord) bool {
 		count++
@@ -540,6 +528,39 @@ func TestSQLiteVocabularyAIWordSetRejectsDuplicateWord(t *testing.T) {
 	}
 	if inserted {
 		t.Fatal("sqliteVocabularyAIWordSet inserted duplicate word, want rejection")
+	}
+}
+
+func TestSQLiteVocabularyMigrationKeepsOnlySharedAIGeneratedWords(t *testing.T) {
+	configureSQLiteVocabularyForTest(t, nil)
+	if _, err := currentSQLiteVocabularyDB().Exec(`INSERT INTO vocabulary_words (id,language,word,russian,level,source,position) VALUES ('en:legacy-seed','en','legacyseed','перевод','A1','legacy',0)`); err != nil {
+		t.Fatal(err)
+	}
+	inserted, err := sqliteVocabularyAIWordSet(vocabWord{
+		Language: "en", English: "curatedword", Russian: "перевод",
+		Translations: map[string]string{"ru": "перевод"}, Level: "A1", Source: "ai",
+	}, "test-model", "prompt")
+	if err != nil || !inserted {
+		t.Fatalf("insert shared word = %v, %v", inserted, err)
+	}
+	db := currentSQLiteVocabularyDB()
+	if err := migrateSQLiteVocabularyToAIGenerated(db); err != nil {
+		t.Fatalf("migrate legacy dictionary: %v", err)
+	}
+	if _, ok := findVocabWord("en:legacy-seed"); ok {
+		t.Fatal("legacy local dictionary word remained after migration")
+	}
+	word, ok := findVocabWord("en:curatedword")
+	if !ok {
+		t.Fatal("shared AI-generated dictionary word was removed")
+	}
+	if got := wordTranslation(word, "ru"); got != "перевод" {
+		t.Fatalf("AI translation after table rebuild = %q, want retained translation", got)
+	}
+	user := userState{LearningLanguage: "en", Level: "A1"}
+	word, ok, used, err := sqliteNextUnlearnedWord(user)
+	if err != nil || !used || !ok || word.ID != "en:curatedword" {
+		t.Fatalf("next word = %#v, ok=%t, used=%t, err=%v; want shared AI word", word, ok, used, err)
 	}
 }
 

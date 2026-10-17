@@ -38,6 +38,7 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
   const variants = useMemo(() => buildWaveVariants(), []);
   const waveHeights = useMemo(() => Array.from({ length: 30 }, () => Math.random() * 20 + 5), []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -56,6 +57,8 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
   }, [text, wordId, targetLanguage]);
 
   const stop = () => {
+    window.speechSynthesis?.cancel();
+    speechRef.current = null;
     audioRef.current?.pause();
     if (audioRef.current) audioRef.current.currentTime = 0;
     setPlaying(false);
@@ -96,7 +99,22 @@ export function AudioWaveButton({ label, text = "", wordId, targetLanguage, clas
       await audio.play();
       setPlaying(true);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Audio is unavailable.");
+      const speechText = text.trim();
+      if (speechText && "speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
+        const utterance = new SpeechSynthesisUtterance(speechText);
+        utterance.lang = targetLanguage || "en";
+        utterance.onend = () => setPlaying(false);
+        utterance.onerror = () => {
+          setPlaying(false);
+          setError(reason instanceof Error ? reason.message : "Audio is unavailable.");
+        };
+        speechRef.current = utterance;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+        setPlaying(true);
+      } else {
+        setError(reason instanceof Error ? reason.message : "Audio is unavailable.");
+      }
     } finally {
       setLoading(false);
     }

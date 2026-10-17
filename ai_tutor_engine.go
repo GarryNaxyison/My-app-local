@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -88,6 +89,7 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	if approved, ok, err := e.store.findApprovedAITutorLesson(language, interfaceLanguage, levelBand, user.TelegramID); err != nil {
 		return aiTutorResult{}, err
 	} else if ok && aiTutorLessonMatchesLearningFocus(approved, user.LearningFocus) {
+		seedAITutorVocabulary(approved.Payload)
 		return e.createSessionForLesson(user, surface, approved)
 	}
 	usedCount, err := e.store.aiTutorSessionCountForContext(user.TelegramID, language, interfaceLanguage, levelBand)
@@ -111,7 +113,40 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	if err := e.store.saveAITutorLesson(lesson); err != nil {
 		return aiTutorResult{}, err
 	}
+	seedAITutorVocabulary(lesson.Payload)
 	return e.createSessionForLesson(user, surface, lesson)
+}
+
+// Store useful single words from a validated lesson as shared starter vocabulary.
+// This is best effort: vocabulary storage must never block opening the lesson.
+func seedAITutorVocabulary(payload aiTutorLessonPayload) {
+	language := normalizeLearningLanguage(payload.TargetLanguage)
+	interfaceLanguage := normalizeInterfaceLanguage(payload.InterfaceLanguage)
+	for _, lessonWord := range payload.Words {
+		target := strings.TrimSpace(lessonWord.Target)
+		if !vocabularyLearningWordPattern.MatchString(target) {
+			continue
+		}
+		russian := strings.TrimSpace(lessonWord.RussianTranslation)
+		if russian == "" && interfaceLanguage == "ru" {
+			russian = strings.TrimSpace(lessonWord.InterfaceTranslation)
+		}
+		if russian == "" {
+			continue
+		}
+		translations := map[string]string{"ru": russian}
+		if interfaceLanguage != "ru" && strings.TrimSpace(lessonWord.InterfaceTranslation) != "" {
+			translations[interfaceLanguage] = strings.TrimSpace(lessonWord.InterfaceTranslation)
+		}
+		word := vocabWord{
+			ID: makeVocabID(language, target), Language: language, English: target, Russian: russian,
+			Context: strings.TrimSpace(lessonWord.ExampleSentenceTarget), Translations: translations,
+			Level: payload.Level, Topic: payload.Theme, PartOfSpeech: lessonWord.PartOfSpeech, Source: "ai_tutor",
+		}
+		if _, err := sqliteVocabularyAIWordSet(word, "openai/gpt-6-luna", "validated AI Tutor lesson"); err != nil {
+			log.Printf("AI Tutor vocabulary seed skipped for %s: %v", word.ID, err)
+		}
+	}
 }
 
 func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID string, input aiTutorSubmitInput) (aiTutorResult, error) {
@@ -248,8 +283,8 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 
 func aiTutorCheckerAccepted(raw string) bool {
 	var data map[string]any
-	if err := json.Unmarshal([]byte(strings.TrimSpace(raw)), &data); err != nil {
-		return true
+	if err := json.Unmarshal([]byte(strings.TrimSpace(raw)), &data); err != nil || data == nil {
+		return false
 	}
 	for _, key := range []string{"ok", "correct"} {
 		if value, exists := data[key]; exists {
@@ -258,7 +293,7 @@ func aiTutorCheckerAccepted(raw string) bool {
 			}
 		}
 	}
-	return true
+	return false
 }
 
 func aiTutorCheckerFeedbackMessage(stage string, raw string) string {

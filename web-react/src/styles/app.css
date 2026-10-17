@@ -9433,7 +9433,7 @@ select {
     flex-direction: column !important;
     align-items: flex-start !important;
     height: auto !important;
-    min-height: 148px !important;
+    min-height: 154px !important;
     box-sizing: border-box !important;
     overflow: visible !important;
   }
@@ -10710,5 +10710,135 @@ select {
     overflow-y: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Responsive workspace cleanup: keep controls in document flow and flatten nested shells. */
+@media (max-width: 760px) {
+  .composer-textarea-shell-v2,
+  .roleplay-composer-v2,
+  .tool-input-shell-v2 {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  .composer-textarea-shell-v2 textarea,
+  .roleplay-composer-v2 textarea,
+  .tool-input-shell-v2 textarea {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px !important;
+    min-height: 154px !important;
+    max-height: none !important;
+  }
+
+  .composer-submit-v2,
+  .roleplay-submit-v2,
+  .tools-submit-v2 {
+    position: static !important;
+    inset: auto !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 46px !important;
+    height: auto !important;
+    padding: 8px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .roleplay-submit-v2 span {
+    display: inline !important;
+  }
+
+  .composer-panel-v2 .file-controls-v2,
+  .tools-work-v2 .file-controls-v2,
+  .pronunciation-tool-card-v2 .file-controls-v2 {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .chat-workspace__output,
+  .roleplay-dialog-scroll-v2,
+  .context-display--roleplay .roleplay-dialog-scroll-v2 {
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .chat-workspace__output,
+  .roleplay-dialog-card-v2 .chat-panel-v2,
+  .tools-work-v2 .terminal-chat-v2 {
+    padding: 8px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .context-display--roleplay .roleplay-view-v2--mobile-session .composer-panel-v2 {
+    order: 3 !important;
+  }
+
+  .context-display--vocabulary .audio-wave-button-v2.is-compact,
+  .audio-action-row-v2 .audio-wave-button-v2.is-compact,
+  .chat-interface__audio .audio-wave-button-v2.is-compact {
+    min-height: 46px !important;
+    height: auto !important;
+    padding: 5px 8px !important;
+    gap: 7px !important;
+    border-radius: 12px !important;
+  }
+
+  .audio-action-row-v2 .audio-wave-button-v2.is-compact .audio-wave-button-v2__icon,
+  .chat-interface__audio .audio-wave-button-v2.is-compact .audio-wave-button-v2__icon {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .audio-action-row-v2 .audio-wave-button-v2.is-compact .audio-wave-button-v2__waves,
+  .chat-interface__audio .audio-wave-button-v2.is-compact .audio-wave-button-v2__waves {
+    height: 20px !important;
+  }
+
+  .audio-action-row-v2 .audio-wave-button-v2.is-compact .audio-wave-button-v2__meta small,
+  .chat-interface__audio .audio-wave-button-v2.is-compact .audio-wave-button-v2__meta small {
+    font-size: 11px !important;
+  }
+
+  .phrasebook-view-v2,
+  .context-display--tools .tools-work-v2,
+  .context-display--pronunciation .pronunciation-dashboard-v2,
+  .context-display--words .trainer-display {
+    min-height: 0 !important;
+    height: auto !important;
+    align-content: start !important;
+  }
+
+  .context-display--words .trainer-display,
+  .context-display--words .trainer-result-v2,
+  .context-display--tools .composer-panel-v2,
+  .context-display--roleplay .roleplay-view-v2--mobile-session {
+    padding: clamp(12px, 4vw, 20px) !important;
+  }
+}
+
+@media (min-width: 761px) {
+  .tutor-session-v2 {
+    grid-template-columns: minmax(150px, 205px) minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .tutor-plan-v2 {
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 }
