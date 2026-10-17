@@ -14,6 +14,7 @@ import (
 
 const aiTutorPromotionThreshold = 88
 const aiTutorCompletionXP = 40
+const aiTutorGenerationAttempts = 3
 
 type aiTutorCompletionClient interface {
 	complete(ctx context.Context, messages []chatMessage, temperature float64, maxTokens int) (string, error)
@@ -93,9 +94,19 @@ func (e *aiTutorEngine) Start(ctx context.Context, user userState, surface strin
 	if err != nil {
 		return aiTutorResult{}, err
 	}
-	lesson, err := e.generateLesson(ctx, user, usedCount)
-	if err != nil {
-		return aiTutorResult{}, err
+	var lesson aiTutorLessonRecord
+	var generationErr error
+	for attempt := 0; attempt < aiTutorGenerationAttempts; attempt++ {
+		lesson, generationErr = e.generateLesson(ctx, user, usedCount+attempt)
+		if generationErr == nil {
+			break
+		}
+		if ctx.Err() != nil {
+			return aiTutorResult{}, ctx.Err()
+		}
+	}
+	if generationErr != nil {
+		return aiTutorResult{}, fmt.Errorf("AI Tutor could not prepare a lesson after %d attempts: %w", aiTutorGenerationAttempts, generationErr)
 	}
 	if err := e.store.saveAITutorLesson(lesson); err != nil {
 		return aiTutorResult{}, err

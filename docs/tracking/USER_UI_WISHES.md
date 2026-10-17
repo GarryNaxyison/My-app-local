@@ -456,3 +456,11 @@ This file is the recurring UI checklist for NERIVA. Check it before changing the
 - The Learn Words success result should offer the same compact Notes save affordance used elsewhere: note icon plus the word/translation pair below `Next`, not an unrelated large extra button.
 - Saving from that result should store the target-language word as the phrase and the interface-language translation as the note/context.
 - Future regression tests should cover Learn Words result content, Notes saving, all 35-language level-test task localization, wrong Spelling answer reveal rules, lesson example audio language, and clean non-mojibake UI text.
+# 2026-10-17 AI Tutor and Web Workspace Redesign
+
+- A fresh account that learned only 3-4 words must still be able to start and assemble an AI Tutor lesson.
+- Redesign the desktop and mobile web app while preserving its learning purpose and essential functions.
+- Remove overlapping content, redundant nested windows/panels, excessive protrusions, and overloaded screens; make layouts behave properly across screen sizes.
+- Audit the project and verify the redesigned experience with Playwright before deployment.
+- Mobile Android screenshots show enlarged text, layered nested panels, clipped inner content, excess blank space, oversized audio controls, and send/upload/voice controls that overlap after submitting.
+- Specific attached bug reports require tutor feedback to stay attached to the answer/question that produced it, fair vocabulary answer checking, no repeated roleplay correction for unrelated replies, complete lesson progression, one consistent interface language for advice, working mistake audio, localized Monday-first calendars, and truthful feedback when saving Notes examples.

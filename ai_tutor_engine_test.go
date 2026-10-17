@@ -61,6 +61,48 @@ func TestAITutorStartGeneratesValidatedSession(t *testing.T) {
 	}
 }
 
+func TestAITutorStartRetriesInvalidDraftBeforeCreatingSession(t *testing.T) {
+	store := newTestJSONStore(t)
+	invalid, _ := json.Marshal(aiTutorLessonPayload{Title: "broken"})
+	valid, _ := json.Marshal(validAITutorLessonPayloadForTest())
+	ai := &fakeAITutorClient{responses: []string{
+		string(invalid), string(valid),
+		`{"approved":true,"score":91,"critical_issues":[]}`,
+	}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 707, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	result, err := engine.Start(context.Background(), user, "web")
+	if err != nil {
+		t.Fatalf("Start() after invalid draft error = %v", err)
+	}
+	if result.Session.ID == "" || result.NextStep.Stage != aiTutorStageStoryIntro {
+		t.Fatalf("Start() did not create the first lesson step: %#v", result)
+	}
+	if ai.calls != 3 {
+		t.Fatalf("AI calls = %d, want failed generation + successful generation + preflight", ai.calls)
+	}
+}
+
+func TestAITutorStartStopsAfterBoundedInvalidDraftRetries(t *testing.T) {
+	store := newTestJSONStore(t)
+	invalid, _ := json.Marshal(aiTutorLessonPayload{Title: "broken"})
+	ai := &fakeAITutorClient{responses: []string{string(invalid), string(invalid), string(invalid)}}
+	engine := newAITutorEngine(store, ai)
+	user := userState{TelegramID: 708, InterfaceLanguage: "ru", LearningLanguage: "en", Level: "A1"}
+	_, err := engine.Start(context.Background(), user, "web")
+	if err == nil || !strings.Contains(err.Error(), "after 3 attempts") {
+		t.Fatalf("Start() error = %v, want bounded retry error", err)
+	}
+	if ai.calls != 3 {
+		t.Fatalf("AI calls = %d, want exactly %d", ai.calls, aiTutorGenerationAttempts)
+	}
+	if _, _, ok, lookupErr := store.activeAITutorSessionForContext(user.TelegramID, "en", "ru", "A1-A2", "web"); lookupErr != nil {
+		t.Fatalf("lookup active session: %v", lookupErr)
+	} else if ok {
+		t.Fatal("failed generation created an active session")
+	}
+}
+
 func TestAITutorStartReusesActiveSessionForRepeatedStarts(t *testing.T) {
 	store := newTestJSONStore(t)
 	payload := validAITutorLessonPayloadForTest()
