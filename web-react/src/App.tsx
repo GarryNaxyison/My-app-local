@@ -2404,9 +2404,18 @@ export function App() {
     setAiTutorFeedback(null);
     setAiTutorFeedbackStage("");
     setTutorLoadError("");
+    const waitKey = `poliglot-ai-tutor-wait:${user.telegram_account?.id || user.created_at || "guest"}`;
+    try {
+      const previousStart = Number(window.sessionStorage.getItem(waitKey));
+      if (!previousStart || Date.now() - previousStart > 5 * 60 * 1000) {
+        window.sessionStorage.setItem(waitKey, String(Date.now()));
+      }
+    } catch {
+      // The timer must not prevent a lesson from starting when storage is unavailable.
+    }
     const payload = await runAction("tutor", async () => {
       const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 30000);
+      const timeout = window.setTimeout(() => controller.abort(), 180000);
       try {
         return await api<AiTutorResponse>("/api/ai-tutor/start", { method: "POST", body: {}, signal: controller.signal });
       } catch (error) {
@@ -2428,6 +2437,11 @@ export function App() {
       setTutorLoadError(text);
       setStatus({ kind: "error", text });
       return;
+    }
+    try {
+      window.sessionStorage.removeItem(waitKey);
+    } catch {
+      // Ignore unavailable session storage.
     }
     setTutorLoadError("");
     setAiTutorSessionId(sessionID);
@@ -5810,6 +5824,32 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const [stageHistory, setStageHistory] = useState<Record<string, { text?: string; choice?: string; feedback?: { ok?: boolean; message?: string } }>>({});
   const accountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
   const completedLessonsKey = `poliglot-tutor-completed-v3:${accountKey}`;
+  const tutorWaitKey = `poliglot-ai-tutor-wait:${user.telegram_account?.id || user.created_at || "guest"}`;
+  const [tutorElapsedSeconds, setTutorElapsedSeconds] = useState(() => {
+    try {
+      const startedAt = Number(window.sessionStorage.getItem(tutorWaitKey));
+      return startedAt && Date.now() - startedAt <= 5 * 60 * 1000 ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  useEffect(() => {
+    if (aiTutorStep || tutorLoadError) return;
+    const updateElapsed = () => {
+      try {
+        const startedAt = Number(window.sessionStorage.getItem(tutorWaitKey));
+        if (startedAt && Date.now() - startedAt <= 5 * 60 * 1000) {
+          setTutorElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
+        }
+      } catch {
+        // Keep loading usable when session storage is blocked.
+      }
+    };
+    updateElapsed();
+    const timer = window.setInterval(updateElapsed, 1000);
+    return () => window.clearInterval(timer);
+  }, [aiTutorStep, tutorLoadError, tutorWaitKey]);
 
   useEffect(() => {
     if (tutorPremiumLocked) return;
@@ -6216,7 +6256,10 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
           ) : (
             <>
               <Spinner size="large" show />
-              <p>{copy("tutor_loading_body", "Building a checked AI Tutor lesson.")}</p>
+              <p>{copy("tutor_loading_body", "Your lesson is being prepared. You can start before studying any words.")}</p>
+              <p className="tutor-loading-elapsed-v2" role="timer" aria-live="off">
+                {copy("tutor_elapsed", "Elapsed")}: {String(Math.floor(tutorElapsedSeconds / 60)).padStart(2, "0")}:{String(tutorElapsedSeconds % 60).padStart(2, "0")}
+              </p>
             </>
           )}
         </section>

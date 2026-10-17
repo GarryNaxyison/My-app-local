@@ -1622,6 +1622,10 @@ test("free users see AI Tutor premium paywall instead of starting a lesson", asy
 });
 
 test("AI Tutor server-driven lesson blocks old local flow and awards XP", async ({ page, isMobile }) => {
+  let tutorStartCalls = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/ai-tutor/start")) tutorStartCalls += 1;
+  });
   testSessionPayloadOverride = {
     ...sessionPayload,
     user: {
@@ -1745,6 +1749,10 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(completedDialog).toContainText("A1");
   await completedDialog.locator(".tutor-completed-lessons-back-v2").click();
   await expect(completedDialog).toHaveCount(0);
+
+  await page.locator(".tutor-context-v2 .tutor-composer-v2 button").click();
+  await expect(page.locator(".tutor-context-v2__head h2")).toContainText("История");
+  expect(tutorStartCalls).toBe(2);
 
   await useInterfaceLanguage(page, "de");
   await page.goto("/app/?view=tutor");
@@ -3076,6 +3084,43 @@ test("AI Tutor failed start stops loading loop and shows retry", async ({ page }
   await expect(page.locator(".tutor-loading-panel")).toContainText(/No tutor lesson available|Не удалось/);
   await expect(page.locator(".tutor-loading-panel").getByRole("button", { name: /Retry|Повторить/ })).toBeVisible();
   expect(tutorStartCalls).toBe(1);
+});
+
+test("AI Tutor preparation timer survives a page refresh", async ({ page }) => {
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: {
+      ...sessionPayload.user,
+      plan: "premium",
+      premium: true,
+      premium_until: "2027-07-12T12:00:00Z",
+      lesson_limit: 50,
+      practice_limit: 200,
+      voice_limit: 20,
+    },
+  };
+  for (const path of ["**/api/session", "**/api/settings", "**/api/navigation-layout"]) {
+    await page.unroute(path).catch(() => undefined);
+    await page.route(path, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(testSessionPayloadOverride) }));
+  }
+  await page.unroute("**/api/ai-tutor/start");
+  await page.route("**/api/ai-tutor/start", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 8000));
+    try {
+      await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "Still preparing" }) });
+    } catch {
+      // A refresh aborts the previous request; the next request remains pending for this assertion.
+    }
+  });
+
+  await page.goto("/app/?view=tutor");
+  const elapsed = page.locator('.tutor-loading-panel [role="timer"]');
+  await expect(elapsed).toBeVisible();
+  await expect(page.locator(".tutor-loading-panel")).toContainText("Урок готовится");
+  await page.waitForTimeout(1500);
+  await page.reload();
+  await expect(page.locator(".tutor-loading-panel [role=timer]")).toBeVisible();
+  await expect(page.locator(".tutor-loading-panel [role=timer]")).not.toHaveText("Прошло: 00:00");
 });
 
 test("learn words shows varied wrong answer options across rounds", async ({ page }) => {

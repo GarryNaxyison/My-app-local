@@ -2,6 +2,7 @@
 
 ## 2026-10-17
 
+- User request: say clearly that the AI Tutor lesson is being prepared, show elapsed time across refreshes, and allow another lesson after the first is completed. Implemented with a refresh-persistent timer, a three-minute request timeout, and regression coverage for the next-lesson action.
 - Fixed misleading AI Tutor loading copy and documented that new users can start before studying words. Successfully validated lesson vocabulary now seeds the shared SQLite pool with single words only; dictionary write failures cannot block the lesson.
 - Switched pronunciation audio assessment from Gemini 2.5 Pro to the audio-capable Gemini 3 Flash Preview model, which is listed at $0.50/M input and $3/M output versus $1.25/M and $10/M for Gemini 2.5 Pro. Audio-specific quality still needs production sample evaluation.
 - Added a one-time SQLite migration to reset every user's learning history, XP, learned words, notes, mistakes, habits, and tutor sessions while preserving accounts, credentials, language preferences, reminders, referrals, and navigation settings. The migration is transactional and will not repeat at later restarts.

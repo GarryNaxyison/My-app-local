@@ -220,6 +220,12 @@ select {
   color: var(--muted);
 }
 
+.tutor-loading-panel .tutor-loading-elapsed-v2 {
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 .tutor-loading-panel.is-error {
   align-content: center;
 }
