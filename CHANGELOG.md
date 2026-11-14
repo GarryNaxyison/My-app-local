@@ -2,6 +2,13 @@
 
 ## 2026-11-14
 
+- Fixed stale AI Tutor web answers by sending and checking the expected stage; serialized session submissions within the process.
+- Committed SQLite lesson completion, XP, counters and habit progress in one transaction. Added rollback/replay tests; kept JSON completion under its store lock.
+- Made post-lesson quality assessment best effort with a five-second deadline after completion; included stored learner answers in its input.
+- Released microphone tracks on navigation and late permission resolution, handled recorder setup errors, and used a localized native recording button.
+- Preserved tutor drafts in session storage, suppressed duplicate actions, retained pending status for overlapping actions, reset explicit retry timing, and added an in-memory timer fallback.
+- Prevented automatic PWA reload during input or pending operations. React build, full Go tests and 183 Playwright cases passed; 51 platform skips. Two extra PWA regression cases passed separately.
+
 - Added a desktop/mobile web audit with code findings, UI recommendations, AI Tutor logic proposals, and explicit verification limits in `WEB_APP_AUDIT_2026-11-14.md`.
 - Added the owner's current requests in root `USER_REQUESTS.md`. Installed three React/UI skills in the user Codex directory; application behavior was not changed.
 

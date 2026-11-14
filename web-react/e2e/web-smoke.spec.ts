@@ -3123,6 +3123,60 @@ test("AI Tutor preparation timer survives a page refresh", async ({ page }) => {
   await expect(page.locator(".tutor-loading-panel [role=timer]")).not.toHaveText("Прошло: 00:00");
 });
 
+test("voice recording releases the microphone when leaving practice", async ({ page, isMobile }) => {
+  await page.addInitScript(() => {
+    (window as any).__stoppedTracks = 0;
+    const track = { stop: () => { (window as any).__stoppedTracks += 1; } };
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: { getUserMedia: async () => ({ getTracks: () => [track] }) } });
+    (window as any).MediaRecorder = class {
+      state = "inactive"; onstop: (() => void) | null = null; ondataavailable = null;
+      start() { this.state = "recording"; }
+      stop() { this.state = "inactive"; this.onstop?.(); }
+    };
+  });
+  await page.goto("/app/?view=practice");
+  await page.locator(".voice-input-shell").click();
+  await expect(page.locator(".record-button-v2.is-recording")).toBeVisible();
+  await page.locator(`${isMobile ? ".mobile-bottom-nav-v2" : ".function-ribbon"} [data-view="home"]`).click();
+  await expect.poll(() => page.evaluate(() => (window as any).__stoppedTracks)).toBe(1);
+});
+
+test("PWA controller updates preserve an unsent practice answer", async ({ page }) => {
+  await page.addInitScript(() => {
+    const worker = Object.assign(new EventTarget(), {
+      controller: {},
+      getRegistrations: async () => [],
+      register: async () => { throw new Error("test worker registration disabled"); },
+    });
+    Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: worker });
+  });
+  await page.goto("/app/?view=practice");
+  const input = page.locator(".chat-workspace--practice textarea");
+  await input.fill("Do not lose this answer");
+  let navigated = false;
+  page.on("framenavigated", (frame) => { if (frame === page.mainFrame()) navigated = true; });
+  await page.evaluate(() => navigator.serviceWorker.dispatchEvent(new Event("controllerchange")));
+  await page.waitForTimeout(300);
+  expect(navigated).toBe(false);
+  await expect(input).toHaveValue("Do not lose this answer");
+});
+
+test("tutor draft survives reload and answer carries its stage", async ({ page }) => {
+  usePremiumSession();
+  await useInterfaceLanguage(page, "ru");
+  await page.goto("/app/?view=tutor");
+  await page.locator(".tutor-context-v2 .tutor-composer-v2 button").last().click();
+  const input = page.locator(".tutor-context-v2 textarea");
+  await input.fill("My unfinished answer");
+  // The mock start resets to the introduction, so preserve the server's active step during reload.
+  await page.reload();
+  await page.locator(".tutor-context-v2 .tutor-composer-v2 button").last().click();
+  await expect(page.locator(".tutor-context-v2 textarea")).toHaveValue("My unfinished answer");
+  const request = page.waitForRequest((req) => req.url().includes("/api/ai-tutor/answer"));
+  await page.locator(".tutor-context-v2 .tutor-composer-v2 button").last().click();
+  expect((await request).postDataJSON().stage).toBe("retell");
+});
+
 test("learn words shows varied wrong answer options across rounds", async ({ page }) => {
   await page.goto("/app/?view=words");
   await expect(page.locator(".context-display--words")).toBeVisible();

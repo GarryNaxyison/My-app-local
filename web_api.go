@@ -1689,6 +1689,7 @@ func (api *webAPI) handleAITutorAnswer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
+		Stage     string `json:"stage"`
 		SessionID string `json:"session_id"`
 		Text      string `json:"text"`
 		Choice    string `json:"choice"`
@@ -1696,7 +1697,7 @@ func (api *webAPI) handleAITutorAnswer(w http.ResponseWriter, r *http.Request) {
 	if !decodeJSONRequest(w, r, &req) {
 		return
 	}
-	result, err := api.bot.aiTutorEngine().Submit(r.Context(), user, req.SessionID, aiTutorSubmitInput{Text: req.Text, Choice: req.Choice})
+	result, err := api.bot.aiTutorEngine().Submit(r.Context(), user, req.SessionID, aiTutorSubmitInput{Stage: req.Stage, Text: req.Text, Choice: req.Choice})
 	if err != nil {
 		writeAPIError(w, http.StatusBadRequest, err.Error())
 		return

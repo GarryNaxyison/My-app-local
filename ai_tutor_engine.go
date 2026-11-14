@@ -10,12 +10,15 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 const aiTutorPromotionThreshold = 88
 const aiTutorCompletionXP = 40
 const aiTutorGenerationAttempts = 3
+
+var aiTutorSubmitLocks [64]sync.Mutex
 
 type aiTutorCompletionClient interface {
 	complete(ctx context.Context, messages []chatMessage, temperature float64, maxTokens int) (string, error)
@@ -58,6 +61,7 @@ type aiTutorResult struct {
 }
 
 type aiTutorSubmitInput struct {
+	Stage  string `json:"stage,omitempty"`
 	Text   string `json:"text"`
 	Choice string `json:"choice"`
 }
@@ -150,6 +154,14 @@ func seedAITutorVocabulary(payload aiTutorLessonPayload) {
 }
 
 func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID string, input aiTutorSubmitInput) (aiTutorResult, error) {
+	// Fixed stripes serialize session mutations across engine instances without retaining session IDs.
+	var stripe uint32
+	for _, c := range sessionID {
+		stripe = stripe*31 + uint32(c)
+	}
+	lock := &aiTutorSubmitLocks[stripe%uint32(len(aiTutorSubmitLocks))]
+	lock.Lock()
+	defer lock.Unlock()
 	session, ok, err := e.store.getAITutorSession(sessionID)
 	if err != nil {
 		return aiTutorResult{}, err
@@ -169,6 +181,9 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 	}
 
 	current := session.CurrentStage
+	if input.Stage != "" && input.Stage != current {
+		return aiTutorResult{}, errors.New("AI Tutor step changed; reload the current step")
+	}
 	answerText := strings.TrimSpace(input.Text)
 	if strings.TrimSpace(input.Choice) != "" {
 		answerText = strings.TrimSpace(input.Choice)
@@ -259,15 +274,19 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 				return aiTutorResult{}, err
 			}
 		}
-		if err := e.finishAITutorLesson(ctx, user, lesson, session.ID); err != nil {
+		if err := e.store.completeAITutorSession(session.ID, user.TelegramID, aiTutorCompletionXP, completedAt); err != nil {
 			return aiTutorResult{}, err
 		}
-		if err := e.store.recordAITutorCompletion(user.TelegramID, aiTutorCompletionXP); err != nil {
-			return aiTutorResult{}, err
+		qualityCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		if err := e.finishAITutorLesson(qualityCtx, user, lesson, session.ID); err != nil {
+			log.Printf("AI Tutor post-check skipped for session %s: %v", session.ID, err)
 		}
+		cancel()
 	}
-	if err := e.store.updateAITutorSessionStage(session.ID, next, status, completedAt); err != nil {
-		return aiTutorResult{}, err
+	if status != aiTutorSessionComplete {
+		if err := e.store.updateAITutorSessionStage(session.ID, next, status, completedAt); err != nil {
+			return aiTutorResult{}, err
+		}
 	}
 	session.CurrentStage = next
 	session.Status = status
@@ -527,7 +546,11 @@ func (e *aiTutorEngine) finishAITutorLesson(ctx context.Context, user userState,
 	if e.ai == nil {
 		return errors.New("ai tutor client is not configured")
 	}
-	raw, err := e.ai.complete(ctx, aiTutorQualityPrompt(userLearningLanguage(user), userInterfaceLanguage(user), lesson.Payload, map[string]string{"session_id": sessionID}, "post"), 0.1, 1200)
+	answers, err := e.store.aiTutorSessionAnswers(sessionID)
+	if err != nil {
+		return err
+	}
+	raw, err := e.ai.complete(ctx, aiTutorQualityPrompt(userLearningLanguage(user), userInterfaceLanguage(user), lesson.Payload, map[string]any{"session_id": sessionID, "answers": answers}, "post"), 0.1, 1200)
 	if err != nil {
 		return err
 	}

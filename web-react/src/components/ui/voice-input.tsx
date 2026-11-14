@@ -7,6 +7,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 interface VoiceInputProps {
+  startLabel?: string;
+  stopLabel?: string;
   isListening?: boolean;
   onStart?: () => void;
   onStop?: () => void;
@@ -19,6 +21,8 @@ export function VoiceInput({
   onStart,
   onStop,
   onToggle,
+  startLabel = "Start recording",
+  stopLabel = "Stop recording",
 }: React.ComponentProps<"div"> & VoiceInputProps) {
   const [internalListening, setInternalListening] = React.useState(false);
   const [time, setTime] = React.useState(0);
@@ -60,17 +64,13 @@ export function VoiceInput({
 
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
-      <motion.div
+      <motion.button
+        type="button"
         className="voice-input-shell flex cursor-pointer items-center justify-center rounded-full border p-2"
         layout
         transition={{ layout: { duration: 0.4 } }}
         onClick={onClickHandler}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") onClickHandler();
-        }}
-        aria-label={listening ? "Stop recording" : "Start recording"}
+        aria-label={listening ? stopLabel : startLabel}
       >
         <div className="flex h-6 w-6 items-center justify-center">
           {listening ? (
@@ -124,7 +124,7 @@ export function VoiceInput({
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </motion.button>
     </div>
   );
 }

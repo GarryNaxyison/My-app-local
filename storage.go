@@ -213,9 +213,11 @@ type store interface {
 	createAITutorSession(session aiTutorSessionRecord) error
 	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
 	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
+	completeAITutorSession(sessionID string, telegramID int64, amount int, completedAt string) error
 	completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error)
 	userCanRestartAITutorLesson(telegramID int64, lessonID string) (bool, error)
 	saveAITutorAnswer(answer aiTutorAnswerRecord) error
+	aiTutorSessionAnswers(sessionID string) ([]aiTutorAnswerRecord, error)
 	saveAITutorQualityCheck(check aiTutorQualityCheckRecord) error
 	createAITutorWordReport(report aiTutorWordReportRecord) (aiTutorWordReportRecord, bool, error)
 	getAITutorWordReport(reportID string) (aiTutorWordReportRecord, bool, error)

@@ -1926,6 +1926,8 @@ export function App() {
     return Number.isFinite(saved) ? Math.min(125, Math.max(65, saved)) : 100;
   });
   const [busy, setBusy] = useState<string | null>(null);
+  const pendingActionsRef = useRef(new Set<string>());
+  const updateSafeRef = useRef(false);
   const [status, setStatus] = useState<{ kind: StatusKind; text: string } | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     panelMessage(appCopy("ru", "ready_body"), "default", appCopy("ru", "ready_title")),
@@ -1935,6 +1937,7 @@ export function App() {
   const [draft, setDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  updateSafeRef.current = !busy && !draft.trim() && !voiceFile && !imageFile;
   const [wordChallenge, setWordChallenge] = useState<WordChallenge | null>(null);
   const [wordResult, setWordResult] = useState<TrainerResult | null>(null);
   const [wordGameResult, setWordGameResult] = useState<TrainerResult | null>(null);
@@ -2020,6 +2023,7 @@ export function App() {
     const hadController = !!navigator.serviceWorker.controller;
     const reloadWhenControlled = () => {
       if (!hadController || refreshing) return;
+      if (!updateSafeRef.current || document.querySelector('textarea[data-unsaved="true"]')) return;
       refreshing = true;
       window.location.reload();
     };
@@ -2348,6 +2352,8 @@ export function App() {
   };
 
   const runAction = async (label: string, action: () => Promise<unknown>, success?: string) => {
+    if (pendingActionsRef.current.has(label)) return null;
+    pendingActionsRef.current.add(label);
     setBusy(label);
     setStatus(null);
     try {
@@ -2366,7 +2372,8 @@ export function App() {
       setMessages((current) => [panelMessage(text, "danger", copy("request_failed", "Request failed")), ...current].slice(0, 12));
       return null;
     } finally {
-      setBusy(null);
+      pendingActionsRef.current.delete(label);
+      setBusy([...pendingActionsRef.current].slice(-1)[0] || null);
     }
   };
 
@@ -2388,6 +2395,7 @@ export function App() {
   };
 
   const startTutor = async () => {
+    if (pendingActionsRef.current.has("tutor")) return;
     if (!user.premium) {
       const text = copy("tutor_premium_required", "AI Tutor is available with Premium.");
       setAiTutorSessionId("");
@@ -2407,7 +2415,7 @@ export function App() {
     const waitKey = `poliglot-ai-tutor-wait:${user.telegram_account?.id || user.created_at || "guest"}`;
     try {
       const previousStart = Number(window.sessionStorage.getItem(waitKey));
-      if (!previousStart || Date.now() - previousStart > 5 * 60 * 1000) {
+      if (tutorLoadError || !previousStart || Date.now() - previousStart > 5 * 60 * 1000) {
         window.sessionStorage.setItem(waitKey, String(Date.now()));
       }
     } catch {
@@ -2526,7 +2534,7 @@ export function App() {
     if (!aiTutorSessionId) return;
     const payload = await runAction(
       "tutor",
-      () => api<AiTutorResponse>("/api/ai-tutor/answer", { method: "POST", body: { session_id: aiTutorSessionId, text, choice } }),
+      () => api<AiTutorResponse>("/api/ai-tutor/answer", { method: "POST", body: { session_id: aiTutorSessionId, stage, text, choice } }),
       copy("tutor_answer_saved", "Answer saved"),
     );
     if (!payload) return;
@@ -5824,7 +5832,9 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const [stageHistory, setStageHistory] = useState<Record<string, { text?: string; choice?: string; feedback?: { ok?: boolean; message?: string } }>>({});
   const accountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
   const completedLessonsKey = `poliglot-tutor-completed-v3:${accountKey}`;
+  const tutorDraftKey = aiTutorStep ? `poliglot-tutor-draft:${accountKey}:${aiTutorStep.lesson?.title || ""}:${aiTutorStep.lesson?.story?.text_target || ""}:${aiTutorStep.stage}` : "";
   const tutorWaitKey = `poliglot-ai-tutor-wait:${user.telegram_account?.id || user.created_at || "guest"}`;
+  const localWaitStartedRef = useRef(Date.now());
   const [tutorElapsedSeconds, setTutorElapsedSeconds] = useState(() => {
     try {
       const startedAt = Number(window.sessionStorage.getItem(tutorWaitKey));
@@ -5836,15 +5846,16 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
 
   useEffect(() => {
     if (aiTutorStep || tutorLoadError) return;
+    localWaitStartedRef.current = Date.now();
     const updateElapsed = () => {
+      let startedAt = localWaitStartedRef.current;
       try {
-        const startedAt = Number(window.sessionStorage.getItem(tutorWaitKey));
-        if (startedAt && Date.now() - startedAt <= 5 * 60 * 1000) {
-          setTutorElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
-        }
+        const saved = Number(window.sessionStorage.getItem(tutorWaitKey));
+        if (saved && Date.now() - saved <= 5 * 60 * 1000) startedAt = saved;
       } catch {
         // Keep loading usable when session storage is blocked.
       }
+      setTutorElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
     };
     updateElapsed();
     const timer = window.setInterval(updateElapsed, 1000);
@@ -5857,12 +5868,14 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   }, [tutorPremiumLocked, Boolean(aiTutorStep), Boolean(busy), tutorLoadError]);
 
   useEffect(() => {
-    setTutorDraft("");
+    try {
+      setTutorDraft(tutorDraftKey ? window.sessionStorage.getItem(tutorDraftKey) || "" : "");
+    } catch { setTutorDraft(""); }
     setSelectedChoice("");
     setPreviewStage("");
     setWordReportOpen(false);
     setWordReportError("");
-  }, [aiTutorStep?.stage]);
+  }, [aiTutorStep?.stage, tutorDraftKey]);
 
   const serverStages = useMemo(() => {
     const stages = [
@@ -6343,7 +6356,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
                   <div className="composer-textarea-shell-v2">
                     <textarea
                       value={tutorDraft}
-                      onChange={(event) => setTutorDraft(event.target.value)}
+                      data-unsaved={Boolean(tutorDraft.trim())}
+                      onChange={(event) => {
+                        const value = event.target.value;
+                        setTutorDraft(value);
+                        try { if (tutorDraftKey) window.sessionStorage.setItem(tutorDraftKey, value); } catch { /* Input remains usable without storage. */ }
+                      }}
                       placeholder={isProduction ? copy("tutor_production_placeholder", "Write 2-3 complete sentences.") : copy("tutor_answer_field_placeholder", "Enter your answer in this field.")}
                       rows={3}
                     />
@@ -9044,26 +9062,52 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
   const chunksRef = useRef<BlobPart[]>([]);
   const [recording, setRecording] = useState(false);
   const [recordError, setRecordError] = useState("");
+  const mountedRef = useRef(false);
+  const startingRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      const recorder = recorderRef.current;
+      if (recorder) {
+        recorder.onstop = null;
+        recorder.ondataavailable = null;
+        if (recorder.state !== "inactive") recorder.stop();
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      recorderRef.current = null;
+    };
+  }, []);
 
   const stopRecording = useCallback(() => {
     recorderRef.current?.stop();
   }, []);
 
   const startRecording = useCallback(async () => {
+    if (startingRef.current || recorderRef.current) return;
     if (!navigator.mediaDevices?.getUserMedia) {
       setRecordError(copy("mic_unavailable", "Microphone is unavailable"));
       return;
     }
     setRecordError("");
+    startingRef.current = true;
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
+      startingRef.current = false;
       setRecordError(copy("mic_unavailable", "Microphone is unavailable"));
+      return;
+    }
+    startingRef.current = false;
+    if (!mountedRef.current) {
+      stream.getTracks().forEach((track) => track.stop());
       return;
     }
     streamRef.current = stream;
     chunksRef.current = [];
+    try {
     const recorder = new MediaRecorder(stream);
     recorderRef.current = recorder;
     recorder.ondataavailable = (event) => {
@@ -9079,6 +9123,12 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
     };
     recorder.start();
     setRecording(true);
+    } catch {
+      stream.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      recorderRef.current = null;
+      setRecordError(copy("mic_unavailable", "Microphone is unavailable"));
+    }
   }, [copy, setVoiceFile]);
 
   return (
@@ -9086,6 +9136,8 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
       {allowVoice ? (
         <>
           <VoiceInput
+            startLabel={copy("record_voice", "Start recording")}
+            stopLabel={copy("stop_recording", "Stop recording")}
             className={cn("record-button-v2", recording && "is-recording")}
             isListening={recording}
             onToggle={() => recording ? stopRecording() : void startRecording()}
