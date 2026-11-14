@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-14
+
+- Added a desktop/mobile web audit with code findings, UI recommendations, AI Tutor logic proposals, and explicit verification limits in `WEB_APP_AUDIT_2026-11-14.md`.
+- Added the owner's current requests in root `USER_REQUESTS.md`. Installed three React/UI skills in the user Codex directory; application behavior was not changed.
+
 Project change history is maintained in [`docs/tracking/CHANGELOG.md`](docs/tracking/CHANGELOG.md), alongside the user request log and release audit.
 
 ## 2026-10-17
