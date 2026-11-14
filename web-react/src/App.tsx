@@ -1,7 +1,6 @@
 import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ClipboardEvent } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
 import { createPortal } from "react-dom";
 import type { LucideProps } from "lucide-react";
 import {
@@ -91,6 +90,7 @@ import { asText, compactNumber, percent, prettyDate } from "./lib/format";
 import { appCopy, appNavDescription, cleanAppText, translateViewDetails } from "./lib/i18n";
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
+import { LearningNavigation } from "./components/LearningNavigation";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
 import { InstagramIcon, TelegramIcon, TikTokIcon, YouTubeIcon } from "./components/BrandIcons";
 import { VoiceInput } from "./components/ui/voice-input";
@@ -3369,6 +3369,13 @@ export function App() {
     return startLesson();
   };
 
+  useLayoutEffect(() => {
+    if (session?.authenticated) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+      document.getElementById("learning-main")?.focus({ preventScroll: true });
+    }
+  }, [activeView, session?.authenticated]);
+
   const authStandalone = isAuthStandaloneRoute();
   if (sessionLoading) return <LoadingScreen theme={theme} />;
   if (authStandalone) {
@@ -3500,9 +3507,10 @@ export function App() {
   };
 
   return (
-    <div className={cn("v2-shell", `v2-shell--${platform}`)} data-platform={platform} data-v2-shell="ios-function-ribbon" style={{ "--v2-brightness": brightness / 100 } as CSSProperties}>
+    <div className={cn("v2-shell", "v2-shell--learning", `v2-shell--${platform}`)} data-platform={platform} data-v2-shell="learning-workspace" style={{ "--v2-brightness": brightness / 100 } as CSSProperties}>
       <ThemeBackground theme={theme} />
       <AppCookieConsentBanner language={user.interface_language || "ru"} />
+      <a className="learning-skip-link" href="#learning-main">{copy("tutor_continue", "Continue")}</a>
       <div className="v2-app">
         <TopBar
           user={user}
@@ -3544,18 +3552,7 @@ export function App() {
             </span>
           </div>
         ) : null}
-        {platform === "desktop" ? (
-          <FunctionRibbon
-            nav={nav}
-            activeView={activeView}
-            setView={activateView}
-            theme={theme}
-            copy={copy}
-            accountKey={accountKey}
-            navigationLayout={user.navigation_layout || {}}
-            onNavigationLayoutChange={(patch) => saveNavigationLayout(patch)}
-          />
-        ) : null}
+        <LearningNavigation nav={nav} activeView={activeView} setView={activateView} theme={theme} copy={copy} platform={platform} accountKey={accountKey} navigationLayout={user.navigation_layout || {}} />
         {payment ? (
           <PaymentModal
             payment={payment}
@@ -3595,6 +3592,8 @@ export function App() {
         ) : null}
         {guideOpen ? <AppGuideDialog copy={copy} onClose={() => setGuideOpen(false)} /> : null}
         <main
+          id="learning-main"
+          tabIndex={-1}
           key={notFoundPath || activeView}
           className={cn("context-display", `context-display--${notFoundPath ? "not-found" : activeView}`)}
           data-view={notFoundPath ? "not-found" : activeView}
@@ -3614,21 +3613,15 @@ export function App() {
               }}
             />
           ) : (
-            <ViewRenderer {...viewProps} />
+            <>
+              <header className="learning-page-heading">
+                <div><span className="eyebrow">NERIVA · {copy("learning_group", "Learning")}</span><h1>{activeItem.label}</h1></div>
+                <span className="learning-page-heading__level">{(user.learning_language || "en").toUpperCase()} · {user.level || "A1"}</span>
+              </header>
+              <ViewRenderer {...viewProps} />
+            </>
           )}
         </main>
-        {platform === "mobile" ? (
-          <MobileBottomNav
-            nav={nav}
-            activeView={activeView}
-            setView={activateView}
-            theme={theme}
-            copy={copy}
-            accountKey={accountKey}
-            navigationLayout={user.navigation_layout || {}}
-            onNavigationLayoutChange={(patch) => saveNavigationLayout(patch)}
-          />
-        ) : null}
       </div>
     </div>
   );
@@ -4495,7 +4488,7 @@ function TopBar({
           <CircleHelp size={15} />
           <span>{copy("guide", "Guide")}</span>
         </button>
-        <button className="v2-report-button" type="button" onClick={onBugReport}>
+        <button className="v2-report-button" type="button" onClick={onBugReport} aria-label={copy("report_bug", "Сообщить об ошибке")}>
           <Bug size={15} />
           <span>{copy("report_bug", "Сообщить об ошибке")}</span>
         </button>
@@ -4583,553 +4576,6 @@ function LevelProgress({ user, copy }: { user: UserProfile; copy: (key: string, 
       <i aria-label={`${copy("progress", "Progress")} ${pct}%`}><b style={{ width: `${pct}%` }} /></i>
       <small>{formatLimit(current, needed)}</small>
     </div>
-  );
-}
-
-function FunctionRibbon({
-  nav,
-  activeView,
-  setView,
-  theme,
-  copy,
-  accountKey,
-  navigationLayout,
-  onNavigationLayoutChange,
-}: {
-  nav: NavItem[];
-  activeView: ViewId;
-  setView: (view: ViewId) => void;
-  theme: Theme;
-  copy: (key: string, fallback: string) => string;
-  accountKey: string;
-  navigationLayout: NonNullable<UserProfile["navigation_layout"]>;
-  onNavigationLayoutChange: (patch: NonNullable<UserProfile["navigation_layout"]>) => void;
-}) {
-  const ribbonRef = useRef<HTMLElement | null>(null);
-  const [draggedId, setDraggedId] = useState<ViewId | null>(null);
-  const [dragOverId, setDragOverId] = useState<ViewId | null>(null);
-  const [dragAfterTarget, setDragAfterTarget] = useState(false);
-  const orderStorageKey = `poliglot-function-ribbon-v2:${accountKey || "guest"}`;
-  const readOrder = useCallback(() => {
-    const serverOrder = navigationLayout.function_ribbon;
-    if (Array.isArray(serverOrder) && serverOrder.length) {
-      const ids = serverOrder.filter((id): id is ViewId => nav.some((item) => item.id === id));
-      if (ids.length) return ids;
-    }
-    try {
-      const parsed = JSON.parse(localStorage.getItem(orderStorageKey) || "[]");
-      if (!Array.isArray(parsed)) return [] as ViewId[];
-      return parsed.filter((id): id is ViewId => nav.some((item) => item.id === id));
-    } catch {
-      return [] as ViewId[];
-    }
-  }, [nav, navigationLayout.function_ribbon, orderStorageKey]);
-  const [orderIds, setOrderIds] = useState<ViewId[]>(readOrder);
-  useEffect(() => {
-    setOrderIds(readOrder());
-  }, [readOrder]);
-  const orderedNav = useMemo(() => {
-    const ids = [...orderIds, ...nav.map((item) => item.id)].filter((id, index, list) => list.indexOf(id) === index && nav.some((item) => item.id === id));
-    return ids.map((id) => nav.find((item) => item.id === id)).filter(Boolean) as NavItem[];
-  }, [nav, orderIds]);
-  const persistOrder = (next: ViewId[]) => {
-    const normalized = next.filter((id, index, list) => nav.some((item) => item.id === id) && list.indexOf(id) === index);
-    setOrderIds(normalized);
-    localStorage.setItem(orderStorageKey, JSON.stringify(normalized));
-    onNavigationLayoutChange({ function_ribbon: normalized });
-  };
-  const reorderRibbon = (target: ViewId, after = false) => {
-    if (!draggedId || draggedId === target) return;
-    const current = orderedNav.map((item) => item.id).filter((id) => id !== draggedId);
-    const targetIndex = current.indexOf(target);
-    current.splice(targetIndex < 0 ? current.length : targetIndex + (after ? 1 : 0), 0, draggedId);
-    persistOrder(current);
-  };
-  const updateRibbonDropTarget = (target: ViewId, clientX: number, rect: DOMRect) => {
-    if (!draggedId) return;
-    setDragOverId(target);
-    setDragAfterTarget(clientX > rect.left + rect.width / 2);
-    const node = ribbonRef.current;
-    if (!node) return;
-    const rail = node.getBoundingClientRect();
-    if (clientX < rail.left + 74) node.scrollBy({ left: -32, behavior: "auto" });
-    if (clientX > rail.right - 74) node.scrollBy({ left: 32, behavior: "auto" });
-  };
-  const scrollByTile = (direction: -1 | 1) => {
-    ribbonRef.current?.scrollBy({ left: direction * 360, behavior: "smooth" });
-  };
-  return (
-    <div className="function-ribbon-shell">
-      <MorphingArrowButton direction="left" onClick={() => scrollByTile(-1)} label={copy("back", "Back")} className="ribbon-morph-arrow" size="compact" />
-      <nav
-        ref={ribbonRef}
-        className="function-ribbon"
-        aria-label="Web function ribbon"
-        onWheel={(event) => {
-          if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
-            event.currentTarget.scrollLeft += event.deltaY;
-          }
-        }}
-      >
-        {orderedNav.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={cn(
-              "function-chip",
-              activeView === item.id && "is-active",
-              draggedId === item.id && "is-dragging",
-              dragOverId === item.id && draggedId !== item.id && "is-drop-target",
-              dragOverId === item.id && draggedId !== item.id && !dragAfterTarget && "is-drop-before",
-              dragOverId === item.id && draggedId !== item.id && dragAfterTarget && "is-drop-after",
-            )}
-            data-accent={item.accent}
-            data-view={item.id}
-            draggable
-            aria-pressed={activeView === item.id}
-            onDragStart={(event) => {
-              setDraggedId(item.id);
-              event.dataTransfer.effectAllowed = "move";
-              event.dataTransfer.setData("text/plain", item.id);
-            }}
-            onDragOver={(event) => {
-              event.preventDefault();
-              updateRibbonDropTarget(item.id, event.clientX, event.currentTarget.getBoundingClientRect());
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              const rect = event.currentTarget.getBoundingClientRect();
-              reorderRibbon(item.id, event.clientX > rect.left + rect.width / 2);
-              setDraggedId(null);
-              setDragOverId(null);
-              setDragAfterTarget(false);
-            }}
-            onDragEnd={() => {
-              if (dragOverId) reorderRibbon(dragOverId, dragAfterTarget);
-              setDraggedId(null);
-              setDragOverId(null);
-              setDragAfterTarget(false);
-            }}
-            onClick={() => {
-              if (draggedId) return;
-              setView(item.id);
-            }}
-          >
-            <span className="function-chip__art" style={{ backgroundImage: `url("${menuAssetUrl(item.id, theme)}")` }} />
-            <span className="function-chip__caption">
-              <strong>{item.shortLabel || item.label}</strong>
-            </span>
-          </button>
-        ))}
-      </nav>
-      <MorphingArrowButton direction="right" onClick={() => scrollByTile(1)} label={copy("next", "Next")} className="ribbon-morph-arrow" size="compact" />
-    </div>
-  );
-}
-
-function MobileBottomNav({
-  nav,
-  activeView,
-  setView,
-  theme,
-  copy,
-  accountKey,
-  navigationLayout,
-  onNavigationLayoutChange,
-}: {
-  nav: NavItem[];
-  activeView: ViewId;
-  setView: (view: ViewId) => void;
-  theme: Theme;
-  copy: (key: string, fallback: string) => string;
-  accountKey: string;
-  navigationLayout: NonNullable<UserProfile["navigation_layout"]>;
-  onNavigationLayoutChange: (patch: NonNullable<UserProfile["navigation_layout"]>) => void;
-}) {
-  const [editMode, setEditMode] = useState(false);
-  const [draggedId, setDraggedId] = useState<ViewId | null>(null);
-  const [dragOverId, setDragOverId] = useState<ViewId | null>(null);
-  const [dragAfterTarget, setDragAfterTarget] = useState(false);
-  const bottomNavRef = useRef<HTMLElement | null>(null);
-  const draggedIdRef = useRef<ViewId | null>(null);
-  const dragOverIdRef = useRef<ViewId | null>(null);
-  const dragAfterTargetRef = useRef(false);
-  const longPressTimerRef = useRef<number | null>(null);
-  const longPressTriggeredRef = useRef(false);
-  const pointerStartRef = useRef<{ id: ViewId; x: number; y: number } | null>(null);
-  const dragGhostRef = useRef<HTMLDivElement | null>(null);
-  const dragGhostPointRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const dragGhostFrameRef = useRef<number | null>(null);
-  const storageKey = `poliglot-mobile-nav-v2:${accountKey || "guest"}`;
-  const defaultPinned: ViewId[] = ["home", "tutor", "words", "word-game", "pronunciation"];
-  const longPressEditDelayMs = 650;
-  const readPinned = useCallback(() => {
-    const serverPinned = navigationLayout.mobile_pinned;
-    if (Array.isArray(serverPinned) && serverPinned.length) {
-      const ids = serverPinned.filter((id): id is ViewId => nav.some((item) => item.id === id));
-      return ids.length ? ids.slice(0, 5) : defaultPinned;
-    }
-    try {
-      const parsed = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      if (!Array.isArray(parsed)) return defaultPinned;
-      const ids = parsed.filter((id): id is ViewId => nav.some((item) => item.id === id));
-      return ids.length ? ids.slice(0, 5) : defaultPinned;
-    } catch {
-      return defaultPinned;
-    }
-  }, [storageKey, nav, navigationLayout.mobile_pinned]);
-  const [pinnedIds, setPinnedIds] = useState<ViewId[]>(readPinned);
-  const moreStorageKey = `poliglot-mobile-nav-more-v2:${accountKey || "guest"}`;
-  const readMoreOrder = useCallback(() => {
-    const serverMore = navigationLayout.mobile_more;
-    if (Array.isArray(serverMore) && serverMore.length) {
-      return serverMore.filter((id): id is ViewId => nav.some((item) => item.id === id));
-    }
-    try {
-      const parsed = JSON.parse(localStorage.getItem(moreStorageKey) || "[]");
-      if (!Array.isArray(parsed)) return [] as ViewId[];
-      return parsed.filter((id): id is ViewId => nav.some((item) => item.id === id));
-    } catch {
-      return [] as ViewId[];
-    }
-  }, [moreStorageKey, nav, navigationLayout.mobile_more]);
-  const [moreOrderIds, setMoreOrderIds] = useState<ViewId[]>(readMoreOrder);
-  const railStorageKey = `poliglot-mobile-nav-rail-v2:${accountKey || "guest"}`;
-  const readRailOrder = useCallback(() => {
-    const serverRail = navigationLayout.mobile_rail;
-    if (Array.isArray(serverRail) && serverRail.length) {
-      return serverRail.filter((id): id is ViewId => nav.some((item) => item.id === id));
-    }
-    try {
-      const parsed = JSON.parse(localStorage.getItem(railStorageKey) || "[]");
-      if (!Array.isArray(parsed)) return [] as ViewId[];
-      return parsed.filter((id): id is ViewId => nav.some((item) => item.id === id));
-    } catch {
-      return [] as ViewId[];
-    }
-  }, [railStorageKey, nav, navigationLayout.mobile_rail]);
-  const [railOrderIds, setRailOrderIds] = useState<ViewId[]>(readRailOrder);
-  const [draftRailOrderIds, setDraftRailOrderIds] = useState<ViewId[] | null>(null);
-  const draftRailOrderIdsRef = useRef<ViewId[] | null>(null);
-  useEffect(() => {
-    setPinnedIds(readPinned());
-    setMoreOrderIds(readMoreOrder());
-    setRailOrderIds(readRailOrder());
-  }, [readPinned, readMoreOrder, readRailOrder]);
-  useEffect(() => {
-    setDraftRailOrderIds(null);
-    draftRailOrderIdsRef.current = null;
-  }, [railStorageKey]);
-  const normalizeRailOrder = (next: ViewId[]) => {
-    return next.filter((id, index, list) => nav.some((item) => item.id === id) && list.indexOf(id) === index);
-  };
-  const persistRailOrder = (next: ViewId[]) => {
-    const normalized = normalizeRailOrder(next);
-    draftRailOrderIdsRef.current = null;
-    setDraftRailOrderIds(null);
-    setRailOrderIds((current) => current.length === normalized.length && current.every((id, index) => id === normalized[index]) ? current : normalized);
-    localStorage.setItem(railStorageKey, JSON.stringify(normalized));
-    onNavigationLayoutChange({ mobile_pinned: pinnedIds, mobile_more: moreOrderIds, mobile_rail: normalized });
-  };
-  const setActiveDrag = (view: ViewId | null) => {
-    draggedIdRef.current = view;
-    setDraggedId(view);
-  };
-  const updateDragGhost = (x: number, y: number) => {
-    dragGhostPointRef.current = { x, y };
-    if (dragGhostFrameRef.current !== null) return;
-    dragGhostFrameRef.current = window.requestAnimationFrame(() => {
-      dragGhostFrameRef.current = null;
-      const point = dragGhostPointRef.current;
-      if (dragGhostRef.current) {
-        dragGhostRef.current.style.transform = `translate3d(${point.x}px, ${point.y}px, 0) translate(-50%, -50%)`;
-      }
-    });
-  };
-  const enterEditMode = (view?: ViewId) => {
-    longPressTriggeredRef.current = true;
-    longPressTimerRef.current = null;
-    setEditMode(true);
-    if (view) {
-      setActiveDrag(view);
-      setDropTarget(view, false);
-      if (pointerStartRef.current) updateDragGhost(pointerStartRef.current.x, pointerStartRef.current.y);
-    }
-  };
-  const startLongPress = (view?: ViewId) => {
-    longPressTriggeredRef.current = false;
-    if (longPressTimerRef.current) window.clearTimeout(longPressTimerRef.current);
-    longPressTimerRef.current = window.setTimeout(() => enterEditMode(view), longPressEditDelayMs);
-  };
-  const cancelLongPress = () => {
-    if (longPressTimerRef.current) window.clearTimeout(longPressTimerRef.current);
-    longPressTimerRef.current = null;
-  };
-  const resetPointerStart = () => {
-    pointerStartRef.current = null;
-  };
-  const setDropTarget = (id: ViewId | null, after = false) => {
-    if (dragOverIdRef.current === id && dragAfterTargetRef.current === after) return;
-    dragOverIdRef.current = id;
-    dragAfterTargetRef.current = after;
-    setDragOverId(id);
-    setDragAfterTarget(after);
-  };
-  const railNav = useMemo(() => {
-    const orderedIds = [
-      ...(draftRailOrderIds ?? railOrderIds),
-      ...pinnedIds,
-      ...moreOrderIds,
-      ...nav.map((item) => item.id),
-    ].filter((id, index, list) => list.indexOf(id) === index && nav.some((item) => item.id === id));
-    return orderedIds.map((id) => nav.find((item) => item.id === id)).filter(Boolean) as NavItem[];
-  }, [draftRailOrderIds, moreOrderIds, nav, pinnedIds, railOrderIds]);
-  const railNavRef = useRef<NavItem[]>(railNav);
-  useEffect(() => {
-    railNavRef.current = railNav;
-  }, [railNav]);
-  const chooseView = (view: ViewId) => {
-    if (editMode) return;
-    setView(view);
-  };
-  const reorderedRailIds = (target: ViewId, after = false) => {
-    const activeDrag = draggedIdRef.current || draggedId;
-    if (!activeDrag || activeDrag === target) return null;
-    const currentSource = draftRailOrderIdsRef.current ?? railNavRef.current.map((item) => item.id);
-    const current = currentSource.filter((id) => id !== activeDrag);
-    const targetIndex = current.indexOf(target);
-    current.splice(targetIndex < 0 ? current.length : targetIndex + (after ? 1 : 0), 0, activeDrag);
-    return normalizeRailOrder(current);
-  };
-  const previewRailReorder = (target: ViewId, after = false) => {
-    const next = reorderedRailIds(target, after);
-    if (!next) return;
-    const current = draftRailOrderIdsRef.current ?? railNavRef.current.map((item) => item.id);
-    if (current.length === next.length && current.every((id, index) => id === next[index])) return;
-    draftRailOrderIdsRef.current = next;
-    setDraftRailOrderIds(next);
-    railNavRef.current = next.map((id) => nav.find((item) => item.id === id)).filter(Boolean) as NavItem[];
-  };
-  const commitRailReorder = () => {
-    const draft = draftRailOrderIdsRef.current;
-    if (draft?.length) {
-      persistRailOrder(draft);
-      return;
-    }
-    if (dragOverIdRef.current) {
-      const next = reorderedRailIds(dragOverIdRef.current, dragAfterTargetRef.current);
-      if (next) persistRailOrder(next);
-    }
-  };
-  const navDropTargetFromPoint = (clientX: number, clientY: number) => {
-    const activeDrag = draggedIdRef.current || draggedId;
-    const node = bottomNavRef.current;
-    if (!node || !activeDrag) return null;
-    const buttons = Array.from(node.querySelectorAll<HTMLButtonElement>("button[data-view]"))
-      .filter((button) => button.dataset.view && button.dataset.view !== activeDrag);
-    if (!buttons.length) return null;
-    let best: { id: ViewId; after: boolean; distance: number } | null = null;
-    for (const button of buttons) {
-      const view = button.dataset.view as ViewId;
-      if (!nav.some((item) => item.id === view)) continue;
-      const rect = button.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      const dx = clientX - centerX;
-      const dy = clientY - centerY;
-      const distance = Math.hypot(dx, dy);
-      const after = Math.abs(dy) > rect.height * 0.55 ? clientY > centerY : clientX > centerX;
-      const candidate = { id: view, after, distance };
-      if (!best || candidate.distance < best.distance) best = candidate;
-    }
-    return best ? { id: best.id, after: best.after } : null;
-  };
-  const navDropTargetFromPointer = (event: ReactPointerEvent<HTMLElement>) => navDropTargetFromPoint(event.clientX, event.clientY);
-  const autoScrollBottomNav = (clientX: number) => {
-    const node = bottomNavRef.current;
-    if (!node || node.scrollWidth <= node.clientWidth) return;
-    const rect = node.getBoundingClientRect();
-    const edge = 42;
-    const maxStep = 8;
-    const leftPressure = Math.max(0, rect.left + edge - clientX) / edge;
-    const rightPressure = Math.max(0, clientX - (rect.right - edge)) / edge;
-    if (leftPressure > 0) node.scrollBy({ left: -Math.max(2, Math.round(maxStep * Math.min(1, leftPressure))), behavior: "auto" });
-    if (rightPressure > 0) node.scrollBy({ left: Math.max(2, Math.round(maxStep * Math.min(1, rightPressure))), behavior: "auto" });
-  };
-  const handleBottomPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
-    const activeDrag = draggedIdRef.current || draggedId;
-    const pointerStart = pointerStartRef.current;
-    if (!editMode && pointerStart) {
-      const dx = event.clientX - pointerStart.x;
-      const dy = event.clientY - pointerStart.y;
-      if (Math.hypot(dx, dy) > 12) {
-        cancelLongPress();
-        return;
-      }
-    }
-    if (!editMode || !activeDrag) return;
-    event.preventDefault();
-    updateDragGhost(event.clientX, event.clientY);
-    autoScrollBottomNav(event.clientX);
-    const next = navDropTargetFromPointer(event);
-    if (next) {
-      setDropTarget(next.id, next.after);
-      previewRailReorder(next.id, next.after);
-    }
-  };
-  const handleBottomPointerUp = (event?: ReactPointerEvent<HTMLElement>) => {
-    cancelLongPress();
-    resetPointerStart();
-    if (!editMode) {
-      setActiveDrag(null);
-      setDropTarget(null, false);
-      return;
-    }
-    event?.preventDefault();
-    const activeDrag = draggedIdRef.current || draggedId;
-    if (editMode && activeDrag) commitRailReorder();
-    setActiveDrag(null);
-    setDropTarget(null, false);
-    longPressTriggeredRef.current = false;
-  };
-  useEffect(() => {
-    if (!editMode) return;
-    const handleMove = (event: PointerEvent) => {
-      const activeDrag = draggedIdRef.current;
-      if (!activeDrag) return;
-      event.preventDefault();
-      updateDragGhost(event.clientX, event.clientY);
-      autoScrollBottomNav(event.clientX);
-      const next = navDropTargetFromPoint(event.clientX, event.clientY);
-      if (!next) return;
-      setDropTarget(next.id, next.after);
-      previewRailReorder(next.id, next.after);
-    };
-    const handleUp = (event: PointerEvent) => {
-      event.preventDefault();
-      const activeDrag = draggedIdRef.current;
-      if (activeDrag) commitRailReorder();
-      setActiveDrag(null);
-      setDropTarget(null, false);
-      cancelLongPress();
-      resetPointerStart();
-      longPressTriggeredRef.current = false;
-    };
-    window.addEventListener("pointermove", handleMove, { passive: false });
-    window.addEventListener("pointerup", handleUp, { passive: false });
-    window.addEventListener("pointercancel", handleUp, { passive: false });
-    return () => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-      window.removeEventListener("pointercancel", handleUp);
-      if (dragGhostFrameRef.current !== null) {
-        window.cancelAnimationFrame(dragGhostFrameRef.current);
-        dragGhostFrameRef.current = null;
-      }
-    };
-  }, [editMode]);
-  const finishEditMode = () => {
-    cancelLongPress();
-    resetPointerStart();
-    setEditMode(false);
-    setActiveDrag(null);
-    setDropTarget(null, false);
-    draftRailOrderIdsRef.current = null;
-    setDraftRailOrderIds(null);
-    longPressTriggeredRef.current = false;
-  };
-  const draggedItem = draggedId ? railNav.find((item) => item.id === draggedId) : null;
-  return (
-    <>
-      {editMode && draggedItem ? (
-        <div
-          ref={dragGhostRef}
-          className="mobile-bottom-nav-drag-ghost-v2"
-          style={{ backgroundImage: `url("${menuAssetUrl(draggedItem.id, theme)}")` }}
-          aria-hidden="true"
-        >
-          <strong>{draggedItem.shortLabel || draggedItem.label}</strong>
-        </div>
-      ) : null}
-      {editMode ? (
-        <button type="button" className="mobile-menu-edit-done-v2" onClick={finishEditMode}>
-          <Check size={14} />
-          {copy("done", "Готово")}
-        </button>
-      ) : null}
-      <nav
-        ref={bottomNavRef}
-        className={cn("mobile-bottom-nav-v2", editMode && "is-editing")}
-        aria-label={copy("mobile_navigation", "Mobile navigation")}
-        onPointerMove={handleBottomPointerMove}
-        onPointerUp={handleBottomPointerUp}
-        onDragOver={(event) => {
-          if (!editMode) return;
-          event.preventDefault();
-          autoScrollBottomNav(event.clientX);
-        }}
-        onContextMenu={(event) => event.preventDefault()}
-        onPointerCancel={() => { cancelLongPress(); resetPointerStart(); setActiveDrag(null); setDropTarget(null, false); longPressTriggeredRef.current = false; }}
-      >
-        {railNav.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={cn(
-              activeView === item.id && "is-active",
-              draggedId === item.id && "is-dragging",
-              dragOverId === item.id && draggedId !== item.id && "is-drop-target",
-              dragOverId === item.id && draggedId !== item.id && !dragAfterTarget && "is-drop-before",
-              dragOverId === item.id && draggedId !== item.id && dragAfterTarget && "is-drop-after",
-            )}
-            data-view={item.id}
-            draggable={false}
-            onDragStart={() => setActiveDrag(item.id)}
-            onDragEnd={() => { setActiveDrag(null); setDropTarget(null, false); longPressTriggeredRef.current = false; }}
-            onDragOver={(event) => {
-              if (!editMode) return;
-              event.preventDefault();
-              autoScrollBottomNav(event.clientX);
-              const rect = event.currentTarget.getBoundingClientRect();
-              setDropTarget(item.id, event.clientX > rect.left + rect.width / 2);
-            }}
-            onDrop={(event) => {
-              const rect = event.currentTarget.getBoundingClientRect();
-              previewRailReorder(item.id, event.clientX > rect.left + rect.width / 2);
-              commitRailReorder();
-              setDropTarget(null, false);
-            }}
-            onPointerDown={(event) => {
-              try {
-                event.currentTarget.setPointerCapture?.(event.pointerId);
-              } catch {
-                // Synthetic tests and some mobile webviews can provide a non-capturable pointer.
-              }
-              if (editMode) event.preventDefault();
-              pointerStartRef.current = { id: item.id, x: event.clientX, y: event.clientY };
-              updateDragGhost(event.clientX, event.clientY);
-              startLongPress(item.id);
-              if (editMode) {
-                setActiveDrag(item.id);
-                setDropTarget(item.id, false);
-              }
-            }}
-            onPointerCancel={() => { cancelLongPress(); resetPointerStart(); setActiveDrag(null); setDropTarget(null, false); longPressTriggeredRef.current = false; }}
-            onClick={() => {
-              if (longPressTriggeredRef.current) {
-                longPressTriggeredRef.current = false;
-                return;
-              }
-              chooseView(item.id);
-            }}
-            aria-pressed={activeView === item.id}
-          >
-            <span style={{ backgroundImage: `url("${menuAssetUrl(item.id, theme)}")` }} />
-            <strong>{item.shortLabel || item.label}</strong>
-          </button>
-        ))}
-      </nav>
-    </>
   );
 }
 
@@ -5810,6 +5256,7 @@ function ViewRenderer(props: ViewRendererProps) {
 }
 
 function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
+  const tutorPlatform = usePlatform();
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
@@ -5821,6 +5268,16 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const [wordReportError, setWordReportError] = useState("");
   const [wordReportPending, setWordReportPending] = useState(false);
   const [completedLessonsOpen, setCompletedLessonsOpen] = useState(false);
+  const historyWasOpen = useRef(false);
+  useLayoutEffect(() => {
+    if (!completedLessonsOpen && !historyWasOpen.current) return;
+    window.scrollTo({ top: 0, behavior: "instant" });
+    const target = completedLessonsOpen
+      ? document.querySelector<HTMLElement>(".tutor-history-page h2")
+      : document.querySelector<HTMLElement>(".tutor-completed-lessons-button-v2");
+    target?.focus({ preventScroll: true });
+    historyWasOpen.current = completedLessonsOpen;
+  }, [completedLessonsOpen]);
   const [completedLessonPage, setCompletedLessonPage] = useState(0);
   const [completedLessonsVersion, setCompletedLessonsVersion] = useState(0);
   const [remoteCompletedLessons, setRemoteCompletedLessons] = useState<TutorCompletedLessonRecord[]>([]);
@@ -5828,6 +5285,9 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const [completedLessonsError, setCompletedLessonsError] = useState("");
   const [restartingLessonId, setRestartingLessonId] = useState("");
   const [previewStage, setPreviewStage] = useState("");
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [aiTutorStep?.stage, previewStage]);
   const completedRecordedRef = useRef("");
   const [stageHistory, setStageHistory] = useState<Record<string, { text?: string; choice?: string; feedback?: { ok?: boolean; message?: string } }>>({});
   const accountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
@@ -6210,7 +5670,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   };
 
   return (
-    <div className="tutor-workspace">
+    <div className={cn("tutor-workspace", completedLessonsOpen && "tutor-workspace--history")}>
       <section className="v2-panel tutor-hero">
         <div className="tutor-hero__brand" aria-hidden="true">
           <img src="/app/assets/brand-logo-mini.png" alt="" />
@@ -6278,7 +5738,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
         </section>
       ) : (
         <div className="tutor-session-v2">
-          <aside className="v2-panel tutor-plan-v2" aria-label={copy("tutor_flow", "Lesson flow")}>
+          <details className="v2-panel tutor-plan-v2" open={tutorPlatform === "desktop"}>
+            <summary className="tutor-plan-summary">
+              <span>{copy("tutor_flow", "Lesson flow")}</span>
+              <strong>{progressPercent}% · {stageLabel(aiTutorStep.stage)}</strong>
+              <ChevronDown size={16} />
+            </summary>
             <div className="panel-head">
               <span className="eyebrow">{copy("tutor_progress_label", "Progress")}</span>
               <h2>{progressPercent}%</h2>
@@ -6298,7 +5763,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
                 </button>
               ))}
             </div>
-          </aside>
+          </details>
 
           <section className="v2-panel tutor-context-v2">
             <div className="tutor-context-v2__head">
@@ -6456,12 +5921,11 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
       ) : null}
 
       {completedLessonsOpen ? (
-        <Dialog open onOpenChange={(open) => { if (!open) setCompletedLessonsOpen(false); }}>
-          <DialogContent className="v2-dialog-content tutor-completed-lessons-dialog-v2">
-            <DialogBody className="tutor-completed-lessons-dialog-v2__body">
+        <section className="tutor-history-page tutor-completed-lessons-dialog-v2" aria-label={copy("tutor_completed_lessons", "Completed lessons")}>
+            <div className="tutor-completed-lessons-dialog-v2__body">
               <BookOpen className="tutor-completed-lessons-dialog-v2__icon" size={42} />
-              <DialogTitle>{copy("tutor_completed_lessons", "Completed lessons")}</DialogTitle>
-              <DialogDescription>{copy("tutor_completed_lessons_body", "Choose a finished tutor lesson to review its topic, level, and summary.")}</DialogDescription>
+              <h2 tabIndex={-1}>{copy("tutor_completed_lessons", "Completed lessons")}</h2>
+              <p>{copy("tutor_completed_lessons_body", "Choose a finished tutor lesson to review its topic, level, and summary.")}</p>
               {completedLessonsLoading ? <p className="tutor-completed-lessons-empty-v2">{copy("loading", "Loading...")}</p> : null}
               {completedLessonsError ? <p className="tutor-feedback-v2 is-error">{completedLessonsError}</p> : null}
               <div className="tutor-completed-lessons-list-v2">
@@ -6477,8 +5941,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
                   <p className="tutor-completed-lessons-empty-v2">{copy("tutor_completed_lessons_empty", "Completed tutor lessons will appear here after the final review.")}</p>
                 )}
               </div>
-            </DialogBody>
-            <DialogFooter className="tutor-completed-lessons-footer-v2">
+            </div>
+            <footer className="tutor-completed-lessons-footer-v2">
               <Button className="tutor-completed-lessons-back-v2" type="button" variant="outline" onClick={() => setCompletedLessonsOpen(false)}>
                 <ChevronLeft size={16} />
                 {copy("back", "Back")}
@@ -6494,9 +5958,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
                   <ChevronRight size={15} />
                 </Button>
               </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </footer>
+        </section>
       ) : null}
     </div>
   );
@@ -6691,6 +6154,23 @@ function HomeView(props: ViewRendererProps) {
   const weakSpot = Number(user.mistakes || 0) > 0 ? copy("today_plan_body_active", "Today starts with one repair, then a short speak-listen loop so new material does not pile up over old mistakes.") : copy("today_plan_body_steady", "Today keeps the rhythm: words first, then output, then listening, then one quick check.");
   return (
     <div className="home-grid">
+      <section className="learning-start">
+        <div className="learning-start__copy">
+          <span className="eyebrow">{copy("daily_route", "Daily route")} · {user.level || "A1"}</span>
+          <h2>{props.activeLessonTaskId || (user.premium && props.aiTutorStep && props.aiTutorStep.stage !== "complete") ? copy("tutor_continue", "Continue") : copy("new_lesson_title", "New lesson")}</h2>
+          <p>{user.premium ? copy("tutor_short_hint", "One guided lesson: words, grammar, listening, writing, dialogue, and review") : copy("today_plan_body_steady", "Start with words, practice, and listening.")}</p>
+          <Button type="button" disabled={busy === "lesson" || busy === "tutor"} onClick={() => {
+            if (props.activeLessonTaskId) setView("lesson");
+            else if (user.premium) setView("tutor");
+            else void startLesson();
+          }}>
+            <Play size={18} />
+            {props.activeLessonTaskId || (user.premium && props.aiTutorStep && props.aiTutorStep.stage !== "complete") ? copy("tutor_continue", "Continue") : copy("view_lesson_action", "New lesson")}
+            <ChevronRight size={17} />
+          </Button>
+        </div>
+        <img className="learning-start__art" src="/app/assets/brand-logo-mini.png" alt="" />
+      </section>
       <section className="v2-panel home-focus">
         <span className="eyebrow">{copy("today", "Today")}</span>
         <h2>{copy("training_signal", "Training signal")}</h2>
@@ -6701,12 +6181,6 @@ function HomeView(props: ViewRendererProps) {
       <section className="v2-panel home-mobile-level-v2" aria-label={copy("level_label", "Level")}>
         <span className="home-mobile-level-v2__xp-label">XP</span>
         <LevelProgress user={user} copy={copy} />
-      </section>
-      <section className="v2-panel home-premium">
-        <span className="eyebrow">{copy("premium", "Premium")}</span>
-        <h2>{user.premium ? prettyDate(user.premium_until) : copy("base_plan", "Basic")}</h2>
-        <p>{copy("premium_month_body", "Voice, photo, mistakes and vocabulary")}</p>
-        <Button onClick={() => void loadPremiumPlans()}><Crown size={17} />{copy("payment_options", "Payment options")}</Button>
       </section>
       <section className="v2-panel home-plan-v2">
         <span className="eyebrow">{copy("daily_route", "Daily route")}</span>
@@ -6781,17 +6255,6 @@ function HomeView(props: ViewRendererProps) {
           </div>
         ) : null}
       </section>
-      <section className="v2-panel learning-lab-v2">
-        <span className="eyebrow"><Sparkles size={15} />{copy("v2_learning_lab", "Новые функции")}</span>
-        <h2>{copy("v2_learning_lab_title", "Новые обучающие режимы")}</h2>
-        <div className="learning-lab-v2__grid">
-          <button type="button" onClick={() => setView("tutor")}><Sparkles size={18} /><strong>{copy("ai_tutor", "AI Tutor")}</strong><span>{copy("tutor_short_hint", "One guided lesson: words, grammar, listening, writing, dialogue, and review")}</span></button>
-          <button type="button" onClick={() => setView("roleplay")}><MessageCircle size={18} /><strong>{copy("ai_roleplay", "AI roleplay")}</strong><span>{copy("roleplay_short_hint", "Ресторан, работа, путешествие, экзамен")}</span></button>
-          <button type="button" onClick={() => setView("pronunciation")}><Activity size={18} /><strong>{copy("pronunciation", "Pronunciation")}</strong><span>{copy("pronunciation_short_hint", "Heatmap слов и звуков")}</span></button>
-          <button type="button" onClick={() => setView("offline")}><WifiOff size={18} /><strong>{copy("offline_decks", "Offline decks")}</strong><span>{copy("offline_short_hint", "Mini-decks без Telegram")}</span></button>
-          <button type="button" onClick={() => setView("dashboard")}><BarChart3 size={18} /><strong>{copy("dashboard", "Dashboard")}</strong><span>{copy("dashboard_short_hint", "Прогресс, темы, активность")}</span></button>
-        </div>
-      </section>
     </div>
   );
 }
@@ -6833,7 +6296,7 @@ function RoleplayView({
   useEffect(() => {
     if (!activeScenario) return;
     requestAnimationFrame(() => {
-      document.querySelector<HTMLElement>(".context-display--roleplay")?.scrollTo({ top: 0, behavior: "auto" });
+      window.scrollTo({ top: 0, behavior: "instant" });
     });
   }, [activeScenario?.id]);
 
@@ -7460,6 +6923,9 @@ function audioClipsFrom(details: ApiRecord | undefined, body: string, copy: (key
 }
 
 function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]; copy: (key: string, fallback: string) => string; targetLanguage?: string }) {
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [messages[0]?.id]);
   const chatConfig: ChatConfig = {
     leftPerson: { name: "NERIVA", avatar: "/app/assets/brand-logo-mini.png" },
     rightPerson: { name: copy("you", "You") },

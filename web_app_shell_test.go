@@ -369,7 +369,7 @@ func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 		`const hadController = !!navigator.serviceWorker.controller`,
 		`registration.update()`,
 		`SKIP_WAITING`,
-		`poliglot-v2-static-shell-20260721`,
+		`poliglot-v2-static-shell-20261114-learning-workspace`,
 		`fetch(request)`,
 		`request.mode === "navigate"`,
 	} {
@@ -401,8 +401,8 @@ func TestReactFrontendIncludesPremiumDashboardSurfaces(t *testing.T) {
 	}
 	page := string(source) + "\n" + string(fallingPatternSource) + "\n" + string(authSceneSource) + "\n" + string(chatSource)
 	for _, want := range []string{
-		`data-v2-shell="ios-function-ribbon"`,
-		"FunctionRibbon",
+		`data-v2-shell="learning-workspace"`,
+		"LearningNavigation",
 		"ContextHeader",
 		"ThemeBackground",
 		"FallingPattern",

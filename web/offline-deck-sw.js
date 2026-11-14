@@ -1,4 +1,4 @@
-const CACHE_NAME = "poliglot-v2-static-shell-20260721";
+const CACHE_NAME = "poliglot-v2-static-shell-20261114-learning-workspace";
 const APP_SHELL = ["/app/", "/app/index.html", "/app/assets/brand-logo-mini.png"];
 
 function isStaticAsset(request, url) {

@@ -185,6 +185,8 @@ const en: Record<string, string> = {
   ai_tutor_option_no_review: "No review",
   tutor_question_instruction: "Answer the question before moving on.",
   open_menu: "Open menu",
+  navigation_search: "Search sections",
+  navigation_empty: "No sections found",
   close_menu: "Close menu",
   language_cockpit: "Language cockpit",
   basic_plan: "Basic",
@@ -593,6 +595,8 @@ const ru: Record<string, string> = {
     tutor_completed_lessons_empty: "Пройденные уроки появятся здесь после финального повторения.",
     tutor_completed_restart_unavailable: "Этот сохранённый урок можно только посмотреть.",
   open_menu: "Открыть меню",
+  navigation_search: "Найти раздел",
+  navigation_empty: "Разделы не найдены",
   close_menu: "Закрыть меню",
   language_cockpit: "Языковой cockpit",
   basic_plan: "Базовый",
@@ -6002,6 +6006,48 @@ const fallbackLeakAllowedKeys = new Set([
   "tutor_completed_lessons_empty",
   "tutor_reward_saved",
 ]);
+
+const learningNavigationCopy: Record<AppLocaleCode, { navigation_search: string; navigation_empty: string }> = {
+  ru: { navigation_search: "Найти раздел", navigation_empty: "Ничего не найдено" },
+  en: { navigation_search: "Search sections", navigation_empty: "No sections found" },
+  es: { navigation_search: "Buscar secciones", navigation_empty: "No se encontraron secciones" },
+  de: { navigation_search: "Bereiche durchsuchen", navigation_empty: "Keine Bereiche gefunden" },
+  fr: { navigation_search: "Rechercher une rubrique", navigation_empty: "Aucune rubrique trouvée" },
+  it: { navigation_search: "Cerca sezioni", navigation_empty: "Nessuna sezione trovata" },
+  zh: { navigation_search: "搜索栏目", navigation_empty: "未找到栏目" },
+  ja: { navigation_search: "セクションを検索", navigation_empty: "セクションが見つかりません" },
+  ko: { navigation_search: "메뉴 검색", navigation_empty: "검색된 메뉴가 없습니다" },
+  tg: { navigation_search: "Ҷустуҷӯи бахшҳо", navigation_empty: "Бахшҳо ёфт нашуданд" },
+  uz: { navigation_search: "Bo‘limlarni qidirish", navigation_empty: "Bo‘limlar topilmadi" },
+  tt: { navigation_search: "Бүлекләрне эзләү", navigation_empty: "Бүлекләр табылмады" },
+  hy: { navigation_search: "Որոնել բաժիններ", navigation_empty: "Բաժիններ չեն գտնվել" },
+  kk: { navigation_search: "Бөлімдерді іздеу", navigation_empty: "Бөлімдер табылмады" },
+  ky: { navigation_search: "Бөлүмдөрдү издөө", navigation_empty: "Бөлүмдөр табылган жок" },
+  ka: { navigation_search: "განყოფილებების ძებნა", navigation_empty: "განყოფილებები ვერ მოიძებნა" },
+  uk: { navigation_search: "Пошук розділів", navigation_empty: "Розділів не знайдено" },
+  pl: { navigation_search: "Szukaj sekcji", navigation_empty: "Nie znaleziono sekcji" },
+  ro: { navigation_search: "Caută secțiuni", navigation_empty: "Nu s-au găsit secțiuni" },
+  pt: { navigation_search: "Pesquisar seções", navigation_empty: "Nenhuma seção encontrada" },
+  ar: { navigation_search: "البحث في الأقسام", navigation_empty: "لم يتم العثور على أقسام" },
+  bn: { navigation_search: "বিভাগ খুঁজুন", navigation_empty: "কোনো বিভাগ পাওয়া যায়নি" },
+  cs: { navigation_search: "Hledat sekce", navigation_empty: "Nebyly nalezeny žádné sekce" },
+  el: { navigation_search: "Αναζήτηση ενοτήτων", navigation_empty: "Δεν βρέθηκαν ενότητες" },
+  hi: { navigation_search: "अनुभाग खोजें", navigation_empty: "कोई अनुभाग नहीं मिला" },
+  hu: { navigation_search: "Szakaszok keresése", navigation_empty: "Nem található szakasz" },
+  id: { navigation_search: "Cari bagian", navigation_empty: "Tidak ada bagian yang ditemukan" },
+  nl: { navigation_search: "Onderdelen zoeken", navigation_empty: "Geen onderdelen gevonden" },
+  sv: { navigation_search: "Sök avsnitt", navigation_empty: "Inga avsnitt hittades" },
+  ta: { navigation_search: "பிரிவுகளைத் தேடு", navigation_empty: "பிரிவுகள் எதுவும் கிடைக்கவில்லை" },
+  te: { navigation_search: "విభాగాలను వెతకండి", navigation_empty: "విభాగాలు కనుగొనబడలేదు" },
+  th: { navigation_search: "ค้นหาส่วนต่าง ๆ", navigation_empty: "ไม่พบส่วนที่ค้นหา" },
+  tl: { navigation_search: "Maghanap ng seksyon", navigation_empty: "Walang nahanap na seksyon" },
+  tr: { navigation_search: "Bölüm ara", navigation_empty: "Bölüm bulunamadı" },
+  vi: { navigation_search: "Tìm mục", navigation_empty: "Không tìm thấy mục nào" },
+};
+
+appLocaleCodes.forEach((code) => {
+  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...learningNavigationCopy[code] };
+});
 
 function isLikelyFallbackLeak(locale: AppLocaleCode, key: string, value: string, fallback?: string) {
   if (locale === "en") return false;

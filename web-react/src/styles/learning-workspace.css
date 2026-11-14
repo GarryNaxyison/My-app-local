@@ -1,0 +1,672 @@
+/* NERIVA learning workspace. Loaded last so the legacy screen styles remain
+   available while the application uses one flowing page instead of nested windows. */
+html:has(.v2-shell--learning),
+body:has(.v2-shell--learning),
+#root:has(.v2-shell--learning) {
+  height: auto !important;
+  min-height: 100%;
+  overflow: visible !important;
+}
+
+.v2-shell--learning {
+  --learning-nav-width: 244px;
+  min-width: 0;
+  min-height: 100dvh;
+  overflow: visible;
+}
+
+.v2-shell--learning .v2-app {
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible !important;
+}
+
+.v2-shell--learning .v2-bg {
+  opacity: 0.45;
+}
+
+/* A filter on the app would anchor fixed navigation to the whole document. */
+.v2-shell--learning .v2-app { filter: none; }
+.v2-shell--learning :is(.context-display, .v2-topbar, .learning-sidebar, .learning-bottom-nav, .mobile-quick-controls-v2) {
+  filter: brightness(var(--v2-brightness, 1));
+}
+.v2-shell--learning .context-display--awards { filter: none; }
+.v2-shell--learning .context-display:focus { outline: none; }
+
+.v2-shell--learning .learning-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--learning-nav-width);
+  height: 100dvh;
+  max-height: 100dvh;
+  border-radius: 0;
+  z-index: 75;
+}
+
+.v2-shell--learning .v2-status {
+  margin: 0;
+  left: calc(var(--learning-nav-width) + (100vw - var(--learning-nav-width)) / 2);
+  width: min(520px, calc(100vw - var(--learning-nav-width) - 28px));
+}
+
+.v2-shell--learning .learning-page-heading__level {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.learning-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 16px;
+  transform: translateY(-160%);
+  z-index: 200;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+}
+.learning-skip-link:focus { transform: none; }
+
+.v2-shell--learning .tutor-workspace--history > :not(.tutor-history-page) { display: none; }
+.v2-shell--learning .tutor-history-page {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  max-height: none;
+  margin-inline: auto;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.v2-shell--learning .tutor-history-page > div { overflow: visible; max-height: none; padding: 0; }
+.v2-shell--learning .tutor-history-page h2 { font-size: 24px; margin: 12px 0; }
+.v2-shell--learning .tutor-history-page > div > p { color: var(--muted); margin-bottom: 24px; }
+.v2-shell--learning .tutor-history-page footer { margin-top: 24px; }
+.v2-shell--learning .tutor-history-page .tutor-completed-lessons-list-v2 { max-height: none; overflow: visible; }
+.v2-shell--learning .tutor-plan-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.v2-shell--learning .tutor-plan-summary strong { font-size: 12px; color: var(--muted); font-weight: 500; }
+.v2-shell--learning .tutor-plan-summary::-webkit-details-marker { display: none; }
+
+@media (max-width: 760px) {
+  .v2-shell--learning .context-display .tools-layout-v2.is-picker-open .tools-work-v2 { display: none !important; }
+  .v2-shell--learning .v2-app:has(.learning-catalog) > :is(.context-display, .mobile-quick-controls-v2) { display: none !important; }
+  .v2-shell--learning .mobile-quick-controls-v2 {
+    position: relative;
+    inset: auto;
+    min-height: 60px;
+    justify-content: flex-end;
+    padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg);
+    z-index: 60;
+  }
+  .v2-shell--learning .mobile-quick-controls-v2 :is(.app-guide-button-v2, .mobile-report-button-v2, .mobile-language-select-v2 > button, .mobile-theme-toggle-v2, .logout-button-v2) {
+    min-width: 40px;
+    min-height: 44px;
+    height: 44px;
+  }
+}
+
+.v2-shell--learning .v2-topbar {
+  position: sticky;
+  top: 0;
+  margin-left: var(--learning-nav-width);
+  min-height: 72px;
+  padding: 12px clamp(18px, 3vw, 36px);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  box-shadow: none;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+}
+
+@media (min-width: 761px) {
+  .v2-shell--learning .v2-topbar__actions { flex-wrap: nowrap; gap: 8px; }
+  .v2-shell--learning .v2-topbar__actions :is(.app-guide-button-v2, .v2-report-button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+  .v2-shell--learning .v2-topbar__actions :is(.app-guide-button-v2, .v2-report-button) span { display: none; }
+}
+
+.v2-shell--learning .context-display {
+  display: block !important;
+  width: auto;
+  max-width: 1500px;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin-left: var(--learning-nav-width);
+  padding: clamp(20px, 3vw, 36px) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  overflow: visible !important;
+  animation: none;
+  overscroll-behavior: auto !important;
+}
+
+.v2-shell--learning .learning-page-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+  min-width: 0;
+}
+
+.v2-shell--learning .learning-page-heading h1 {
+  margin: 4px 0 0;
+  font-size: clamp(23px, 2.4vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.v2-shell--learning .learning-page-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.v2-shell--learning .learning-page-heading button {
+  min-height: 44px;
+}
+
+.v2-shell--learning .v2-panel {
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface-strong) 92%, var(--bg));
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.v2-shell--learning :is(.home-grid, .settings-grid-v2, .metrics-grid-v2, .premium-grid-v2, .mistake-layout-v2, .data-display, .trainer-display, .phrasebook-view-v2, .vocabulary-panel-v2) {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.v2-shell--learning .home-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  padding: 0;
+}
+
+.v2-shell--learning .home-grid > section {
+  grid-column: auto;
+  min-width: 0;
+  height: auto;
+}
+
+.v2-shell--learning .home-grid > .learning-start {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.38fr);
+  align-items: center;
+  gap: 20px;
+  grid-column: 1 / -1;
+  padding: clamp(24px, 3.5vw, 44px);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line));
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 90% 50%, color-mix(in srgb, var(--teal) 12%, transparent), transparent 55%),
+    color-mix(in srgb, var(--primary) 7%, var(--surface-strong));
+}
+
+.v2-shell--learning .learning-start h2 {
+  margin: 12px 0;
+  max-width: 700px;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.13;
+  letter-spacing: -0.04em;
+}
+
+.v2-shell--learning .learning-start p {
+  max-width: 580px;
+  margin: 0 0 22px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.v2-shell--learning .learning-start button {
+  min-height: 48px;
+  padding-inline: 22px;
+}
+
+.v2-shell--learning .learning-start__art,
+.v2-shell--learning .learning-start > img {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  max-height: 220px;
+  margin: auto;
+  object-fit: contain;
+}
+
+.v2-shell--learning .learning-start__art img {
+  display: block;
+  width: 100%;
+  object-fit: contain;
+}
+
+.v2-shell--learning .home-grid > :is(.weekly-plan-v2, .learning-lab-v2) {
+  grid-column: 1 / -1;
+}
+
+.v2-shell--learning .home-premium {
+  order: 10;
+  background: transparent;
+  border-style: dashed;
+}
+
+.v2-shell--learning .home-plan-v2__steps,
+.v2-shell--learning .daily-quests-v2__list {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.v2-shell--learning .weekly-plan-v2__week {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.v2-shell--learning .learning-lab-v2__grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.v2-shell--learning .habit-calendar-v2__layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The material, answer and feedback share the same page scroll. */
+.v2-shell--learning .context-display :is(.chat-workspace, .chat-workspace__output, .terminal-chat-v2, .chat-panel-v2, .chat-interface, .chat-interface__scroll, .composer-panel-v2, .tools-layout-v2, .tools-work-v2, .roleplay-view-v2, .roleplay-stage-v2, .roleplay-dialog-card-v2, .roleplay-dialog-scroll-v2, .pronunciation-dashboard-v2, .pronunciation-workbench-v2, .pronunciation-tools-v2) {
+  min-width: 0 !important;
+  width: 100%;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.v2-shell--learning .context-display :is(.chat-workspace, .tools-layout-v2, .tools-work-v2, .roleplay-stage-v2) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto !important;
+  align-items: start;
+  align-content: start;
+  gap: 20px;
+}
+
+.v2-shell--learning .context-display .chat-workspace__output {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.v2-shell--learning .context-display :is(.terminal-chat-v2, .chat-panel-v2, .roleplay-dialog-card-v2, .roleplay-view-v2--session) {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+}
+
+.v2-shell--learning .context-display .chat-interface__scroll {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  gap: 20px;
+}
+
+.v2-shell--learning .chat-interface__bubble {
+  max-width: 100%;
+  box-shadow: none;
+}
+
+.v2-shell--learning .context-display :is(.chat-workspace--lesson, .chat-workspace--practice, .chat-workspace--shadowing) {
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.v2-shell--learning .context-display .composer-panel-v2 {
+  position: static !important;
+  display: grid !important;
+  gap: 14px;
+  padding: 20px !important;
+  align-content: start;
+}
+
+.v2-shell--learning .context-display .pronunciation-workbench-v2 {
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto !important;
+}
+.v2-shell--learning .context-display .pronunciation-workbench-v2 > * {
+  grid-column: 1 !important;
+  min-width: 0 !important;
+  max-width: 100%;
+}
+
+.v2-shell--learning .context-display :is(.composer-textarea-shell-v2, .roleplay-composer-v2, .tool-input-shell-v2) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto auto !important;
+  position: static !important;
+  gap: 12px;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.v2-shell--learning .context-display :is(.composer-textarea-shell-v2, .roleplay-composer-v2, .tool-input-shell-v2) textarea {
+  grid-row: 1 !important;
+  min-height: 130px !important;
+  max-height: none !important;
+  padding: 16px !important;
+  line-height: 1.6;
+  scroll-margin-block: 110px;
+}
+
+.v2-shell--learning .context-display :is(.composer-submit-v2, .roleplay-submit-v2, .tools-submit-v2) {
+  /* Button effects use absolute pseudo-elements and need their own anchor. */
+  position: relative !important;
+  inset: auto !important;
+  grid-row: 2 !important;
+  justify-self: end !important;
+  width: auto !important;
+  min-height: 46px !important;
+  min-width: 130px;
+  padding: 10px 22px !important;
+  transform: none !important;
+}
+
+.v2-shell--learning .composer-panel-v2 .phrase-quick-save-v2 {
+  max-height: none;
+  overflow: visible;
+}
+
+.v2-shell--learning .context-display--roleplay:has(.roleplay-view-v2--mobile-session) {
+  overflow: visible !important;
+}
+
+.v2-shell--learning .context-display--roleplay .roleplay-view-v2--mobile-session .roleplay-dialog-scroll-v2,
+.v2-shell--learning .context-display--roleplay .roleplay-dialog-scroll-v2 {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.v2-shell--learning .context-display :is(.audio-wave-button-v2__text, .tutor-note-strip-v2__chips) {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Tutor progress is a disclosure, not a second scrolling window. */
+.v2-shell--learning .tutor-workspace {
+  display: grid;
+  gap: 24px;
+}
+
+.v2-shell--learning .tutor-hero {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.v2-shell--learning .tutor-hero__copy h2 {
+  line-height: 1.3;
+}
+
+.v2-shell--learning .tutor-session-v2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 200px);
+  gap: 28px;
+  align-items: start;
+}
+
+.v2-shell--learning .tutor-plan-v2 {
+  grid-column: 2;
+  grid-row: 1;
+  display: block;
+  position: static;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 16px;
+  overflow: visible;
+}
+
+.v2-shell--learning .tutor-plan-summary {
+  cursor: pointer;
+  padding: 4px 0 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  min-height: 44px;
+}
+
+.v2-shell--learning .tutor-plan-summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 5px;
+  border-radius: 4px;
+}
+
+.v2-shell--learning .tutor-plan-v2 .panel-head {
+  margin-top: 12px;
+}
+
+.v2-shell--learning .tutor-step-list-v2 {
+  margin-top: 16px;
+}
+
+.v2-shell--learning .tutor-step-v2 {
+  min-height: 44px;
+  font-size: 12px;
+}
+
+.v2-shell--learning .tutor-context-v2 {
+  grid-column: 1;
+  grid-row: 1;
+  grid-template-rows: none;
+  align-content: start;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.v2-shell--learning .tutor-message-v2 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.v2-shell--learning .tutor-message-v2__avatar {
+  display: none;
+}
+
+.v2-shell--learning .tutor-message-v2 > div:last-child {
+  padding: clamp(18px, 2.5vw, 28px);
+  border-radius: 20px;
+  box-shadow: none;
+}
+
+.v2-shell--learning .tutor-composer-v2 {
+  padding: 20px 0 0;
+}
+
+@media (min-width: 1744px) {
+  .v2-shell--learning .context-display {
+    margin-left: calc(var(--learning-nav-width) + (100vw - var(--learning-nav-width) - 1500px) / 2);
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1000px) {
+  .v2-shell--learning {
+    --learning-nav-width: 208px;
+  }
+
+  .v2-shell--learning .v2-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 16px;
+  }
+
+  .v2-shell--learning .tutor-session-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .v2-shell--learning .tutor-plan-v2 {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .v2-shell--learning .tutor-context-v2 {
+    grid-column: 1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .v2-shell--learning {
+    --learning-nav-width: 0px;
+  }
+
+  .v2-shell--learning .v2-app {
+    height: auto !important;
+    width: 100%;
+    min-height: 100dvh;
+    padding: 0;
+    overflow: visible !important;
+  }
+
+  .v2-shell--learning .context-display,
+  .v2-shell--learning .context-display[data-mobile-controls="true"] {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 20px 16px calc(110px + env(safe-area-inset-bottom)) !important;
+    overflow: visible !important;
+  }
+
+  .v2-shell--learning .learning-page-heading {
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .v2-shell--learning .learning-page-heading h1 {
+    font-size: 26px;
+  }
+
+  .v2-shell--learning .home-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .v2-shell--learning .home-grid > section {
+    grid-column: 1 / -1;
+  }
+
+  .v2-shell--learning .home-grid > .learning-start {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: 8px;
+    padding: 24px 20px;
+  }
+
+  .v2-shell--learning .learning-start h2 {
+    font-size: 28px;
+  }
+
+  .v2-shell--learning .learning-start p {
+    font-size: 14px;
+  }
+
+  .v2-shell--learning .learning-start__art,
+  .v2-shell--learning .learning-start > img {
+    align-self: start;
+    margin-top: 20px;
+  }
+
+  .v2-shell--learning .learning-start button {
+    min-width: 0;
+    padding-inline: 14px;
+    white-space: normal;
+  }
+
+  .v2-shell--learning .weekly-plan-v2__week {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .v2-shell--learning .context-display .composer-panel-v2 {
+    padding: 16px !important;
+  }
+
+  .v2-shell--learning .context-display :is(.composer-submit-v2, .roleplay-submit-v2, .tools-submit-v2) {
+    justify-self: stretch !important;
+    width: 100% !important;
+  }
+
+  .v2-shell--learning .tutor-session-v2 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+
+  .v2-shell--learning .tutor-plan-v2 {
+    grid-column: 1;
+    grid-row: 1;
+    order: 0;
+    padding: 12px 16px;
+  }
+
+  .v2-shell--learning .tutor-context-v2 {
+    grid-column: 1;
+    grid-row: 2;
+    order: 0;
+    min-height: 0;
+  }
+
+  .v2-shell--learning .tutor-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .v2-shell--learning .tutor-hero__brand {
+    display: none;
+  }
+
+  .v2-shell--learning .tutor-hero__actions {
+    width: 100%;
+  }
+
+  .v2-shell--learning .tutor-hero__actions button {
+    flex: 1 1 140px;
+    min-height: 44px;
+  }
+
+  .v2-shell--learning .tutor-message-v2 > div:last-child {
+    padding: 18px;
+  }
+
+  .v2-shell--learning .tutor-plan-summary {
+    padding-bottom: 4px;
+  }
+}
