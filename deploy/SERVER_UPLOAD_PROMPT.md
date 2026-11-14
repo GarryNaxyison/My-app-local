@@ -2,6 +2,12 @@
 
 Use this as a persistent instruction for future Codex deploys.
 
+## Сохранение прогресса — обязательное правило от 2026-11-14
+
+Не сбрасывать прогресс существующих пользователей. Для обновления React-интерфейса публиковать только актуальные JS/CSS, service worker и HTML через постоянный upload-сервис. Сначала размещать ассеты, затем атомарно заменять HTML. Не менять backend binary, `.env`, базы SQLite, словари и изображения; не перезапускать сервис без отдельной необходимости. До и после сравнивать записи прогресса в режиме чтения и проверять неизменность бинарного файла и процесса. Резервные копии не создавать.
+
+Приведённый ниже старый полный деплой содержит историческое описание миграции со сбросом прогресса. Это не разрешение выполнять такую миграцию. Скрипт полного деплоя нельзя использовать для обычного обновления интерфейса.
+
 ```text
 Для деплоя NERIVA на Ubuntu-сервер используй постоянный deploy-upload сервис, а не временный upload route.
 
@@ -30,7 +36,7 @@ curl.exe --fail --show-error --silent -H "X-Deploy-Token: $token" --upload-file 
 После upload запускай стандартный deploy:
 tmp\putty\plink.exe -batch -hostkey "SHA256:SCw7oIAHX/xB9QJueAc9L7OvbXtDyVqA++ciDMxefI0" -pw <password> root@186.246.45.123 "chmod 700 /tmp/deploy_react_server.sh && bash /tmp/deploy_react_server.sh"
 
-Deploy script must not create backups. On the first startup of the new binary, the one-time SQLite migration removes imported static dictionary rows and clears all user learning progress while preserving accounts and preferences. It then removes legacy server JSON word files. Verify the one-time migration marker and that account rows remain.
+Deploy script must not create backups or reset user progress. Historical binaries included a destructive one-time progress migration: inspect migration behavior before any backend replacement. Do not execute that migration for an interface release. Preserve accounts, learning sessions, rewards, learned words, mistakes and user preferences.
 
 После deploy всегда проверяй:
 - https://neriva.ru/healthz
