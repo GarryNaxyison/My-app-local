@@ -867,10 +867,10 @@ test("capture branded product screenshots", async ({ page, isMobile }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/app/?view=home");
   await expect(page.locator(".learning-start")).toBeVisible();
-  await shot("home-desktop.png");
+  await shot("today-desktop.png");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/app/?view=home");
-  await shot("home-mobile.png");
+  await shot("today-mobile.png");
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/app/?view=tutor");
@@ -2545,8 +2545,10 @@ test("desktop Today has no top quick buttons, has compact quests and a green str
   await expect(page.locator(".action-card-v2")).toHaveCount(0);
   await expect(page.locator(".daily-quests-v2__list button")).toHaveCount(4);
   await expect(page.locator(".weekly-plan-v2__week button")).toHaveCount(7);
+  await expect(page.locator(".home-grid details[open]")).toHaveCount(0);
   await expect(page.getByText("Next features")).toHaveCount(0);
 
+  await page.locator(".habit-calendar-v2 summary").click();
   const calendar = await page.locator(".calendar-rac--habit").boundingBox();
   const side = await page.locator(".habit-calendar-v2__side").boundingBox();
   expect(calendar).not.toBeNull();
@@ -2622,6 +2624,7 @@ test("daily bonus button stays locked when last claim is within 24 hours", async
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, claimed: false }) });
   });
   await page.goto("/app/?view=home");
+  await page.locator(".habit-calendar-v2 summary").click();
   const claimButton = page.locator(".habit-calendar-v2__side button").last();
   await expect(claimButton).toBeDisabled();
   await expect(claimButton).toContainText(/Бонус получен|Bonus claimed/);
@@ -4200,6 +4203,7 @@ test("shadowing uses one compact work panel with the sample audio inside the tas
     });
   });
   await page.goto("/app/?view=home");
+  await page.locator(".home-plan-v2 summary").click();
   await page.locator(".home-plan-v2__steps button").filter({ hasText: appCopy("ru", "today_plan_listen_title") }).click();
   await expect(page.locator(".context-display--shadowing")).toBeVisible();
   await expect(page.locator(".chat-workspace--single")).toBeVisible();

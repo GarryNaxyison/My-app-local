@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { SocialIconLinks } from "./components/SocialLinks";
+import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 import { getLandingContent, type LandingContent, type LandingLocale } from "./landingContent";
 
 const WEB_APP_HREF = "/app/";
@@ -28,8 +29,8 @@ type ProductImage = {
 };
 
 const productImages = {
-  dashboard: { src: "/assets/product/2026-11-15/home-desktop.png", altKey: "dashboard", width: 1440, height: 1000 },
-  mobileHome: { src: "/assets/product/2026-11-15/home-mobile.png", altKey: "mobileHome", width: 390, height: 844 },
+  dashboard: { src: "/assets/product/2026-11-15/today-desktop.png", altKey: "dashboard", width: 1440, height: 1000 },
+  mobileHome: { src: "/assets/product/2026-11-15/today-mobile.png", altKey: "mobileHome", width: 390, height: 844 },
   aiTutor: { src: "/assets/product/2026-11-15/tutor-desktop.png", altKey: "aiTutor", width: 1440, height: 1000 },
   mistakes: { src: "/assets/product/2026-11-15/mistakes-desktop.png", altKey: "mistakes", width: 1440, height: 1000 },
   voice: { src: "/assets/product/2026-11-15/voice-desktop.png", altKey: "voice", width: 1440, height: 1100 },
@@ -135,6 +136,7 @@ function ProductShot({
 }
 
 export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProps) {
+  const reduceMotion = useReducedMotion();
   const copy = getLandingContent(language);
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeMobile, setActiveMobile] = useState(0);
@@ -247,6 +249,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
     <>
     <main className="english-spark-landing" data-visual-anchor="official-neriva-brand">
       <section className="landing-hero" data-hero-preset="dark">
+        {!reduceMotion && <div className="landing-hero__matter" aria-hidden="true"><PremiumHeroAnimation /></div>}
         <div className="landing-hero__inner">
           <div className="landing-hero__copy">
             <div className="hero-brand-caption">

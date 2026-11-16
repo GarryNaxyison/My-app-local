@@ -3,8 +3,13 @@ import { expect, test } from "@playwright/test";
 test("official brand and current application screenshots are visible", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("poliglot-cookie-consent", JSON.stringify({ version: 1, necessary: true, analyticsMarketing: false })));
   await page.goto("/neriva.html?lang=ru");
+  const icon = await page.locator('head link[rel="icon"]').getAttribute('href');
+  expect(icon).toContain('/assets/brand/neriva-icon-192.png');
+  expect((await page.request.get(icon!)).headers()['content-type']).toContain('image/png');
   const logo = page.locator('.public-brand img').first();
   await expect(logo).toHaveAttribute("src", /\/assets\/brand\/neriva-/);
+  await expect(page.locator('.public-brand .official-brand').first()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(page.locator('.hero-brand-emblem')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(page.locator('.hero-product-frame img').first()).toHaveAttribute("src", /\/assets\/product\/2026-11-15\//);
   await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const aspect = await logo.evaluate((img: HTMLImageElement) => ({ actual: img.getBoundingClientRect().width / img.getBoundingClientRect().height, natural: img.naturalWidth / img.naturalHeight }));

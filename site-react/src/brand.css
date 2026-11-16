@@ -35,7 +35,7 @@ html[data-site-theme="dark"] body {
   max-width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #fff;
+  background: transparent;
 }
 
 .official-brand img {
@@ -110,7 +110,7 @@ html[data-site-theme="dark"] .english-spark-landing .landing-hero {
   width: 104px;
   padding: 10px 8px;
   border-radius: 10px;
-  background: #fff;
+  background: transparent;
 }
 
 .hero-brand-emblem img {

@@ -46,7 +46,8 @@ test("landing v3 Russian copy avoids removed Telegram block and awkward AI wordi
   await expect(page.locator("body")).toContainText("серию занятий");
 });
 
-test("landing hero uses the official logo and readable product proof without decorative WebGL", async ({ page }) => {
+test("landing hero uses the official logo and respects reduced motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator("h1")).toContainText("NERIVA");
@@ -280,7 +281,7 @@ test("landing v3 product screenshots open a focused preview", async ({ page }) =
   await page.locator(".hero-product-frame .product-shot__button").first().click();
   await expect(page.locator(".image-preview")).toBeVisible();
   const previewImage = page.locator(".image-preview img");
-  await expect(previewImage).toHaveAttribute("src", "/assets/product/2026-11-15/home-desktop.png");
+  await expect(previewImage).toHaveAttribute("src", "/assets/product/2026-11-15/today-desktop.png");
   await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-scale", "1.00");
 
   await page.locator(".image-preview__frame").hover();

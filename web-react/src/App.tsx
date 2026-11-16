@@ -6153,9 +6153,7 @@ function HomeView(props: ViewRendererProps) {
     <div className="home-grid">
       <section className="learning-start">
         <div className="learning-start__copy">
-          <span className="eyebrow">{copy("daily_route", "Daily route")} · {user.level || "A1"}</span>
           <h2>{props.activeLessonTaskId || (user.premium && props.aiTutorStep && props.aiTutorStep.stage !== "complete") ? copy("tutor_continue", "Continue") : copy("new_lesson_title", "New lesson")}</h2>
-          <p>{user.premium ? copy("tutor_short_hint", "One guided lesson: words, grammar, listening, writing, dialogue, and review") : copy("today_plan_body_steady", "Start with words, practice, and listening.")}</p>
           <Button type="button" disabled={busy === "lesson" || busy === "tutor"} onClick={() => {
             if (props.activeLessonTaskId) setView("lesson");
             else if (user.premium) setView("tutor");
@@ -6169,8 +6167,7 @@ function HomeView(props: ViewRendererProps) {
         <img className="learning-start__art" src="/app/assets/neriva-symbol.png" alt="" />
       </section>
       <section className="v2-panel home-focus">
-        <span className="eyebrow">{copy("today", "Today")}</span>
-        <h2>{copy("training_signal", "Training signal")}</h2>
+        <h2>{copy("progress", "Progress")}</h2>
         <Meter label={copy("lessons_today", "Lessons today")} value={user.lessons_today} max={user.lesson_limit} />
         <Meter label={copy("practice_today", "Practice today")} value={user.practice_today} max={user.practice_limit} />
         <Meter label={copy("voices_today", "Voice messages today")} value={user.voice_today} max={user.voice_limit} />
@@ -6179,9 +6176,24 @@ function HomeView(props: ViewRendererProps) {
         <span className="home-mobile-level-v2__xp-label">XP</span>
         <LevelProgress user={user} copy={copy} />
       </section>
-      <section className="v2-panel home-plan-v2">
-        <span className="eyebrow">{copy("daily_route", "Daily route")}</span>
-        <h2>{copy("today_plan_title", "Focused study plan")}</h2>
+      <section className="v2-panel daily-quests-v2">
+        <h2>{copy("daily_quests_title", "Задания на сегодня")}</h2>
+        <div className="daily-quests-v2__list">
+          {quests.slice(0, 4).map((quest) => {
+            const Icon = quest.icon;
+            const done = Number(quest.value) >= Number(quest.max);
+            return (
+              <button key={quest.label} type="button" className={done ? "is-done" : ""} onClick={() => void quest.action()}>
+                <Icon size={18} />
+                <span><b>{quest.label}</b><small>{quest.detail}</small></span>
+                <strong>{done ? copy("done", "Готово") : formatLimit(quest.value, quest.max)}</strong>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+      <details className="v2-panel home-plan-v2">
+        <summary>{copy("today_plan_title", "Focused study plan")}</summary>
         <p>{weakSpot}</p>
         <div className="home-plan-v2__steps">
           {routeSteps.map((step) => {
@@ -6198,27 +6210,9 @@ function HomeView(props: ViewRendererProps) {
           <Pencil size={15} />
           {copy("change_week_plan", "Изменить план на неделю")}
         </Button>
-      </section>
-      <section className="v2-panel daily-quests-v2">
-        <span className="eyebrow"><Flame size={15} />{copy("daily_quests", "Daily quests")}</span>
-        <h2>{copy("daily_quests_title", "Задания на сегодня")}</h2>
-        <div className="daily-quests-v2__list">
-          {quests.slice(0, 4).map((quest) => {
-            const Icon = quest.icon;
-            const done = Number(quest.value) >= Number(quest.max);
-            return (
-              <button key={quest.label} type="button" className={done ? "is-done" : ""} onClick={() => void quest.action()}>
-                <Icon size={18} />
-                <span><b>{quest.label}</b><small>{quest.detail}</small></span>
-                <strong>{done ? copy("done", "Готово") : formatLimit(quest.value, quest.max)}</strong>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-      <section className="v2-panel weekly-plan-v2">
-        <span className="eyebrow"><CalendarDays size={15} />{copy("weekly_plan", "Weekly plan")}</span>
-        <h2>{copy("weekly_plan_title", "План обучения на неделю")}</h2>
+      </details>
+      <details className="v2-panel weekly-plan-v2">
+        <summary>{copy("weekly_plan_title", "План обучения на неделю")}</summary>
         <div className="weekly-plan-v2__week">
           {weekPlan.map((item) => (
             <button key={item.day} type="button" onClick={() => setView(item.view)}>
@@ -6228,10 +6222,9 @@ function HomeView(props: ViewRendererProps) {
             </button>
           ))}
         </div>
-      </section>
-      <section className="v2-panel habit-calendar-v2">
-        <span className="eyebrow"><CalendarDays size={15} />{copy("habit_calendar", "Календарь привычки")}</span>
-        <h2>{copy("habit_calendar_title", "Streak и дейлики")}</h2>
+      </details>
+      <details className="v2-panel habit-calendar-v2">
+        <summary>{copy("habit_calendar", "Habit calendar")} · {formatStreakLabel(streak, user, copy)}</summary>
         <div className="habit-calendar-v2__layout">
           <Calendar className="calendar-rac--habit" completedDates={completedDates} loginDates={loginDates} locale={languageCode(user.interface_language || "en")} firstDayOfWeek="mon" aria-label={copy("habit_calendar", "Календарь привычки")} />
           <div className="habit-calendar-v2__side">
@@ -6251,7 +6244,7 @@ function HomeView(props: ViewRendererProps) {
             <span>{formatStreakLabel(dailyBonus.streak, user, copy)}</span>
           </div>
         ) : null}
-      </section>
+      </details>
     </div>
   );
 }

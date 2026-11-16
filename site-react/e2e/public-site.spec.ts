@@ -163,7 +163,7 @@ test.skip("landing presents the approved light product-first site", async ({ pag
 
   const productShots = page.locator(".product-shot img");
   await expect(productShots).toHaveCount(12);
-  await expect(page.locator('.hero-product-frame img[src="/assets/product/2026-11-15/home-desktop.png"]')).toBeVisible();
+  await expect(page.locator('.hero-product-frame img[src="/assets/product/2026-11-15/today-desktop.png"]')).toBeVisible();
   await expect(page.locator('.scenario-shot img[src="/assets/product/2026-11-15/tutor-desktop.png"]')).toBeVisible();
   await expect(page.locator('.feature-panel img[src="/assets/product/2026-11-15/voice-desktop.png"]')).toBeVisible();
   await expect(page.locator('.ecosystem-showcase img[src="/assets/product/telegram-app-light.png"]')).toBeVisible();
@@ -636,11 +636,11 @@ test.skip("Russian landing uses edited copy and keeps compact CTAs aligned", asy
 test("landing hero pairs the official brand with current product screenshots", async ({ page }) => {
   await page.goto("/neriva.html?lang=en");
 
-  await expect(page.locator(".landing-hero canvas")).toHaveCount(0);
+  await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator(".hero-brand-emblem img")).toHaveAttribute("src", "/assets/brand/neriva-symbol.png");
-  await expect(page.locator('.landing-hero img[src="/assets/product/2026-11-15/home-desktop.png"]')).toBeVisible();
+  await expect(page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-desktop.png"]')).toBeVisible();
   const viewportWidth = page.viewportSize()?.width ?? 1440;
-  const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/2026-11-15/home-mobile.png"]');
+  const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-mobile.png"]');
   if (viewportWidth <= 860) {
     await expect(mobileHomeShot).toHaveCount(1);
   } else {
@@ -935,7 +935,7 @@ test("production public-site output keeps all image and localization assets for 
     "/assets/site-phrases.js",
     "/assets/privacy-policy-i18n.js",
     "/assets/legal-documents-i18n.js",
-    "/assets/product/2026-11-15/home-desktop.png",
+    "/assets/product/2026-11-15/today-desktop.png",
     "/assets/product/2026-11-15/tutor-desktop.png",
     "/assets/product/2026-11-15/mistakes-desktop.png",
     "/assets/product/2026-11-15/voice-desktop.png",
@@ -943,7 +943,7 @@ test("production public-site output keeps all image and localization assets for 
     "/assets/product/2026-11-15/notes-desktop.png",
     "/assets/product/premium-plans.png",
     "/assets/product/telegram-app-light.png",
-    "/assets/product/2026-11-15/home-mobile.png",
+    "/assets/product/2026-11-15/today-mobile.png",
     "/assets/product/2026-11-15/lesson-mobile.png",
     "/assets/product/2026-11-15/mistakes-mobile.png",
     "/assets/product/2026-11-15/voice-mobile.png",
@@ -970,7 +970,7 @@ test("production public-site output keeps all image and localization assets for 
   }
 
   await page.goto("/neriva.html?lang=en");
-  const heroImage = page.locator('.landing-hero img[src="/assets/product/2026-11-15/home-desktop.png"]');
+  const heroImage = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-desktop.png"]');
   await heroImage.waitFor({ state: "visible" });
   await expect
     .poll(() =>
@@ -993,6 +993,6 @@ test("production public-site output keeps all image and localization assets for 
   );
 
   expect(imageState.length).toBeGreaterThanOrEqual(7);
-  expect(imageState.some((image) => image.src.includes("2026-11-15/home-desktop.png") && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
+  expect(imageState.some((image) => image.src.includes("2026-11-15/today-desktop.png") && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
   expect(imageState.some((image) => image.src.includes("telegram-app-dark.png"))).toBe(true);
 });
