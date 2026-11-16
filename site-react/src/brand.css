@@ -1,0 +1,340 @@
+/* Official NERIVA identity: the supplied artwork is never recoloured or stretched.
+   The winged scholar is the visual anchor; product screens provide the evidence. */
+:root {
+  --brand-blue: #4b55ff;
+  --brand-purple: #8b78de;
+  --brand-orange: #e58308;
+  --blue: var(--brand-blue);
+  --cyan: var(--brand-purple);
+  --gold: var(--brand-orange);
+  --neriva-bg: #0d1026;
+  --neriva-bg-2: #151833;
+  --neriva-surface: #151833;
+  --neriva-surface-strong: #1b1f3e;
+  --neriva-text: #eef0ff;
+  --neriva-muted: #adb3d0;
+  --neriva-soft: #ccd0e8;
+  --neriva-primary: #c2c5ff;
+  --neriva-blue: var(--brand-blue);
+  --neriva-cyan: #c0afff;
+  --neriva-green: #e9a753;
+  --neriva-shadow: 0 18px 44px rgba(5, 7, 24, 0.24);
+}
+
+html[data-site-theme="dark"] body {
+  background: #0d1026;
+  color: var(--neriva-text);
+}
+
+.official-brand,
+.public-brand .official-brand {
+  display: inline-flex;
+  align-items: center;
+  width: 222px;
+  height: auto;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.official-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.public-nav--drawer {
+  width: min(1320px, calc(100% - 48px));
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border-color: #44496b;
+  background: rgba(13, 16, 38, 0.96);
+  box-shadow: none;
+}
+
+.public-nav--drawer .public-brand { line-height: 1; }
+.public-nav--drawer .nav-burger { border-radius: 12px; }
+.public-nav--drawer .nav-drawer {
+  border-color: #545c89;
+  background: #151833;
+  box-shadow: var(--neriva-shadow);
+}
+
+.public-nav--drawer .nav-drawer a:hover,
+.public-nav--drawer .nav-drawer a.is-active,
+.public-nav--drawer .nav-drawer__actions button:hover {
+  border-color: var(--brand-purple);
+  background: rgba(139, 120, 222, 0.14);
+}
+.public-nav--drawer .nav-drawer .nav-drawer__knowledge { display: none; }
+
+.english-spark-landing {
+  background: #0d1026;
+  color: var(--neriva-text);
+}
+
+.english-spark-landing::before { content: none; }
+.english-spark-landing .landing-hero::before,
+.english-spark-landing .landing-hero::after,
+.hero-product-frame::after { content: none; }
+
+html[data-site-theme="dark"] .english-spark-landing .landing-hero {
+  min-height: 0;
+  padding: 48px 0 60px;
+  background:
+    radial-gradient(ellipse at 77% 30%, rgba(75, 85, 255, 0.16), transparent 48%),
+    radial-gradient(ellipse at 9% 15%, rgba(229, 131, 8, 0.10), transparent 28%),
+    #0d1026;
+}
+
+.english-spark-landing .landing-hero__inner {
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  min-height: 0;
+  gap: clamp(32px, 4vw, 64px);
+  align-items: center;
+}
+
+.hero-brand-caption {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.hero-brand-emblem {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 104px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.hero-brand-emblem img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.english-spark-landing .landing-hero__copy > .eyebrow { display: none; }
+.english-spark-landing .hero-announcement {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #ddbeef;
+  font: 500 14px/1.6 "Inter", sans-serif;
+  text-transform: none;
+}
+.english-spark-landing .hero-announcement::before { display: none; }
+.english-spark-landing .landing-hero h1 {
+  max-width: none;
+  font-size: clamp(38px, 3.5vw, 54px);
+  line-height: 1.11;
+  font-weight: 650;
+  text-wrap: balance;
+}
+.english-spark-landing .hero-lead {
+  max-width: 52ch;
+  margin-top: 24px;
+  font-size: 18px;
+  line-height: 1.65;
+}
+.english-spark-landing .eyebrow,
+.english-spark-landing .plan-label,
+.english-spark-landing .feature-panel__copy > span,
+.english-spark-landing .mobile-panel__copy > span,
+.english-spark-landing .scenario-shot__caption span {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  text-transform: none;
+}
+.english-spark-landing .hero-proof {
+  margin-top: 28px;
+  border-top: 1px solid #685841;
+  padding-top: 18px;
+}
+.english-spark-landing .hero-proof strong { color: #edc492; }
+html[data-site-theme="dark"] .english-spark-landing .hero-proof > span {
+  min-height: 0;
+  padding: 8px 12px 8px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  animation: none;
+}
+
+.english-spark-landing .hero-product-frame {
+  min-height: 500px;
+  padding: 0 20px 54px 0;
+  transform: none;
+}
+.english-spark-landing .product-shot--desktop { width: 100%; }
+.english-spark-landing .product-shot--phone {
+  right: -4px;
+  bottom: 0;
+  width: min(32%, 198px);
+}
+.english-spark-landing .product-shot--desktop img { border-radius: 12px; }
+.english-spark-landing .product-shot--phone img { border-radius: 16px; }
+
+.english-spark-landing .product-shot img {
+  height: auto;
+  object-fit: contain;
+  background: #101326;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+}
+.english-spark-landing .product-shot__button {
+  border-radius: 14px;
+  overflow: hidden;
+}
+.english-spark-landing .use-case-card .product-shot {
+  display: flex;
+  align-items: center;
+  background: #101326;
+}
+.english-spark-landing .use-case-card .product-shot__button,
+.english-spark-landing .use-case-card .product-shot img {
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+}
+.english-spark-landing .scenario-shot {
+  overflow: visible;
+}
+.english-spark-landing .scenario-shot__caption {
+  position: static;
+  max-width: none;
+  margin-top: 16px;
+  padding: 16px 0 0;
+  border: 0;
+  border-top: 1px solid #45496b;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+
+html[data-site-theme="dark"] .english-spark-landing :is(.stitch-metric-card, .outcome-card, .feature-panel, .mobile-panel, .use-case-card, .ecosystem-card, .proof-step, .methodology-step, .plan-card, .community-panel, .landing-faq__item, .final-cta-visual) {
+  border: 1px solid #343959;
+  background: #151833;
+  box-shadow: none;
+  animation: none;
+}
+.english-spark-landing .outcome-card > span,
+.english-spark-landing .before-after-bridge__grid > article > span { display: none; }
+.english-spark-landing .section-copy p,
+.english-spark-landing .lesson-scenario__copy p { max-width: 68ch; }
+.english-spark-landing .entry-cta,
+.english-spark-landing .hero-action--primary,
+.english-spark-landing .plan-card > a {
+  min-height: 48px;
+  border-color: var(--brand-blue);
+  border-radius: 12px;
+  background: var(--brand-blue);
+  color: #fff;
+  box-shadow: none;
+}
+.english-spark-landing .hero-action--secondary,
+.english-spark-landing .final-cta-section__copy .entry-cta[data-entry="telegram"] {
+  border: 1px solid #666c9c;
+  background: transparent;
+  color: var(--neriva-text);
+}
+.english-spark-landing .plan-card.is-featured {
+  border-color: #a797fa !important;
+  box-shadow: inset 0 3px 0 #a797fa !important;
+}
+.english-spark-landing .feature-carousel__tab.is-active,
+.english-spark-landing .mobile-carousel__tab.is-active {
+  border-color: var(--brand-purple);
+  background: #252645;
+}
+.english-spark-landing .plan-recommendation {
+  border-color: #cc8d42;
+  background: #583d20;
+  color: #ffe4bd;
+}
+.english-spark-landing .feature-panel { min-height: 480px; }
+.english-spark-landing .feature-panel .product-shot {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.english-spark-landing .final-cta-section__copy {
+  background: #1c2042;
+}
+.english-spark-landing .final-cta-section__copy > svg { color: #e9a753; }
+
+.site-footer {
+  border-color: #343959;
+  background: #101329;
+  box-shadow: none;
+}
+.site-footer .footer-brand { display: block; width: fit-content; }
+.site-footer .official-brand { width: 222px; }
+.error-page .official-brand { margin-bottom: 28px; }
+.image-preview__frame img { height: auto; }
+
+.public-shell :is(a, button, select):focus-visible,
+.image-preview :is(button, a):focus-visible {
+  outline: 3px solid #e9a753;
+  outline-offset: 4px;
+}
+
+@media (max-width: 1050px) {
+  .english-spark-landing .landing-hero__inner { grid-template-columns: minmax(0, 1fr); }
+  .english-spark-landing .landing-hero__copy { max-width: 740px; }
+  .english-spark-landing .landing-hero h1 { max-width: 24ch; }
+  .english-spark-landing .hero-product-frame {
+    width: min(100%, 780px);
+    min-height: 0;
+    margin: 0 auto;
+    padding-bottom: 64px;
+  }
+}
+
+@media (max-width: 620px) {
+  .public-nav--drawer {
+    width: calc(100% - 24px);
+    margin-top: 10px;
+    padding: 9px 10px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+  .public-nav--drawer .official-brand { width: clamp(104px, 35vw, 152px); padding: 9px; border-radius: 8px; }
+  .public-nav--drawer .public-nav__actions { gap: 7px; }
+  .public-nav--drawer .nav-knowledge-link { display: none; }
+  .public-nav--drawer .nav-drawer .nav-drawer__knowledge { display: flex; }
+  .public-nav--drawer select { width: 82px; padding-inline: 9px 20px; }
+  html[data-site-theme="dark"] .english-spark-landing .landing-hero { padding: 34px 0 44px; }
+  .english-spark-landing .landing-hero__inner { width: calc(100% - 32px); gap: 36px; }
+  .hero-brand-caption { gap: 12px; margin-bottom: 18px; }
+  .hero-brand-emblem { width: 76px; padding: 8px 7px; }
+  .english-spark-landing .landing-hero h1 { max-width: none; font-size: clamp(32px, 9.2vw, 42px); }
+  .english-spark-landing .hero-lead { font-size: 17px; line-height: 1.6; }
+  .english-spark-landing .hero-product-frame { padding-right: 12px; padding-bottom: 64px; }
+  .english-spark-landing .product-shot--phone { display: block; right: 0; width: min(30%, 130px); }
+  .english-spark-landing .feature-panel { min-height: 0; padding: 20px; }
+  .site-footer .official-brand { width: 210px; }
+}
+
+@media (max-width: 360px) {
+  .public-nav--drawer:has(.nav-theme-toggle) .official-brand { width: 100px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .english-spark-landing *, .english-spark-landing *::before, .english-spark-landing *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

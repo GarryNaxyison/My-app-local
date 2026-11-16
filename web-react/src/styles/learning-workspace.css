@@ -294,6 +294,15 @@ body:has(.v2-shell--learning),
 }
 
 /* The material, answer and feedback share the same page scroll. */
+.lesson-answer-shortcut {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lesson-answer-shortcut button {
+  min-height: 44px;
+}
+
 .v2-shell--learning .context-display :is(.chat-workspace, .chat-workspace__output, .terminal-chat-v2, .chat-panel-v2, .chat-interface, .chat-interface__scroll, .composer-panel-v2, .tools-layout-v2, .tools-work-v2, .roleplay-view-v2, .roleplay-stage-v2, .roleplay-dialog-card-v2, .roleplay-dialog-scroll-v2, .pronunciation-dashboard-v2, .pronunciation-workbench-v2, .pronunciation-tools-v2) {
   min-width: 0 !important;
   width: 100%;

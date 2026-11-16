@@ -1,5 +1,5 @@
-const CACHE_NAME = "poliglot-v2-static-shell-20261114-learning-workspace";
-const APP_SHELL = ["/app/", "/app/index.html", "/app/assets/brand-logo-mini.png"];
+const CACHE_NAME = "poliglot-v2-static-shell-20261116-official-brand";
+const APP_SHELL = ["/app/", "/app/index.html", "/app/assets/neriva-symbol.png", "/app/assets/neriva-wordmark.png", "/app/assets/neriva-icon-192.png"];
 
 function isStaticAsset(request, url) {
   return request.method === "GET"

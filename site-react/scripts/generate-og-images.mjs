@@ -1,14 +1,16 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outputDir = path.resolve(__dirname, "../public/assets/seo");
+const wordmark = await readFile(path.resolve(__dirname, "../public/assets/brand/neriva-wordmark.png"));
+const wordmarkSrc = `data:image/png;base64,${wordmark.toString("base64")}`;
 
 const variants = [
   {
-    filename: "neriva-social-preview-v2-ru.jpg",
+    filename: "neriva-social-preview-v3-ru.jpg",
     lang: "ru",
     kicker: "AI-репетитор в Telegram и web app",
     title: "NERIVA",
@@ -20,7 +22,7 @@ const variants = [
     ],
   },
   {
-    filename: "neriva-social-preview-v2-en.jpg",
+    filename: "neriva-social-preview-v3-en.jpg",
     lang: "en",
     kicker: "AI language tutor in Telegram + web app",
     title: "NERIVA",
@@ -54,9 +56,8 @@ function renderTemplate(variant) {
         height: 630px;
         overflow: hidden;
         background:
-          radial-gradient(circle at 18% 18%, rgba(143, 241, 208, 0.34), transparent 24%),
-          radial-gradient(circle at 82% 26%, rgba(45, 91, 255, 0.36), transparent 28%),
-          linear-gradient(135deg, #050914 0%, #0b1d2d 46%, #08111f 100%);
+          radial-gradient(circle at 84% 20%, rgba(139, 120, 222, 0.38), transparent 40%),
+          linear-gradient(135deg, #0d1026 0%, #191c39 100%);
         color: #f8fbff;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
@@ -88,25 +89,29 @@ function renderTemplate(variant) {
       .kicker {
         width: fit-content;
         max-width: 100%;
-        border: 1px solid rgba(143, 241, 208, 0.34);
-        border-radius: 999px;
-        padding: 12px 18px;
-        color: #8ff1d0;
-        font-size: 24px;
-        font-weight: 800;
+        margin-top: 26px;
+        color: #f3bc7b;
+        font-size: 22px;
+        font-weight: 650;
       }
       h1 {
-        margin: 44px 0 0;
-        font-size: 112px;
-        line-height: 0.88;
-        letter-spacing: 0;
+        margin: 0;
+        width: min(100%, 440px);
+        padding: 20px 22px;
+        border-radius: 18px;
+        background: #fff;
+      }
+      h1 img {
+        display: block;
+        width: 100%;
+        height: auto;
       }
       p {
         max-width: 730px;
-        margin: 30px 0 0;
+        margin: 20px 0 0;
         color: rgba(238, 247, 255, 0.84);
-        font-size: 32px;
-        line-height: 1.14;
+        font-size: 28px;
+        line-height: 1.35;
       }
       .signal {
         border: 1px solid rgba(255, 255, 255, 0.13);
@@ -146,7 +151,7 @@ function renderTemplate(variant) {
       }
       .signal strong {
         display: block;
-        color: #8ff1d0;
+        color: #c2c5ff;
         font-size: 22px;
       }
       .signal span {
@@ -162,8 +167,8 @@ function renderTemplate(variant) {
     <main class="frame">
       <section class="copy">
         <div>
+          <h1><img src="${wordmarkSrc}" alt="${escapeHtml(variant.title)}" width="1800" height="329"></h1>
           <div class="kicker">${escapeHtml(variant.kicker)}</div>
-          <h1>${escapeHtml(variant.title)}</h1>
           <p>${escapeHtml(variant.subtitle)}</p>
         </div>
       </section>

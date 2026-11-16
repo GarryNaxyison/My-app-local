@@ -61,7 +61,7 @@ function buildBaseJsonLd({ path: pathname, title, description }) {
       "@id": organizationId,
       name: "NERIVA",
       url: `${knowledgeOrigin}/`,
-      logo: `${knowledgeOrigin}/assets/brand-logo-mini.png`,
+      logo: `${knowledgeOrigin}/assets/brand/neriva-symbol.png`,
       sameAs: [
         "https://www.youtube.com/@neriva_app",
         "https://www.instagram.com/neriva.ru",
@@ -107,13 +107,13 @@ function renderHead({ title, description, path: pathname, jsonLd }) {
     <meta property="og:description" content="${escapeAttr(description)}" />
     <meta property="og:type" content="article" />
     <meta property="og:url" content="${url}" />
-    <meta property="og:image" content="${knowledgeOrigin}/assets/seo/neriva-social-preview-v2-ru.jpg" />
+    <meta property="og:image" content="${knowledgeOrigin}/assets/seo/neriva-social-preview-v3-ru.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeAttr(title)}" />
     <meta name="twitter:description" content="${escapeAttr(description)}" />
-    <meta name="twitter:image" content="${knowledgeOrigin}/assets/seo/neriva-social-preview-v2-ru.jpg" />
+    <meta name="twitter:image" content="${knowledgeOrigin}/assets/seo/neriva-social-preview-v3-ru.jpg" />
     <meta name="theme-color" content="#0b1422" />
-    <link rel="icon" href="/assets/brand-logo-mini.png?v=20260522-react" />
+    <link rel="icon" href="/assets/brand/neriva-symbol.png?v=20260522-react" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
@@ -127,7 +127,7 @@ function renderKnowledgeHeader({ active = true } = {}) {
   return `<nav class="knowledge-topnav" aria-label="Основная навигация">
     <div class="knowledge-topnav__inner">
       <a class="knowledge-brand" href="/neriva.html" aria-label="NERIVA">
-        <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
+        <img src="/assets/brand/neriva-symbol.png" alt="" aria-hidden="true" />
         <span>NERIVA</span>
       </a>
       <div class="knowledge-topnav__links">
@@ -899,14 +899,20 @@ function renderArticleScript() {
 }
 
 await fs.mkdir(knowledgeRoot, { recursive: true });
-await fs.writeFile(path.join(knowledgeRoot, "index.html"), renderHubPage(), "utf8");
+await writeGeneratedPage(path.join(knowledgeRoot, "index.html"), renderHubPage(), "utf8");
 
 for (const route of knowledgeCategoryRoutes) {
-  await fs.writeFile(path.join(knowledgeRoot, path.basename(route.path)), renderCategoryRoutePage(route), "utf8");
+  await writeGeneratedPage(path.join(knowledgeRoot, path.basename(route.path)), renderCategoryRoutePage(route), "utf8");
 }
 
 for (const article of knowledgeArticles) {
-  await fs.writeFile(path.join(knowledgeRoot, `${article.slug}.html`), renderArticlePage(article), "utf8");
+  await writeGeneratedPage(path.join(knowledgeRoot, `${article.slug}.html`), renderArticlePage(article), "utf8");
 }
 
 console.log(`Generated ${knowledgeArticles.length} Knowledge Base articles, ${knowledgeCategoryRoutes.length} category routes, and /knowledge/index.html`);
+
+async function writeGeneratedPage(filename, content, encoding) {
+  const temporary = filename + '.new';
+  await fs.writeFile(temporary, content, encoding);
+  await fs.rename(temporary, filename);
+}

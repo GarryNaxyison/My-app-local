@@ -148,7 +148,7 @@ test.describe("public landing SEO and AEO metadata", () => {
     expect(faqNode.mainEntity.map((entity: { name: string }) => entity.name)).toContain("Что такое NERIVA?");
     expect(jsonLd["@graph"].some((node: { "@type": string }) => node["@type"] === "ItemList")).toBe(false);
 
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/neriva-social-preview-v2-ru.jpg");
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/neriva-social-preview-v3-ru.jpg");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
@@ -185,7 +185,7 @@ test.describe("public landing SEO and AEO metadata", () => {
 
     expect(jsonLd["@graph"].some((node: { "@type": string }) => node["@type"] === "ItemList")).toBe(false);
 
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/neriva-social-preview-v2-en.jpg");
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://neriva.ru/assets/seo/neriva-social-preview-v3-en.jpg");
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute("content", "1200");
     await expect(page.locator('meta[property="og:image:height"]')).toHaveAttribute("content", "630");
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");

@@ -6,6 +6,7 @@ import { setupLandingSeoMetadata } from "./seoMetadata";
 import "./styles.css";
 import "./englishSparkLanding.css";
 import "./errorPages.css";
+import "./brand.css";
 
 const rootElement = document.getElementById("root")!;
 const pageKind = rootElement.dataset.pageKind as ErrorPageKind | undefined;

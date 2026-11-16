@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-15",
+  "processing": "Trim transparent margins and resize only; original artwork and colours retained.",
+  "sources": [
+    {
+      "filename": "Neriva3-02 (2).png",
+      "sha256": "7f2c155e22fe07bdbb9565730ae24f85bc5be4166697a7bc661121013a38441c",
+      "width": 2683,
+      "height": 2684
+    },
+    {
+      "filename": "Neriva2_Монтажная область 1 (2).png",
+      "sha256": "fa7bc251e1f1581c8f350f658ea978d33b8a57de549df57beac5e4ce0f290a40",
+      "width": 7901,
+      "height": 2452
+    },
+    {
+      "filename": "Neriva квадрат пнг-02 (2).png",
+      "sha256": "a56539c83ad113f67c2177c5e187dd2730a74da9e6ccad46533c777090417ae9",
+      "width": 2683,
+      "height": 2684
+    }
+  ],
+  "outputs": [
+    {
+      "filename": "neriva-symbol.png",
+      "sha256": "0edccf95e6293a9c23cf312b084c4bccf7ff2120737d4a0f4d5ced9b47d38567",
+      "width": 1024,
+      "height": 569,
+      "bytes": 162064
+    },
+    {
+      "filename": "neriva-wordmark.png",
+      "sha256": "e065cbb35824f5a9df909808defb3a3f219504c3ff123c0bacf186de4f385e00",
+      "width": 1800,
+      "height": 329,
+      "bytes": 126817
+    },
+    {
+      "filename": "neriva-stacked.png",
+      "sha256": "fb8b3c0340b32cfc285de4299d3a4919d680d9e3bd9c870e27f6a289f7b496a5",
+      "width": 1024,
+      "height": 766,
+      "bytes": 184230
+    },
+    {
+      "filename": "neriva-icon-192.png",
+      "sha256": "3684c00a3e7a781522fcee1e68e1539f88193e058df446511370037e248a1752",
+      "width": 192,
+      "height": 192,
+      "bytes": 30011
+    },
+    {
+      "filename": "neriva-icon-512.png",
+      "sha256": "92055e2468fea461bddf05b3236f3e0514c430aba285684d7e61b7381ccb806b",
+      "width": 512,
+      "height": 512,
+      "bytes": 111096
+    }
+  ]
+}

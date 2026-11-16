@@ -24,7 +24,7 @@ const assetVersion = "flux2-20260526-pronunciation-phrases-offline-roleplay";
 
 /** Reuse the existing generated artwork; changing navigation never migrates assets. */
 function navigationAsset(view: ViewId, theme: "light" | "dark") {
-  if (view === "tutor") return `/app/assets/brand-logo-mini.png?v=${assetVersion}`;
+  if (view === "tutor") return "/app/assets/neriva-symbol.png";
   const slug = view === "dashboard" ? "progress" : view;
   return `/app/assets/icon-${slug}-${theme}.png?v=${assetVersion}`;
 }
@@ -94,8 +94,8 @@ export function LearningNavigation({ nav, activeView, setView, theme, copy, plat
     return (
       <nav className="learning-sidebar" aria-label={copy("open_menu", "Open menu")}>
         <div className="learning-sidebar__brand">
-          <img src="/app/assets/brand-logo-mini.png" alt="" width="32" height="32" />
-          <span>NERIVA<small>{copy("learning_group", "Learning")}</small></span>
+          <img src="/app/assets/neriva-wordmark.png" alt="NERIVA" width="164" height="30" />
+          <small>{copy("learning_group", "Learning")}</small>
         </div>
         {groups.map((group) => {
           const items = desktopItems.filter((item) => item.group === group.id);
@@ -111,7 +111,7 @@ export function LearningNavigation({ nav, activeView, setView, theme, copy, plat
                   data-view={item.id}
                   aria-current={item.id === activeView ? "page" : undefined}
                   aria-pressed={item.id === activeView}
-                  title={item.description}
+                  title={item.description || undefined}
                   onClick={() => chooseView(item.id)}
                 >
                   {artwork(item)}
@@ -167,7 +167,7 @@ export function LearningNavigation({ nav, activeView, setView, theme, copy, plat
                     {items.map((item) => (
                       <button type="button" key={item.id} data-view={item.id} aria-current={item.id === activeView ? "page" : undefined} onClick={() => chooseView(item.id)}>
                         {artwork(item)}
-                        <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                        <span><strong>{item.label}</strong>{item.description ? <small>{item.description}</small> : null}</span>
                       </button>
                     ))}
                   </div>

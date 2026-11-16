@@ -38,7 +38,7 @@ function buildJsonLd(page, language) {
         "@id": organizationId,
         name: "NERIVA",
         url: `${origin}/`,
-        logo: `${origin}/assets/brand-logo-mini.png`,
+        logo: `${origin}/assets/brand/neriva-symbol.png`,
         sameAs: socialProfileUrls,
       },
       {
@@ -111,7 +111,7 @@ function renderPage(page, language) {
   const origin = language === "ru" ? russianOrigin : englishOrigin;
   const landingHref = language === "en" ? "/neriva.html?lang=en" : "/neriva.html";
   const relatedPages = seoPages.filter((item) => item.slug !== page.slug);
-  const ogImage = `${origin}/assets/seo/${language === "ru" ? "neriva-social-preview-v2-ru.jpg" : "neriva-social-preview-v2-en.jpg"}`;
+  const ogImage = `${origin}/assets/seo/${language === "ru" ? "neriva-social-preview-v3-ru.jpg" : "neriva-social-preview-v3-en.jpg"}`;
   const appCta = language === "ru" ? "Открыть web app" : "Open web app";
   const landingLabel = language === "ru" ? "Главная" : "Landing";
   const guidesLabel = language === "ru" ? "Материалы" : "Guides";
@@ -145,8 +145,8 @@ function renderPage(page, language) {
     <meta name="twitter:title" content="${escapeHtml(copy.title)}" />
     <meta name="twitter:description" content="${escapeHtml(copy.description)}" />
     <meta name="twitter:image" content="${ogImage}" />
-    <meta name="theme-color" content="#08111f" />
-    <link rel="icon" href="/assets/brand-logo-mini.png?v=20260522-react" />
+    <meta name="theme-color" content="#4b55ff" />
+    <link rel="icon" href="/assets/brand/neriva-symbol.png?v=20260522-react" />
     <link rel="stylesheet" href="/assets/seo-pages.css" />
     <script type="application/ld+json">${JSON.stringify(buildJsonLd(page, language))}</script>
   </head>
@@ -154,7 +154,7 @@ function renderPage(page, language) {
     <main class="seo-page">
       <header class="seo-header">
         <a class="seo-brand" href="${landingHref}" aria-label="NERIVA">
-          <img src="/assets/brand-logo-mini.png" alt="" />
+          <img src="/assets/brand/neriva-symbol.png" alt="" />
           <span>NERIVA</span>
         </a>
         <nav class="seo-nav" aria-label="${escapeHtml(guidesLabel)}">
@@ -257,9 +257,15 @@ function renderSitemap() {
 await fs.mkdir(path.join(publicRoot, "en"), { recursive: true });
 
 for (const page of seoPages) {
-  await fs.writeFile(path.join(publicRoot, `${page.slug}.html`), renderPage(page, "ru"), "utf8");
-  await fs.writeFile(path.join(publicRoot, "en", `${page.slug}.html`), renderPage(page, "en"), "utf8");
+  await writeGeneratedPage(path.join(publicRoot, `${page.slug}.html`), renderPage(page, "ru"), "utf8");
+  await writeGeneratedPage(path.join(publicRoot, "en", `${page.slug}.html`), renderPage(page, "en"), "utf8");
 }
 
-await fs.writeFile(path.join(publicRoot, "sitemap.xml"), renderSitemap(), "utf8");
+await writeGeneratedPage(path.join(publicRoot, "sitemap.xml"), renderSitemap(), "utf8");
 console.log(`Generated ${seoPages.length * 2} static SEO pages and sitemap.xml`);
+
+async function writeGeneratedPage(filename, content, encoding) {
+  const temporary = filename + '.new';
+  await fs.writeFile(temporary, content, encoding);
+  await fs.rename(temporary, filename);
+}

@@ -1,22 +1,30 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
 const publicDir = path.resolve("public");
-const sourcePath = path.join(publicDir, "assets", "brand-logo-mini.png");
+const sourcePath = path.join(publicDir, "assets", "brand", "neriva-icon-512.png");
 const sourceBuffer = await readFile(sourcePath);
-const themeColor = "#08111f";
+const themeColor = "#ffffff";
+
+async function writeIcon(filename, bytes) {
+  const destination = path.join(publicDir, filename);
+  const temporary = `${destination}.new`;
+  await writeFile(temporary, bytes);
+  await rename(temporary, destination);
+}
 
 async function transparentPng(size, filename) {
-  await sharp(sourceBuffer)
+  const icon = await sharp(sourceBuffer)
     .resize(size, size, { fit: "contain" })
     .png()
-    .toFile(path.join(publicDir, filename));
+    .toBuffer();
+  await writeIcon(filename, icon);
 }
 
 async function paddedPng(size, filename) {
   const innerSize = Math.round(size * 0.76);
-  await sharp({
+  const icon = await sharp({
     create: {
       width: size,
       height: size,
@@ -34,7 +42,8 @@ async function paddedPng(size, filename) {
       },
     ])
     .png()
-    .toFile(path.join(publicDir, filename));
+    .toBuffer();
+  await writeIcon(filename, icon);
 }
 
 async function pngBuffer(size) {
@@ -81,4 +90,4 @@ await paddedPng(512, "android-chrome-512x512.png");
 const icoEntries = await Promise.all(
   [16, 32, 48].map(async (size) => ({ size, buffer: await pngBuffer(size) })),
 );
-await writeFile(path.join(publicDir, "favicon.ico"), buildIco(icoEntries));
+await writeIcon("favicon.ico", buildIco(icoEntries));

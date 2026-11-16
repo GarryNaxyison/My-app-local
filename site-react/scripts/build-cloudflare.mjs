@@ -31,6 +31,7 @@ const cloudflareEnv = {
   PUBLIC_SITE_EMPTY_OUT_DIR: "true",
 };
 
+await run("npm", ["run", "favicons:generate"], cloudflareEnv);
 await run("npm", ["run", "seo:generate"], cloudflareEnv);
 await run("npm", ["run", "og:generate"], cloudflareEnv);
 await run("npx", ["tsc", "-b"], cloudflareEnv);

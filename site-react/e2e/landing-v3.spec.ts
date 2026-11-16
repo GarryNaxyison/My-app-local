@@ -21,7 +21,7 @@ test("landing v3 uses the premium dark reference and exposes only Russian and En
   await expect(page.locator("html")).toHaveAttribute("data-site-theme", "dark");
   await expect(page.locator(".nav-theme-toggle")).toHaveCount(0);
   await expect(page.locator(".landing-hero")).toHaveAttribute("data-hero-preset", "dark");
-  await expect(page.locator(".english-spark-landing")).toHaveAttribute("data-visual-anchor", "premium-tech-narrative");
+  await expect(page.locator(".english-spark-landing")).toHaveAttribute("data-visual-anchor", "official-neriva-brand");
   await expect(page.locator(".seo-guides")).toHaveCount(1);
   await expect(page.locator(".landing-hero .seo-guides")).toHaveCount(0);
   await expect(page.locator(".public-nav .seo-guides")).toHaveCount(0);
@@ -46,66 +46,48 @@ test("landing v3 Russian copy avoids removed Telegram block and awkward AI wordi
   await expect(page.locator("body")).toContainText("серию занятий");
 });
 
-test("landing v3 hero uses filled product proof and transparent dark animation", async ({ page }) => {
+test("landing hero uses the official logo and readable product proof without decorative WebGL", async ({ page }) => {
   await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator("h1")).toContainText("NERIVA");
-  await expect(page.locator(".premium-hero-animation__shader")).toHaveCount(0);
-  await expect(page.locator(".premium-hero-animation__three canvas")).toHaveCount(1);
+  await expect(page.locator(".landing-hero canvas")).toHaveCount(0);
+  const heroBrand = page.locator(".hero-brand-emblem img");
+  await expect(heroBrand).toHaveAttribute("src", "/assets/brand/neriva-symbol.png");
+  await expect(heroBrand).toBeVisible();
   await expect(page.locator(".hero-proof")).toContainText("Browser + Telegram");
   await expect(page.locator(".hero-proof")).toContainText("Story");
   await expect(page.locator(".hero-proof")).not.toContainText("35 languages");
 
   const heroState = await page.evaluate(() => {
     const hero = document.querySelector(".landing-hero") as HTMLElement;
-    const matter = document.querySelector(".landing-hero__matter") as HTMLElement;
     const productFrame = document.querySelector(".hero-product-frame") as HTMLElement;
     const proofCells = Array.from(document.querySelectorAll(".hero-proof span")) as HTMLElement[];
     const heroBox = hero.getBoundingClientRect();
-    const matterBox = matter.getBoundingClientRect();
     const productFrameBox = productFrame.getBoundingClientRect();
     return {
-      heroBackground: getComputedStyle(hero).backgroundColor,
       heroBackgroundImage: getComputedStyle(hero).backgroundImage,
-      matterBackground: getComputedStyle(matter).backgroundColor,
-      matterTopOffset: Math.round(matterBox.top - heroBox.top),
       productFrameTopOffset: Math.round(productFrameBox.top - heroBox.top),
-      proofTexts: proofCells.map((cell) => (cell.textContent || "").trim()),
       emptyProofCells: proofCells.filter((cell) => !(cell.textContent || "").trim()).length,
     };
   });
 
-  expect(heroState.heroBackground).toBe("rgba(0, 0, 0, 0)");
-  expect(heroState.matterBackground).toBe("rgba(0, 0, 0, 0)");
-  expect(heroState.matterTopOffset).toBeLessThanOrEqual(24);
-  expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(160);
+  expect(heroState.heroBackgroundImage).toMatch(/(?:linear|radial)-gradient/);
+  expect(heroState.productFrameTopOffset).toBeGreaterThanOrEqual(0);
   expect(heroState.emptyProofCells).toBe(0);
+  await expect(page.locator(".hero-proof > span").first()).toHaveCSS("animation-name", "none");
 
-  const premiumSurfaceState = await page.locator(".english-spark-landing").evaluate((landing) => {
-    const surface = landing as HTMLElement;
-    const card = document.querySelector(".hero-proof > span") as HTMLElement;
-    return {
-      backgroundImage: getComputedStyle(surface).backgroundImage,
-      cardAnimation: getComputedStyle(card).animationName,
-      cardBackground: getComputedStyle(card).backgroundImage,
-      cardBackgroundSize: getComputedStyle(card).backgroundSize,
-    };
-  });
-  expect(premiumSurfaceState.backgroundImage).toContain("radial-gradient");
-  expect(premiumSurfaceState.backgroundImage).not.toContain("rgba(255, 255, 255, 0.025) 1px");
-  expect(premiumSurfaceState.cardAnimation).toContain("nerivaBorderOrbit");
-  expect(premiumSurfaceState.cardBackground).toContain("linear-gradient");
-  expect(premiumSurfaceState.cardBackgroundSize).toContain("260%");
-
-  const heroCanvasState = await page.locator(".premium-hero-animation__three canvas").evaluate((canvas) => {
-    const element = canvas as HTMLCanvasElement;
+  await expect.poll(() => heroBrand.evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(100);
+  const heroBrandState = await heroBrand.evaluate((image) => {
+    const element = image as HTMLImageElement;
     const box = element.getBoundingClientRect();
-    return { width: element.width, height: element.height, boxWidth: box.width, boxHeight: box.height };
+    return { loaded: element.complete, width: element.naturalWidth, height: element.naturalHeight, boxWidth: box.width, boxHeight: box.height };
   });
-  expect(heroCanvasState.width).toBeGreaterThan(100);
-  expect(heroCanvasState.height).toBeGreaterThan(100);
-  expect(heroCanvasState.boxWidth).toBeGreaterThan(100);
-  expect(heroCanvasState.boxHeight).toBeGreaterThan(100);
+  expect(heroBrandState.loaded).toBe(true);
+  expect(heroBrandState.width).toBeGreaterThan(100);
+  expect(heroBrandState.height).toBeGreaterThan(100);
+  expect(heroBrandState.boxWidth).toBeGreaterThan(32);
+  expect(heroBrandState.boxHeight).toBeGreaterThan(32);
+  expect(Math.abs(heroBrandState.boxWidth / heroBrandState.boxHeight - heroBrandState.width / heroBrandState.height)).toBeLessThan(0.05);
 });
 
 test("landing v3 uses before-after bridge and a controlled feature carousel", async ({ page }) => {
@@ -298,7 +280,7 @@ test("landing v3 product screenshots open a focused preview", async ({ page }) =
   await page.locator(".hero-product-frame .product-shot__button").first().click();
   await expect(page.locator(".image-preview")).toBeVisible();
   const previewImage = page.locator(".image-preview img");
-  await expect(previewImage).toHaveAttribute("src", "/assets/product/dashboard-progress-dark.png");
+  await expect(previewImage).toHaveAttribute("src", "/assets/product/2026-11-15/home-desktop.png");
   await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-scale", "1.00");
 
   await page.locator(".image-preview__frame").hover();

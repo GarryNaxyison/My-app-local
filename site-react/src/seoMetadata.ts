@@ -71,7 +71,7 @@ function absoluteAssetUrl(path: string, origin: string) {
 }
 
 function socialImagePathForLanguage(language: ReturnType<typeof currentLandingLanguage>) {
-  return language === "ru" ? "/assets/seo/neriva-social-preview-v2-ru.jpg" : "/assets/seo/neriva-social-preview-v2-en.jpg";
+  return language === "ru" ? "/assets/seo/neriva-social-preview-v3-ru.jpg" : "/assets/seo/neriva-social-preview-v3-en.jpg";
 }
 
 function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
@@ -91,7 +91,7 @@ function buildJsonLd(language: ReturnType<typeof currentLandingLanguage>) {
         "@id": organizationId,
         name: "NERIVA",
         url: `${origin}/`,
-        logo: absoluteAssetUrl("/assets/brand-logo-mini.png", origin),
+        logo: absoluteAssetUrl("/assets/brand/neriva-icon-512.png", origin),
         sameAs: [...socialProfileUrls],
         email: supportEmail,
       },

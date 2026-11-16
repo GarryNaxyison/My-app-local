@@ -7,6 +7,7 @@ import "./styles/app.css";
 import "./styles/platform.css";
 import "./styles/navigation.css";
 import "./styles/learning-workspace.css";
+import "./styles/brand.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

@@ -347,6 +347,8 @@ const en: Record<string, string> = {
   premium: "Premium",
   base_plan: "Basic",
   lesson_answer: "Lesson answer",
+  lesson_jump_to_answer: "Go to answer",
+  correct_variant: "Correct variant",
   word_game: "Review game",
   spelling: "Spelling",
   level_test: "Level test",
@@ -718,6 +720,8 @@ const ru: Record<string, string> = {
   premium: "Премиум",
   base_plan: "Базовый",
   lesson_answer: "Ответ на урок",
+  lesson_jump_to_answer: "К ответу",
+  correct_variant: "Правильный вариант",
   word_game: "Игра слов",
   spelling: "Правописание",
   level_test: "Тест уровня",
@@ -6188,6 +6192,45 @@ export function translateViewDetails(view: ViewId, copy: (key: string, fallback:
   };
 }
 
-export function appNavDescription(view: ViewId, copy: (key: string, fallback: string) => string, fallback: string) {
-  return copy(`nav_${view.replace("-", "_")}_desc`, fallback);
+// These explanations describe actions, rather than the former generated
+// "Section: title" placeholders which repeated the catalogue heading.
+Object.assign(localeOverrides.ru, {
+  nav_home_desc: "План занятий на сегодня",
+  nav_tutor_desc: "Урок с пошаговым объяснением",
+  nav_lesson_desc: "Короткое задание с проверкой",
+  nav_practice_desc: "Пишите фразы и получайте исправления",
+  nav_roleplay_desc: "Диалоги в жизненных ситуациях",
+  nav_shadowing_desc: "Слушайте фразы и повторяйте",
+  nav_pronunciation_desc: "Проверка речи и трудных звуков",
+  nav_words_desc: "Новые слова и примеры",
+  nav_word_game_desc: "Закрепление изученных слов",
+  nav_spelling_desc: "Написание слов по памяти",
+  nav_vocabulary_desc: "Ваши изученные слова",
+  nav_phrasebook_desc: "Сохранённые фразы и заметки",
+  nav_offline_desc: "Карточки для занятий без сети",
+  nav_level_desc: "Проверка уровня языка",
+  nav_awards_desc: "Достижения за занятия",
+  nav_leaderboard_desc: "Сравните результаты учеников",
+  nav_mistakes_desc: "Разберите и исправьте ошибки",
+  nav_tools_desc: "Перевод текста, фото и аудио",
+  nav_dashboard_desc: "Результаты и активность обучения",
+  nav_referral_desc: "Награды за приглашённых друзей",
+  nav_premium_desc: "Тарифы и возможности подписки",
+  nav_settings_desc: "Языки и параметры профиля",
+});
+
+export function appNavDescription(view: ViewId, language: string | undefined, fallback: string) {
+  const locale = normalizeAppLocale(language);
+  const key = view.replace("-", "_");
+  const descriptionKey = `nav_${key}_desc`;
+  const description = (locale === "en" ? en[descriptionKey] || fallback : appCopy(locale, descriptionKey, fallback)).trim();
+  const labelKey = navDescriptionKeys.find(([id]) => id === key)?.[1] || key;
+  const label = appCopy(locale, labelKey);
+  const comparable = (value: string) => value.normalize("NFKC").toLocaleLowerCase().replace(/[\p{P}\p{Z}\s]/gu, "");
+  if (!comparable(description) || /[:：]\s*$/.test(description) || comparable(description) === comparable(label)) return "";
+  const [prefix, suffix, ...rest] = description.split(/[:：]/);
+  const section = derivedUiTerms[locale]?.section;
+  if (suffix && !rest.length && (comparable(prefix) === comparable(suffix) || (section && comparable(suffix) === comparable(section)))) return "";
+  const template = v2NavDescriptionTemplates[locale];
+  return template && comparable(template.replace("{label}", label)) === comparable(description) ? "" : description;
 }

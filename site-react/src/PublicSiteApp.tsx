@@ -36,6 +36,7 @@ import { EnglishSparkLanding } from "./EnglishSparkLanding";
 import { getLandingContent, normalizeLandingLocale, type LandingLocale } from "./landingContent";
 import { staticSeoGuideLinks } from "./landingSeoContent";
 import { SiteFooterSocial } from "./components/SocialLinks";
+import { OfficialBrand } from "./components/OfficialBrand";
 
 type PageId = "landing" | "privacy" | "terms" | "agreement" | "consent";
 type SiteTheme = "light" | "dark";
@@ -448,10 +449,7 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
   return (
     <header className="public-nav public-nav--drawer">
       <a className="public-brand" href="/neriva.html" aria-label="NERIVA">
-        <span className="public-brand__logo">
-          <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
-        </span>
-        <strong>NERIVA</strong>
+        <OfficialBrand decorative />
       </a>
       <div className="public-nav__actions">
         <a className="nav-knowledge-link" href="/knowledge/" data-no-localize-href>
@@ -476,6 +474,9 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
       </div>
       <div className={isOpen ? "nav-drawer is-open" : "nav-drawer"} id="public-nav-drawer" aria-hidden={!isOpen}>
         <nav aria-label="Primary navigation">
+          <a className="nav-drawer__knowledge" href="/knowledge/" data-no-localize-href onClick={() => setIsOpen(false)}>
+            {knowledgeLabel}
+          </a>
           <a href="/neriva.html#features" onClick={() => setIsOpen(false)}>
             {copy.features}
           </a>
@@ -523,10 +524,7 @@ function SiteNav({ page, theme, onThemeToggle }: { page: PageId; theme: SiteThem
   return (
     <header className="public-nav">
       <a className="public-brand" href="/neriva.html" aria-label="NERIVA">
-        <span className="public-brand__logo">
-          <img src="/assets/brand-logo-mini.png" alt="" aria-hidden="true" />
-        </span>
-        <strong>NERIVA</strong>
+        <OfficialBrand decorative />
       </a>
       <nav aria-label="Основная навигация">
         <a href="/neriva.html#features" data-i18n="nav_features">
@@ -1324,7 +1322,7 @@ function SiteFooterEnglish({ showSeoGuides, copy, language }: { showSeoGuides: b
   return (
     <footer className="site-footer">
       <div>
-        <strong>NERIVA</strong>
+        <a className="footer-brand" href="/neriva.html" aria-label="NERIVA"><OfficialBrand decorative /></a>
         <p>{isRussian ? "AI-репетитор для уроков, roleplay, голоса, фото-практики и повтора ошибок в браузере и Telegram." : "AI Tutor for lessons, roleplay, voice, photo practice, and mistake review across web app and Telegram."}</p>
         <span>© 2026 NERIVA. All rights reserved.</span>
         <address>
@@ -1370,7 +1368,7 @@ function SiteFooter() {
   return (
     <footer className="site-footer">
       <div>
-        <strong>NERIVA</strong>
+        <a className="footer-brand" href="/neriva.html" aria-label="NERIVA"><OfficialBrand decorative /></a>
         <p>Premium AI-репетитор для уроков, диалогов, голоса, фото-перевода и словаря ошибок в web app, PWA и Telegram.</p>
         <span>© 2026 NERIVA. Все права защищены.</span>
         <address>

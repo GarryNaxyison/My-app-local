@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { appCopy, appLocaleCodes } from "../src/lib/i18n";
 
 const png = Buffer.from(
@@ -819,6 +820,149 @@ test.beforeEach(async ({ page }) => {
   await mockApi(page);
 });
 
+test("capture branded product screenshots", async ({ page, isMobile }) => {
+  test.skip(process.env.NERIVA_CAPTURE !== "1" || isMobile, "explicit, single-project product capture");
+  test.setTimeout(120_000);
+  usePremiumSession({ premium_until: "2027-01-15T12:00:00Z", lessons_today: 1, practice_today: 2, voice_today: 1, mistakes: 3 });
+  const sampleNotes = [
+    { id: "travel-note", phrase: "Could you recommend a quiet table?", translation: "Не могли бы вы посоветовать тихий столик?", source: "lesson", language: "en", createdAt: "2026-11-15T09:00:00Z" },
+    { id: "work-note", phrase: "Let me check my schedule and get back to you.", translation: "Я проверю расписание и вернусь с ответом.", source: "practice", language: "en", createdAt: "2026-11-14T09:00:00Z" },
+    { id: "travel-note-two", phrase: "I'd like to book a room for two nights.", translation: "Я хотел бы забронировать номер на две ночи.", source: "lesson", language: "en", createdAt: "2026-11-13T09:00:00Z" },
+  ];
+  testSessionPayloadOverride = {
+    ...testSessionPayloadOverride!,
+    account: { ...sessionPayload.account, login: "learner" },
+    user: { ...testSessionPayloadOverride!.user, telegram_account: { id: 0, name: "Учебный профиль" }, phrasebook: sampleNotes },
+  };
+  // A capture must keep its anonymous Premium profile when the automatic daily
+  // reward refreshes the session; the general free-plan reward fixture is unsuitable.
+  await page.unroute("**/api/daily/claim");
+  await page.route("**/api/daily/claim", (route) => route.fulfill({ json: {
+    ok: true, claimed: true, xp: 0, streak: 1,
+    user: { ...testSessionPayloadOverride!.user, daily_bonus_claims: [new Date().toISOString().slice(0, 10)], daily_bonus_last_claimed_at: new Date().toISOString() },
+  } }));
+  testPhrasebookItemsOverride = sampleNotes;
+  await page.unroute("**/app/assets/**");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    localStorage.setItem("poliglot-theme", "dark");
+    localStorage.setItem("poliglot-onboarding-v2:learner", JSON.stringify({ completed_at: "2026-11-15T09:00:00Z" }));
+  });
+  await page.unroute("**/api/mistakes");
+  await page.route("**/api/mistakes", (route) => route.fulfill({ json: { items: [
+    { index: 0, word: "I am agree with you.", correction: "I agree with you.", explanation: "Agree — самостоятельный глагол: перед ним не нужен am." },
+    { index: 1, word: "She go to work by bus.", correction: "She goes to work by bus.", explanation: "В Present Simple после she добавляем окончание -s." },
+    { index: 2, word: "I have reservation.", correction: "I have a reservation.", explanation: "Перед исчисляемым существительным в единственном числе нужен артикль a." },
+  ] } }));
+  const output = resolve(process.cwd(), "../site-react/public/assets/product/2026-11-15");
+  mkdirSync(output, { recursive: true });
+  const shot = async (name: string) => {
+    await page.evaluate(async () => { await document.fonts.ready; window.scrollTo(0, 0); });
+    await expect(page.locator(".v2-shell--learning")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => [...document.images].filter((image) => image.getClientRects().length && image.src.includes("/assets/neriva-")).every((image) => image.complete && image.naturalWidth > 0))).toBe(true);
+    const notice = page.locator(".v2-status button");
+    if (await notice.isVisible()) await notice.click();
+    await page.screenshot({ path: resolve(output, name), animations: "disabled", scale: "css" });
+  };
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/app/?view=home");
+  await expect(page.locator(".learning-start")).toBeVisible();
+  await shot("home-desktop.png");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/app/?view=home");
+  await shot("home-mobile.png");
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/app/?view=tutor");
+  await expect(page.locator(".tutor-context-v2")).toContainText("Mia wakes up at seven");
+  await shot("tutor-desktop.png");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/lesson/start", (route) => route.fulfill({ json: {
+    prompt: "Вы на ресепшене отеля. Сообщите, что у вас забронирован номер.",
+    example: "I have a reservation under the name Alex.",
+    question_audio_text: "Could you please tell me your name?",
+  } }));
+  await page.route("**/api/lesson/answer", (route) => route.fulfill({ json: {
+    correction: "I have a reservation under the name Alex.",
+    explanation: "Перед reservation нужен артикль a. Выражение under the name помогает назвать имя, на которое оформлена бронь.",
+    correction_audio_text: "I have a reservation under the name Alex.",
+  } }));
+  await page.goto("/app/?view=lesson");
+  await page.locator(".lesson-empty-v2 button").click();
+  await page.locator(".context-display--lesson textarea").fill("I have reservation under name Alex.");
+  await page.locator(".composer-submit-v2").click();
+  await expect(page.locator(".lesson-panel-next-v2")).toBeVisible();
+  await shot("lesson-mobile.png");
+
+  for (const [name, width, height] of [["mistakes-desktop.png", 1440, 1000], ["mistakes-mobile.png", 390, 844]] as const) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/app/?view=mistakes");
+    await expect(page.locator(".context-display--mistakes")).toContainText("I agree with you.");
+    await shot(name);
+  }
+  for (const [name, width, height] of [["voice-desktop.png", 1440, 1100], ["voice-mobile.png", 390, 1000]] as const) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/app/?view=pronunciation");
+    await page.locator('.pronunciation-tools-v2 input[type="file"]').setInputFiles({ name: "pronunciation.webm", mimeType: "audio/webm", buffer: Buffer.from("sample-audio-fixture") });
+    await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
+    await expect(page.locator(".pronunciation-result-window-v2")).toContainText("67/100");
+    await shot(name);
+  }
+
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/app/?view=tools");
+  await page.locator(".tool-switch-v2 button").nth(2).click();
+  await page.route("**/api/tools/image-translate", (route) => route.fulfill({ json: { source_text: "Today's menu\nVegetable soup — 6 €\nPasta with tomatoes — 12 €", translation: "Меню на сегодня\nОвощной суп — 6 €\nПаста с томатами — 12 €", result: "Меню на сегодня\nОвощной суп — 6 €\nПаста с томатами — 12 €", source_language: "en", target_language: "ru" } }));
+  const menuImage = await page.evaluate(() => {
+    const canvas = document.createElement("canvas"); canvas.width = 500; canvas.height = 320;
+    const context = canvas.getContext("2d")!;
+    context.fillStyle = "#fff9ee"; context.fillRect(0, 0, 500, 320); context.fillStyle = "#242336";
+    context.font = "bold 32px Georgia"; context.fillText("Today's menu", 36, 65);
+    context.font = "22px Georgia"; context.fillText("Vegetable soup — 6 €", 36, 140); context.fillText("Pasta with tomatoes — 12 €", 36, 190);
+    return canvas.toDataURL("image/png").split(",")[1];
+  });
+  await page.locator('.image-upload-control-v2 input[type="file"]').setInputFiles({ name: "cafe-menu.png", mimeType: "image/png", buffer: Buffer.from(menuImage, "base64") });
+  await page.locator(".tools-submit-v2").click();
+  await expect(page.locator(".chat-interface")).toContainText("Меню на сегодня");
+  await shot("photo-desktop.png");
+
+  await page.goto("/app/?view=phrasebook");
+  await expect(page.locator(".phrasebook-list-v2")).toContainText("Could you recommend a quiet table?");
+  await shot("notes-desktop.png");
+});
+
+test("official brand replaces the old application logo", async ({ page, isMobile }) => {
+  await page.unroute("**/app/assets/**");
+  await page.goto("/app/?view=home");
+  await expect(page.locator('.learning-start__art')).toHaveAttribute('src', /\/app\/assets\/neriva-/);
+  if (!isMobile) await expect(page.locator('.learning-sidebar__brand img')).toHaveAttribute('src', /\/app\/assets\/neriva-/);
+  const manifest = await (await page.request.get('/app/manifest.webmanifest')).json();
+  expect(manifest.icons.map((icon: { src: string }) => icon.src).join(' ')).toContain('/assets/neriva-icon-');
+});
+
+test("mobile catalogue descriptions explain actions without punctuation or repeated titles", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "mobile catalogue assertion");
+  await page.unroute("**/app/assets/**");
+  await page.goto("/app/?view=home");
+  await page.locator('.learning-bottom-nav [data-view="more"]').click();
+  const catalog = page.locator(".learning-catalog");
+  await expect(catalog).toBeVisible();
+  await expect(catalog.locator('[data-view="words"] small')).toHaveText("Новые слова и примеры");
+  await expect(catalog.locator('[data-view="lesson"] small')).toHaveText("Короткое задание с проверкой");
+  await expect(catalog.locator('[data-view="level"] small')).toHaveText("Проверка уровня языка");
+  const cards = await catalog.locator(".learning-catalog__items button").evaluateAll((buttons) => buttons.map((button) => ({
+    title: button.querySelector("strong")?.textContent || "",
+    description: button.querySelector("small")?.textContent || "",
+  })));
+  const wordsOnly = (text: string) => text.toLocaleLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+  for (const card of cards.filter((card) => card.description)) {
+    expect(wordsOnly(card.description), `${card.title}: explanatory copy`).not.toBe("");
+    expect(wordsOnly(card.description), `${card.title}: avoids duplicate heading`).not.toBe(wordsOnly(card.title));
+  }
+  await page.screenshot({ path: "../tmp/neriva-catalog-fixed.png", animations: "disabled", scale: "css" });
+});
+
 test("learning redesign uses a sidebar or five destinations and an inline catalog", async ({ page, isMobile }) => {
   await page.unroute("**/app/assets/**");
   await page.goto("/app/?view=home");
@@ -928,6 +1072,48 @@ test("home Continue resumes the existing ordinary lesson for a Premium learner",
   expect(tutorStarts).toBe(0);
 });
 
+test("lesson answer shortcut focuses a reachable reply and keeps lesson progression", async ({ page, isMobile }) => {
+  const prompt = "Complete the hotel check-in exercise.";
+  const taskLines = Array.from({ length: 40 }, (_, index) => `Example ${index + 1}: read this line before you answer.`).join("\n");
+  const draft = "I have a reservation under the name Alex.";
+  const correction = "Could you check my reservation under the name Alex?";
+  await page.route("**/api/lesson/start", (route) => route.fulfill({ json: {
+    prompt: `${prompt}\n${taskLines}`,
+    example: draft,
+    question_audio_text: "Could you tell me your name?",
+  } }));
+  await page.route("**/api/lesson/answer", (route) => route.fulfill({ json: {
+    correction,
+    explanation: "Use a polite request at check-in.",
+  } }));
+
+  await page.goto("/app/?view=lesson");
+  const lesson = page.locator(".context-display--lesson");
+  const shortcut = lesson.getByRole("button", { name: /К ответу|Go to answer/ });
+  await expect(shortcut).toHaveCount(0);
+  await page.locator(".lesson-empty-v2 button").click();
+  await expect(lesson.locator(".chat-interface")).toContainText(prompt);
+  await expect(shortcut).toBeInViewport();
+  const textarea = lesson.locator("textarea");
+  await expect(textarea).not.toBeInViewport();
+  await shortcut.click();
+  await expect(textarea).toBeFocused();
+  await expect(textarea).toBeInViewport();
+  await expect.poll(async () => {
+    const reply = await textarea.boundingBox();
+    const bottom = isMobile ? (await page.locator(".learning-bottom-nav").boundingBox())!.y : page.viewportSize()!.height;
+    return reply !== null && reply.y >= 0 && reply.y + reply.height <= bottom;
+  }).toBe(true);
+  await textarea.fill(draft);
+  const submission = page.waitForRequest((request) => request.url().endsWith("/api/lesson/answer") && request.method() === "POST");
+  await lesson.locator(".composer-submit-v2").click();
+  expect((await submission).postDataJSON()).toMatchObject({ text: draft });
+  await expect(lesson.locator(".chat-interface")).toContainText(correction);
+  await expect(lesson.locator(".chat-interface")).toContainText(prompt);
+  await expect(lesson.locator(".lesson-panel-next-v2")).toBeVisible();
+  await expect(shortcut).toHaveCount(0);
+});
+
 test("next long lesson starts at the document beginning after completing the previous lesson", async ({ page }) => {
   let starts = 0;
   await page.unroute("**/api/lesson/start");
@@ -991,7 +1177,7 @@ test("long practice feedback remains reachable through the document scroll", asy
 test("app shell embeds branded loader before JavaScript hydrates", () => {
   const html = readFileSync("index.html", "utf8");
   expect(html).toContain('class="poliglot-boot"');
-  expect(html).toContain("brand-logo-mini.png");
+  expect(html).toContain("/app/assets/neriva-symbol.png");
   expect(html).toContain("NERIVA");
   expect(html).toContain("poliglotBootSpin");
   expect(html).toContain("poliglotBootOrbit");
@@ -1001,7 +1187,7 @@ test("app shell embeds branded loader before JavaScript hydrates", () => {
 
 test("PWA service worker cache is bumped for the current offline deck release", () => {
   const worker = readFileSync("public/offline-deck-sw.js", "utf8");
-  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-static-shell-20261114-learning-workspace"');
+  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-static-shell-20261116-official-brand"');
 });
 
 test("PWA caches static app assets without caching API responses", () => {

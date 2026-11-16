@@ -2310,7 +2310,7 @@ export function App() {
           ...item,
           label: copy(navCopyKey(item.id), item.label),
           shortLabel: copy(navCopyKey(item.id), item.shortLabel || item.label),
-          description: appNavDescription(item.id, copy, item.description),
+          description: appNavDescription(item.id, user.interface_language, item.description),
         })),
     [session],
   );
@@ -3886,7 +3886,7 @@ function AuthStandaloneView({
       <Suspense fallback={<LoadingScreen theme={theme} />}>
         <SignInPage
         mode={mode}
-        title={<span>{authTitle}</span>}
+        title={<><img className="auth-brand-wordmark" src="/app/assets/neriva-wordmark.png" alt="NERIVA" /><span>{authTitle}</span></>}
         description={mode === "register" ? copy("auth_register_hint", "Choose a login and password.") : copy("auth_fill_required", "Enter login and password.")}
         heroImageSrc={heroImageSrc}
         testimonials={testimonials}
@@ -3930,12 +3930,9 @@ function AuthStandaloneView({
 
 function BrandMark({ compact = false, subtitle }: { compact?: boolean; subtitle?: string }) {
   return (
-    <div className={cn("v2-brand", compact && "v2-brand--compact")}>
-      <img src="/app/assets/brand-logo-mini.png" alt="" />
-      <span>
-        <strong>NERIVA</strong>
-        {!compact ? <small>{subtitle || "AI Tutor"}</small> : null}
-      </span>
+    <div className={cn("v2-brand v2-brand--official", compact && "v2-brand--compact")}>
+      <img src="/app/assets/neriva-wordmark.png" alt="NERIVA" />
+      {!compact ? <small>{subtitle || "AI Tutor"}</small> : null}
     </div>
   );
 }
@@ -5673,7 +5670,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
     <div className={cn("tutor-workspace", completedLessonsOpen && "tutor-workspace--history")}>
       <section className="v2-panel tutor-hero">
         <div className="tutor-hero__brand" aria-hidden="true">
-          <img src="/app/assets/brand-logo-mini.png" alt="" />
+          <img src="/app/assets/neriva-symbol.png" alt="" />
         </div>
         <div className="tutor-hero__copy">
           <span className="eyebrow">{copy("ai_tutor", "AI Tutor")}</span>
@@ -6169,7 +6166,7 @@ function HomeView(props: ViewRendererProps) {
             <ChevronRight size={17} />
           </Button>
         </div>
-        <img className="learning-start__art" src="/app/assets/brand-logo-mini.png" alt="" />
+        <img className="learning-start__art" src="/app/assets/neriva-symbol.png" alt="" />
       </section>
       <section className="v2-panel home-focus">
         <span className="eyebrow">{copy("today", "Today")}</span>
@@ -6836,8 +6833,21 @@ function ChatWorkView({
   const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
   const textareaRef = useAutoResizeTextarea(draft);
+  const answerLabel = copy("lesson_answer", "Lesson answer");
   return (
     <div className={cn("chat-workspace", `chat-workspace--${mode}`, isShadowing && !visibleMessages.length && "chat-workspace--single")} data-work-mode={mode}>
+      {lessonHasActiveTask ? (
+        <div className="lesson-answer-shortcut">
+          <Button type="button" variant="outline" onClick={() => {
+            const field = textareaRef.current;
+            field?.focus({ preventScroll: true });
+            field?.scrollIntoView({ block: "center", inline: "nearest" });
+          }}>
+            <PenLine aria-hidden="true" size={16} />
+            {copy("lesson_jump_to_answer", answerLabel)}
+          </Button>
+        </div>
+      ) : null}
       {showOutput ? (
         <div className="chat-workspace__output">
           {isLesson && !visibleMessages.length ? (
@@ -6888,10 +6898,11 @@ function ChatWorkView({
             <div className="composer-textarea-shell-v2">
               <textarea
                 ref={textareaRef}
+                aria-label={isLesson ? answerLabel : undefined}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
+                  if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
                     event.preventDefault();
                     void submit();
                   }
@@ -6927,7 +6938,7 @@ function ChatPanel({ messages, copy, targetLanguage }: { messages: ChatMessage[]
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [messages[0]?.id]);
   const chatConfig: ChatConfig = {
-    leftPerson: { name: "NERIVA", avatar: "/app/assets/brand-logo-mini.png" },
+    leftPerson: { name: "NERIVA", avatar: "/app/assets/neriva-symbol.png" },
     rightPerson: { name: copy("you", "You") },
     targetLanguage,
     messages: messages
@@ -8808,6 +8819,6 @@ function assetSlug(view: ViewId) {
 }
 
 function menuAssetUrl(view: ViewId, theme: Theme) {
-  if (view === "tutor") return `/app/assets/brand-logo-mini.png?v=${MENU_ASSET_VERSION}`;
+  if (view === "tutor") return "/app/assets/neriva-symbol.png";
   return `/app/assets/icon-${assetSlug(view)}-${theme}.png?v=${MENU_ASSET_VERSION}`;
 }

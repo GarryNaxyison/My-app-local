@@ -1,4 +1,5 @@
 import { AlertTriangle, ArrowRight, Home, MessageCircle, RefreshCw } from "lucide-react";
+import { OfficialBrand } from "./components/OfficialBrand";
 
 export type ErrorPageKind = "not-found" | "maintenance";
 
@@ -72,6 +73,7 @@ export function ErrorPageApp({ kind }: { kind: ErrorPageKind }) {
         </div>
 
         <div className="error-page__content">
+          <OfficialBrand />
           <p className="error-page__eyebrow">
             <AlertTriangle size={18} aria-hidden="true" />
             {copy.eyebrow}

@@ -13,7 +13,6 @@ import {
   Star,
   X,
 } from "lucide-react";
-import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 import { SocialIconLinks } from "./components/SocialLinks";
 import { getLandingContent, type LandingContent, type LandingLocale } from "./landingContent";
 
@@ -24,20 +23,22 @@ type ProductImageKey = keyof LandingContent["images"];
 type ProductImage = {
   src: string;
   altKey: ProductImageKey;
+  width: number;
+  height: number;
 };
 
 const productImages = {
-  dashboard: { src: "/assets/product/dashboard-progress-dark.png", altKey: "dashboard" },
-  mobileHome: { src: "/assets/product/mobile-home-progress-dark.png", altKey: "mobileHome" },
-  aiTutor: { src: "/assets/product/ai-tutor-lesson-correction-dark.png", altKey: "aiTutor" },
-  mistakes: { src: "/assets/product/mistakes-review-dark.png", altKey: "mistakes" },
-  voice: { src: "/assets/product/voice-pronunciation-score-dark.png", altKey: "voice" },
-  photo: { src: "/assets/product/photo-translation-dark.png", altKey: "photo" },
-  notes: { src: "/assets/product/notes-phrasebook-dark.png", altKey: "notes" },
-  telegram: { src: "/assets/product/telegram-app-dark.png", altKey: "telegram" },
-  mobileLesson: { src: "/assets/product/mobile-lesson-correction-dark.png", altKey: "mobileLesson" },
-  mobileMistakes: { src: "/assets/product/mobile-mistakes-dark.png", altKey: "mobileMistakes" },
-  mobileVoice: { src: "/assets/product/mobile-voice-pronunciation-dark.png", altKey: "mobileVoice" },
+  dashboard: { src: "/assets/product/2026-11-15/home-desktop.png", altKey: "dashboard", width: 1440, height: 1000 },
+  mobileHome: { src: "/assets/product/2026-11-15/home-mobile.png", altKey: "mobileHome", width: 390, height: 844 },
+  aiTutor: { src: "/assets/product/2026-11-15/tutor-desktop.png", altKey: "aiTutor", width: 1440, height: 1000 },
+  mistakes: { src: "/assets/product/2026-11-15/mistakes-desktop.png", altKey: "mistakes", width: 1440, height: 1000 },
+  voice: { src: "/assets/product/2026-11-15/voice-desktop.png", altKey: "voice", width: 1440, height: 1100 },
+  photo: { src: "/assets/product/2026-11-15/photo-desktop.png", altKey: "photo", width: 1440, height: 1000 },
+  notes: { src: "/assets/product/2026-11-15/notes-desktop.png", altKey: "notes", width: 1440, height: 1000 },
+  telegram: { src: "/assets/product/telegram-app-dark.png", altKey: "telegram", width: 629, height: 690 },
+  mobileLesson: { src: "/assets/product/2026-11-15/lesson-mobile.png", altKey: "mobileLesson", width: 390, height: 844 },
+  mobileMistakes: { src: "/assets/product/2026-11-15/mistakes-mobile.png", altKey: "mobileMistakes", width: 390, height: 844 },
+  mobileVoice: { src: "/assets/product/2026-11-15/voice-mobile.png", altKey: "mobileVoice", width: 390, height: 1000 },
 } satisfies Record<string, ProductImage>;
 
 const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
@@ -122,12 +123,12 @@ function ProductShot({
   image: ProductImage;
   alt: string;
   className?: string;
-  onOpen: (image: ProductImage, alt: string) => void;
+  onOpen: (image: ProductImage, alt: string, trigger: HTMLButtonElement) => void;
 }) {
   return (
     <figure className={`product-shot ${className}`.trim()}>
-      <button className="product-shot__button" type="button" onClick={() => onOpen(image, alt)} aria-label={alt}>
-        <img src={image.src} alt={alt} loading="lazy" />
+      <button className="product-shot__button" type="button" onClick={(event) => onOpen(image, alt, event.currentTarget)} aria-label={alt}>
+        <img src={image.src} alt={alt} width={image.width} height={image.height} loading={className.includes("product-shot--") ? "eager" : "lazy"} decoding="async" />
       </button>
     </figure>
   );
@@ -141,6 +142,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const [previewScale, setPreviewScale] = useState(1);
   const [previewPan, setPreviewPan] = useState({ x: 0, y: 0 });
   const previewDragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
+  const previewTriggerRef = useRef<HTMLElement | null>(null);
+  const previewCloseRef = useRef<HTMLButtonElement | null>(null);
   const active = copy.features.items[activeFeature] ?? copy.features.items[0];
   const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
   const activeImage = productImages[active.imageKey] ?? productImages.aiTutor;
@@ -148,7 +151,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const ActiveMobileIcon = mobileIcons[activeMobile] ?? Star;
   const activeMobileImage = productImages[activeMobileItem.imageKey] ?? productImages.mobileHome;
   const imgAlt = (image: ProductImage) => copy.images[image.altKey];
-  const openPreview = (image: ProductImage, alt: string) => {
+  const openPreview = (image: ProductImage, alt: string, trigger: HTMLButtonElement) => {
+    previewTriggerRef.current = trigger;
     setPreview({ image, alt });
     setPreviewScale(1);
     setPreviewPan({ x: 0, y: 0 });
@@ -158,27 +162,45 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
     setPreviewScale(1);
     setPreviewPan({ x: 0, y: 0 });
     previewDragRef.current = null;
+    previewTriggerRef.current?.focus({ preventScroll: true });
   };
-  const zoomPreview = (deltaY: number) => {
-    setPreviewScale((value) => {
-      if (value <= 1 && deltaY !== 0) return 1.16;
-      return Math.min(3, Math.max(1, value + (deltaY < 0 ? 0.16 : -0.16)));
-    });
-  };
-
   useEffect(() => {
     if (!preview) return undefined;
 
+    previewCloseRef.current?.focus({ preventScroll: true });
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const zoom = (step: number) => {
+      setPreviewScale((value) => Math.min(3, Math.max(1, value + step)));
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closePreview();
+      } else if (event.key === "Tab") {
+        // The close control is the only keyboard action inside this image viewer.
+        event.preventDefault();
+        previewCloseRef.current?.focus();
+      } else if (event.key === "+" || event.key === "=" || event.key === "-") {
+        event.preventDefault();
+        zoom(event.key === "-" ? -0.16 : 0.16);
+      } else if (event.key === "0") {
+        setPreviewScale(1);
+      }
+    };
+
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
-      setPreviewScale((value) => {
-        if (value <= 1 && event.deltaY !== 0) return 1.16;
-        return Math.min(3, Math.max(1, value + (event.deltaY < 0 ? 0.16 : -0.16)));
-      });
+      if (event.deltaY) zoom(event.deltaY < 0 ? 0.16 : -0.16);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
   }, [preview]);
 
   useEffect(() => {
@@ -223,14 +245,16 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
 
   return (
     <>
-    <main className="english-spark-landing" data-visual-anchor="premium-tech-narrative">
+    <main className="english-spark-landing" data-visual-anchor="official-neriva-brand">
       <section className="landing-hero" data-hero-preset="dark">
-        <div className="landing-hero__matter" aria-hidden="true">
-          <PremiumHeroAnimation />
-        </div>
         <div className="landing-hero__inner">
           <div className="landing-hero__copy">
-            <span className="hero-announcement">{copy.hero.announcement}</span>
+            <div className="hero-brand-caption">
+              <div className="hero-brand-emblem" aria-hidden="true">
+                <img src="/assets/brand/neriva-symbol.png" alt="" width="1024" height="569" />
+              </div>
+              <span className="hero-announcement">{copy.hero.announcement}</span>
+            </div>
             <span className="eyebrow">{copy.hero.eyebrow}</span>
             <h1>{copy.hero.title}</h1>
             <p className="hero-lead">{copy.hero.lead}</p>
@@ -255,9 +279,6 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <div className="hero-product-frame" aria-label="NERIVA product screenshots">
             <ProductShot image={productImages.dashboard} alt={imgAlt(productImages.dashboard)} className="product-shot--desktop" onOpen={openPreview} />
             <ProductShot image={productImages.mobileHome} alt={imgAlt(productImages.mobileHome)} className="product-shot--phone" onOpen={openPreview} />
-            <div className="hero-product-frame__badges" aria-hidden="true">
-              {copy.hero.badges.map((badge) => <span key={badge}>{badge}</span>)}
-            </div>
           </div>
         </div>
       </section>
@@ -604,16 +625,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           aria-modal="true"
           aria-label={preview.alt}
           onClick={closePreview}
-          onWheelCapture={(event) => {
-            event.preventDefault();
-            zoomPreview(event.deltaY);
-          }}
-          onWheel={(event) => {
-            event.preventDefault();
-            zoomPreview(event.deltaY);
-          }}
         >
-          <button className="image-preview__close" type="button" onClick={closePreview} aria-label="Close image preview">
+          <button ref={previewCloseRef} className="image-preview__close" type="button" onClick={(event) => { event.stopPropagation(); closePreview(); }} aria-label={language === "ru" ? "Закрыть изображение" : "Close image preview"}>
             <X size={24} />
           </button>
           <figure
@@ -623,13 +636,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             onPointerMove={movePreviewPan}
             onPointerUp={stopPreviewPan}
             onPointerCancel={stopPreviewPan}
-            onWheel={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              zoomPreview(event.deltaY);
-            }}
           >
-            <img src={preview.image.src} alt={preview.alt} />
+            <img src={preview.image.src} alt={preview.alt} width={preview.image.width} height={preview.image.height} />
             <figcaption>{preview.alt}</figcaption>
           </figure>
         </div>,

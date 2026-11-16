@@ -1,0 +1,131 @@
+/* Official NERIVA identity. The supplied artwork is used without recolouring. */
+:root {
+  --primary: #4b55ff;
+  --brand-blue: #4b55ff;
+  --brand-purple: #8065ba;
+  --brand-orange: #e58308;
+  --bg: #f6f7ff;
+  --surface-muted: rgba(239, 240, 255, 0.7);
+}
+
+html[data-theme="dark"] {
+  --primary: #a2a8ff;
+  --brand-blue: #a2a8ff;
+  --brand-purple: #b4a2df;
+  --brand-orange: #f4ac52;
+  --bg: #0b1020;
+  --surface-muted: rgba(26, 31, 54, 0.7);
+}
+
+.v2-brand.v2-brand--official {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.v2-brand.v2-brand--official img {
+  display: block;
+  width: 134px;
+  height: 27px;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.v2-brand.v2-brand--official small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.learning-sidebar__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 10px 24px;
+}
+
+.learning-sidebar__brand img {
+  display: block;
+  width: min(164px, 100%);
+  height: auto;
+  object-fit: contain;
+}
+
+.learning-sidebar__brand > small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.auth-brand-wordmark {
+  display: block;
+  width: 208px;
+  max-width: 80%;
+  height: auto;
+  margin-bottom: 30px;
+  object-fit: contain;
+}
+
+.v2-shell--learning .home-grid > .learning-start {
+  border-color: color-mix(in srgb, var(--brand-blue) 24%, var(--line));
+  background:
+    radial-gradient(ellipse at 92% 20%, color-mix(in srgb, var(--brand-orange) 8%, transparent), transparent 48%),
+    color-mix(in srgb, var(--brand-blue) 5%, var(--surface-strong));
+}
+
+.v2-shell--learning .learning-start__art {
+  max-width: 230px;
+  max-height: 160px;
+  filter: none;
+}
+
+.v2-shell--learning .learning-start button,
+.v2-shell--learning .composer-submit-v2,
+.sign-in-page-v2 form button[type="submit"] {
+  background: #4b55ff;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(75, 85, 255, 0.18);
+}
+
+.v2-shell--learning .tutor-hero__brand {
+  width: 100px;
+  height: 70px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.v2-shell--learning .tutor-hero__brand img {
+  width: 100%;
+  height: auto;
+  max-height: 70px;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+.learning-sidebar .learning-sidebar__item[data-view="tutor"] .learning-nav-art,
+.learning-catalog__items button[data-view="tutor"] .learning-nav-art {
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.learning-page-heading__level {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .v2-brand.v2-brand--official img { width: 114px; height: 24px; }
+  .learning-sidebar__brand img { width: 150px; }
+}
+
+@media (max-width: 760px) {
+  .v2-shell--learning .learning-start__art {
+    width: 100%;
+    max-height: 90px;
+    margin-top: 14px;
+  }
+  .auth-brand-wordmark { width: 184px; margin-bottom: 24px; }
+}

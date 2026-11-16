@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,6 +10,30 @@ import (
 	"strings"
 	"testing"
 )
+
+func TestWebAppAssetsServeOfficialBrand(t *testing.T) {
+	manifest, err := os.ReadFile(filepath.Join("web", "manifest.webmanifest"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		Icons []struct{ Src string }
+	}
+	if err := json.Unmarshal(manifest, &config); err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Icons) != 2 {
+		t.Fatal("expected two install icon sizes")
+	}
+	api := &webAPI{}
+	for _, icon := range config.Icons {
+		response := httptest.NewRecorder()
+		api.handleGeneratedAsset(response, httptest.NewRequest(http.MethodGet, icon.Src, nil))
+		if response.Code != http.StatusOK || response.Header().Get("Content-Type") != "image/png" {
+			t.Fatalf("official icon %s is not served as PNG (status %d)", icon.Src, response.Code)
+		}
+	}
+}
 
 func TestPrepareWebAppHTMLForMobileShell(t *testing.T) {
 	html := []byte(`<html lang="ru" data-app-shell="auto" data-app-device="desktop"><head></head>`)
@@ -369,7 +394,7 @@ func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 		`const hadController = !!navigator.serviceWorker.controller`,
 		`registration.update()`,
 		`SKIP_WAITING`,
-		`poliglot-v2-static-shell-20261114-learning-workspace`,
+		`poliglot-v2-static-shell-20261116-official-brand`,
 		`fetch(request)`,
 		`request.mode === "navigate"`,
 	} {

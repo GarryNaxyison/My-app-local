@@ -123,7 +123,6 @@ const oldPublicBrandAndContacts = new RegExp(
     ["Poliglot", "_AI_bot"].join(""),
     ["poliglot", "_ai_bot"].join(""),
     "AsaselD",
-    "t\\.me/neriva_app",
     ["instagram\\.com/", "poliglotai"].join(""),
     ["tiktok\\.com/@", "poliglotai"].join(""),
   ].join("|"),
