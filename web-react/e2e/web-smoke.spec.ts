@@ -1093,6 +1093,9 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
     reviewID = route.request().postDataJSON().review_id;
     return route.fulfill({ json: { mistake: { index: 0, review_id: review.id, word: review.title, correction: "I went yesterday" } } });
   });
+  await page.route("**/api/mistakes/practice/answer", (route) => route.fulfill({
+    json: { correct: true, xp: 8, mistake: { word: review.title, correction: "I went yesterday" } },
+  }));
   await page.goto("/app/?view=home");
   const card = page.locator(".today-review");
   await expect(card).toContainText(review.title);
@@ -1104,6 +1107,16 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await answer.fill("I went yesterday");
   await answer.press("Enter");
   expect((await answerRequest).postDataJSON()).toEqual({ text: "I went yesterday", review_id: review.id });
+  const transfer = page.locator(".mistake-transfer");
+  const transferAnswer = transfer.getByRole("textbox");
+  await transferAnswer.fill("I go to the station yesterday.");
+  await transferAnswer.press("Enter");
+  await expect(transfer.getByRole("status")).toContainText(/Попробуйте ещё раз|Try again/);
+  await transferAnswer.fill("Yesterday, I walked to the station.");
+  await transferAnswer.press("Enter");
+  await expect(transfer.getByRole("status")).toContainText(/Верно|Correct/);
+  await transfer.getByRole("button", { name: /К списку ошибок|Back to mistakes/ }).click();
+  await expect(transfer).toHaveCount(0);
 });
 
 test("home Continue resumes the existing ordinary lesson for a Premium learner", async ({ page }) => {

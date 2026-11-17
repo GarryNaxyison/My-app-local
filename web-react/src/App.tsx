@@ -93,6 +93,8 @@ import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
+import { MistakeTransfer } from "./components/MistakeTransfer";
+import { buildMistakeTransfer, type MistakeTransferTask } from "./lib/mistakeTransfer";
 import { pwaUsesRussian } from "./components/PwaInstall";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
 import { InstagramIcon, TelegramIcon, TikTokIcon, YouTubeIcon } from "./components/BrandIcons";
@@ -1961,6 +1963,7 @@ export function App() {
   const [mistakePracticeIndex, setMistakePracticeIndex] = useState<number | null>(null);
   const [mistakeAnswer, setMistakeAnswer] = useState("");
   const [mistakeResult, setMistakeResult] = useState<TrainerResult | null>(null);
+  const [mistakeTransfer, setMistakeTransfer] = useState<MistakeTransferTask | null>(null);
   const [shadowingTarget, setShadowingTarget] = useState("");
   const [pronunciationTarget, setPronunciationTarget] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -2969,6 +2972,7 @@ export function App() {
     const body = typeof selection === "string" ? { review_id: selection } : { index: selection };
     const payload = await runAction("mistake-practice", () => api<ApiRecord>("/api/mistakes/practice/start", { method: "POST", body }));
     if (!payload) return;
+    setMistakeTransfer(null);
     const record = getRecord(payload);
     if (record.empty) {
       setMistakePractice(null);
@@ -2999,6 +3003,7 @@ export function App() {
     const mistake = (record.mistake || mistakePractice || {}) as MistakeItem;
     setMistakeResult(makeTrainerResult(record, copy, undefined));
     if (record.correct) {
+      setMistakeTransfer(buildMistakeTransfer(mistake.word || "", mistake.correction || "", user.learning_language || ""));
       setMistakePractice(null);
       setMistakePracticeIndex(null);
       setMistakeAnswer("");
@@ -3491,6 +3496,8 @@ export function App() {
     submitMistakeAnswer,
     cancelMistakePractice,
     mistakeResult,
+    mistakeTransfer,
+    dismissMistakeTransfer: () => setMistakeTransfer(null),
     deleteMistake,
     clearMistakes,
     shadowingTarget,
@@ -5224,6 +5231,8 @@ type ViewRendererProps = {
   submitMistakeAnswer: () => Promise<void>;
   cancelMistakePractice: () => void;
   mistakeResult: TrainerResult | null;
+  mistakeTransfer?: MistakeTransferTask | null;
+  dismissMistakeTransfer?: () => void;
   deleteMistake: (index: number) => Promise<void>;
   clearMistakes: () => Promise<void>;
   shadowingTarget: string;
@@ -7890,7 +7899,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Pi
   );
 }
 
-function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy, user }: Pick<ViewRendererProps, "mistakes" | "loadMistakes" | "startMistakePractice" | "submitMistakeAnswer" | "cancelMistakePractice" | "deleteMistake" | "clearMistakes" | "mistakePractice" | "mistakePracticeIndex" | "mistakeAnswer" | "setMistakeAnswer" | "mistakeResult" | "busy" | "copy" | "user">) {
+function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, mistakeTransfer, dismissMistakeTransfer, busy, copy, user }: Pick<ViewRendererProps, "mistakes" | "loadMistakes" | "startMistakePractice" | "submitMistakeAnswer" | "cancelMistakePractice" | "deleteMistake" | "clearMistakes" | "mistakePractice" | "mistakePracticeIndex" | "mistakeAnswer" | "setMistakeAnswer" | "mistakeResult" | "mistakeTransfer" | "dismissMistakeTransfer" | "busy" | "copy" | "user">) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [activeCategory, setActiveCategory] = useState<MistakeCategory | "all">("all");
   const [page, setPage] = useState(0);
@@ -7942,6 +7951,10 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
   ) : (
     <Button variant="destructive" size="sm" onClick={() => setConfirmClear(true)} disabled={!mistakes.length || busy === "mistakes-clear"}><Trash2 size={15} />{copy("clear", "Clear")}</Button>
   );
+
+  if (mistakeTransfer && dismissMistakeTransfer) {
+    return <MistakeTransfer task={mistakeTransfer} russian={languageCode(user.interface_language) === "ru"} onClose={dismissMistakeTransfer} />;
+  }
 
   if (mistakePractice) {
     return (
