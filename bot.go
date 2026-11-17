@@ -3251,6 +3251,7 @@ func (b *bot) handleSuccessfulPayment(ctx context.Context, chatID int64, user us
 	if err != nil {
 		return err
 	}
+	recordPremiumTransferPurchase(ctx, b.store, user.TelegramID, time.Now())
 	if _, err := b.store.creditReferralPurchase(user.TelegramID, payment.TelegramPaymentChargeID, rubToKopecks(plan.RubPrice)); err != nil {
 		return err
 	}
@@ -3663,6 +3664,7 @@ func (b *bot) handleYooKassaWebhookWithClient(w http.ResponseWriter, r *http.Req
 		return
 	}
 	paidKopecks := int64(math.Round(paidAmount * 100))
+	recordPremiumTransferPurchase(r.Context(), b.store, telegramID, time.Now())
 	if _, err := b.store.creditReferralPurchase(telegramID, payment.ID, paidKopecks); err != nil {
 		log.Printf("failed to credit referral rewards for yookassa payment %s: %v", payment.ID, err)
 		http.Error(w, "referral reward failed", http.StatusInternalServerError)

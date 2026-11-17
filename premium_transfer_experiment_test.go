@@ -46,3 +46,23 @@ func TestPremiumTransferEnrollmentIsIdempotent(t *testing.T) {
 		t.Fatalf("count=%d enrolled=%q error=%v", count, enrolledAt, err)
 	}
 }
+
+func TestPremiumTransferPurchaseRequiresEnrollmentAndDeduplicates(t *testing.T) {
+	api, storage, _ := newTestWebAPI(t)
+	ctx := context.Background()
+	user := userState{TelegramID: -42}
+	now := time.Now()
+	recordPremiumTransferPurchase(ctx, storage, user.TelegramID, now.Add(-time.Hour))
+	api.cfg.PremiumTransferExperiment = true
+	api.recordPremiumTransferEnrollment(ctx, user, now)
+	purchasedAt := now.Add(time.Hour)
+	recordPremiumTransferPurchase(ctx, storage, user.TelegramID, purchasedAt)
+	recordPremiumTransferPurchase(ctx, storage, user.TelegramID, now.Add(2*time.Hour))
+	var count int
+	var first string
+	err := storage.db.QueryRow(`SELECT COUNT(*), COALESCE(MIN(created_at), '') FROM learning_events
+		WHERE telegram_id=? AND stage='premium_transfer_purchased'`, user.TelegramID).Scan(&count, &first)
+	if err != nil || count != 1 || first != formatDBTime(purchasedAt) {
+		t.Fatalf("count=%d first purchase=%q error=%v", count, first, err)
+	}
+}

@@ -36,3 +36,18 @@ func (api *webAPI) recordPremiumTransferEnrollment(ctx context.Context, user use
 		log.Printf("Could not record Premium experiment enrollment: %v", err)
 	}
 }
+
+func recordPremiumTransferPurchase(ctx context.Context, storage store, userID int64, now time.Time) {
+	db, ok := storage.(*sqliteStore)
+	if !ok {
+		return
+	}
+	_, err := db.db.ExecContext(ctx, `INSERT INTO learning_events
+		(telegram_id, event_id, stage, format, elapsed_ms, created_at)
+		SELECT ?, 'premium-transfer-purchase-v1', 'premium_transfer_purchased', '', 0, ?
+		WHERE EXISTS (SELECT 1 FROM learning_events WHERE telegram_id=? AND event_id='premium-transfer-v1')
+		ON CONFLICT(telegram_id, event_id) DO NOTHING`, userID, formatDBTime(now), userID)
+	if err != nil {
+		log.Printf("Could not record Premium experiment purchase: %v", err)
+	}
+}
