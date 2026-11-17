@@ -8959,9 +8959,11 @@ function LessonVoiceRetry({ phrase, user, copy, voiceFile, setVoiceFile, check, 
 }) {
   const russian = languageCode(user.interface_language) === "ru";
   const [report, setReport] = useState<PronunciationAssessment | null>(null);
+  const [failed, setFailed] = useState(false);
   const [preview, setPreview] = useState("");
   const pending = useRef(false);
   useEffect(() => {
+    setFailed(false);
     if (!voiceFile) { setPreview(""); return; }
     const url = URL.createObjectURL(voiceFile);
     setPreview(url);
@@ -8976,13 +8978,19 @@ function LessonVoiceRetry({ phrase, user, copy, voiceFile, setVoiceFile, check, 
       <Button type="button" disabled={busy || !voiceFile} onClick={async () => {
         if (pending.current) return;
         pending.current = true;
+        setReport(null);
+        setFailed(false);
         try {
           const result = pronunciationFrom(await check(phrase) || {});
           if (result) setReport(result);
+          else setFailed(true);
+        } catch {
+          setFailed(true);
         } finally {
           pending.current = false;
         }
       }}>{copy("check", "Check")}</Button>
+      {failed && <p role="status">{russian ? "Не удалось проверить запись. Можно отправить её ещё раз." : "Could not check the recording. You can send it again."}</p>}
       {report && (pronunciationNeedsRetry(report)
         ? <p role="status">{russian ? "Запись распознана неуверенно. Попробуйте ещё раз." : "The recording was hard to recognise. Try again."}</p>
         : <PronunciationReport pronunciation={report} user={user} copy={copy} compact />)}

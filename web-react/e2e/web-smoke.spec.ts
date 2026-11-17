@@ -1347,8 +1347,13 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
     name: "repeat.webm", mimeType: "audio/webm", buffer: Buffer.from("test-audio"),
   });
   await expect(retry.locator("audio")).toBeVisible();
+  await page.route("**/api/pronunciation/check", (route) => route.abort("internetdisconnected"), { times: 1 });
+  const check = retry.getByRole("button", { name: appCopy("ru", "check"), exact: true });
+  await check.click();
+  await expect(retry.getByRole("status")).toContainText("Не удалось проверить запись");
+  await expect(retry.locator("audio")).toBeVisible();
   const retryRequest = page.waitForRequest("**/api/pronunciation/check");
-  await retry.getByRole("button", { name: appCopy("ru", "check"), exact: true }).click();
+  await check.click();
   expect((await retryRequest).postData()).toContain(correction);
   await expect(retry.locator(".pronunciation-report-v2")).toBeVisible();
   await summary.getByRole("button", { name: appCopy("ru", "word_game") }).click();
