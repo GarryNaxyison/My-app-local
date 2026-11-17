@@ -135,7 +135,6 @@ type LucideIcon = ComponentType<LucideProps>;
 type ToolMode = "translator" | "voice" | "image";
 type TrainerTone = "success" | "warning" | "info";
 
-const aiRouterTelegramURL = "https://t.me/AiRouterRu_bot";
 
 const poliglotSocialLinks = [
   { name: "YouTube", href: "https://www.youtube.com/@neriva_app", label: "Open NERIVA on YouTube", Icon: YouTubeIcon },
@@ -8596,10 +8595,6 @@ function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setTo
         <ToolButton active={!mobilePickerOpen && toolMode === "translator"} icon={Languages} title={copy("text_translator", "Text translator")} onClick={() => chooseTool("translator")} />
         <ToolButton active={!mobilePickerOpen && toolMode === "voice"} icon={FileAudio} title={copy("voice_to_text", "Voice to text")} onClick={() => chooseTool("voice")} />
         <ToolButton active={!mobilePickerOpen && toolMode === "image"} icon={ImageIcon} title={copy("photo_translation", "Photo translation")} onClick={() => chooseTool("image")} />
-        <a className="tool-button-v2 tools-ai-router-v2" href={aiRouterTelegramURL} target="_blank" rel="noreferrer" aria-label={copy("ai_router", "AI Router")}>
-          <Bot size={18} />
-          {copy("ai_router", "AI Router")}
-        </a>
       </div>
       <div className="tools-work-v2">
       <Button className="tools-change-v2" variant="outline" size="sm" type="button" onClick={() => setMobilePickerOpen(true)}>

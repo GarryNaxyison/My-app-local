@@ -166,7 +166,7 @@ test.skip("landing presents the approved light product-first site", async ({ pag
   await expect(page.locator('.hero-product-frame img[src="/assets/product/2026-11-15/today-desktop.png"]')).toBeVisible();
   await expect(page.locator('.scenario-shot img[src="/assets/product/2026-11-15/tutor-desktop.png"]')).toBeVisible();
   await expect(page.locator('.feature-panel img[src="/assets/product/2026-11-15/voice-desktop.png"]')).toBeVisible();
-  await expect(page.locator('.ecosystem-showcase img[src="/assets/product/telegram-app-light.png"]')).toBeVisible();
+  await expect(page.locator(".ecosystem-showcase").getByRole("button", { name: "Telegram" })).toBeVisible();
   await productShots.last().scrollIntoViewIfNeeded();
   await expect.poll(() =>
     productShots.evaluateAll((imgs) =>
@@ -321,7 +321,8 @@ test("landing branded hero and feature switching preserve ecosystem alignment", 
   expect(heroState.productWidth).toBeGreaterThan(500);
 
   await page.locator(".ecosystem-showcase").scrollIntoViewIfNeeded();
-  const textTops = await page.locator(".ecosystem-card > div").evaluateAll((nodes) => nodes.map((node) => Math.round((node as HTMLElement).getBoundingClientRect().top)));
+  const textTops = await page.locator(".ecosystem-showcase .showcase-launchers button").evaluateAll((nodes) => nodes.map((node) => Math.round((node as HTMLElement).getBoundingClientRect().top)));
+  expect(textTops).toHaveLength(3);
   expect(Math.max(...textTops) - Math.min(...textTops)).toBeLessThanOrEqual(3);
 });
 
@@ -967,6 +968,9 @@ test("production public-site output keeps all image and localization assets for 
 
   await page.goto("/neriva.html?lang=en");
   await expect(page.locator(".english-spark-landing img[src*='/assets/product/']")).toHaveCount(0);
-  await expect(page.locator(".ecosystem-showcase [data-window='telegram']")).toBeVisible();
+  const ecosystem = page.locator(".ecosystem-showcase");
+  await ecosystem.getByRole("button", { name: "Telegram" }).click();
+  await expect(ecosystem.getByRole("link", { name: "Open in Telegram" })).toHaveAttribute("href", "https://t.me/NERIVAapp_bot");
+  await ecosystem.getByRole("button", { name: "Close" }).click();
   await expect(page.frameLocator(".hero-windows__lesson iframe").locator(".tutor-context-v2")).toBeVisible();
 });

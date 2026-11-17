@@ -3194,10 +3194,6 @@ select {
   background: color-mix(in srgb, var(--primary) 12%, var(--surface-strong));
 }
 
-.tools-ai-router-v2 {
-  border-color: color-mix(in srgb, var(--teal) 42%, var(--line));
-}
-
 .choice-grid-v2 button.is-selected {
   border-color: color-mix(in srgb, var(--primary) 58%, var(--line));
 }

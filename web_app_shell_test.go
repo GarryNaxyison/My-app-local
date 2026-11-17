@@ -602,19 +602,19 @@ func TestReactDailyQuestCopyCoversAllLocales(t *testing.T) {
 	}
 }
 
-func TestReactToolsExposeAIRouterLink(t *testing.T) {
+func TestReactToolsDoNotExposeAIRouterLink(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join("web-react", "src", "App.tsx"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	page := string(source)
-	for _, want := range []string{
+	for _, unwanted := range []string{
 		`https://t.me/AiRouterRu_bot`,
 		`copy("ai_router", "AI Router")`,
 		`tools-ai-router-v2`,
 	} {
-		if !strings.Contains(page, want) {
-			t.Fatalf("React tools UI is missing AI Router marker %q", want)
+		if strings.Contains(page, unwanted) {
+			t.Fatalf("React tools UI exposes AI Router marker %q", unwanted)
 		}
 	}
 }

@@ -5977,10 +5977,6 @@ Object.entries(dailyQuestCopy).forEach(([locale, values]) => {
   localeOverrides[code] = { ...(localeOverrides[code] || {}), ...values };
 });
 
-appLocaleCodes.forEach((code) => {
-  localeOverrides[code] = { ...(localeOverrides[code] || {}), ai_router: "AI Router" };
-});
-
 let cp1251ReverseMap: Map<string, number> | null = null;
 
 function getCp1251ReverseMap() {
@@ -6003,7 +5999,6 @@ function mojibakeScore(value: string) {
 }
 
 const fallbackLeakAllowedKeys = new Set([
-  "ai_router",
   "app_guide_page_label",
   "guide",
   "pay_stars",

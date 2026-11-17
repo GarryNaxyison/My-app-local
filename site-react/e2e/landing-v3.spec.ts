@@ -43,7 +43,8 @@ test("landing v3 Russian copy avoids removed Telegram block and awkward AI wordi
   await expect(page.locator("body")).not.toContainText("speaking-попытку");
   await expect(page.locator("body")).not.toContainText("streak");
   await expect(page.locator("body")).toContainText("Короткий урок с понятным результатом");
-  await expect(page.locator("body")).toContainText("серию занятий");
+  await page.locator(".mobile-section").getByRole("button", { name: "Прогресс" }).click();
+  await expect(page.locator(".mobile-section").getByRole("tabpanel")).toContainText("серию занятий");
 });
 
 test("landing hero uses the official logo and respects reduced motion", async ({ page }) => {
@@ -202,7 +203,7 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
   await expect(page.locator(".telegram-panel")).toHaveCount(0);
 
   await expect(page.locator(".ecosystem-showcase")).toBeVisible();
-  await expect(page.locator(".ecosystem-showcase .product-window")).toHaveCount(3);
+  await expect(page.locator(".ecosystem-showcase .showcase-launchers button")).toHaveCount(3);
   await expect(page.locator(".ecosystem-showcase")).toContainText("Web app");
   await expect(page.locator(".ecosystem-showcase")).toContainText("Telegram");
 
@@ -224,8 +225,8 @@ test("landing v3 mobile is compact with no horizontal overflow", async ({ page }
 
   await expect(page.locator(".landing-hero .entry-cta")).toHaveCount(2);
   await expect(page.locator(".feature-carousel__viewport")).toBeVisible();
-  await expect(page.locator(".mobile-carousel__tab")).toHaveCount(4);
-  await expect(page.locator(".mobile-panel")).toHaveCount(1);
+  await expect(page.locator(".mobile-section .showcase-launchers button")).toHaveCount(4);
+  await expect(page.locator(".mobile-section iframe")).toHaveCount(0);
 
   const layout = await page.evaluate(() => {
     const heroHeight = document.querySelector(".landing-hero")?.getBoundingClientRect().height || 0;

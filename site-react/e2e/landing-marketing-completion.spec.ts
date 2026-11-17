@@ -23,7 +23,7 @@ test("Russian landing adds human pain, use-case and premium value blocks", async
   await expect(page.locator(".outcome-card")).toHaveCount(3);
 
   await expect(page.locator(".use-case-section")).toContainText("Для чего открывают NERIVA");
-  await expect(page.locator(".use-case-card")).toHaveCount(4);
+  await expect(page.locator(".use-case-section .showcase-launchers button")).toHaveCount(4);
   await expect(page.locator(".use-case-section")).toContainText("Поездка");
   await expect(page.locator(".use-case-section")).toContainText("Работа");
   await expect(page.locator(".use-case-section")).toContainText("Экзамен");
@@ -31,7 +31,8 @@ test("Russian landing adds human pain, use-case and premium value blocks", async
 
   await expect(page.locator(".proof-section")).toContainText("Как это выглядит в продукте");
   await expect(page.locator(".proof-step")).toHaveCount(0);
-  await expect(page.locator(".proof-section .product-window")).toHaveCount(2);
+  await expect(page.locator(".proof-section .product-window")).toHaveCount(1);
+  await expect(page.locator(".proof-section").getByRole("tab")).toHaveCount(3);
 
   await expect(page.locator(".pricing-section")).toContainText("Premium нужен, когда вы занимаетесь почти каждый день");
   await expect(page.locator(".plan-card.is-featured")).toContainText("голос, фото и разбор ошибок");

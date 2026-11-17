@@ -1,4 +1,4 @@
-import { useState, type ComponentPropsWithoutRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { useId, useRef, useState, type ComponentPropsWithoutRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -7,22 +7,24 @@ import {
   Camera,
   CheckCircle,
   Download,
+  ExternalLink,
   MessageCircle,
   Mic,
   Repeat2,
   Star,
+  X,
 } from "lucide-react";
 import { SocialIconLinks } from "./components/SocialLinks";
 import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
 import { getLandingContent, type LandingLocale } from "./landingContent";
 
 import { HeroLesson, ProductWindow } from "./ProductWindows";
+import "./landingShowcase.css";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
 
 const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
-const mobileIcons = [Star, BookOpen, Repeat2, Mic] as const;
 
 type EnglishSparkLandingProps = {
   language?: LandingLocale;
@@ -50,6 +52,79 @@ function handleTabNavigation(event: ReactKeyboardEvent<HTMLDivElement>, active: 
   event.preventDefault();
   select(next);
   tabs[next]?.focus();
+}
+
+type ShowcaseItem = {
+  title: string;
+  body: string;
+  imageKey?: ComponentPropsWithoutRef<typeof ProductWindow>["kind"];
+  cta?: string;
+  href?: string;
+};
+
+function ShowcaseTabs({ items, active, select, title, language }: {
+  items: readonly ShowcaseItem[];
+  active: number;
+  select: (index: number) => void;
+  title: string;
+  language: LandingLocale;
+}) {
+  const id = useId();
+  const item = items[active];
+  return <>
+    <div className="showcase-tabs" role="tablist" aria-label={title} onKeyDown={(event) => handleTabNavigation(event, active, select)}>
+      {items.map(({ title: label }, index) => (
+        <button key={label} type="button" role="tab" id={`${id}-tab-${index}`} aria-controls={`${id}-panel`} aria-selected={index === active} tabIndex={index === active ? 0 : -1} onClick={() => select(index)}>{label}</button>
+      ))}
+    </div>
+    <div className="showcase-panel" id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-tab-${active}`} tabIndex={0}>
+      <div className="showcase-panel__copy">
+        <h3>{item.title}</h3>
+        <p>{item.body}</p>
+        {item.href && <a href={item.href}>{item.cta}<ArrowRight size={16} aria-hidden="true" /></a>}
+      </div>
+      {item.imageKey ? <ProductWindow key={active} kind={item.imageKey} language={language} />
+        : item.href === TELEGRAM_HREF ? <div className="showcase-telegram"><MessageCircle size={34} aria-hidden="true" /><strong>@NERIVAapp_bot</strong></div>
+          : <div className="showcase-print" aria-label={language === "ru" ? "Пример складных карточек" : "Sample folding cards"}>
+            <strong>NERIVA</strong>
+            <small>{language === "ru" ? "Печать / PDF · A4" : "Print / PDF · A4"}</small>
+            <div><b>reservation</b><span>{language === "ru" ? "бронь" : "a booking"}</span></div>
+            <div><b>luggage</b><span>{language === "ru" ? "багаж" : "bags"}</span></div>
+          </div>}
+    </div>
+  </>;
+}
+
+function ShowcaseDialog({ title, items, language }: { title: string; items: readonly ShowcaseItem[]; language: LandingLocale }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const [active, setActive] = useState<number | null>(null);
+  return <>
+    <div className="showcase-launchers">
+      {items.map((item, index) => (
+        <button key={item.title} type="button" aria-haspopup="dialog" onClick={(event) => {
+          opener.current = event.currentTarget;
+          setActive(index);
+          dialog.current?.showModal();
+        }}>{item.title}<ExternalLink size={15} aria-hidden="true" /></button>
+      ))}
+    </div>
+    <dialog ref={dialog} className="showcase-dialog" aria-labelledby={titleId} onClose={() => {
+      setActive(null);
+      opener.current?.focus();
+    }} onClick={(event) => {
+      if (event.target === event.currentTarget) event.currentTarget.close();
+    }}>
+      <div className="showcase-dialog__inner">
+        <header className="showcase-dialog__header">
+          <h3 id={titleId}>{title}</h3>
+          <button type="button" autoFocus aria-label={language === "ru" ? "Закрыть" : "Close"} onClick={() => dialog.current?.close()}><X size={22} aria-hidden="true" /></button>
+        </header>
+        {active !== null && <ShowcaseTabs items={items} active={active} select={setActive} title={title} language={language} />}
+      </div>
+    </dialog>
+  </>;
 }
 
 function RevealSection({ children, transition, ...props }: RevealSectionProps) {
@@ -116,11 +191,15 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
   const reduceMotion = useReducedMotion();
   const copy = getLandingContent(language);
   const [activeFeature, setActiveFeature] = useState(0);
-  const [activeMobile, setActiveMobile] = useState(0);
+  const [activeProof, setActiveProof] = useState(0);
   const active = copy.features.items[activeFeature] ?? copy.features.items[0];
   const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
-  const activeMobileItem = copy.mobile.items[activeMobile] ?? copy.mobile.items[0];
-  const ActiveMobileIcon = mobileIcons[activeMobile] ?? Star;
+  const russian = language === "ru";
+  const proofItems: ShowcaseItem[] = [
+    { title: russian ? "Урок" : "Lesson", body: russian ? "Ответьте на вопрос в пробном уроке и посмотрите, как появляется правка." : "Answer a question in the sample lesson and see the correction.", imageKey: "aiTutor" },
+    { title: russian ? "Разбор ошибки" : "Mistake review", body: russian ? "Откройте исправленную фразу и попробуйте похожее задание." : "Open a corrected phrase and try a similar exercise.", imageKey: "mistakes" },
+    { title: russian ? "Карточки слов" : "Word cards", body: russian ? "Выберите слова на странице словаря. NERIVA разложит их на листы A4 для вырезания или сгиба. Можно распечатать набор или скачать листы в PNG." : "Pick words from a vocabulary page. NERIVA lays them out on A4 sheets to cut or fold. Print the set or download individual PNG sheets.", href: "/app/?view=vocabulary", cta: russian ? "Открыть словарь" : "Open vocabulary" },
+  ];
   return (
     <main className="english-spark-landing" data-visual-anchor="official-neriva-brand">
       <section className="landing-hero" data-hero-preset="dark">
@@ -293,20 +372,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.useCases.title}</h2>
           <p>{copy.useCases.body}</p>
         </div>
-        <div className="use-case-grid">
-          {copy.useCases.items.map((item, index) => {
-            return (
-              <RevealArticle className="use-case-card" key={item.title} transition={{ delay: index * 0.07 }}>
-                <ProductWindow kind={item.imageKey} language={language} />
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                  <a href={WEB_APP_HREF}>{item.cta}</a>
-                </div>
-              </RevealArticle>
-            );
-          })}
-        </div>
+        <ShowcaseDialog title={copy.useCases.title} items={copy.useCases.items.map((item) => ({
+          ...item, href: WEB_APP_HREF, cta: russian ? "Открыть NERIVA" : "Open NERIVA",
+        }))} language={language} />
       </RevealSection>
 
 
@@ -329,16 +397,11 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
       </RevealSection>
 
       <RevealSection className="spark-section proof-section" aria-label={copy.proof.title}>
-        <div className="proof-section__layout">
-          <div className="section-copy">
-            <span className="eyebrow">{copy.proof.eyebrow}</span>
-            <h2>{copy.proof.title}</h2>
-            <p>{copy.proof.body}</p>
-          </div>
-          <div className="proof-section__shots" aria-label={copy.proof.title}>
-            <ProductWindow kind="aiTutor" language={language} />
-            <ProductWindow kind="mistakes" language={language} />
-          </div>
+        <div className="section-copy">
+          <h2>{copy.proof.title}</h2>
+        </div>
+        <div className="showcase-stage">
+          <ShowcaseTabs items={proofItems} active={activeProof} select={setActiveProof} title={copy.proof.title} language={language} />
         </div>
       </RevealSection>
 
@@ -350,19 +413,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.ecosystem.title}</h2>
           <p>{copy.ecosystem.body}</p>
         </div>
-        <div className="ecosystem-showcase__grid">
-          {copy.ecosystem.items.map((item) => {
-            return (
-              <RevealArticle className="ecosystem-card" key={item.title}>
-                <ProductWindow kind={item.imageKey} language={language} />
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.body}</p>
-                </div>
-              </RevealArticle>
-            );
-          })}
-        </div>
+        <ShowcaseDialog title={copy.ecosystem.title} items={copy.ecosystem.items.map((item) => item.imageKey === "telegram"
+          ? { title: item.title, body: item.body, href: TELEGRAM_HREF, cta: russian ? "Открыть в Telegram" : "Open in Telegram" }
+          : item)} language={language} />
       </RevealSection>
 
       <RevealSection className="spark-section mobile-section">
@@ -371,41 +424,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.mobile.title}</h2>
           <p>{copy.mobile.body}</p>
         </div>
-        <div className="mobile-carousel">
-          <div className="mobile-carousel__tabs" role="tablist" aria-label={copy.mobile.title} onKeyDown={(event) => handleTabNavigation(event, activeMobile, setActiveMobile)}>
-            {copy.mobile.items.map((item, index) => {
-              const Icon = mobileIcons[index] ?? Star;
-              return (
-                <button
-                  className={index === activeMobile ? "mobile-carousel__tab is-active" : "mobile-carousel__tab"}
-                  key={item.title}
-                  type="button"
-                  role="tab"
-                  id={`site-mobile-tab-${index}`}
-                  aria-controls="site-mobile-panel"
-                  aria-selected={index === activeMobile}
-                  tabIndex={index === activeMobile ? 0 : -1}
-                  onClick={() => setActiveMobile(index)}
-                >
-                  <Icon size={18} />
-                  <span>{item.title}</span>
-                  <small>{item.short}</small>
-                </button>
-              );
-            })}
-          </div>
-          <RevealBlock className="mobile-carousel__viewport">
-            <RevealArticle className="mobile-panel" id="site-mobile-panel" role="tabpanel" aria-labelledby={`site-mobile-tab-${activeMobile}`}>
-              <div className="mobile-panel__copy">
-                <ActiveMobileIcon size={26} />
-                <span>{activeMobileItem.stat}</span>
-                <h3>{activeMobileItem.title}</h3>
-                <p>{activeMobileItem.body}</p>
-              </div>
-              <ProductWindow key={activeMobileItem.imageKey} kind={activeMobileItem.imageKey} language={language} />
-            </RevealArticle>
-          </RevealBlock>
-        </div>
+        <ShowcaseDialog title={copy.mobile.title} items={copy.mobile.items} language={language} />
       </RevealSection>
 
       <RevealSection className="spark-section community-section">

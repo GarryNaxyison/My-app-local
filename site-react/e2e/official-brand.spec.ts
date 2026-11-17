@@ -70,8 +70,9 @@ test('home page offers a localized web app installation link', async ({ page }) 
 test('feature and mobile tabs support arrow keys and a visible focus target', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/neriva.html?lang=en');
-  for (const scope of ['feature-carousel', 'mobile-carousel']) {
-    const carousel = page.locator(`.${scope}`);
+  for (const scope of ['.feature-carousel', '.mobile-section dialog']) {
+    if (scope.startsWith(".mobile-section")) await page.locator(".mobile-section .showcase-launchers button").first().click();
+    const carousel = page.locator(scope);
     const tabs = carousel.getByRole('tab');
     await tabs.first().focus();
     await page.keyboard.press('ArrowRight');
