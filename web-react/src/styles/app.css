@@ -4106,6 +4106,45 @@ select {
   overflow: hidden;
 }
 
+.learning-topic-trigger {
+  min-width: 42px;
+}
+
+.learning-topic-dialog {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+}
+
+.learning-topic-dialog [data-slot="dialog-body"] {
+  display: grid;
+  gap: 12px;
+}
+
+.learning-topic-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.learning-topic-options button,
+.learning-topic-dialog input {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-muted);
+  overflow-wrap: anywhere;
+}
+
+.learning-topic-options button[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 13%, var(--surface-strong));
+}
+
+.learning-topic-dialog [data-slot="dialog-footer"] {
+  padding: 0 16px 16px;
+}
+
 .payment-notice-dialog-v2 {
   width: min(460px, calc(100vw - 28px));
 }
@@ -8073,6 +8112,7 @@ select {
 
   .mobile-quick-controls-v2 .app-guide-button-v2,
   .mobile-quick-controls-v2 .mobile-report-button-v2,
+  .mobile-quick-controls-v2 .learning-topic-trigger,
   .mobile-quick-controls-v2 .mobile-language-select-v2 > button,
   .mobile-quick-controls-v2 .mobile-theme-toggle-v2,
   .mobile-quick-controls-v2 .logout-button-v2 {
@@ -8093,6 +8133,14 @@ select {
     color: var(--primary);
     display: grid;
     place-items: center;
+  }
+
+  .mobile-quick-controls-v2--inline {
+    position: relative;
+    inset: auto;
+    margin: 12px 16px 0;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .mobile-language-select-v2 {

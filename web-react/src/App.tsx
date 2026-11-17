@@ -1,5 +1,5 @@
 import type { ComponentType, CSSProperties, FormEvent, ReactNode } from "react";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ClipboardEvent } from "react";
 import { createPortal } from "react-dom";
 import type { LucideProps } from "lucide-react";
@@ -87,6 +87,7 @@ import type {
   WordChallenge,
 } from "./lib/types";
 import { asText, compactNumber, percent, prettyDate } from "./lib/format";
+import { learningTopicCopy } from "./lib/learningTopicCopy";
 import { appCopy, appNavDescription, cleanAppText, normalizeAppLocale, translateViewDetails } from "./lib/i18n";
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
@@ -125,6 +126,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogTitle,
+  DialogTrigger,
 } from "./components/ui/dialog";
 import { usePlatform, usePlatformAttribute } from "./lib/platform";
 
@@ -3281,7 +3283,7 @@ export function App() {
   }, []);
 
   const saveSettings = async (payload: ApiRecord) => {
-    await runAction("settings", () => api<SessionData>("/api/settings", { method: "POST", body: payload }), copy("settings_saved", "Settings saved."));
+    return Boolean(await runAction("settings", () => api<SessionData>("/api/settings", { method: "POST", body: payload }), copy("settings_saved", "Settings saved.")));
   };
 
   const saveNavigationLayout = (patch: NonNullable<UserProfile["navigation_layout"]>) => {
@@ -3684,13 +3686,15 @@ export function App() {
           copy={copy}
           onLogout={onLogout}
           onLanguageChange={(code) => saveSettings({ interface_language: code })}
+          onSaveTopic={(topic) => saveSettings({ learning_focus: topic })}
           setView={activateView}
           busy={busy}
           onBugReport={() => setBugReportOpen(true)}
           onGuide={() => setGuideOpen(true)}
         />
-        {platform === "mobile" && activeView === "home" ? (
+        {platform === "mobile" && (activeView === "home" || activeView === "tutor") ? (
           <MobileQuickControls
+            inline={activeView === "tutor"}
             user={user}
             session={session}
             theme={theme}
@@ -3698,6 +3702,7 @@ export function App() {
             copy={copy}
             onLogout={onLogout}
             onLanguageChange={(code) => saveSettings({ interface_language: code })}
+            onSaveTopic={(topic) => saveSettings({ learning_focus: topic })}
             onBugReport={() => setBugReportOpen(true)}
             onGuide={() => setGuideOpen(true)}
             busy={busy}
@@ -4614,6 +4619,7 @@ function TopBar({
   copy,
   onLogout,
   onLanguageChange,
+  onSaveTopic,
   setView,
   busy,
   onBugReport,
@@ -4627,7 +4633,8 @@ function TopBar({
   setBrightness: (value: number) => void;
   copy: (key: string, fallback: string) => string;
   onLogout: () => void;
-  onLanguageChange: (code: string) => Promise<void>;
+  onLanguageChange: (code: string) => Promise<unknown>;
+  onSaveTopic: (topic: string) => Promise<boolean>;
   setView: (view: ViewId) => void;
   busy: string | null;
   onBugReport: () => void;
@@ -4658,6 +4665,7 @@ function TopBar({
           <Sparkles size={14} />
           <Slider value={[brightness]} min={65} max={125} step={1} onValueChange={(value) => setBrightness(value[0] || 100)} />
         </label>
+        <LearningTopicControl user={user} busy={busy === "settings"} onSave={onSaveTopic} />
         <AnimatedSelect
           className="v2-language-select"
           value={user.interface_language || "ru"}
@@ -4675,6 +4683,7 @@ function TopBar({
 }
 
 function MobileQuickControls({
+  inline,
   user,
   session,
   theme,
@@ -4682,30 +4691,34 @@ function MobileQuickControls({
   copy,
   onLogout,
   onLanguageChange,
+  onSaveTopic,
   onBugReport,
   onGuide,
   busy,
 }: {
+  inline: boolean;
   user: UserProfile;
   session: SessionData;
   theme: Theme;
   setTheme: (theme: Theme) => void;
   copy: (key: string, fallback: string) => string;
   onLogout: () => void;
-  onLanguageChange: (code: string) => Promise<void>;
+  onLanguageChange: (code: string) => Promise<unknown>;
+  onSaveTopic: (topic: string) => Promise<boolean>;
   onBugReport: () => void;
   onGuide: () => void;
   busy: string | null;
 }) {
   const interfaceLanguages = session.interface_languages?.length ? session.interface_languages : [{ code: user.interface_language || "ru", native_name: user.interface_language || "ru" }];
   return (
-    <div className="mobile-quick-controls-v2" aria-label={copy("mobile_quick_controls", "Mobile quick controls")}>
+    <div className={cn("mobile-quick-controls-v2", inline && "mobile-quick-controls-v2--inline")} aria-label={copy("mobile_quick_controls", "Mobile quick controls")}>
       <button className="app-guide-button-v2" type="button" onClick={onGuide} aria-label={copy("app_guide_title", "Quick start guide")}>
         <CircleHelp size={17} />
       </button>
       <button className="mobile-report-button-v2" type="button" onClick={onBugReport} aria-label={copy("report_bug", "Сообщить об ошибке")}>
         <Bug size={17} />
       </button>
+      <LearningTopicControl user={user} busy={busy === "settings"} onSave={onSaveTopic} iconOnly />
       <AnimatedSelect
         className="mobile-language-select-v2"
         value={user.interface_language || "ru"}
@@ -4718,6 +4731,66 @@ function MobileQuickControls({
       <AnimatedThemeToggle className="mobile-theme-toggle-v2" theme={theme} onChange={setTheme} />
       <LogoutButton onConfirm={onLogout} disabled={busy === "logout"} label={copy("logout", "Log out")} cancelLabel={copy("cancel", "Cancel")} iconOnly />
     </div>
+  );
+}
+
+const learningTopicPresets = roleplayScenarios.filter((scenario) => ["restaurant", "work", "travel", "exam"].includes(scenario.id));
+
+function LearningTopicControl({ user, busy, onSave, iconOnly }: {
+  user: UserProfile;
+  busy: boolean;
+  onSave: (topic: string) => Promise<boolean>;
+  iconOnly?: boolean;
+}) {
+  const locale = normalizeAppLocale(user.interface_language);
+  const [title, mixed, custom, save] = learningTopicCopy[locale];
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [failed, setFailed] = useState(false);
+  const inputId = useId();
+  const current = user.learning_focus?.trim() || "";
+  return (
+    <Dialog open={open} onOpenChange={(next) => {
+      if (next) {
+        setDraft(current);
+        setFailed(false);
+      }
+      setOpen(next);
+    }}>
+      <DialogTrigger asChild>
+        <button type="button" className="v2-report-button learning-topic-trigger" aria-label={title} title={current || title}>
+          <BookOpen size={16} aria-hidden="true" />
+          {!iconOnly && <span>{title}</span>}
+        </button>
+      </DialogTrigger>
+      <DialogContent className="v2-dialog-content learning-topic-dialog" aria-describedby={undefined} dir={locale === "ar" ? "rtl" : "ltr"}>
+        <form onSubmit={async (event) => {
+          event.preventDefault();
+          if (busy) return;
+          setFailed(false);
+          if (draft.trim() === current || await onSave(draft.trim())) setOpen(false);
+          else setFailed(true);
+        }}>
+          <DialogBody>
+            <DialogTitle>{title}</DialogTitle>
+            <div className="learning-topic-options">
+              <button type="button" aria-pressed={!draft.trim()} onClick={() => setDraft("")}>{mixed}</button>
+              {learningTopicPresets.map((scenario) => {
+                const label = roleplayScenarioTitle(scenario, user);
+                return <button key={scenario.id} type="button" aria-pressed={draft.trim() === label} onClick={() => setDraft(label)}>{label}</button>;
+              })}
+            </div>
+            <label htmlFor={inputId}>{custom}</label>
+            <input id={inputId} value={draft} onChange={(event) => setDraft(event.target.value)} dir="auto" />
+            {failed && <p role="alert">{appCopy(locale, "request_failed", "Request failed")}</p>}
+          </DialogBody>
+          <DialogFooter>
+            <DialogClose asChild><Button type="button" variant="outline">{appCopy(locale, "cancel", "Cancel")}</Button></DialogClose>
+            <Button type="submit" disabled={busy}>{save}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -5367,7 +5440,7 @@ type ViewRendererProps = {
   loadPremiumPlans: () => Promise<void>;
   paymentHistory: PaymentHistoryItem[];
   setPayment: (payment: PaymentState | null) => void;
-  saveSettings: (payload: ApiRecord) => Promise<void>;
+  saveSettings: (payload: ApiRecord) => Promise<unknown>;
   changePassword: (payload: { current_password: string; new_password: string; new_password_confirm: string }) => Promise<void>;
   startTelegramCode: (body?: ApiRecord) => Promise<TelegramCodeRequest | null>;
   verifyTelegramCode: (token: string, code: string) => Promise<boolean>;

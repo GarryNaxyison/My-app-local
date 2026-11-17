@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { appCopy, appLocaleCodes } from "../src/lib/i18n";
+import { learningTopicCopy } from "../src/lib/learningTopicCopy";
 
 const png = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
@@ -3906,6 +3907,54 @@ test("PWA controller updates preserve an unsent practice answer", async ({ page 
   await page.waitForTimeout(300);
   expect(navigated).toBe(false);
   await expect(input).toHaveValue("Do not lose this answer");
+});
+
+test("learning topic controls have copy for all interface languages", () => {
+  expect(Object.keys(learningTopicCopy)).toEqual([...appLocaleCodes]);
+  for (const locale of appLocaleCodes) {
+    expect(learningTopicCopy[locale]).toHaveLength(4);
+    expect(learningTopicCopy[locale].every((label) => label.trim())).toBe(true);
+  }
+});
+
+test("top controls save a preset and custom learning topic", async ({ page, isMobile }) => {
+  await useInterfaceLanguage(page, "ru");
+  const writes: string[] = [];
+  await page.route("**/api/settings", async (route) => {
+    const body = route.request().postDataJSON();
+    expect(Object.keys(body)).toEqual(["learning_focus"]);
+    writes.push(body.learning_focus);
+    await route.fulfill({ json: { ...sessionPayload, user: { ...sessionPayload.user, learning_focus: body.learning_focus } } });
+  });
+  await page.goto("/app/?view=home");
+  const controls = page.locator(isMobile ? ".mobile-quick-controls-v2" : ".v2-topbar__actions");
+  const trigger = controls.getByRole("button", { name: "Тема обучения" });
+  await trigger.click();
+  const dialog = page.getByRole("dialog", { name: "Тема обучения" });
+  await dialog.getByRole("button", { name: /Ресторан/ }).click();
+  await dialog.getByRole("button", { name: "Сохранить" }).click();
+  await expect(dialog).toBeHidden();
+  await trigger.click();
+  await expect(dialog.getByRole("textbox")).toHaveValue(writes[0]);
+  await dialog.getByRole("textbox").fill("Поездка на поезде");
+  await dialog.getByRole("button", { name: "Сохранить" }).click();
+  await expect(dialog).toBeHidden();
+  expect(writes[0]).toMatch(/Ресторан/);
+  expect(writes[1]).toBe("Поездка на поезде");
+});
+
+test("learning topic stays accessible in the AI Tutor header in Arabic", async ({ page, isMobile }) => {
+  await useInterfaceLanguage(page, "ar");
+  if (isMobile) await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/app/?view=tutor");
+  const controls = page.locator(isMobile ? ".mobile-quick-controls-v2" : ".v2-topbar__actions");
+  await controls.getByRole("button", { name: learningTopicCopy.ar[0] }).click();
+  const dialog = page.getByRole("dialog", { name: learningTopicCopy.ar[0] });
+  await expect(dialog).toHaveAttribute("dir", "rtl");
+  await expect(dialog.getByRole("button", { name: /مطعم/ })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: learningTopicCopy.ar[1] })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
 });
 
 test("AI Tutor introduces the lesson goal and marked learning route", async ({ page }, testInfo) => {
