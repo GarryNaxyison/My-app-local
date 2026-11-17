@@ -924,7 +924,7 @@ await writeGeneratedPage(path.join(knowledgeRoot, "english-guides.html"), `<!doc
 <title>Knowledge Base — NERIVA</title><meta name="description" content="English guides to language practice, pronunciation and lessons with NERIVA.">
 <link rel="canonical" href="${knowledgeOrigin}/knowledge/english-guides.html">
 <link rel="icon" href="/assets/brand/neriva-icon-192.png?v=official"><link rel="stylesheet" href="/assets/knowledge-base.css"></head>
-<body><nav class="knowledge-topnav" aria-label="Main navigation"><div class="knowledge-topnav__inner">
+<body class="knowledge-shell" data-page="knowledge-hub"><nav class="knowledge-topnav" aria-label="Main navigation"><div class="knowledge-topnav__inner">
 <a class="knowledge-brand" href="/neriva.html?lang=en" aria-label="NERIVA"><img src="/assets/brand/neriva-symbol.png" alt=""><span>NERIVA</span></a>
 <div class="knowledge-topnav__actions"><select class="knowledge-language" aria-label="Language" onchange="if (this.value === 'ru') location.href = '/knowledge/'"><option value="ru">Русский</option><option value="en" selected>English</option></select><a class="knowledge-app-button" href="/app/">Open app</a></div>
 </div></nav>
