@@ -59,7 +59,7 @@ export function TravelRoute({ russian, owner, onRoleplay }: { russian: boolean; 
       ) : (
         <>
           <p role="status">{russian ? "Все задания выполнены. Повторите фразы или попробуйте сцену «Ресторан»." : "All exercises complete. Review the phrases or try the Restaurant scene."}</p>
-          <Button type="button" onClick={onRoleplay}>{russian ? "Открыть ролевые сцены" : "Open roleplay scenes"}</Button>
+          <Button type="button" onClick={onRoleplay}>{russian ? "Начать сцену «Ресторан»" : "Start the Restaurant scene"}</Button>
           <Button type="button" variant="outline" onClick={() => saveStep(0)}>{russian ? "Повторить маршрут" : "Repeat the route"}</Button>
           <WordCardPrint items={cards} russian={russian} />
         </>

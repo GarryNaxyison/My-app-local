@@ -1070,8 +1070,9 @@ test("travel route unlocks printable cards after three exercises", async ({ page
   await expect(route).toContainText("3/3");
   await route.getByRole("button", { name: "Печатные карточки" }).click();
   await expect(route.locator("[data-word-card-sheet]")).toHaveCount(1);
-  await route.getByRole("button", { name: "Открыть ролевые сцены" }).click();
-  await expect(page.locator(".roleplay-grid-v2")).toBeVisible();
+  await route.getByRole("button", { name: "Начать сцену «Ресторан»" }).click();
+  await expect(page.locator(".roleplay-view-v2--session .roleplay-guidance")).toContainText("Закажите блюдо");
+  await expect(page.locator(".roleplay-grid-v2")).toHaveCount(0);
 });
 
 test("practice with pasted text checks the learner answer in context", async ({ page }) => {

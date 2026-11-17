@@ -2007,6 +2007,7 @@ export function App() {
   const [toolImageFile, setToolImageFile] = useState<File | null>(null);
   const [toolResult, setToolResult] = useState<TranslatorResult | null>(null);
   const [roleplayResult, setRoleplayResult] = useState<ChatMessage | null>(null);
+  const [roleplayEntry, setRoleplayEntry] = useState<RoleplayScenario | null>(null);
   const bootstrappedRef = useRef(false);
   const lastPremiumUntilRef = useRef("");
   const viewHistoryReadyRef = useRef(false);
@@ -3496,6 +3497,15 @@ export function App() {
     submitLesson: () => submitLearningAnswer("lesson"),
     submitPractice: () => submitLearningAnswer("practice"),
     startRoleplayScenario,
+    roleplayEntry,
+    consumeRoleplayEntry: () => setRoleplayEntry(null),
+    openTravelRoleplay: () => {
+      const restaurant = roleplayScenarios.find((scenario) => scenario.id === "restaurant");
+      if (!restaurant) return;
+      setRoleplayEntry(restaurant);
+      setVoiceFile(null);
+      void startRoleplayScenario(restaurant);
+    },
     submitRoleplayAnswer,
     roleplayResult,
     startShadowing,
@@ -5234,6 +5244,9 @@ type ViewRendererProps = {
   submitLesson: () => Promise<void>;
   submitPractice: () => Promise<void>;
   startRoleplayScenario: (scenario: RoleplayScenario) => Promise<void>;
+  roleplayEntry?: RoleplayScenario | null;
+  consumeRoleplayEntry?: () => void;
+  openTravelRoleplay?: () => void;
   submitRoleplayAnswer: (scenario: RoleplayScenario, text: string, voice?: File | null) => Promise<void>;
   roleplayResult: ChatMessage | null;
   startShadowing: () => Promise<void>;
@@ -6316,7 +6329,7 @@ function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, sav
   return candidates;
 }
 
-function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages"> & Partial<Pick<ViewRendererProps, "session" | "restartTutorLesson" | "startMistakePractice">>) {
+function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages"> & Partial<Pick<ViewRendererProps, "session" | "restartTutorLesson" | "startMistakePractice" | "openTravelRoleplay">>) {
   const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus, openOnboarding } = props;
   const todayKey = localDateKey();
   const completedDates = Object.entries(habitLog).filter(([, day]) => day.complete).map(([date]) => date);
@@ -6400,12 +6413,12 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
           startMistakePractice={props.startMistakePractice}
         />
       )}
-      {props.session?.authenticated && user.learning_language === "en" && languageCode(user.interface_language) === "ru" && (
+      {props.session?.authenticated && props.openTravelRoleplay && user.learning_language === "en" && languageCode(user.interface_language) === "ru" && (
         <TravelRoute
           key={JSON.stringify([props.session.account?.login, user.telegram_account?.id])}
           owner={JSON.stringify([props.session.account?.login, user.telegram_account?.id])}
           russian
-          onRoleplay={() => setView("roleplay")}
+          onRoleplay={props.openTravelRoleplay}
         />
       )}
       <section className="v2-panel home-focus">
@@ -6493,6 +6506,8 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
 
 function RoleplayView({
   startRoleplayScenario,
+  roleplayEntry,
+  consumeRoleplayEntry,
   submitRoleplayAnswer,
   messages,
   draft,
@@ -6508,7 +6523,10 @@ function RoleplayView({
   savePhrase,
   isPhraseSaved,
 }: ViewRendererProps) {
-  const [activeScenario, setActiveScenario] = useState<RoleplayScenario | null>(null);
+  const [activeScenario, setActiveScenario] = useState<RoleplayScenario | null>(roleplayEntry ?? null);
+  useEffect(() => {
+    if (roleplayEntry) consumeRoleplayEntry?.();
+  }, [roleplayEntry, consumeRoleplayEntry]);
   const [hintStep, setHintStep] = useState(0);
   const [restaurantGoalReached, setRestaurantGoalReached] = useState(false);
   const russian = languageCode(user.interface_language) === "ru";
