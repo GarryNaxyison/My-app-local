@@ -3052,6 +3052,7 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
   await expect(page.locator(".pronunciation-target-primary-v2 .audio-wave-button-v2")).toBeVisible();
   await expect(page.locator(".pronunciation-tools-v2 .file-controls-v2")).toBeVisible();
+  await expect(page.locator(".pronunciation-tools-v2 .voice-quota")).toContainText("20 / 20");
   await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);
 
   await page.locator('.pronunciation-tools-v2 input[type="file"]').setInputFiles({

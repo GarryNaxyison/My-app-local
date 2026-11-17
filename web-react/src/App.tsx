@@ -6569,7 +6569,7 @@ function RoleplayView({
                 <span>{copy("send", "Send")}</span>
               </Button>
             </div>
-            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} user={user} copy={copy} />
           </section>
         </div>
       </section>
@@ -6693,7 +6693,7 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
         <aside className="pronunciation-tools-v2">
           <div className="pronunciation-tool-card-v2">
             <span className="eyebrow"><Mic size={15} />{copy("record_and_check", "Record and check")}</span>
-            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} copy={copy} />
+            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={false} user={user} copy={copy} />
             <div className="home-insights-v2__actions pronunciation-tool-actions-v2">
               <Button onClick={() => void checkPronunciation()} disabled={busy === "pronunciation"}>
                 {busy === "pronunciation" ? <Spinner size="small" className="button-spinner-v2" /> : <CheckCircle size={16} />}
@@ -7234,7 +7234,7 @@ function ChatWorkView({
                 <span>{copy("send", "Send")}</span>
               </Button>
             </div>
-            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} copy={copy} />
+            <FileControls voiceFile={voiceFile} imageFile={imageFile} setVoiceFile={setVoiceFile} setImageFile={setImageFile} allowImage={isPractice} user={user} copy={copy} />
             {phraseCandidates.length ? <PhraseQuickSave candidates={phraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
         </section>
       ) : null}
@@ -8796,7 +8796,7 @@ function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setTo
             />
           </div>
         ) : (
-          <FileControls voiceFile={toolVoiceFile} imageFile={toolImageFile} setVoiceFile={setToolVoiceFile} setImageFile={setToolImageFile} allowImage={toolMode === "image"} allowVoice={toolMode === "voice"} copy={copy} />
+          <FileControls voiceFile={toolVoiceFile} imageFile={toolImageFile} setVoiceFile={setToolVoiceFile} setImageFile={setToolImageFile} allowImage={toolMode === "image"} allowVoice={toolMode === "voice"} user={user} copy={copy} />
         )}
         {toolPhraseCandidates.length ? <PhraseQuickSave candidates={toolPhraseCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
       </section>
@@ -8854,7 +8854,13 @@ function ToolButton({ active, icon: Icon, title, onClick }: { active: boolean; i
   );
 }
 
-function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowImage, allowVoice = true, copy }: { voiceFile: File | null; imageFile: File | null; setVoiceFile: (file: File | null) => void; setImageFile: (file: File | null) => void; allowImage: boolean; allowVoice?: boolean; copy: (key: string, fallback: string) => string }) {
+function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowImage, allowVoice = true, user, copy }: { voiceFile: File | null; imageFile: File | null; setVoiceFile: (file: File | null) => void; setImageFile: (file: File | null) => void; allowImage: boolean; allowVoice?: boolean; user: UserProfile; copy: (key: string, fallback: string) => string }) {
+  const limit = user.voice_limit;
+  const used = user.voice_today;
+  const quota = typeof limit === "number" && Number.isFinite(limit) && limit >= 0 &&
+    typeof used === "number" && Number.isFinite(used) && used >= 0
+    ? { remaining: Math.max(0, limit - used), limit }
+    : null;
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
@@ -8949,6 +8955,7 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
             compact
           />
           {recordError ? <small className="file-error-v2">{recordError}</small> : null}
+          {quota && <small className="voice-quota">{copy("voice_remaining_today", "Voice submissions left today")} <strong dir="ltr">{quota.remaining} / {quota.limit}</strong></small>}
         </>
       ) : null}
       {allowImage ? <ImageUploadControl imageFile={imageFile} setImageFile={setImageFile} copy={copy} /> : null}
