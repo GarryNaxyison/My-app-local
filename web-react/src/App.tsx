@@ -5598,6 +5598,18 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
   const isVisibleComplete = visibleTutorStep?.kind === "complete" || visibleTutorStep?.stage === "complete";
   const { choice: reviewChoice, error: tutorReviewError } = tutorReview;
   const tutorReviewWords = isComplete ? words.map((word) => display(word.target)).filter(Boolean).slice(0, 3) : [];
+  const printableLessonWords: VocabularyItem[] = isVisibleComplete && !isPreviewing
+    ? words.flatMap((entry, index) => {
+      const word = display(entry.target);
+      if (!word) return [];
+      return [{
+        id: display(entry.id) || `lesson-word-${index}`,
+        word,
+        translation: display(entry.interface_translation),
+        example: display(entry.example_sentence_target),
+      }];
+    })
+    : [];
   const isProduction = visibleTutorStep?.stage === "production";
   const defaultReviewChoice = aiTutorStep?.stage === "review_schedule" ? "no_review" : aiTutorStep?.stage === "lesson_feedback" ? "good" : "";
   const productionSentenceCount = countTutorSentences(tutorDraft);
@@ -5988,6 +6000,7 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
               </div>
             ) : null}
 
+            {printableLessonWords.length > 0 && <WordCardPrint items={printableLessonWords} russian={languageCode(user.interface_language) === "ru"} />}
             {tutorNoteCandidates.length ? <TutorNoteStrip candidates={tutorNoteCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
             {tutorActualErrorLines.length ? (
               <div className="tutor-answer-variants-v2 tutor-actual-errors-v2" aria-label={copy("mistakes", "Mistakes")}>

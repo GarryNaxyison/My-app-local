@@ -2128,6 +2128,13 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(page.locator(".xp-gain-pop-v2")).toContainText("+40 XP");
   await expect(page.locator(".xp-gain-pop-v2")).toContainText("AI Репетитор");
 
+  const printableWords = page.locator(".tutor-context-v2 .word-card-print");
+  await printableWords.getByRole("button", { name: "Печатные карточки" }).click();
+  await expect(printableWords.locator("[data-word-card-sheet]")).toHaveCount(1);
+  await printableWords.locator("summary").click();
+  await expect(printableWords.getByRole("checkbox", { name: /wake up/ })).toBeChecked();
+  await expect(printableWords.locator("[data-word-card-sheet]")).toHaveAttribute("width", "1240");
+
   await page.locator(".tutor-completed-lessons-button-v2").click();
   const completedDialog = page.locator(".tutor-history-page");
   await expect(completedDialog).toBeVisible();

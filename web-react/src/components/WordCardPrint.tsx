@@ -93,7 +93,7 @@ export function WordCardPrint({ items, russian }: Props) {
               : russian ? "Режьте по сплошной линии." : "Cut on the solid line."}
           </p>
           <details>
-            <summary>{russian ? "Выбрать слова с этой страницы" : "Choose words on this page"}</summary>
+            <summary>{russian ? "Выбрать слова" : "Choose words"}</summary>
             <ul className="word-card-print__selection">
               {items.map((item, index) => (
                 <li key={index}>
