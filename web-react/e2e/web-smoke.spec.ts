@@ -1068,6 +1068,14 @@ test("travel route unlocks printable cards after three exercises", async ({ page
     await route.getByRole("button", { name: answer, exact: true }).click();
   }
   await expect(route).toContainText("3/3");
+  await route.getByText("Повторить слова", { exact: true }).click();
+  const review = route.locator(".travel-word-review");
+  await expect(review).toContainText("бронирование");
+  await expect(review.getByText("reservation", { exact: true })).toHaveCount(0);
+  await review.getByRole("button", { name: "Показать ответ" }).click();
+  await expect(review.getByText("reservation", { exact: true })).toBeVisible();
+  await review.getByRole("button", { name: "Следующее слово" }).click();
+  await expect(review).toContainText("билет");
   await route.getByRole("button", { name: "Печатные карточки" }).click();
   await expect(route.locator("[data-word-card-sheet]")).toHaveCount(1);
   await route.getByRole("button", { name: "Начать сцену «Ресторан»" }).click();

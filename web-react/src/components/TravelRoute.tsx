@@ -14,6 +14,28 @@ const lessons = [
   { ru: "В ресторане", en: "At the restaurant", prompt: "Could I see the ___ before I order?", choices: ["platform", "reservation", "menu"] },
 ] as const;
 
+function TravelWordReview({ russian }: { russian: boolean }) {
+  const [index, setIndex] = useState(0);
+  const [revealed, setRevealed] = useState(false);
+  const card = cards[index];
+  return (
+    <details className="travel-word-review">
+      <summary>{russian ? "Повторить слова" : "Review words"}</summary>
+      <p>{card.translation} · {index + 1}/{cards.length}</p>
+      {revealed ? (
+        <>
+          <p lang="en"><strong>{card.word}</strong></p>
+          <p lang="en">{card.example}</p>
+          <Button type="button" variant="outline" onClick={() => {
+            setIndex((current) => (current + 1) % cards.length);
+            setRevealed(false);
+          }}>{russian ? "Следующее слово" : "Next word"}</Button>
+        </>
+      ) : <Button type="button" variant="outline" onClick={() => setRevealed(true)}>{russian ? "Показать ответ" : "Show answer"}</Button>}
+    </details>
+  );
+}
+
 export function TravelRoute({ russian, owner, onRoleplay }: { russian: boolean; owner: string; onRoleplay: () => void }) {
   const storageKey = `neriva-travel-route-v1:${owner}`;
   const [step, setStep] = useState(() => {
@@ -61,6 +83,7 @@ export function TravelRoute({ russian, owner, onRoleplay }: { russian: boolean; 
           <p role="status">{russian ? "Все задания выполнены. Повторите фразы или попробуйте сцену «Ресторан»." : "All exercises complete. Review the phrases or try the Restaurant scene."}</p>
           <Button type="button" onClick={onRoleplay}>{russian ? "Начать сцену «Ресторан»" : "Start the Restaurant scene"}</Button>
           <Button type="button" variant="outline" onClick={() => saveStep(0)}>{russian ? "Повторить маршрут" : "Repeat the route"}</Button>
+          <TravelWordReview russian={russian} />
           <WordCardPrint items={cards} russian={russian} />
         </>
       )}
