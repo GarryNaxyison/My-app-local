@@ -93,6 +93,7 @@ import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
+import { TextPractice } from "./components/TextPractice";
 import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner, syncOfflineCards } from "./components/OfflineReview";
 import { MistakeTransfer } from "./components/MistakeTransfer";
 import { buildMistakeTransfer, type MistakeTransferTask } from "./lib/mistakeTransfer";
@@ -7178,6 +7179,7 @@ function ChatWorkView({
   const answerLabel = copy("lesson_answer", "Lesson answer");
   return (
     <div className={cn("chat-workspace", `chat-workspace--${mode}`, isShadowing && !visibleMessages.length && "chat-workspace--single")} data-work-mode={mode}>
+      {isPractice && <TextPractice russian={languageCode(user.interface_language) === "ru"} />}
       {lessonHasActiveTask ? (
         <div className="lesson-answer-shortcut">
           <Button type="button" variant="outline" onClick={() => {

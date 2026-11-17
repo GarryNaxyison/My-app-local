@@ -1054,6 +1054,27 @@ const todayReviewItem = {
   status: "due",
 };
 
+test("practice with pasted text checks the learner answer in context", async ({ page }) => {
+  await page.route("**/api/practice", (route) => {
+    expect(route.request().postDataJSON().text).toContain("The train leaves at nine.");
+    expect(route.request().postDataJSON().text).toContain("The train leaves in the morning.");
+    return route.fulfill({ json: { reply: "Correct summary." } });
+  });
+  await page.goto("/app/?view=practice");
+  const panel = page.locator(".text-practice");
+  await panel.locator("summary").click();
+  const prepare = panel.getByRole("button", { name: /Подготовить вопросы|Prepare questions/ });
+  await expect(prepare).toBeDisabled();
+  await panel.locator("textarea").fill("x".repeat(1201));
+  await expect(prepare).toBeDisabled();
+  await panel.locator("textarea").fill("The train leaves at nine.");
+  await prepare.click();
+  await panel.getByRole("button", { name: /главную мысль|main idea/ }).click();
+  await panel.getByLabel(/Ваш ответ|Your answer/).fill("The train leaves in the morning.");
+  await panel.getByRole("button", { name: /Проверить ответ|Check answer/ }).click();
+  await expect(panel.getByRole("status")).toHaveText("Correct summary.");
+});
+
 test("saved offline marks sync on sign-in without sending another account's marks", async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem("neriva-offline-reviewed:demor22", JSON.stringify(["card-a"]));
