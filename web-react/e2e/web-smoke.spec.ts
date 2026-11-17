@@ -1054,6 +1054,23 @@ const todayReviewItem = {
   status: "due",
 };
 
+test("saved offline marks sync on sign-in without sending another account's marks", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("neriva-offline-reviewed:demor22", JSON.stringify(["card-a"]));
+    localStorage.setItem("neriva-offline-reviewed:another", JSON.stringify(["private-card"]));
+    localStorage.setItem("neriva-offline-cards:demor22", "[]");
+  });
+  await page.route("**/api/offline-reviews", (route) => {
+    const { card_ids } = route.request().postDataJSON();
+    expect(card_ids).toHaveLength(1);
+    expect(card_ids[0]).toMatch(/^[a-f0-9]{64}$/);
+    return route.fulfill({ json: { synced: 1 } });
+  });
+  await page.goto("/app/");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("neriva-offline-synced:demor22"))).toBe('["card-a"]');
+  expect(await page.evaluate(() => localStorage.getItem("neriva-offline-synced:another"))).toBeNull();
+});
+
 test("refreshing the offline deck saves cards under the signed-in account", async ({ page }) => {
   await page.goto("/app/?view=offline");
   await page.locator(".offline-hero-v2 .home-insights-v2__actions button").first().click();

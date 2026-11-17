@@ -93,7 +93,7 @@ import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
-import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner } from "./components/OfflineReview";
+import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner, syncOfflineCards } from "./components/OfflineReview";
 import { MistakeTransfer } from "./components/MistakeTransfer";
 import { buildMistakeTransfer, type MistakeTransferTask } from "./lib/mistakeTransfer";
 import { pwaUsesRussian } from "./components/PwaInstall";
@@ -2163,6 +2163,23 @@ export function App() {
   useEffect(() => {
     if (session) selectOfflineOwner(session.authenticated ? asText(session.account?.login || user.telegram_account?.id) : "");
   }, [session?.authenticated, accountKey]);
+  useEffect(() => {
+    if (!session?.authenticated || accountKey === "guest") return;
+    const controller = new AbortController();
+    const sync = () => void syncOfflineCards(accountKey, controller.signal);
+    if (navigator.onLine) sync();
+    window.addEventListener("online", sync);
+    return () => {
+      controller.abort();
+      window.removeEventListener("online", sync);
+    };
+  }, [session?.authenticated, accountKey]);
+  useEffect(() => {
+    if (sessionLoading || session || navigator.onLine) return;
+    const reconnect = () => location.reload();
+    window.addEventListener("online", reconnect);
+    return () => window.removeEventListener("online", reconnect);
+  }, [session, sessionLoading]);
   const onboardingKey = `poliglot-onboarding-v2:${accountKey}`;
   const paymentHistoryKey = `poliglot-payment-history-v2:${accountKey}`;
   const habitKey = `poliglot-habit-v2:${accountKey}`;

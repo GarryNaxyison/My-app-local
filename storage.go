@@ -105,6 +105,7 @@ type userState struct {
 	DailyBonusLastClaimedAt time.Time                        `json:"daily_bonus_last_claimed_at,omitempty"`
 	HabitLog                map[string]habitDayEntry         `json:"habit_log,omitempty"`
 	MistakeTransfers        map[string]mistakeTransferRecord `json:"mistake_transfers,omitempty"`
+	OfflineReviewed         map[string]bool                  `json:"offline_reviewed,omitempty"`
 	NavigationLayout        navigationLayout                 `json:"navigation_layout,omitempty"`
 	LastPaymentChargeID     string                           `json:"last_payment_charge_id"`
 	LastLessonPrompt        string                           `json:"last_lesson_prompt"`
@@ -205,6 +206,7 @@ type store interface {
 	addMistakes(telegramID int64, language string, entries []mistakeEntry) error
 	completeMistakeReview(telegramID int64, mode string, mistake mistakeEntry) (bool, error)
 	mistakeTransferProgress(telegramID int64, language string, cutoff time.Time) (mistakeTransferProgress, error)
+	syncOfflineReviews(telegramID int64, cardIDs []string) (int, error)
 	finishMistakeTransfer(telegramID int64, language, id string) (bool, error)
 	removeMistake(telegramID int64, language string, word string, correction string) error
 	clearMistakes(telegramID int64, language string) error

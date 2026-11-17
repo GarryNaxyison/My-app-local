@@ -1,8 +1,32 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { api } from "../lib/api";
 
 type Card = { id: string; title: string; answer?: string };
 const ownerKey = "neriva-offline-owner";
+
+export async function syncOfflineCards(owner: string, signal: AbortSignal) {
+  const reviewedKey = `neriva-offline-reviewed:${owner}`;
+  const syncedKey = `neriva-offline-synced:${owner}`;
+  try {
+    const reviewed: string[] = JSON.parse(localStorage.getItem(reviewedKey) || "[]");
+    const synced = new Set<string>(JSON.parse(localStorage.getItem(syncedKey) || "[]"));
+    const pending = [...new Set(reviewed)].filter((id) => typeof id === "string" && !synced.has(id));
+    for (let offset = 0; offset < pending.length && !signal.aborted; offset += 100) {
+      const batch = pending.slice(offset, offset + 100);
+      const digests = await Promise.all(batch.map(async (id) => {
+        const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(id));
+        return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
+      }));
+      if (signal.aborted || localStorage.getItem(ownerKey) !== owner) return;
+      await api("/api/offline-reviews", { method: "POST", body: { card_ids: digests }, signal });
+      for (const id of batch) synced.add(id);
+      localStorage.setItem(syncedKey, JSON.stringify([...synced]));
+    }
+  } catch {
+    // Keep pending local marks for the next authenticated session or reconnect.
+  }
+}
 
 export function saveOfflineCards(owner: string, cards: Card[], replaceOnly = false) {
   if (!owner) return;

@@ -8,6 +8,16 @@ import (
 	"time"
 )
 
+func TestWebOfflineReviewSyncDeduplicates(t *testing.T) {
+	api, _, cookie := newTestWebAPI(t)
+	for _, ids := range [][]string{{"card-a", "card-a"}, {"card-a", "card-b"}} {
+		result := requestJSON(t, api, cookie, http.MethodPost, "/api/offline-reviews", map[string]any{"card_ids": ids})
+		if result["synced"] != float64(1) {
+			t.Fatalf("expected one new card per batch: %#v", result)
+		}
+	}
+}
+
 func TestLearningReviewWebURL(t *testing.T) {
 	got, err := learningReviewWebURL("https://neriva.ru/app?lang=ru", "ai_tutor:lesson/1")
 	if err != nil || got != "https://neriva.ru/app?lang=ru&review=ai_tutor%3Alesson%2F1&view=home" {

@@ -150,6 +150,11 @@ func (s *sqliteStore) init() error {
 			added_at TEXT NOT NULL,
 			PRIMARY KEY (telegram_id, word, correction)
 		)`,
+		`CREATE TABLE IF NOT EXISTS offline_reviews (
+			telegram_id INTEGER NOT NULL,
+			card_id TEXT NOT NULL,
+			PRIMARY KEY (telegram_id, card_id)
+		)`,
 		`CREATE TABLE IF NOT EXISTS mistake_transfers (
 			telegram_id INTEGER NOT NULL,
 			review_id TEXT NOT NULL,
@@ -942,6 +947,9 @@ func (s *sqliteStore) deleteUserStateRows(userID int64) error {
 	if _, err := s.db.Exec(`DELETE FROM mistake_transfers WHERE telegram_id = ?`, userID); err != nil {
 		return err
 	}
+	if _, err := s.db.Exec(`DELETE FROM offline_reviews WHERE telegram_id = ?`, userID); err != nil {
+		return err
+	}
 	if _, err := s.db.Exec(`DELETE FROM learned_words WHERE telegram_id = ?`, userID); err != nil {
 		return err
 	}
@@ -1612,6 +1620,7 @@ func (s *sqliteStore) resetLearningState(telegramID int64) error {
 	for _, stmt := range []string{
 		`DELETE FROM mistakes WHERE telegram_id = ?`,
 		`DELETE FROM mistake_transfers WHERE telegram_id = ?`,
+		`DELETE FROM offline_reviews WHERE telegram_id = ?`,
 		`DELETE FROM learned_words WHERE telegram_id = ?`,
 		`DELETE FROM phrasebook_entries WHERE telegram_id = ?`,
 		`DELETE FROM daily_bonus_claims WHERE telegram_id = ?`,
