@@ -2,6 +2,7 @@ import { useId, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { checkMistakeTransfer, type MistakeTransferTask } from "../lib/mistakeTransfer";
 import { api } from "../lib/api";
+import { recordLearningEvent } from "../lib/learningEvents";
 
 export function MistakeTransfer({ task, reviewId, russian, savedAnswer, onSaved, onPremium, onClose }: {
   task: MistakeTransferTask;
@@ -25,6 +26,7 @@ export function MistakeTransfer({ task, reviewId, russian, savedAnswer, onSaved,
     setSaveState("saving");
     try {
       await api("/api/mistakes/transfer", { method: "POST", body: { review_id: reviewId } });
+      recordLearningEvent("transfer_completed", "text");
       setSaveState("saved");
       onSaved?.(answer);
     } catch {

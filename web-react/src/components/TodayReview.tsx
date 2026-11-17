@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Repeat2 } from "lucide-react";
 import { api } from "../lib/api";
+import { recordLearningEvent } from "../lib/learningEvents";
 import { normalizeAppLocale } from "../lib/i18n";
 import { Button } from "./ui/button";
 
@@ -36,12 +37,13 @@ export function TodayReview({ requestedId, compact = false, interfaceLanguage, c
         (entry.source === "ai_tutor" && entry.lesson_id || entry.source === "mistake" && entry.id) && Number.isFinite(Date.parse(entry.due_at)),
       );
       setItem(next ?? null);
+      if (!compact && next?.status === "due") recordLearningEvent("review_due");
       setLoaded(true);
     }).catch(() => {
       if (!controller.signal.aborted) setItem(null);
     });
     return () => controller.abort();
-  }, [requestedId]);
+  }, [requestedId, compact]);
 
   const locale = normalizeAppLocale(interfaceLanguage);
   const russian = locale === "ru";

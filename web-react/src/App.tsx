@@ -93,6 +93,7 @@ import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
+import { recordLearningEvent } from "./lib/learningEvents";
 import { TextPractice } from "./components/TextPractice";
 import { TravelRoute } from "./components/TravelRoute";
 import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner, syncOfflineCards } from "./components/OfflineReview";
@@ -1949,6 +1950,7 @@ export function App() {
   ]);
   const messageObjectUrlsRef = useRef<Set<string>>(new Set());
   const [activeLessonTaskId, setActiveLessonTaskId] = useState("");
+  const lessonStartedAt = useRef<number | null>(null);
   const [draft, setDraft] = useState("");
   const [savedLessonDraft, setSavedLessonDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
@@ -2450,6 +2452,8 @@ export function App() {
     const payload = await runAction("lesson", () => api<ApiRecord>("/api/lesson/start", { method: "POST", body: {} }), copy("lesson_ready", "Lesson is ready."));
     if (!payload) return;
     updateLessonDraft("");
+    lessonStartedAt.current = performance.now();
+    recordLearningEvent("lesson_started");
     const record = getRecord(payload);
     const body = recordField(record, ["lesson", "prompt", "question", "task", "message"]) || copy("lesson_generated", "Lesson generated.");
     const taskId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -2693,6 +2697,9 @@ export function App() {
       return;
     }
     const endpoint = mode === "lesson" ? "/api/lesson/answer" : "/api/practice";
+    const sentAt = performance.now();
+    const format = voiceFile ? "voice" : "text";
+    if (mode === "lesson") recordLearningEvent("answer_submitted", format, lessonStartedAt.current === null ? 0 : sentAt - lessonStartedAt.current);
     const hasFile = Boolean(voiceFile || (mode === "practice" && imageFile));
     const payload = await runAction(mode, async () => {
       if (!hasFile) return api<ApiRecord>(endpoint, { method: "POST", body: { text } });
@@ -2703,6 +2710,7 @@ export function App() {
       return apiForm<ApiRecord>(endpoint, form);
     });
     if (!payload) return;
+    if (mode === "lesson") recordLearningEvent("answer_checked", format, performance.now() - sentAt);
     const record = getRecord(payload);
     const responseText = formatLearningRecord(record, copy, copy("done", "Done."));
     const transcript = asText(record.transcript || text || (voiceFile ? copy("voice_message", "Voice message") : imageFile ? copy("image_message", "Image message") : ""), "");
@@ -6368,6 +6376,13 @@ function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, sav
 }
 
 function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages"> & Partial<Pick<ViewRendererProps, "session" | "restartTutorLesson" | "startMistakePractice" | "openTravelRoleplay">>) {
+  const recordedToday = useRef(false);
+  useEffect(() => {
+    if (props.session?.authenticated && !recordedToday.current) {
+      recordedToday.current = true;
+      recordLearningEvent("today_opened");
+    }
+  }, [props.session?.authenticated]);
   const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus, openOnboarding } = props;
   const todayKey = localDateKey();
   const completedDates = Object.entries(habitLog).filter(([, day]) => day.complete).map(([date]) => date);
@@ -9059,6 +9074,7 @@ function LessonVoiceRetry({ phrase, user, copy, voiceFile, setVoiceFile, check, 
         pending.current = true;
         setReport(null);
         setFailed(false);
+        recordLearningEvent("retry_submitted", "voice");
         try {
           const result = pronunciationFrom(await check(phrase) || {});
           if (result) setReport(result);

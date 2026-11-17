@@ -205,6 +205,7 @@ let testSessionPayloadOverride: typeof sessionPayload | null = null;
 let testPhrasebookItemsOverride: unknown[] | null = null;
 
 async function mockApi(page: Page) {
+  await page.route("**/api/learning-events", (route) => route.fulfill({ json: { stored: true } }));
   await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed: 0, completed_last_7_days: 0 } }));
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [] } }));
   await page.addInitScript(
@@ -1359,8 +1360,11 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   }).toBe(true);
   await textarea.fill(draft);
   const submission = page.waitForRequest((request) => request.url().endsWith("/api/lesson/answer") && request.method() === "POST");
+  const checkedEvent = page.waitForRequest((request) => request.url().endsWith("/api/learning-events") && request.postDataJSON()?.stage === "answer_checked");
   await lesson.locator(".composer-submit-v2").click();
   expect((await submission).postDataJSON()).toMatchObject({ text: draft });
+  const checked = (await checkedEvent).postDataJSON();
+  expect(checked).toEqual({ id: expect.any(String), stage: "answer_checked", format: "text", elapsed_ms: expect.any(Number) });
   await expect(lesson.locator(".chat-interface")).toContainText(correction);
   await expect(lesson.locator(".chat-interface")).toContainText(prompt);
   await expect(lesson.locator(".lesson-panel-next-v2")).toBeVisible();

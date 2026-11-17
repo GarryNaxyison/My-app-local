@@ -8,6 +8,18 @@ import (
 	"time"
 )
 
+func TestWebLearningEventIsIdempotent(t *testing.T) {
+	api, storage, cookie := newTestWebAPI(t)
+	body := map[string]any{"id": "d405234b-5974-45dc-b414-b0739d0adb07", "stage": "answer_checked", "format": "text"}
+	for i := 0; i < 2; i++ {
+		requestJSON(t, api, cookie, http.MethodPost, "/api/learning-events", body)
+	}
+	var count int
+	if err := storage.db.QueryRow("SELECT COUNT(*) FROM learning_events WHERE telegram_id = ? AND stage = ?", -42, "answer_checked").Scan(&count); err != nil || count != 1 {
+		t.Fatalf("count = %d, error = %v", count, err)
+	}
+}
+
 func TestWebOfflineReviewSyncDeduplicates(t *testing.T) {
 	api, _, cookie := newTestWebAPI(t)
 	for _, ids := range [][]string{{"card-a", "card-a"}, {"card-a", "card-b"}} {
