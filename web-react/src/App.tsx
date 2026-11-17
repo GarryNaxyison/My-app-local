@@ -2698,7 +2698,10 @@ export function App() {
     if (!payload) return;
     const record = getRecord(payload);
     const transcript = asText(learnerText || (voice ? record.transcript || copy("voice_message", "Voice message") : ""), "");
-    const result = panelMessage(formatLearningRecord(record, copy, copy("roleplay_ready", "Roleplay is ready.")), "success", title, record, "roleplay");
+    const result = panelMessage(formatLearningRecord(record, copy, copy("roleplay_ready", "Roleplay is ready.")), "success", title, {
+      ...record,
+      submitted_roleplay_text: voice ? "" : learnerText,
+    }, "roleplay");
     setRoleplayResult(result);
     setMessages((current) => [
       result,
@@ -6461,10 +6464,12 @@ function RoleplayView({
 }: ViewRendererProps) {
   const [activeScenario, setActiveScenario] = useState<RoleplayScenario | null>(null);
   const [hintStep, setHintStep] = useState(0);
+  const [restaurantGoalReached, setRestaurantGoalReached] = useState(false);
   const russian = languageCode(user.interface_language) === "ru";
   const isMobileUi = useMobileUiLayout();
   const beginScenario = async (scenario: RoleplayScenario) => {
     setHintStep(0);
+    setRestaurantGoalReached(false);
     setActiveScenario(scenario);
     await startRoleplayScenario(scenario);
   };
@@ -6479,6 +6484,12 @@ function RoleplayView({
     ? [roleplayResult, ...roleplayMessages.filter((message) => message.id !== roleplayResult.id)].slice(0, 8)
     : roleplayMessages.slice(0, 8);
   const phraseCandidates = phraseCandidatesFromMessages(sessionMessages, user.learning_language || "");
+  const restaurantReply = asText(roleplayResult?.details?.submitted_roleplay_text).trim();
+  useEffect(() => {
+    if (activeScenario?.id === "restaurant" && /^(?:(?:could|can|may) i have|i(?: would like|'d like|’d like| will have|'ll have|’ll have)) (?:the |a |some )?(?:soup|salad|pasta|pizza|fish|chicken|rice)(?:,? please)?[.!?]*$/iu.test(restaurantReply)) {
+      setRestaurantGoalReached(true);
+    }
+  }, [activeScenario?.id, restaurantReply]);
   useEffect(() => {
     if (!activeScenario) return;
     requestAnimationFrame(() => {
@@ -6502,6 +6513,9 @@ function RoleplayView({
             {activeScenario.id === "restaurant" && user.learning_language === "en" && (
               <section className="roleplay-guidance" aria-label={russian ? "Цель сцены" : "Scene goal"}>
                 <p>{russian ? "Закажите блюдо у официанта." : "Order a dish from the waiter."}</p>
+                {restaurantReply && <p role="status">{restaurantGoalReached
+                  ? (russian ? "Цель выполнена: вы заказали блюдо." : "Goal reached: you ordered a dish.")
+                  : (russian ? "Попробуйте заказать блюдо, например суп, салат или пасту." : "Try ordering a dish, such as soup, salad or pasta.")}</p>}
                 <div aria-live="polite">
                   {hintStep >= 1 && <p lang="en">Could I have…</p>}
                   {hintStep === 2 && <p lang="en">Could I have the soup, please?</p>}

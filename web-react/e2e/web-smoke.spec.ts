@@ -3538,6 +3538,13 @@ test("restaurant roleplay reveals its hints in order", async ({ page }) => {
   await expect(guidance).not.toContainText("Could I have the soup, please?");
   await guidance.getByRole("button", { name: /Показать пример|Show example/ }).click();
   await expect(guidance).toContainText("Could I have the soup, please?");
+  const reply = page.locator(".roleplay-view-v2--session textarea");
+  await reply.fill("Could I have the menu, please?");
+  await reply.press("Enter");
+  await expect(guidance.getByRole("status")).toContainText(/Попробуйте заказать|Try ordering/);
+  await reply.fill("Could I have the soup, please?");
+  await reply.press("Enter");
+  await expect(guidance.getByRole("status")).toContainText(/Цель выполнена|Goal reached/);
 });
 
 test("roleplay scenario cards show concrete roles instead of the generic roleplay label", async ({ page }) => {
