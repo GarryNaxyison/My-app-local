@@ -1054,6 +1054,16 @@ const todayReviewItem = {
   status: "due",
 };
 
+test("Today links study goals to roleplay and mistakes", async ({ page }) => {
+  await page.goto("/app/?view=home");
+  const goals = page.getByRole("navigation", { name: "Цель занятия" });
+  await goals.getByRole("button", { name: "Разыграть ситуацию" }).click();
+  await expect(page.locator(".roleplay-grid-v2")).toBeVisible();
+  await page.goBack();
+  await goals.getByRole("button", { name: "Разобрать ошибки" }).click();
+  await expect(page.locator(".context-display--mistakes")).toBeVisible();
+});
+
 test("travel route unlocks printable cards after three exercises", async ({ page }) => {
   await page.goto("/app/?view=home");
   const route = page.locator(".travel-route");

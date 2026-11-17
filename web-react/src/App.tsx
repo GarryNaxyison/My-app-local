@@ -6431,6 +6431,14 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
         </div>
         <img className="learning-start__art" src="/app/assets/neriva-symbol.png" alt="" />
       </section>
+      <nav className="v2-panel home-study-goals" aria-label={copy("study_goal", "Study goal")}>
+        <Button type="button" variant="outline" onClick={() => setView("roleplay")}>
+          <MessageCircle size={16} aria-hidden="true" />{copy("study_goal_roleplay", "Practise a situation")}
+        </Button>
+        <Button type="button" variant="outline" disabled={busy === "mistakes"} onClick={() => void loadMistakes()}>
+          <Search size={16} aria-hidden="true" />{copy("study_goal_mistakes", "Review mistakes")}
+        </Button>
+      </nav>
       {props.session?.authenticated && props.restartTutorLesson && props.startMistakePractice && (
         <TodayReview
           requestedId={new URLSearchParams(location.search).get("review") || undefined}

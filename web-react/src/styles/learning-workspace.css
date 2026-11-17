@@ -236,6 +236,19 @@ body:has(.v2-shell--learning),
   gap: 12px;
 }
 
+.v2-shell--learning .home-study-goals {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.home-study-goals > button {
+  min-height: 44px;
+  max-width: 100%;
+  white-space: normal;
+}
+
 .v2-shell--learning .home-grid > .today-review {
   grid-column: 1 / -1;
 }
