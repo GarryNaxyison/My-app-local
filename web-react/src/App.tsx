@@ -5267,6 +5267,92 @@ type ViewRendererProps = {
   openOnboarding: () => void;
 };
 
+export function ProductPreview() {
+  const params = new URLSearchParams(location.search);
+  const language = params.get("lang") === "en" ? "en" : "ru";
+  const initialView = params.get("view");
+  const [view, setView] = useState<ViewId>(() => initialView === "home" || initialView === "lesson" || initialView === "mistakes" || initialView === "phrasebook" || initialView === "pronunciation" || initialView === "tools" ? initialView : "tutor");
+  const platform = usePlatform();
+  const russian = language === "ru";
+  const copy = (key: string, fallback: string) => appCopy(language, key, fallback);
+  const user: UserProfile = { interface_language: language, learning_language: "en", level: "A1", premium: true, lesson_limit: 5, lessons_today: 2, practice_limit: 10, practice_today: 3, voice_limit: 5, voice_today: 1, xp: 80, xp_current: 80, xp_needed: 120 };
+  const session: SessionData = { authenticated: false, user, learning_languages: [{ code: "en", name: "English" }, { code: "ru", name: "Русский" }] };
+  const topic = russian ? "Заселение в отель" : "Hotel check-in";
+  const task = russian ? "Сообщите на ресепшене, что у вас забронирован номер." : "Tell the receptionist you have a reservation.";
+  const correction = "I have a reservation.";
+  const explanation = russian ? "Перед reservation в единственном числе нужен артикль a." : "Use a before the singular countable noun reservation.";
+  const [draft, setDraft] = useState("");
+  const [toolMode, setToolMode] = useState<ToolMode>("image");
+  const [toolSourceLanguage, setToolSourceLanguage] = useState("en");
+  const [toolTargetLanguage, setToolTargetLanguage] = useState(russian ? "ru" : "en");
+  const [pronunciationTarget, setPronunciationTarget] = useState("Could I check in now?");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [answered, setAnswered] = useState(false);
+  const lessonMessage = useMemo(() => panelMessage(task, "default", topic, { task_id: "demo", topic }, "lesson"), [task, topic]);
+  const [mistakes, setMistakes] = useState<MistakeItem[]>([{ index: 0, word: "I have reservation.", correction, explanation }]);
+  const [mistakePractice, setMistakePractice] = useState<MistakeItem | null>(null);
+  const [mistakeAnswer, setMistakeAnswer] = useState("");
+  const [phrasebook, setPhrasebook] = useState<PhrasebookItem[]>([{ id: "demo-phrase", phrase: "Could you hold my luggage?", translation: russian ? "Не могли бы вы оставить у себя мой багаж?" : "Ask the hotel to store your bags.", language: "en", source: "lesson" }]);
+  const [tutorStage, setTutorStage] = useState("question_1");
+  const [tutorFeedback, setTutorFeedback] = useState<AiTutorFeedbackState | null>(null);
+  const tutorLesson: AiTutorStep["lesson"] = { title: topic, theme: topic, level: "A1", story: { text_target: "Mia arrives at a hotel. She has a reservation." }, words: [{ id: "reservation", target: "reservation", interface_translation: russian ? "бронь" : "a booking" }] };
+  const aiTutorStep: AiTutorStep = tutorStage === "complete"
+    ? { stage: "complete", kind: "complete", lesson: tutorLesson }
+    : { stage: "question_1", kind: "choice", lesson: tutorLesson, instruction: task, question: { question_target: "What does Mia say?" }, options: [{ id: "a", text: "I have reservation." }, { id: "b", text: correction }] };
+  const noAction = () => undefined;
+  const noRequest = async () => undefined;
+  const loadMistakes = async () => { setView("mistakes"); return mistakes; };
+  const savePhrase: ViewRendererProps["savePhrase"] = (phrase, source, details) => {
+    setPhrasebook((current) => current.some((item) => item.phrase === phrase) ? current : [...current, { id: phrase, phrase, source, note: asText(details?.note, ""), language: "en" }]);
+  };
+  const isPhraseSaved = (phrase: string) => phrasebook.some((item) => item.phrase === phrase);
+  const common = { user, copy, busy: null, setView, savePhrase, isPhraseSaved, loadMistakes };
+  const startLesson = async () => { setAnswered(false); setMessages([]); setDraft(""); setView("lesson"); };
+  const startTutor = async () => { setTutorStage("question_1"); setTutorFeedback(null); setView("tutor"); };
+  const sources = { voiceFile: null, imageFile: null, setVoiceFile: noAction, setImageFile: noAction };
+  const trainingMessages = [...messages, lessonMessage];
+  const submitToolExample = async () => {
+    const sample = russian ? "Завтрак до 10:30." : "Breakfast until 10:30.";
+    setMessages([panelMessage(sample, "success", copy("translation", "Translation"), undefined, `tools:${toolMode}`)]);
+  };
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dataset.theme = "dark";
+  }, [language]);
+
+  let screen: React.ReactNode;
+  if (view === "home") {
+    screen = <HomeView {...common} startLesson={startLesson} startWord={startLesson} startShadowing={async () => setView("pronunciation")} loadVocabulary={async () => { setView("phrasebook"); return []; }} loadPremiumPlans={noRequest} habitLog={{}} dailyBonus={null} claimDailyBonus={noRequest} openOnboarding={noAction} activeLessonTaskId="demo" aiTutorStep={null} messages={trainingMessages} />;
+  } else if (view === "mistakes") {
+    screen = <MistakesView {...common} mistakes={mistakes} mistakePractice={mistakePractice} mistakePracticeIndex={mistakePractice?.index ?? null} mistakeAnswer={mistakeAnswer} setMistakeAnswer={setMistakeAnswer} mistakeResult={null} startMistakePractice={async (index) => { setMistakeAnswer(""); setMistakePractice(mistakes.find((item) => item.index === index) || mistakes[0] || null); }} submitMistakeAnswer={async () => { if (mistakeAnswer.trim()) setMistakePractice(null); }} cancelMistakePractice={() => setMistakePractice(null)} deleteMistake={async (index) => setMistakes((items) => items.filter((item) => item.index !== index))} clearMistakes={async () => setMistakes([])} />;
+  } else if (view === "phrasebook") {
+    screen = <PhrasebookView {...common} phrasebook={phrasebook} removePhrase={(id) => setPhrasebook((items) => items.filter((item) => item.id !== id))} />;
+  } else if (view === "pronunciation") {
+    screen = <PronunciationDashboardView {...common} {...sources} fixtureMode session={session} mistakes={mistakes} messages={[]} shadowingTarget={pronunciationTarget} pronunciationTarget={pronunciationTarget} startPronunciation={async () => setPronunciationTarget((current) => current === "Could I check in now?" ? "Could you hold my luggage?" : "Could I check in now?")} submitPronunciation={async (expected) => ({ pronunciation: { expected, spoken: expected, score: 86, feedback: russian ? "Демонстрационный результат проверки." : "Sample pronunciation result." } })} />;
+  } else if (view === "tools") {
+    screen = <><Button type="button" variant="outline" onClick={() => void submitToolExample()}>{russian ? "Показать пример перевода" : "Show a sample translation"}</Button><ToolsView {...common} draft={draft} setDraft={setDraft} session={session} toolMode={toolMode} setToolMode={setToolMode} toolSourceLanguage={toolSourceLanguage} setToolSourceLanguage={setToolSourceLanguage} toolTargetLanguage={toolTargetLanguage} setToolTargetLanguage={setToolTargetLanguage} toolVoiceFile={null} setToolVoiceFile={noAction} toolImageFile={null} setToolImageFile={noAction} submitTool={submitToolExample} messages={messages} /></>;
+  } else if (view === "lesson") {
+    screen = <ChatWorkView {...common} {...sources} mode="lesson" activeLessonTaskId={answered ? "" : "demo"} draft={draft} setDraft={setDraft} messages={trainingMessages} startLesson={startLesson} submitPractice={noRequest} startShadowing={noRequest} submitShadowing={noRequest} shadowingTarget="" submitLesson={async () => {
+      if (!draft.trim()) return;
+      setMessages([panelMessage(explanation, "success", copy("lesson_feedback", "Lesson feedback"), { task_id: "demo", correction }, "lesson"), userMessage(draft, copy("you", "You"), "lesson")]);
+      setAnswered(true);
+      setDraft("");
+    }} />;
+  } else {
+    screen = <TutorView {...common} fixtureMode session={session} aiTutorStep={aiTutorStep} aiTutorFeedback={tutorFeedback} aiTutorFeedbackStage={tutorStage} tutorReview={{}} tutorLoadError="" startTutor={startTutor} restartTutorLesson={async () => { await startTutor(); return true; }} reportAiTutorWord={async () => false} submitAiTutorStep={async (_stage, _text, choice) => {
+      if (choice === "b") { setTutorFeedback(null); setTutorStage("complete"); }
+      else setTutorFeedback({ ok: false, message: explanation });
+    }} />;
+  }
+
+  return (
+    <div className={cn("v2-shell v2-shell--learning", `v2-shell--${platform}`, "product-preview-shell")} data-platform={platform}>
+      <main className={cn("context-display", `context-display--${view}`)} data-view={view}>{screen}</main>
+    </div>
+  );
+}
+
 function ViewRenderer(props: ViewRendererProps) {
   if (props.activeView === "home") return <HomeView {...props} />;
   if (props.activeView === "tutor") return <TutorView {...props} />;
@@ -5304,7 +5390,7 @@ function tutorStageLabel(stage: string, copy: ViewRendererProps["copy"]) {
   return copy("ai_tutor", "AI Tutor");
 }
 
-function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, tutorReview, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView, loadMistakes }: ViewRendererProps) {
+function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, tutorReview, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView, loadMistakes }: Pick<ViewRendererProps, "user" | "session" | "aiTutorStep" | "aiTutorFeedback" | "aiTutorFeedbackStage" | "tutorReview" | "submitAiTutorStep" | "reportAiTutorWord" | "tutorLoadError" | "startTutor" | "restartTutorLesson" | "busy" | "copy" | "savePhrase" | "isPhraseSaved" | "setView" | "loadMistakes"> & { fixtureMode?: boolean }) {
   const tutorPlatform = usePlatform();
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
@@ -5341,12 +5427,12 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const [stageHistory, setStageHistory] = useState<Record<string, { text?: string; choice?: string; feedback?: { ok?: boolean; message?: string } }>>({});
   const accountKey = asText(session.account?.login || user.telegram_account?.id || user.created_at || "guest", "guest");
   const completedLessonsKey = `poliglot-tutor-completed-v3:${accountKey}`;
-  const tutorDraftKey = aiTutorStep ? `poliglot-tutor-draft:${accountKey}:${aiTutorStep.lesson?.title || ""}:${aiTutorStep.lesson?.story?.text_target || ""}:${aiTutorStep.stage}` : "";
+  const tutorDraftKey = !fixtureMode && aiTutorStep ? `poliglot-tutor-draft:${accountKey}:${aiTutorStep.lesson?.title || ""}:${aiTutorStep.lesson?.story?.text_target || ""}:${aiTutorStep.stage}` : "";
   const tutorWaitKey = `poliglot-ai-tutor-wait:${user.telegram_account?.id || user.created_at || "guest"}`;
   const localWaitStartedRef = useRef(Date.now());
   const [tutorElapsedSeconds, setTutorElapsedSeconds] = useState(() => {
     try {
-      const startedAt = Number(window.sessionStorage.getItem(tutorWaitKey));
+      const startedAt = fixtureMode ? 0 : Number(window.sessionStorage.getItem(tutorWaitKey));
       return startedAt && Date.now() - startedAt <= 5 * 60 * 1000 ? Math.max(0, Math.floor((Date.now() - startedAt) / 1000)) : 0;
     } catch {
       return 0;
@@ -5407,7 +5493,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const completedCount = aiTutorStep?.stage === "complete" ? serverStages.length : currentStageIndex;
   const progressPercent = Math.round((completedCount / Math.max(serverStages.length, 1)) * 100);
   const localCompletedLessons = useMemo(
-    () => readTutorCompletedLessons(completedLessonsKey),
+    () => fixtureMode ? [] : readTutorCompletedLessons(completedLessonsKey),
     [completedLessonsKey, completedLessonsVersion, completedLessonsOpen],
   );
   const completedLessons = useMemo(
@@ -5423,7 +5509,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   );
 
   useEffect(() => {
-    if (!completedLessonsOpen) return;
+    if (!completedLessonsOpen || fixtureMode) return;
     let cancelled = false;
     setCompletedLessonsLoading(true);
     setCompletedLessonsError("");
@@ -5524,7 +5610,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
       : copy("tutor_continue", "Continue");
 
   useEffect(() => {
-    if (!isComplete || !aiTutorStep) return;
+    if (fixtureMode || !isComplete || !aiTutorStep) return;
     const completedID = display((aiTutorStep as AiTutorStep).lesson?.title || heroTopic || aiTutorStep.stage);
     const key = `${accountKey}:${completedID}:${heroLevel}`;
     if (completedRecordedRef.current === key) return;
@@ -6163,7 +6249,7 @@ function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, sav
   return candidates;
 }
 
-function HomeView(props: ViewRendererProps) {
+function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages">) {
   const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus, openOnboarding } = props;
   const todayKey = localDateKey();
   const completedDates = Object.entries(habitLog).filter(([, day]) => day.complete).map(([date]) => date);
@@ -6441,7 +6527,7 @@ function RoleplayView({
   );
 }
 
-function PronunciationDashboardView({ messages, mistakes, user, session, shadowingTarget, pronunciationTarget, startPronunciation, submitPronunciation, voiceFile, imageFile, setVoiceFile, setImageFile, busy, copy }: ViewRendererProps) {
+function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, user, session, shadowingTarget, pronunciationTarget, startPronunciation, submitPronunciation, voiceFile, imageFile, setVoiceFile, setImageFile, busy, copy }: Pick<ViewRendererProps, "messages" | "mistakes" | "user" | "session" | "shadowingTarget" | "pronunciationTarget" | "startPronunciation" | "submitPronunciation" | "voiceFile" | "imageFile" | "setVoiceFile" | "setImageFile" | "busy" | "copy"> & { fixtureMode?: boolean }) {
   const p = pronunciationLocale(user);
   const isMobileUi = useMobileUiLayout();
   const liveReports = useMemo(
@@ -6451,12 +6537,12 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
     [messages],
   );
   const storageKey = pronunciationStorageKey(session, user);
-  const [storedReports, setStoredReports] = useState<StoredPronunciationAssessment[]>(() => readPronunciationHistory(storageKey));
+  const [storedReports, setStoredReports] = useState<StoredPronunciationAssessment[]>(() => fixtureMode ? [] : readPronunciationHistory(storageKey));
   useEffect(() => {
-    setStoredReports(readPronunciationHistory(storageKey));
+    if (!fixtureMode) setStoredReports(readPronunciationHistory(storageKey));
   }, [storageKey]);
   useEffect(() => {
-    if (!liveReports.length) return;
+    if (fixtureMode || !liveReports.length) return;
     setStoredReports((current) => {
       const merged = mergePronunciationHistory(liveReports, current);
       localStorage.setItem(storageKey, JSON.stringify(merged));
@@ -6492,7 +6578,7 @@ function PronunciationDashboardView({ messages, mistakes, user, session, shadowi
       setPracticeResult(resultWithTarget);
       setStoredReports((current) => {
         const merged = mergePronunciationHistory([resultWithTarget], current);
-        localStorage.setItem(storageKey, JSON.stringify(merged));
+        if (!fixtureMode) localStorage.setItem(storageKey, JSON.stringify(merged));
         return merged;
       });
     }
@@ -6880,7 +6966,7 @@ function ChatWorkView({
   isPhraseSaved,
   setView,
   loadMistakes,
-}: ViewRendererProps & { mode: "lesson" | "practice" | "shadowing" }) {
+}: Pick<ViewRendererProps, "messages" | "activeLessonTaskId" | "draft" | "setDraft" | "voiceFile" | "imageFile" | "setVoiceFile" | "setImageFile" | "startLesson" | "submitLesson" | "submitPractice" | "startShadowing" | "submitShadowing" | "shadowingTarget" | "busy" | "copy" | "user" | "savePhrase" | "isPhraseSaved" | "setView" | "loadMistakes"> & { mode: "lesson" | "practice" | "shadowing" }) {
   const isLesson = mode === "lesson";
   const isPractice = mode === "practice";
   const isShadowing = mode === "shadowing";
@@ -7657,7 +7743,7 @@ function phrasebookSourceLabel(source: PhrasebookSource, copy: (key: string, fal
   return copy(`phrase_source_${source}`, fallbacks[source]);
 }
 
-function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: ViewRendererProps) {
+function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Pick<ViewRendererProps, "phrasebook" | "savePhrase" | "removePhrase" | "copy" | "user">) {
   const [manualPhrase, setManualPhrase] = useState("");
   const [manualNote, setManualNote] = useState("");
   const [activeSource, setActiveSource] = useState<PhrasebookSource | "all">("all");
@@ -7776,7 +7862,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Vi
   );
 }
 
-function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy, user }: ViewRendererProps) {
+function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, busy, copy, user }: Pick<ViewRendererProps, "mistakes" | "loadMistakes" | "startMistakePractice" | "submitMistakeAnswer" | "cancelMistakePractice" | "deleteMistake" | "clearMistakes" | "mistakePractice" | "mistakePracticeIndex" | "mistakeAnswer" | "setMistakeAnswer" | "mistakeResult" | "busy" | "copy" | "user">) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [activeCategory, setActiveCategory] = useState<MistakeCategory | "all">("all");
   const [page, setPage] = useState(0);
@@ -8446,7 +8532,7 @@ function AwardModal({ selected, copy, onClose }: { selected: AwardInfo; copy: (k
   );
 }
 
-function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setToolMode, toolSourceLanguage, setToolSourceLanguage, toolTargetLanguage, setToolTargetLanguage, toolVoiceFile, setToolVoiceFile, toolImageFile, setToolImageFile, submitTool, messages, savePhrase, isPhraseSaved }: ViewRendererProps) {
+function ToolsView({ draft, setDraft, busy, copy, session, user, toolMode, setToolMode, toolSourceLanguage, setToolSourceLanguage, toolTargetLanguage, setToolTargetLanguage, toolVoiceFile, setToolVoiceFile, toolImageFile, setToolImageFile, submitTool, messages, savePhrase, isPhraseSaved }: Pick<ViewRendererProps, "draft" | "setDraft" | "busy" | "copy" | "session" | "user" | "toolMode" | "setToolMode" | "toolSourceLanguage" | "setToolSourceLanguage" | "toolTargetLanguage" | "setToolTargetLanguage" | "toolVoiceFile" | "setToolVoiceFile" | "toolImageFile" | "setToolImageFile" | "submitTool" | "messages" | "savePhrase" | "isPhraseSaved">) {
   const languageOptions = session.learning_languages?.length ? session.learning_languages : session.interface_languages || [];
   const fallbackTargetLanguage = languageOptions.find((language) => language.code !== toolTargetLanguage)?.code || toolTargetLanguage || "en";
   const toolMessages = messages.filter((message) => message.meta === `tools:${toolMode}`);

@@ -276,13 +276,11 @@ test("product windows show their own examples with keyboard and touch controls",
   const feature = page.locator(".feature-panel");
   await page.locator(".feature-carousel__tab").nth(2).click();
   await expect(feature.locator("[data-window='photo']")).toBeVisible();
-  const translation = feature.getByText("Show the translation", { exact: true });
-  await translation.focus();
+  const photo = feature.locator("[data-window='photo'] summary");
+  await photo.focus();
   await page.keyboard.press("Enter");
-  await expect(feature.getByText("Breakfast until 10:30.", { exact: true })).toBeVisible();
-  await expect(translation).toBeFocused();
+  await expect(feature.frameLocator("iframe").locator(".tools-layout-v2")).toBeVisible();
   await page.locator(".feature-carousel__tab").nth(1).click();
-  await expect(feature.locator("[data-window='voice']")).toBeVisible();
-  await feature.getByText("See a pronunciation tip", { exact: true }).click();
-  await expect(feature.getByText("Stress check in and say now more softly.")).toBeVisible();
+  await feature.locator("[data-window='voice'] summary").click();
+  await expect(feature.frameLocator("iframe").locator(".pronunciation-workbench-v2")).toContainText("Could I check in now?");
 });

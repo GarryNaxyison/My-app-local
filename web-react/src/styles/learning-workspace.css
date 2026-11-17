@@ -714,3 +714,26 @@ body:has(.v2-shell--learning),
     padding-bottom: 4px;
   }
 }
+
+.product-preview-shell.v2-shell--learning {
+  display: block;
+  min-height: 100dvh;
+  padding: 8px;
+  overflow: visible;
+}
+.product-preview-shell.v2-shell--learning .context-display {
+  display: block;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.product-preview-shell.v2-shell--learning .tutor-hero,
+.product-preview-shell.v2-shell--learning .tutor-plan-v2,
+.product-preview-shell.v2-shell--learning .tutor-completed-lessons-button-v2,
+.product-preview-shell.v2-shell--learning .tutor-context-v2__head > span,
+.product-preview-shell.v2-shell--learning .file-controls-v2 { display: none; }
+.product-preview-shell.v2-shell--learning .tutor-session-v2 { display: block; }

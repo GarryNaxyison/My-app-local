@@ -30,29 +30,34 @@ test('visitors see a lesson example and can jump to pricing', async ({ page }) =
   await expect(page.locator('.hero-actions a[data-entry="web-app"]')).toHaveText('Начать урок');
   await expect(page.locator('.hero-actions a[data-entry="web-app"]')).toBeInViewport();
   await expect(page.locator('main > section').nth(1)).toHaveClass('lesson-scenario');
-  const example = page.locator('.lesson-example');
-  const feedback = example.getByRole('status');
-  await expect(feedback).toBeEmpty();
+  const demo = page.frameLocator('.hero-windows__lesson iframe');
+  const example = demo.locator('.tutor-context-v2');
+  await expect(example).toContainText('Сообщите на ресепшене');
   await example.getByRole('button', { name: 'I have reservation.', exact: true }).click();
-  await expect(feedback).toContainText('Нужен артикль');
+  await example.locator('button[type="submit"]').click();
+  await expect(example.locator('.tutor-feedback-v2')).toContainText('нужен артикль');
   await example.getByRole('button', { name: 'I have a reservation.', exact: true }).click();
-  await expect(feedback).toContainText('Верно');
-  await expect(page.locator('.hero-windows__review')).toContainText('I have a reservation.');
+  await example.locator('button[type="submit"]').click();
+  await expect(example.locator('h2')).toContainText('Урок завершён');
   await expect(page.locator('main > section').nth(3)).toHaveAttribute('id', 'pricing');
   await page.locator('.nav-pricing-link').click();
   await expect(page).toHaveURL(/#pricing$/);
   await expect(page.locator('#pricing h2')).toBeInViewport();
 });
 
-test('English lesson example supports keyboard answers and feedback', async ({ page }) => {
+test('embedded English tutor uses the actual keyboard controls and no user session requests', async ({ page }) => {
+  const apiRequests: string[] = [];
+  page.on('request', (request) => { if (new URL(request.url()).pathname.startsWith('/api/')) apiRequests.push(request.url()); });
   await page.goto('/neriva.html?lang=en');
-  const example = page.locator('.lesson-example');
+  const example = page.frameLocator('.hero-windows__lesson iframe').locator('.tutor-context-v2');
   await expect(example).toContainText('Tell the receptionist you have a reservation.');
   const answer = example.getByRole('button', { name: 'I have a reservation.', exact: true });
   await answer.focus();
   await page.keyboard.press('Enter');
-  await expect(answer).toHaveAttribute('aria-pressed', 'true');
-  await expect(example.getByRole('status')).toContainText('Correct.');
+  await expect(answer).toHaveClass(/is-selected/);
+  await example.locator('button[type="submit"]').click();
+  await expect(example.locator('h2')).toContainText('Lesson complete');
+  expect(apiRequests).toEqual([]);
 });
 
 test('home page offers a localized web app installation link', async ({ page }) => {

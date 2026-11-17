@@ -638,7 +638,7 @@ test("landing hero pairs the official brand with live product windows", async ({
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator(".hero-brand-emblem img")).toHaveAttribute("src", "/assets/brand/neriva-symbol.png");
   await expect(page.locator(".hero-windows__lesson")).toBeVisible();
-  await expect(page.locator(".hero-windows__review")).toBeVisible();
+  await expect(page.locator(".hero-windows [data-window=mistakes]")).toBeVisible();
   await expect(page.locator(".landing-hero img[src*='/assets/product/']")).toHaveCount(0);
 });
 
@@ -966,5 +966,5 @@ test("production public-site output keeps all image and localization assets for 
   await page.goto("/neriva.html?lang=en");
   await expect(page.locator(".english-spark-landing img[src*='/assets/product/']")).toHaveCount(0);
   await expect(page.locator(".ecosystem-showcase [data-window='telegram']")).toBeVisible();
-  await expect(page.locator(".hero-windows .lesson-example")).toBeVisible();
+  await expect(page.frameLocator(".hero-windows__lesson iframe").locator(".tutor-context-v2")).toBeVisible();
 });
