@@ -5566,6 +5566,45 @@ test("prints vocabulary as ordered folding sheets", async ({ page }) => {
   await expect(sheets).toHaveCount(1);
 });
 
+test("exports twelve folding cards as two A4 PDF pages", async ({ page }, testInfo) => {
+  await mockApi(page);
+  const words = ["train", "ticket", "map", "hotel", "bus", "gate", "taxi", "bag", "ship", "seat", "port", "road"];
+  await page.route("**/api/vocabulary**", (route) => route.fulfill({ json: {
+    items: words.map((word, index) => ({ id: String(index), word, translation: "перевод" })),
+    page: 0, page_size: 20, total: words.length, total_pages: 1,
+  } }));
+  await page.addInitScript(() => { window.print = () => {}; });
+  await page.goto("/app/?view=vocabulary");
+  await page.getByRole("button", { name: /Print word cards|Печатные карточки/ }).click();
+  await expect(page.locator("[data-word-card-sheet]")).toHaveCount(2);
+  await page.getByRole("button", { name: /Print \/ PDF|Печать \/ PDF/ }).click();
+
+  const frame = page.locator(".word-card-print__frame");
+  const sheets = frame.contentFrame().locator(".sheet");
+  await expect(sheets).toHaveCount(2);
+  for (const [index, word] of words.entries()) {
+    await expect(sheets.nth(Math.floor(index / 6)).getByText(word, { exact: true })).toHaveCount(1);
+  }
+
+  const document = await frame.getAttribute("srcdoc");
+  if (!document) throw new Error("The print frame is missing its document");
+  const printPage = await page.context().newPage();
+  try {
+    const printURL = new URL("/app/word-cards-print-test", page.url()).href;
+    await printPage.route(printURL, (route) => route.fulfill({ contentType: "text/html; charset=utf-8", body: document }));
+    await printPage.goto(printURL);
+    const pdf = await printPage.pdf({ path: testInfo.outputPath("NERIVA-A4.pdf"), preferCSSPageSize: true, printBackground: true });
+    const pageBoxes = [...pdf.toString("latin1").matchAll(/\/MediaBox\s*\[0\s+0\s+([\d.]+)\s+([\d.]+)\]/g)];
+    expect(pageBoxes).toHaveLength(2);
+    for (const [, width, height] of pageBoxes) {
+      expect(Math.abs(Number(width) - 595.28)).toBeLessThan(1);
+      expect(Math.abs(Number(height) - 841.89)).toBeLessThan(1);
+    }
+  } finally {
+    await printPage.close();
+  }
+});
+
 test("collects dictionary pages and prints their words as text", async ({ page }) => {
   await page.route("**/api/vocabulary**", (route) => {
     const index = Number(new URL(route.request().url()).searchParams.get("page") || 0);
