@@ -192,6 +192,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/lesson/start", api.handleLessonStart)
 	mux.HandleFunc("/api/lesson/answer", api.handleLessonAnswer)
 	mux.HandleFunc("/api/practice", api.handlePractice)
+	mux.HandleFunc("/api/practice/text-questions", api.handleTextPracticeQuestions)
 	mux.HandleFunc("/api/shadowing/start", api.handleShadowingStart)
 	mux.HandleFunc("/api/shadowing/answer", api.handleShadowingAnswer)
 	mux.HandleFunc("/api/pronunciation/start", api.handlePronunciationStart)

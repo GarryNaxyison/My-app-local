@@ -12,6 +12,8 @@ export function TextPractice({ russian }: { russian: boolean }) {
   const [answer, setAnswer] = useState("");
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
+  const [generated, setGenerated] = useState<string[]>([]);
+  const [usingFallback, setUsingFallback] = useState(false);
   const pending = useRef(false);
   const questions = russian
     ? ["Сформулируйте главную мысль в одном предложении.", "Выберите важную деталь и объясните, почему она важна."]
@@ -19,9 +21,28 @@ export function TextPractice({ russian }: { russian: boolean }) {
   return (
     <details className="v2-panel text-practice">
       <summary>{russian ? "Практика из своего текста" : "Practise with your own text"}</summary>
-      <form onSubmit={(event) => {
+      <form onSubmit={async (event) => {
         event.preventDefault();
-        if (source.trim() && source.length <= maxLength) setMaterial(source.trim());
+        const text = source.trim();
+        if (!text || source.length > maxLength || pending.current) return;
+        pending.current = true;
+        setBusy(true);
+        setQuestion("");
+        setAnswer("");
+        setFeedback("");
+        setUsingFallback(false);
+        try {
+          const result = await api<{ questions: string[] }>("/api/practice/text-questions", { method: "POST", body: { text } });
+          if (!Array.isArray(result.questions) || result.questions.length !== 2 || !result.questions.every((value) => typeof value === "string" && value.trim())) throw new Error("Invalid questions");
+          setGenerated(result.questions);
+        } catch {
+          setGenerated(questions);
+          setUsingFallback(true);
+        } finally {
+          setMaterial(text);
+          pending.current = false;
+          setBusy(false);
+        }
       }}>
         <label htmlFor={id}>{russian ? "Вставьте короткий текст" : "Paste a short text"}</label>
         <textarea id={id} value={source} aria-describedby={`${id}-length`} onChange={(event) => {
@@ -32,12 +53,13 @@ export function TextPractice({ russian }: { russian: boolean }) {
           setFeedback("");
         }} disabled={busy} />
         <p id={`${id}-length`}>{source.length} / {maxLength}</p>
-        <Button type="submit" disabled={!source.trim() || source.length > maxLength}>
+        <Button type="submit" disabled={busy || !source.trim() || source.length > maxLength}>
           {russian ? "Подготовить вопросы" : "Prepare questions"}
         </Button>
       </form>
-      {material && <ul>{questions.map((question) => <li key={question}>
-        <Button type="button" variant="outline" disabled={busy} onClick={() => { setQuestion(question); setFeedback(""); }}>{question}</Button>
+      {usingFallback && material && <p>{russian ? "Вопросы по тексту недоступны. Можно выбрать готовый вопрос." : "Text-specific questions are unavailable. Choose a standard question below."}</p>}
+      {material && <ul>{generated.map((question) => <li key={question}>
+        <Button type="button" variant="outline" disabled={busy} onClick={() => { setQuestion(question); setAnswer(""); setFeedback(""); }}>{question}</Button>
       </li>)}</ul>}
       {question && <form onSubmit={async (event) => {
         event.preventDefault();

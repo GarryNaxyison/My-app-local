@@ -1055,6 +1055,10 @@ const todayReviewItem = {
 };
 
 test("practice with pasted text checks the learner answer in context", async ({ page }) => {
+  await page.route("**/api/practice/text-questions", (route) => {
+    expect(route.request().postDataJSON()).toEqual({ text: "The train leaves at nine." });
+    return route.fulfill({ json: { questions: ["When does the train leave?", "What vehicle is mentioned?"] } });
+  });
   await page.route("**/api/practice", (route) => {
     expect(route.request().postDataJSON().text).toContain("The train leaves at nine.");
     expect(route.request().postDataJSON().text).toContain("The train leaves in the morning.");
@@ -1069,10 +1073,13 @@ test("practice with pasted text checks the learner answer in context", async ({ 
   await expect(prepare).toBeDisabled();
   await panel.locator("textarea").fill("The train leaves at nine.");
   await prepare.click();
-  await panel.getByRole("button", { name: /главную мысль|main idea/ }).click();
+  await panel.getByRole("button", { name: "When does the train leave?" }).click();
   await panel.getByLabel(/Ваш ответ|Your answer/).fill("The train leaves in the morning.");
   await panel.getByRole("button", { name: /Проверить ответ|Check answer/ }).click();
   await expect(panel.getByRole("status")).toHaveText("Correct summary.");
+  await page.route("**/api/practice/text-questions", (route) => route.fulfill({ status: 503 }));
+  await prepare.click();
+  await expect(panel.getByRole("button", { name: /главную мысль|main idea/ })).toBeVisible();
 });
 
 test("saved offline marks sync on sign-in without sending another account's marks", async ({ page }) => {
