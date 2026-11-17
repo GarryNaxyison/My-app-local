@@ -229,6 +229,34 @@ body:has(.v2-shell--learning),
     color-mix(in srgb, var(--primary) 7%, var(--surface-strong));
 }
 
+.v2-shell--learning .home-grid > .today-review {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.today-review > svg {
+  flex: none;
+  color: var(--primary);
+}
+
+.today-review__details {
+  flex: 1 1 13rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.today-review__details h2,
+.today-review__details p {
+  margin: 0 0 4px;
+}
+
+.today-review > button {
+  min-height: 44px;
+}
+
 .v2-shell--learning .learning-start h2 {
   margin: 12px 0;
   max-width: 700px;

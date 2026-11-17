@@ -92,6 +92,7 @@ import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
+import { TodayReview } from "./components/TodayReview";
 import { pwaUsesRussian } from "./components/PwaInstall";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
 import { InstagramIcon, TelegramIcon, TikTokIcon, YouTubeIcon } from "./components/BrandIcons";
@@ -6262,7 +6263,7 @@ function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, sav
   return candidates;
 }
 
-function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages">) {
+function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages"> & Partial<Pick<ViewRendererProps, "session" | "restartTutorLesson">>) {
   const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus, openOnboarding } = props;
   const todayKey = localDateKey();
   const completedDates = Object.entries(habitLog).filter(([, day]) => day.complete).map(([date]) => date);
@@ -6334,6 +6335,16 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
         </div>
         <img className="learning-start__art" src="/app/assets/neriva-symbol.png" alt="" />
       </section>
+      {props.session?.authenticated && props.restartTutorLesson && (
+        <TodayReview
+          key={JSON.stringify([props.session.account?.login, user.telegram_account?.id, user.learning_language])}
+          interfaceLanguage={user.interface_language}
+          canStart={Boolean(user.premium)}
+          hasActiveLesson={canResume}
+          busy={busy === "lesson" || busy === "tutor"}
+          start={props.restartTutorLesson}
+        />
+      )}
       <section className="v2-panel home-focus">
         <h2>{copy("progress", "Progress")}</h2>
         <Meter label={copy("lessons_today", "Lessons today")} value={user.lessons_today} max={user.lesson_limit} />

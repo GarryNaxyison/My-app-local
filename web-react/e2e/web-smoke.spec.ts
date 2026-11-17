@@ -205,6 +205,7 @@ let testSessionPayloadOverride: typeof sessionPayload | null = null;
 let testPhrasebookItemsOverride: unknown[] | null = null;
 
 async function mockApi(page: Page) {
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [] } }));
   await page.addInitScript(
     ({ phrases, payments }) => {
       if ("serviceWorker" in navigator) {
@@ -1043,8 +1044,50 @@ test("mobile learning navigation remains fixed at the viewport bottom after docu
   await expect(page.locator(".context-display")).toBeHidden();
 });
 
+const todayReviewItem = {
+  id: "ai_tutor:scheduled-lesson",
+  lesson_id: "scheduled-lesson",
+  source: "ai_tutor",
+  title: "A scheduled travel lesson",
+  due_at: "2025-11-16T09:30:00Z",
+  status: "due",
+};
+
+test("Today opens the scheduled tutor lesson", async ({ page }) => {
+  usePremiumSession();
+  let requestedLesson = "";
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [todayReviewItem] } }));
+  await page.route("**/api/ai-tutor/restart", (route) => {
+    requestedLesson = route.request().postDataJSON().lesson_id;
+    return route.fulfill({ json: {
+      session: { id: "scheduled-session" },
+      next_step: { stage: "story_intro", kind: "story", lesson: { title: todayReviewItem.title } },
+    } });
+  });
+  await page.goto("/app/?view=home");
+  const card = page.locator(".today-review");
+  await expect(card).toContainText(todayReviewItem.title);
+  await expect(card.locator("time")).toHaveAttribute("datetime", todayReviewItem.due_at);
+  await card.getByRole("button").click();
+  await expect(page.locator(".context-display--tutor")).toBeVisible();
+  expect(requestedLesson).toBe(todayReviewItem.lesson_id);
+});
+
+test("Today shows the date for an upcoming tutor review without a start action", async ({ page }) => {
+  usePremiumSession();
+  const dueAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({
+    json: { items: [{ ...todayReviewItem, status: "upcoming", due_at: dueAt }] },
+  }));
+  await page.goto("/app/?view=home");
+  const card = page.locator(".today-review");
+  await expect(card.locator("time")).toHaveAttribute("datetime", dueAt);
+  await expect(card.getByRole("button")).toHaveCount(0);
+});
+
 test("home Continue resumes the existing ordinary lesson for a Premium learner", async ({ page }) => {
   usePremiumSession();
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [todayReviewItem] } }));
   let lessonStarts = 0;
   let tutorStarts = 0;
   page.on("request", (request) => {
@@ -1063,6 +1106,7 @@ test("home Continue resumes the existing ordinary lesson for a Premium learner",
   await page.locator(".lesson-empty-v2 button").click();
   await expect(page.locator(".context-display--lesson")).toContainText("Resume this existing ordinary lesson.");
   await openSection(page, "home");
+  await expect(page.locator(".today-review").getByRole("button")).toBeDisabled();
   const resume = page.locator(".learning-start button").first();
   await expect(page.locator(".learning-start__mode")).toHaveText(appCopy("ru", "new_lesson"));
   await expect(page.locator(".learning-start__resume")).toContainText("Resume this existing ordinary lesson.");
