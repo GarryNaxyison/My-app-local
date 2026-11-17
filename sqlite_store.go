@@ -372,6 +372,7 @@ func (s *sqliteStore) init() error {
 		`ALTER TABLE learned_words ADD COLUMN review_correct_count INTEGER NOT NULL DEFAULT 10`,
 		`ALTER TABLE learned_words ADD COLUMN spelling_correct_count INTEGER NOT NULL DEFAULT 0`,
 		`ALTER TABLE mistakes ADD COLUMN language TEXT NOT NULL DEFAULT 'en'`,
+		`ALTER TABLE mistake_transfers ADD COLUMN corrected_at TEXT NOT NULL DEFAULT ''`,
 		`ALTER TABLE users ADD COLUMN referral_code TEXT NOT NULL DEFAULT ''`,
 		`ALTER TABLE users ADD COLUMN referral_balance_kopecks INTEGER NOT NULL DEFAULT 0`,
 		`ALTER TABLE users ADD COLUMN referral_level_rewarded INTEGER NOT NULL DEFAULT 0`,

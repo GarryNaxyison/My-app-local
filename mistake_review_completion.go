@@ -35,8 +35,8 @@ func (s *sqliteStore) completeMistakeReview(userID int64, mode string, mistake m
 		return false, err
 	}
 	if normalizeLearningLanguage(mistake.Language) == "en" {
-		_, err = tx.Exec(`INSERT OR IGNORE INTO mistake_transfers (telegram_id, review_id, language) VALUES (?, ?, 'en')`,
-			userID, mistakeLearningReviewID(mistake))
+		_, err = tx.Exec(`INSERT OR IGNORE INTO mistake_transfers (telegram_id, review_id, language, corrected_at) VALUES (?, ?, 'en', ?)`,
+			userID, mistakeLearningReviewID(mistake), formatDBTime(time.Now().UTC()))
 		if err != nil {
 			return false, err
 		}
@@ -70,7 +70,7 @@ func (s *jsonStore) completeMistakeReview(userID int64, mode string, mistake mis
 		}
 		id := mistakeLearningReviewID(mistake)
 		if _, exists := user.MistakeTransfers[id]; !exists {
-			user.MistakeTransfers[id] = mistakeTransferRecord{Language: "en"}
+			user.MistakeTransfers[id] = mistakeTransferRecord{Language: "en", CorrectedAt: formatDBTime(time.Now().UTC())}
 		}
 	}
 	user.XP += mistakeReviewXP

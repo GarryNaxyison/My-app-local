@@ -9,15 +9,25 @@ import (
 type mistakeTransferRecord struct {
 	Language    string `json:"language"`
 	CompletedAt string `json:"completed_at,omitempty"`
+	CorrectedAt string `json:"corrected_at,omitempty"`
 }
 
 type mistakeTransferProgress struct {
-	Completed          int `json:"completed"`
-	CompletedLast7Days int `json:"completed_last_7_days"`
+	Completed            int `json:"completed"`
+	CompletedLast7Days   int `json:"completed_last_7_days"`
+	EligibleCorrections  int `json:"eligible_corrections"`
+	CompletedWithin7Days int `json:"completed_within_7_days"`
 }
 
-func (p *mistakeTransferProgress) count(stamp string, cutoff time.Time) {
+func (p *mistakeTransferProgress) count(stamp, correctedStamp string, cutoff time.Time) {
 	completedAt := parseDBTime(stamp)
+	correctedAt := parseDBTime(correctedStamp)
+	if !correctedAt.IsZero() && !correctedAt.After(cutoff) {
+		p.EligibleCorrections++
+		if !completedAt.Before(correctedAt) && !completedAt.After(correctedAt.Add(7*24*time.Hour)) {
+			p.CompletedWithin7Days++
+		}
+	}
 	if completedAt.IsZero() {
 		return
 	}
@@ -29,18 +39,18 @@ func (p *mistakeTransferProgress) count(stamp string, cutoff time.Time) {
 
 func (s *sqliteStore) mistakeTransferProgress(userID int64, language string, cutoff time.Time) (mistakeTransferProgress, error) {
 	var progress mistakeTransferProgress
-	rows, err := s.db.Query(`SELECT completed_at FROM mistake_transfers
-		WHERE telegram_id=? AND language=? AND completed_at<>''`, userID, language)
+	rows, err := s.db.Query(`SELECT completed_at, corrected_at FROM mistake_transfers
+		WHERE telegram_id=? AND language=?`, userID, language)
 	if err != nil {
 		return progress, err
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var stamp string
-		if err := rows.Scan(&stamp); err != nil {
+		var stamp, corrected string
+		if err := rows.Scan(&stamp, &corrected); err != nil {
 			return progress, err
 		}
-		progress.count(stamp, cutoff)
+		progress.count(stamp, corrected, cutoff)
 	}
 	return progress, rows.Err()
 }
@@ -62,7 +72,7 @@ func (s *jsonStore) mistakeTransferProgress(userID int64, language string, cutof
 	var progress mistakeTransferProgress
 	for _, item := range s.users[userID].MistakeTransfers {
 		if item.Language == language {
-			progress.count(item.CompletedAt, cutoff)
+			progress.count(item.CompletedAt, item.CorrectedAt, cutoff)
 		}
 	}
 	return progress, nil

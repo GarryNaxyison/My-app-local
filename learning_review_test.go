@@ -178,7 +178,7 @@ func TestMistakeTransferSevenDayBoundary(t *testing.T) {
 		"other-language": {Language: "de", CompletedAt: formatDBTime(cutoff)},
 	} {
 		user.MistakeTransfers[id] = item
-		if _, err := sqlite.db.Exec("INSERT INTO mistake_transfers VALUES (?, ?, ?, ?)", -42, id, item.Language, item.CompletedAt); err != nil {
+		if _, err := sqlite.db.Exec("INSERT INTO mistake_transfers (telegram_id, review_id, language, completed_at) VALUES (?, ?, ?, ?)", -42, id, item.Language, item.CompletedAt); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -190,5 +190,19 @@ func TestMistakeTransferSevenDayBoundary(t *testing.T) {
 				t.Fatalf("unexpected progress %+v: %v", progress, err)
 			}
 		})
+	}
+}
+
+func TestMistakeTransferCohortCountsOnlyMaturedCorrections(t *testing.T) {
+	cutoff := time.Date(2026, 11, 10, 12, 0, 0, 0, time.UTC)
+	var progress mistakeTransferProgress
+	corrected := formatDBTime(cutoff)
+	progress.count(formatDBTime(cutoff.Add(7*24*time.Hour)), corrected, cutoff)
+	progress.count(formatDBTime(cutoff.Add(7*24*time.Hour+time.Nanosecond)), corrected, cutoff)
+	progress.count("", corrected, cutoff)
+	progress.count("", formatDBTime(cutoff.Add(time.Nanosecond)), cutoff)
+	progress.count(corrected, "", cutoff)
+	if progress.EligibleCorrections != 3 || progress.CompletedWithin7Days != 1 {
+		t.Fatalf("unexpected cohort counts: %+v", progress)
 	}
 }
