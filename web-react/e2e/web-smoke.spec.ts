@@ -1258,6 +1258,23 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await expect(transfer).toHaveCount(0);
 });
 
+test("ordinary lesson restores its own draft and clears it after success", async ({ page }) => {
+  const prompt = "Describe your next trip.";
+  testSessionPayloadOverride = {
+    ...sessionPayload,
+    user: { ...sessionPayload.user, active_lesson_prompt: prompt },
+  };
+  await page.goto("/app/?view=lesson");
+  const answer = page.locator(".chat-workspace--lesson textarea");
+  await answer.fill("I will go by train.");
+  await page.reload();
+  await expect(answer).toHaveValue("I will go by train.");
+  const sent = page.waitForRequest("**/api/lesson/answer");
+  await page.locator(".composer-submit-v2").click();
+  expect((await sent).postDataJSON()).toMatchObject({ text: "I will go by train." });
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("neriva-lesson-draft:demor22"))).toBeNull();
+});
+
 test("home Continue resumes the existing ordinary lesson for a Premium learner", async ({ page }) => {
   usePremiumSession();
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [todayReviewItem] } }));

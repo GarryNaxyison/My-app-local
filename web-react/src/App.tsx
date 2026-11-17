@@ -1950,6 +1950,7 @@ export function App() {
   const messageObjectUrlsRef = useRef<Set<string>>(new Set());
   const [activeLessonTaskId, setActiveLessonTaskId] = useState("");
   const [draft, setDraft] = useState("");
+  const [savedLessonDraft, setSavedLessonDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [wordChallenge, setWordChallenge] = useState<WordChallenge | null>(null);
@@ -2163,6 +2164,31 @@ export function App() {
   };
 
   const accountKey = asText(session?.account?.login || user.telegram_account?.id || "guest", "guest");
+  const lessonPrompt = messages.find((message) => message.meta === "lesson" && message.details?.task_id === activeLessonTaskId && message.tone === "default")?.body;
+  const lessonDraftKey = `neriva-lesson-draft:${accountKey}`;
+  useEffect(() => {
+    if (!activeLessonTaskId || !lessonPrompt || accountKey === "guest") {
+      setSavedLessonDraft("");
+      return;
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(lessonDraftKey) || "null");
+      setSavedLessonDraft(saved?.prompt === lessonPrompt && typeof saved.answer === "string" ? saved.answer : "");
+    } catch {
+      setSavedLessonDraft("");
+    }
+  }, [activeLessonTaskId, lessonPrompt, lessonDraftKey, accountKey]);
+
+  function updateLessonDraft(answer: string) {
+    setSavedLessonDraft(answer);
+    if (accountKey === "guest" || !lessonPrompt) return;
+    try {
+      if (answer) localStorage.setItem(lessonDraftKey, JSON.stringify({ prompt: lessonPrompt, answer }));
+      else localStorage.removeItem(lessonDraftKey);
+    } catch {
+      // Keep the in-memory draft if storage is unavailable.
+    }
+  }
   useEffect(() => {
     if (session) selectOfflineOwner(session.authenticated ? asText(session.account?.login || user.telegram_account?.id) : "");
   }, [session?.authenticated, accountKey]);
@@ -2423,6 +2449,7 @@ export function App() {
   const startLesson = async () => {
     const payload = await runAction("lesson", () => api<ApiRecord>("/api/lesson/start", { method: "POST", body: {} }), copy("lesson_ready", "Lesson is ready."));
     if (!payload) return;
+    updateLessonDraft("");
     const record = getRecord(payload);
     const body = recordField(record, ["lesson", "prompt", "question", "task", "message"]) || copy("lesson_generated", "Lesson generated.");
     const taskId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -2660,7 +2687,7 @@ export function App() {
   };
 
   const submitLearningAnswer = async (mode: "lesson" | "practice") => {
-    const text = draft.trim();
+    const text = (mode === "lesson" ? savedLessonDraft : draft).trim();
     if (!text && !voiceFile && !(mode === "practice" && imageFile)) {
       setStatus({ kind: "error", text: copy("add_input_first", "Add text, voice, or a practice photo first.") });
       return;
@@ -2690,7 +2717,10 @@ export function App() {
     setDraft("");
     setVoiceFile(null);
     setImageFile(null);
-    if (mode === "lesson") setActiveLessonTaskId("");
+    if (mode === "lesson") {
+      updateLessonDraft("");
+      setActiveLessonTaskId("");
+    }
   };
 
   const startRoleplayScenario = async (scenario: RoleplayScenario) => {
@@ -3477,8 +3507,8 @@ export function App() {
     busy,
     messages,
     activeLessonTaskId,
-    draft,
-    setDraft,
+    draft: activeView === "lesson" ? savedLessonDraft : draft,
+    setDraft: activeView === "lesson" ? updateLessonDraft : setDraft,
     voiceFile,
     imageFile,
     setVoiceFile,
