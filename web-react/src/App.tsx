@@ -6460,8 +6460,11 @@ function RoleplayView({
   isPhraseSaved,
 }: ViewRendererProps) {
   const [activeScenario, setActiveScenario] = useState<RoleplayScenario | null>(null);
+  const [hintStep, setHintStep] = useState(0);
+  const russian = languageCode(user.interface_language) === "ru";
   const isMobileUi = useMobileUiLayout();
   const beginScenario = async (scenario: RoleplayScenario) => {
+    setHintStep(0);
     setActiveScenario(scenario);
     await startRoleplayScenario(scenario);
   };
@@ -6496,6 +6499,18 @@ function RoleplayView({
               </Button>
               {busy === "roleplay" ? <Spinner size="small" /> : null}
             </div>
+            {activeScenario.id === "restaurant" && user.learning_language === "en" && (
+              <section className="roleplay-guidance" aria-label={russian ? "Цель сцены" : "Scene goal"}>
+                <p>{russian ? "Закажите блюдо у официанта." : "Order a dish from the waiter."}</p>
+                <div aria-live="polite">
+                  {hintStep >= 1 && <p lang="en">Could I have…</p>}
+                  {hintStep === 2 && <p lang="en">Could I have the soup, please?</p>}
+                </div>
+                {hintStep < 2 && <Button type="button" variant="outline" size="sm" onClick={() => setHintStep(hintStep + 1)}>
+                  {hintStep === 0 ? (russian ? "Подсказка" : "Hint") : (russian ? "Показать пример" : "Show example")}
+                </Button>}
+              </section>
+            )}
             <div className="roleplay-dialog-scroll-v2">
               {roleplayResult || sessionMessages.length ? (
                 <ChatPanel messages={sessionMessages} copy={copy} targetLanguage={user.learning_language} />

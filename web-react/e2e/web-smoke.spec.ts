@@ -3527,6 +3527,19 @@ test("regression: desktop tools selector buttons stay compact", async ({ page, i
   }
 });
 
+test("restaurant roleplay reveals its hints in order", async ({ page }) => {
+  await page.goto("/app/?view=roleplay");
+  await page.locator(".roleplay-grid-v2 button").first().click();
+  const guidance = page.locator(".roleplay-guidance");
+  await expect(guidance).toContainText(/Закажите|Order/);
+  const hint = guidance.getByRole("button", { name: /Подсказка|Hint/ });
+  await hint.click();
+  await expect(guidance).toContainText("Could I have");
+  await expect(guidance).not.toContainText("Could I have the soup, please?");
+  await guidance.getByRole("button", { name: /Показать пример|Show example/ }).click();
+  await expect(guidance).toContainText("Could I have the soup, please?");
+});
+
 test("roleplay scenario cards show concrete roles instead of the generic roleplay label", async ({ page }) => {
   await page.goto("/app/?view=roleplay");
   await expect(page.locator(".context-display--roleplay")).toBeVisible();
