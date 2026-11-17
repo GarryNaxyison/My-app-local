@@ -45,6 +45,7 @@ export type UserProfile = {
   learning_focus?: string;
   plan?: string;
   premium?: boolean;
+  premium_transfer_variant?: "control" | "offer";
   premium_until?: string;
   referral_code?: string;
   referral_count?: number;

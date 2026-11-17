@@ -132,6 +132,7 @@ func (api *webAPI) handleMistakeTransfer(w http.ResponseWriter, r *http.Request)
 			writeAPIError(w, http.StatusNotFound, "Practice exercise not found.")
 			return
 		}
+		api.recordPremiumTransferEnrollment(r.Context(), user, time.Now())
 	}
 	progress, err := api.bot.store.mistakeTransferProgress(user.TelegramID, language, time.Now().UTC().Add(-7*24*time.Hour))
 	if err != nil {

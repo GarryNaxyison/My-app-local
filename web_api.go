@@ -4713,6 +4713,11 @@ func (api *webAPI) userDTO(user userState) map[string]any {
 		dto["active_lesson_prompt"] = user.LastLessonPrompt
 		dto["active_lesson_instruction"] = systemUI(user).LessonAnswerInstruction
 	}
+	if api != nil {
+		if variant := premiumTransferVariant(api.cfg.PremiumTransferExperiment, user.isPremium(time.Now()), user.TelegramID); variant != "" {
+			dto["premium_transfer_variant"] = variant
+		}
+	}
 	return dto
 }
 

@@ -8269,7 +8269,7 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
         reviewId={mistakeTransfer.reviewId}
         savedAnswer={mistakeTransfer.savedAnswer}
         onSaved={(answer) => saveMistakeTransferAnswer?.(mistakeTransfer.reviewId, answer)}
-        onPremium={user.premium ? undefined : openMistakeTransferPremium}
+        onPremium={user.premium || user.premium_transfer_variant === "control" ? undefined : openMistakeTransferPremium}
         russian={languageCode(user.interface_language) === "ru"}
         onClose={dismissMistakeTransfer}
       />

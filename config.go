@@ -9,6 +9,7 @@ import (
 )
 
 type config struct {
+	PremiumTransferExperiment         bool
 	TelegramBotToken                  string
 	TelegramOpsRecipients             []telegramOpsRecipient
 	OpenRouterAPIKey                  string
@@ -105,6 +106,7 @@ func configFromEnv() (config, error) {
 		WebAPISessionSecret:               strings.TrimSpace(os.Getenv("WEB_API_SESSION_SECRET")),
 		WebCORSOrigins:                    envListOrDefault("WEB_CORS_ORIGINS", []string{"https://neriva.ru", "https://www.neriva.ru", "https://api.neriva.ru", "https://poliglotai.ru", "https://www.poliglotai.ru", "https://api.poliglotai.ru", "https://poliglotai.online", "https://www.poliglotai.online", "https://api.poliglotai.online"}),
 		WebCookieDomain:                   strings.TrimSpace(os.Getenv("WEB_COOKIE_DOMAIN")),
+		PremiumTransferExperiment:         envBoolOrDefault("PREMIUM_TRANSFER_EXPERIMENT", false),
 		WebCookieSecure:                   envBoolOrDefault("WEB_COOKIE_SECURE", true),
 		WebCookieSameSite:                 strings.ToLower(envOrDefault("WEB_COOKIE_SAMESITE", "lax")),
 		WebAppURL:                         envOrDefault("WEB_APP_URL", "https://neriva.ru/app"),

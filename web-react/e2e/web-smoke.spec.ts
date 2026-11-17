@@ -732,7 +732,7 @@ async function mockApi(page: Page) {
     }),
   );
   await page.route("**/api/daily/claim", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, claimed: true, xp: 25, streak: 1, user: { ...sessionPayload.user, xp: 660 } }) }),
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, claimed: true, xp: 25, streak: 1, user: { ...(testSessionPayloadOverride || sessionPayload).user, xp: 660 } }) }),
   );
   await page.route("**/api/bug-report", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, id: "test-report" }) }));
   await page.route("**/api/premium/plans", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ plans: sessionPayload.premium_plans, enabled: true }) }));
@@ -1220,7 +1220,13 @@ test("Today shows the date for an upcoming tutor review without a start action",
   await expect(card.getByRole("button")).toHaveCount(0);
 });
 
-test("Today opens a saved mistake by its review ID", async ({ page }) => {
+for (const variant of ["legacy", "control", "offer"] as const) test(`Today opens a saved mistake by its review ID (${variant})`, async ({ page }) => {
+  if (variant !== "legacy") {
+    testSessionPayloadOverride = {
+      ...sessionPayload,
+      user: { ...sessionPayload.user, premium_transfer_variant: variant },
+    };
+  }
   const review = { ...todayReviewItem, id: "mistake:review", source: "mistake", title: "I go yesterday" };
   let reviewID = "";
   let transferSaves = 0;
@@ -1263,9 +1269,13 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
   expect(transferSaves).toBe(2);
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("neriva-transfer-example:demor22:en") || "null")?.answer)).toBe("Yesterday, I walked to the station.");
-  await premiumOffer.click();
-  await expect(page.locator(".context-display--premium")).toBeVisible();
-  await page.goBack();
+  if (variant === "control") {
+    await expect(premiumOffer).toHaveCount(0);
+  } else {
+    await premiumOffer.click();
+    await expect(page.locator(".context-display--premium")).toBeVisible();
+    await page.goBack();
+  }
   await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
   await transfer.getByRole("button", { name: /К списку ошибок|Back to mistakes/ }).click();
   await expect(transfer).toHaveCount(0);
