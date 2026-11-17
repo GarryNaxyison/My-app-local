@@ -14,10 +14,26 @@ const lessons = [
   { ru: "В ресторане", en: "At the restaurant", prompt: "Could I see the ___ before I order?", choices: ["platform", "reservation", "menu"] },
 ] as const;
 
-export function TravelRoute({ russian, onRoleplay }: { russian: boolean; onRoleplay: () => void }) {
-  const [step, setStep] = useState(0);
+export function TravelRoute({ russian, owner, onRoleplay }: { russian: boolean; owner: string; onRoleplay: () => void }) {
+  const storageKey = `neriva-travel-route-v1:${owner}`;
+  const [step, setStep] = useState(() => {
+    try {
+      const saved = Number(localStorage.getItem(storageKey));
+      return Number.isInteger(saved) && saved >= 0 && saved <= lessons.length ? saved : 0;
+    } catch {
+      return 0;
+    }
+  });
   const [wrong, setWrong] = useState(false);
   const lesson = lessons[step];
+  function saveStep(next: number) {
+    setStep(next);
+    try {
+      localStorage.setItem(storageKey, String(next));
+    } catch {
+      // The current session can continue when browser storage is unavailable.
+    }
+  }
   return (
     <details className="v2-panel travel-route">
       <summary>{russian ? "Маршрут «Поездка»" : "Travel practice route"}</summary>
@@ -34,7 +50,7 @@ export function TravelRoute({ russian, onRoleplay }: { russian: boolean; onRolep
                   return;
                 }
                 setWrong(false);
-                setStep(step + 1);
+                saveStep(step + 1);
               }}>{choice}</Button>
             ))}
           </div>
@@ -44,7 +60,7 @@ export function TravelRoute({ russian, onRoleplay }: { russian: boolean; onRolep
         <>
           <p role="status">{russian ? "Все задания выполнены. Повторите фразы или попробуйте сцену «Ресторан»." : "All exercises complete. Review the phrases or try the Restaurant scene."}</p>
           <Button type="button" onClick={onRoleplay}>{russian ? "Открыть ролевые сцены" : "Open roleplay scenes"}</Button>
-          <Button type="button" variant="outline" onClick={() => setStep(0)}>{russian ? "Повторить маршрут" : "Repeat the route"}</Button>
+          <Button type="button" variant="outline" onClick={() => saveStep(0)}>{russian ? "Повторить маршрут" : "Repeat the route"}</Button>
           <WordCardPrint items={cards} russian={russian} />
         </>
       )}

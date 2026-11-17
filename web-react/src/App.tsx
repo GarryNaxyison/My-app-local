@@ -6401,7 +6401,12 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
         />
       )}
       {props.session?.authenticated && user.learning_language === "en" && languageCode(user.interface_language) === "ru" && (
-        <TravelRoute russian onRoleplay={() => setView("roleplay")} />
+        <TravelRoute
+          key={JSON.stringify([props.session.account?.login, user.telegram_account?.id])}
+          owner={JSON.stringify([props.session.account?.login, user.telegram_account?.id])}
+          russian
+          onRoleplay={() => setView("roleplay")}
+        />
       )}
       <section className="v2-panel home-focus">
         <h2>{copy("progress", "Progress")}</h2>

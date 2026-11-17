@@ -1060,7 +1060,11 @@ test("travel route unlocks printable cards after three exercises", async ({ page
   await route.locator("summary").click();
   await route.getByRole("button", { name: "menu", exact: true }).click();
   await expect(route).toContainText("0/3");
-  for (const answer of ["reservation", "ticket", "menu"]) {
+  await route.getByRole("button", { name: "reservation", exact: true }).click();
+  await page.reload();
+  await route.locator("summary").click();
+  await expect(route).toContainText("1/3");
+  for (const answer of ["ticket", "menu"]) {
     await route.getByRole("button", { name: answer, exact: true }).click();
   }
   await expect(route).toContainText("3/3");
