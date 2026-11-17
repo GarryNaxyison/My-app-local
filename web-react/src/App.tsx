@@ -9055,7 +9055,12 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
     };
     recorder.onstop = () => {
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
-      setVoiceFile(new File([blob], `voice-${Date.now()}.webm`, { type: blob.type || "audio/webm" }));
+      if (blob.size > 0) {
+        const extension = blob.type.includes("mp4") ? "m4a" : blob.type.includes("ogg") ? "ogg" : "webm";
+        setVoiceFile(new File([blob], `voice-${Date.now()}.${extension}`, { type: blob.type }));
+      } else {
+        setRecordError(copy("empty_voice_recording", "No audio was captured. Try recording again."));
+      }
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       recorderRef.current = null;
@@ -9090,7 +9095,7 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
             onFileChange={setVoiceFile}
             compact
           />
-          {recordError ? <small className="file-error-v2">{recordError}</small> : null}
+          {recordError ? <small className="file-error-v2" role="status">{recordError}</small> : null}
           {quota && <small className="voice-quota">{copy("voice_remaining_today", "Voice submissions left today")} <strong dir="ltr">{quota.remaining} / {quota.limit}</strong></small>}
         </>
       ) : null}

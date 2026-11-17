@@ -3783,8 +3783,13 @@ test("voice recording releases the microphone when leaving practice", async ({ p
   await page.goto("/app/?view=practice");
   await page.locator(".voice-input-shell").click();
   await expect(page.locator(".record-button-v2.is-recording")).toBeVisible();
+  await page.locator(".voice-input-shell").click();
+  await expect(page.locator(".file-error-v2")).toContainText(/Аудио не записалось|No audio was captured/);
+  await page.locator(".voice-input-shell").click();
+  await expect(page.locator(".record-button-v2.is-recording")).toBeVisible();
+  await expect(page.locator(".file-error-v2")).toHaveCount(0);
   await page.locator(`${isMobile ? ".mobile-bottom-nav-v2" : ".learning-sidebar"} [data-view="home"]`).click();
-  await expect.poll(() => page.evaluate(() => (window as any).__stoppedTracks)).toBe(1);
+  await expect.poll(() => page.evaluate(() => (window as any).__stoppedTracks)).toBe(2);
 });
 
 test("PWA controller updates preserve an unsent practice answer", async ({ page }) => {
