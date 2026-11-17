@@ -1086,6 +1086,21 @@ test("Today opens the scheduled tutor lesson", async ({ page }) => {
   expect(requestedLesson).toBe(todayReviewItem.lesson_id);
 });
 
+test("Progress shows the next action from the review queue", async ({ page }) => {
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({
+    json: { items: [{ ...todayReviewItem, id: "mistake:next", source: "mistake", title: "I go yesterday" }] },
+  }));
+  await page.route("**/api/mistakes/practice/start", (route) => {
+    expect(route.request().postDataJSON()).toEqual({ review_id: "mistake:next" });
+    return route.fulfill({ json: { mistake: { index: 0, word: "I go yesterday", correction: "I went yesterday" } } });
+  });
+  await page.goto("/app/?view=progress");
+  const nextReview = page.locator(".dashboard-rhythm-v2 .today-review");
+  await expect(nextReview).toContainText("I go yesterday");
+  await nextReview.getByRole("button").click();
+  await expect(page.locator(".mistake-practice-v2")).toContainText("I go yesterday");
+});
+
 test("Today shows the date for an upcoming tutor review without a start action", async ({ page }) => {
   usePremiumSession();
   const dueAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();

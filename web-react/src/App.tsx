@@ -6897,7 +6897,7 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
   );
 }
 
-function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: ViewRendererProps) {
+function TeacherDashboardView({ user, session, vocabulary, mistakes, copy, aiTutorStep, activeLessonTaskId, busy, restartTutorLesson, startMistakePractice }: ViewRendererProps) {
   const [transferProgress, setTransferProgress] = useState<{ scope: string; completed: number; recent: number | null } | null>(null);
   const transferScope = JSON.stringify([session.account?.login, user.telegram_account?.id, user.learning_language]);
   const transferCompleted = transferProgress?.scope === transferScope ? transferProgress.completed : null;
@@ -7004,6 +7004,18 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
             </span>
           ))}
         </div>
+        {session.authenticated && (
+          <TodayReview
+            key={transferScope}
+            compact
+            interfaceLanguage={user.interface_language}
+            canStart={Boolean(user.premium)}
+            hasActiveLesson={Boolean(activeLessonTaskId || (user.premium && aiTutorStep && aiTutorStep.stage !== "complete" && aiTutorStep.kind !== "complete"))}
+            busy={busy === "lesson" || busy === "tutor" || busy === "mistake-practice"}
+            start={restartTutorLesson}
+            startMistakePractice={startMistakePractice}
+          />
+        )}
       </section>
     </div>
   );

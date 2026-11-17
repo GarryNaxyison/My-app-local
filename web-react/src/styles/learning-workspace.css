@@ -229,12 +229,21 @@ body:has(.v2-shell--learning),
     color-mix(in srgb, var(--primary) 7%, var(--surface-strong));
 }
 
-.v2-shell--learning .home-grid > .today-review {
-  grid-column: 1 / -1;
+.today-review {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
+}
+
+.v2-shell--learning .home-grid > .today-review {
+  grid-column: 1 / -1;
+}
+
+.today-review--compact {
+  margin-block-start: 20px;
+  padding-block-start: 16px;
+  border-block-start: 1px solid var(--line);
 }
 
 .today-review > svg {
@@ -249,6 +258,7 @@ body:has(.v2-shell--learning),
 }
 
 .today-review__details h2,
+.today-review__details h3,
 .today-review__details p {
   margin: 0 0 4px;
 }

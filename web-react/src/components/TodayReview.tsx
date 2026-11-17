@@ -14,6 +14,7 @@ type ReviewItem = {
 };
 
 type Props = {
+  compact?: boolean;
   interfaceLanguage?: string;
   canStart: boolean;
   hasActiveLesson: boolean;
@@ -22,7 +23,7 @@ type Props = {
   startMistakePractice: (reviewId: string) => Promise<void>;
 };
 
-export function TodayReview({ interfaceLanguage, canStart, hasActiveLesson, busy, start, startMistakePractice }: Props) {
+export function TodayReview({ compact = false, interfaceLanguage, canStart, hasActiveLesson, busy, start, startMistakePractice }: Props) {
   const [item, setItem] = useState<ReviewItem | null>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -44,12 +45,13 @@ export function TodayReview({ interfaceLanguage, canStart, hasActiveLesson, busy
   const due = item.status === "due";
   const mistake = item.source === "mistake";
   const formattedDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.due_at));
+  const Heading = compact ? "h3" : "h2";
 
   return (
-    <section className="v2-panel today-review">
+    <section className={compact ? "today-review today-review--compact" : "v2-panel today-review"}>
       <Repeat2 size={22} aria-hidden="true" />
       <div className="today-review__details">
-        <h2>{due ? russian ? "Пора повторить" : "Review due" : russian ? "Ближайшее повторение" : "Next review"}</h2>
+        <Heading>{due ? russian ? "Пора повторить" : "Review due" : russian ? "Ближайшее повторение" : "Next review"}</Heading>
         <p dir="auto">{item.title}</p>
         {!mistake && <time dateTime={item.due_at}>{formattedDate}</time>}
         {due && hasActiveLesson && <p>{russian ? "Сначала завершите текущий урок." : "Finish the current lesson first."}</p>}
