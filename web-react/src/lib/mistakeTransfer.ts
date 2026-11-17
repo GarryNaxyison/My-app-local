@@ -34,7 +34,7 @@ export function buildMistakeTransfer(original: string, correction: string, langu
       },
       hint: { ru: "Используйте глагол walk в прошедшем времени.", en: "Use the past tense of walk." },
       example: `I walked to the ${place} yesterday.`,
-      answers: [`i walked to the ${place} yesterday`, `yesterday i walked to the ${place}`],
+      answers: [`i walked to the ${place} yesterday`, `yesterday i walked to the ${place}`, `i walked yesterday to the ${place}`],
     };
   }
   if (/^she go\b/i.test(before) && /^she goes\b/i.test(after)) {
@@ -45,7 +45,7 @@ export function buildMistakeTransfer(original: string, correction: string, langu
       },
       hint: { ru: "Добавьте окончание к глаголу read после she.", en: "Add the ending to read after she." },
       example: "She reads books every evening.",
-      answers: ["she reads books every evening", "every evening she reads books"],
+      answers: ["she reads books every evening", "every evening she reads books", "she reads books each evening"],
     };
   }
   const afterWords = after.split(" ");
@@ -63,7 +63,7 @@ export function buildMistakeTransfer(original: string, correction: string, langu
       },
       hint: { ru: "Перед гласным звуком используйте an.", en: "Use an before a vowel sound." },
       example: `I need an ${noun}.`,
-      answers: [`i need an ${noun}`],
+      answers: [`i need an ${noun}`, `i'll need an ${noun}`, `i will need an ${noun}`],
     };
   }
   if (/^(we|they|you) is\b/u.test(before) && after === before.replace(/^(we|they|you) is\b/u, "$1 are")) {
@@ -75,7 +75,7 @@ export function buildMistakeTransfer(original: string, correction: string, langu
       },
       hint: { ru: "После we и they используйте are.", en: "Use are after we and they." },
       example: useOutside ? "They are outside." : "We are ready.",
-      answers: useOutside ? ["they are outside", "they're outside"] : ["we are ready", "we're ready"],
+      answers: useOutside ? ["they are outside", "they're outside", "they are outside now", "they're outside now"] : ["we are ready", "we're ready", "we are all ready", "we're all ready"],
     };
   }
   const pastNegative = before.match(/^((?:i|you|he|she|we|they) )(?:didn't|did not) (\w+)(.*)$/u);

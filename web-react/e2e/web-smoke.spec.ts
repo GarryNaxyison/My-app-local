@@ -1224,6 +1224,7 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   let reviewID = "";
   let transferSaves = 0;
   await page.route("**/api/mistakes/transfer", (route) => {
+    if (route.request().method() === "GET") return route.fulfill({ json: { completed: 1 } });
     expect(route.request().postDataJSON()).toEqual({ review_id: review.id });
     transferSaves += 1;
     return route.fulfill(transferSaves === 1 ? { status: 503 } : { json: { completed: 1 } });
@@ -1260,12 +1261,15 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await transfer.getByRole("button", { name: /Повторить сохранение|Retry saving/ }).click();
   await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
   expect(transferSaves).toBe(2);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("neriva-transfer-example:demor22:en") || "null")?.answer)).toBe("Yesterday, I walked to the station.");
   await premiumOffer.click();
   await expect(page.locator(".context-display--premium")).toBeVisible();
   await page.goBack();
   await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
   await transfer.getByRole("button", { name: /К списку ошибок|Back to mistakes/ }).click();
   await expect(transfer).toHaveCount(0);
+  await page.goto("/app/?view=progress");
+  await expect(page.locator(".weekly-transfer-example")).toContainText("Yesterday, I walked to the station.");
 });
 
 test("ordinary lesson restores its own draft and clears it after success", async ({ page }) => {

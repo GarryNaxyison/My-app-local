@@ -3575,8 +3575,16 @@ export function App() {
     mistakeResult,
     mistakeTransfer,
     dismissMistakeTransfer: () => setMistakeTransfer(null),
-    saveMistakeTransferAnswer: (reviewId, savedAnswer) => setMistakeTransfer((current) =>
-      current && current.reviewId === reviewId ? { ...current, savedAnswer } : current),
+    saveMistakeTransferAnswer: (reviewId, savedAnswer) => {
+      setMistakeTransfer((current) => current && current.reviewId === reviewId ? { ...current, savedAnswer } : current);
+      if (accountKey !== "guest") {
+        try {
+          localStorage.setItem(`neriva-transfer-example:${accountKey}:${user.learning_language}`, JSON.stringify({ answer: savedAnswer, time: Date.now() }));
+        } catch {
+          // The saved result is still available in the exercise.
+        }
+      }
+    },
     openMistakeTransferPremium: () => setView("premium"),
     deleteMistake,
     clearMistakes,
@@ -7064,6 +7072,23 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
   );
 }
 
+function WeeklyTransferExample({ user, session }: { user: UserProfile; session: SessionData }) {
+  const owner = asText(session.account?.login || user.telegram_account?.id || "guest", "guest");
+  if (owner === "guest") return null;
+  try {
+    const raw = localStorage.getItem(`neriva-transfer-example:${owner}:${user.learning_language}`);
+    const value = raw ? JSON.parse(raw) : null;
+    const now = Date.now();
+    if (typeof value?.answer !== "string" || typeof value.time !== "number" || value.time > now || value.time < now - 7 * 24 * 60 * 60 * 1000) return null;
+    return <div className="weekly-transfer-example">
+      <h3>{languageCode(user.interface_language) === "ru" ? "Ваш удачный ответ за неделю" : "Your successful answer this week"}</h3>
+      <p lang={user.learning_language} dir="auto">{value.answer}</p>
+    </div>;
+  } catch {
+    return null;
+  }
+}
+
 function TeacherDashboardView({ user, session, vocabulary, mistakes, copy, aiTutorStep, activeLessonTaskId, busy, restartTutorLesson, startMistakePractice }: ViewRendererProps) {
   const [transferProgress, setTransferProgress] = useState<{ scope: string; completed: number; recent: number | null } | null>(null);
   const transferScope = JSON.stringify([session.account?.login, user.telegram_account?.id, user.learning_language]);
@@ -7163,6 +7188,7 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy, aiTut
       <section className="v2-panel dashboard-rhythm-v2">
         <span className="eyebrow">{copy("weekly_rhythm", "Weekly rhythm")}</span>
         <h2>{copy("training_balance", "Баланс тренировки")}</h2>
+        {session.authenticated && <WeeklyTransferExample key={transferScope} user={user} session={session} />}
         <div className="dashboard-rhythm-v2__bars">
           {weeklyBalance.map((metric) => (
             <span key={metric.label} style={{ "--bar": `${Math.min(100, Math.round((metric.value / metric.goal) * 100))}%` } as CSSProperties}>
