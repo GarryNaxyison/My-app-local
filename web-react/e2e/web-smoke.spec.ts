@@ -1335,6 +1335,9 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   await expect(shortcut).toHaveCount(0);
   const summary = lesson.locator(".lesson-result-summary");
   await expect(summary).toContainText(correction);
+  await expect(summary).toContainText(draft);
+  await expect(summary).toContainText("Use a polite request at check-in.");
+  await expect(summary.locator(".audio-wave-button-v2")).toBeVisible();
   await expect(summary).toBeFocused();
   await expect(summary).toBeInViewport();
   await summary.getByRole("button", { name: appCopy("ru", "word_game") }).click();

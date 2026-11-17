@@ -2680,7 +2680,7 @@ export function App() {
     const responseText = formatLearningRecord(record, copy, copy("done", "Done."));
     const transcript = asText(record.transcript || text || (voiceFile ? copy("voice_message", "Voice message") : imageFile ? copy("image_message", "Image message") : ""), "");
     const nextMessages = [
-      panelMessage(responseText, "success", mode === "lesson" ? copy("lesson_feedback", "Lesson feedback") : copy("practice_feedback", "Practice feedback"), mode === "lesson" ? { ...record, task_id: activeLessonTaskId } : record, mode),
+      panelMessage(responseText, "success", mode === "lesson" ? copy("lesson_feedback", "Lesson feedback") : copy("practice_feedback", "Practice feedback"), mode === "lesson" ? { ...record, task_id: activeLessonTaskId, learner_answer: record.transcript || text } : record, mode),
     ];
     if (transcript) nextMessages.push({ id: `${Date.now()}-user`, role: "user", title: copy("you", "You"), body: transcript, meta: mode });
     setMessages((current) => [
@@ -7191,6 +7191,8 @@ function ChatWorkView({
     : undefined;
   const lessonMistakes = recordMistakes(completedAnswer?.mistakes);
   const reviewPhrase = recordField(lessonMistakes[0] ?? {}, ["correction"]) || recordField(completedAnswer ?? {}, ["correction", "model_phrase"]);
+  const learnerAnswer = recordField(completedAnswer ?? {}, ["learner_answer", "transcript"]);
+  const primaryExplanation = recordField(lessonMistakes[0] ?? {}, ["explanation"]) || recordField(completedAnswer ?? {}, ["explanation"]);
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
   const summaryRef = useRef<HTMLElement>(null);
   const wasAnswering = useRef(lessonHasActiveTask);
@@ -7244,7 +7246,15 @@ function ChatWorkView({
                 <section className="v2-panel lesson-result-summary" ref={summaryRef} tabIndex={-1} aria-labelledby="lesson-result-title">
                   <h2 id="lesson-result-title">{copy("tutor_lesson_complete", "Lesson complete")}</h2>
                   <p>{reviewPhrase ? copy("lesson_review_tomorrow", "Try saying the corrected phrase from memory tomorrow.") : copy("lesson_review_tomorrow_generic", "Tomorrow, try answering this task again from memory.")}</p>
-                  {reviewPhrase ? <p lang={user.learning_language}><strong>{reviewPhrase}</strong></p> : null}
+                  {learnerAnswer && <p>{copy("you", "Your answer")}: <span lang={user.learning_language} dir="auto">{learnerAnswer}</span></p>}
+                  {reviewPhrase && <AudioActionRow clips={[{ label: copy("correct_variant", "Correct variant"), text: reviewPhrase, targetLanguage: user.learning_language }]} />}
+                  {primaryExplanation && <p dir="auto">{primaryExplanation}</p>}
+                  {lessonMistakes.length > 1 && <details>
+                    <summary>{copy("mistakes", "Mistakes")} · {lessonMistakes.length - 1}</summary>
+                    <ul>{lessonMistakes.slice(1).map((mistake, index) => (
+                      <li key={index} dir="auto">{recordField(mistake, ["correction"])} {recordField(mistake, ["explanation"])}</li>
+                    ))}</ul>
+                  </details>}
                   <div className="lesson-result-summary__actions">
                     {lessonMistakes.length ? <Button type="button" variant="outline" disabled={busy === "mistakes"} onClick={() => void loadMistakes()}>{copy("mistakes", "Mistakes")}</Button> : null}
                     <Button type="button" variant="outline" onClick={() => setView("word-game")}>{copy("word_game", "Review")}</Button>
