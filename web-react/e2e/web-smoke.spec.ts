@@ -5554,3 +5554,27 @@ test("prints vocabulary as ordered folding sheets", async ({ page }) => {
   }
   await expect(sheets).toHaveCount(1);
 });
+
+test("collects dictionary pages and prints their words as text", async ({ page }) => {
+  await page.route("**/api/vocabulary**", (route) => {
+    const index = Number(new URL(route.request().url()).searchParams.get("page") || 0);
+    return route.fulfill({ json: {
+      items: [{ id: String(index), word: index ? "ticket" : "train", translation: "перевод" }],
+      page: index, page_size: 1, total: 2, total_pages: 2,
+    } });
+  });
+  await page.addInitScript(() => { window.print = () => {}; });
+  await page.goto("/app/?view=vocabulary");
+  const set = page.locator(".vocabulary-print-collection");
+  const add = set.getByRole("button", { name: "Добавить страницу в набор" });
+  await add.click();
+  await page.locator(".vocabulary-arrow-v2").last().click();
+  await expect(page.locator(".vocabulary-card-v2")).toContainText("ticket");
+  await add.click();
+  await expect(set).toContainText("Карточек в наборе: 2");
+  await set.getByRole("button", { name: "Печатные карточки" }).click();
+  await set.getByRole("button", { name: "Печать / PDF" }).click();
+  const sheet = page.frameLocator(".word-card-print__frame").locator(".sheet");
+  await expect(sheet.getByText("train", { exact: true })).toBeVisible();
+  await expect(sheet.getByText("ticket", { exact: true })).toBeVisible();
+});

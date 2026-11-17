@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { VocabularyItem } from "../lib/types";
-import { renderWordCardSheets, type WordCardLayout } from "../lib/wordCardSheets";
+import { renderWordCardSheets, type PrintSheet, type WordCardLayout } from "../lib/wordCardSheets";
 import "./word-card-print.css";
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
   russian: boolean;
 }
 
-function printSheets(images: string[]) {
+function printWordCards(pages: PrintSheet[], layout: WordCardLayout, logo: HTMLImageElement | null | undefined) {
   const frame = document.createElement("iframe");
   frame.title = "NERIVA";
   frame.className = "word-card-print__frame";
@@ -21,12 +21,22 @@ function printSheets(images: string[]) {
     target.addEventListener("afterprint", () => frame.remove(), { once: true });
     target.print();
   };
-  const sheets = images.map((image) => `<img src="${image}" alt="">`).join("");
+  const encode = (value: string) => value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const mm = (value: number) => `${value * 209.5 / 1240}mm`;
+  const sheets = pages.map(({ cards, lines }) => `<section class="sheet">
+    ${logo ? '<img class="logo" src="/app/assets/neriva-wordmark.png" alt="NERIVA">' : ""}
+    ${cards.map((card) => `<div class="card ${layout}" style="left:${mm(card.x)};top:${mm(card.y)};width:${mm(card.width)};height:${mm(card.height)}"></div>`).join("")}
+    ${lines.map((line) => `<span dir="auto" style="left:${mm(line.x)};top:${mm(line.y)};font-size:${mm(Number(/\d+/.exec(line.font)?.[0]))};font-weight:${line.font.startsWith("bold") ? 700 : 400}">${encode(line.text)}</span>`).join("")}
+  </section>`).join("");
   frame.srcdoc = `<!doctype html><meta charset="utf-8"><title>NERIVA A4</title><style>
     @page { size: A4; margin: 0; }
     body { margin: 0; }
-    img { display: block; width: 209.5mm; height: auto; margin-inline: auto; break-inside: avoid; }
-    img + img { break-before: page; }
+    .sheet { position: relative; width: 209.5mm; height: 296mm; margin: auto; break-inside: avoid; color: #19233b; font-family: sans-serif; }
+    .sheet + .sheet { break-before: page; }
+    .sheet span { position: absolute; line-height: 1; white-space: pre; }
+    .logo { position: absolute; top: 8.45mm; left: 10.8mm; max-width: 35.5mm; max-height: 10.1mm; }
+    .card { position: absolute; border: .34mm solid; box-sizing: border-box; }
+    .card.fold::after { content: ""; position: absolute; inset: 0 auto 0 50%; border-left: .34mm dashed; }
   </style>${sheets}`;
   document.body.append(frame);
 }
@@ -49,13 +59,13 @@ export function WordCardPrint({ items, russian }: Props) {
   }, [open, logo]);
   const fold = russian ? "Разрезать и сложить" : "Cut and fold";
   const cut = russian ? "Вырезать" : "Cut out";
-  const { sheets: images, error, oversized } = useMemo(() => {
-    if (!open || logo === undefined) return { sheets: [], error: false, oversized: [] };
+  const { sheets: images, printSheets, error, oversized } = useMemo(() => {
+    if (!open || logo === undefined) return { sheets: [], printSheets: [], error: false, oversized: [] };
     try {
       const instructions = layout === "fold" ? fold : cut;
       return { ...renderWordCardSheets(items.filter((_, index) => !omitted.has(index)), layout, instructions, logo), error: false };
     } catch {
-      return { sheets: [], error: true, oversized: [] };
+      return { sheets: [], printSheets: [], error: true, oversized: [] };
     }
   }, [items, omitted, open, layout, fold, cut, logo]);
 
@@ -83,7 +93,7 @@ export function WordCardPrint({ items, russian }: Props) {
                 <option value="cut">{cut}</option>
               </select>
             </label>
-            <button type="button" disabled={!images.length} onClick={() => printSheets(images)}>
+            <button type="button" disabled={!images.length} onClick={() => printWordCards(printSheets, layout, logo)}>
               {russian ? "Печать / PDF" : "Print / PDF"}
             </button>
           </div>

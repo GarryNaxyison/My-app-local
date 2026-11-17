@@ -7939,6 +7939,9 @@ function LevelView({ levelQuestion, levelResult, startLevel, answerLevel, busy, 
 }
 
 function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy, user }: ViewRendererProps) {
+  const russian = languageCode(user.interface_language) === "ru";
+  const [printPages, setPrintPages] = useState<Record<number, VocabularyItem[]>>({});
+  const printItems = Array.from(new Map(Object.values(printPages).flat().map((item) => [item.id || item.word, item])).values());
   useEffect(() => {
     if (!vocabulary.length && busy !== "vocabulary") void loadVocabulary(0);
   }, []);
@@ -7971,6 +7974,18 @@ function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy
         </div>
       </div>
       {vocabulary.length > 0 && <WordCardPrint key={vocabularyMeta.page} items={vocabulary} russian={languageCode(user.interface_language) === "ru"} />}
+      {vocabularyMeta.total_pages > 1 && vocabulary.length > 0 && (
+        <section className="vocabulary-print-collection" aria-label={russian ? "Набор с нескольких страниц" : "Multi-page print set"}>
+          <Button type="button" variant="outline" disabled={busy === "vocabulary"} onClick={() => setPrintPages((current) => ({ ...current, [vocabularyMeta.page]: vocabulary }))}>
+            {russian ? "Добавить страницу в набор" : "Add this page to the set"}
+          </Button>
+          {printItems.length > 0 && <>
+            <p>{russian ? "Карточек в наборе" : "Cards in the set"}: {printItems.length}</p>
+            <Button type="button" variant="outline" onClick={() => setPrintPages({})}>{russian ? "Очистить набор" : "Clear the set"}</Button>
+            <WordCardPrint key={JSON.stringify(Object.keys(printPages))} items={printItems} russian={russian} />
+          </>}
+        </section>
+      )}
       <div className="vocabulary-grid-v2">
         {vocabulary.length ? (
           vocabulary.map((item) => (

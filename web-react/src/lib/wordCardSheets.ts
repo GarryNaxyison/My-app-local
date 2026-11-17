@@ -11,6 +11,9 @@ const cardWidth = (width - margin * 2 - gap) / 2;
 const cardHeight = 460;
 const ink = "#19233b";
 const accent = "#4b55ff";
+type PrintLine = { text: string; x: number; y: number; font: string };
+type PrintCard = { x: number; y: number; width: number; height: number };
+export type PrintSheet = { lines: PrintLine[]; cards: PrintCard[] };
 
 function contextForSheet() {
   const canvas = document.createElement("canvas");
@@ -55,12 +58,17 @@ function prepareCard(context: CanvasRenderingContext2D, item: VocabularyItem, co
   return { word, answer, example, height: contentHeight + 128 };
 }
 
-function drawLines(context: CanvasRenderingContext2D, lines: string[], x: number, y: number, font: string, spacing: number) {
+function drawLines(context: CanvasRenderingContext2D, lines: string[], x: number, y: number, font: string, spacing: number, print: PrintSheet) {
   context.font = font;
-  lines.forEach((line, index) => context.fillText(line, x, y + index * spacing));
+  lines.forEach((line, index) => {
+    const top = y + index * spacing;
+    context.fillText(line, x, top);
+    print.lines.push({ text: line, x, y: top, font });
+  });
 }
 
-function drawCard(context: CanvasRenderingContext2D, card: ReturnType<typeof prepareCard>, x: number, y: number, w: number, h: number, layout: WordCardLayout) {
+function drawCard(context: CanvasRenderingContext2D, card: ReturnType<typeof prepareCard>, x: number, y: number, w: number, h: number, layout: WordCardLayout, print: PrintSheet) {
+  print.cards.push({ x, y, width: w, height: h });
   context.strokeStyle = ink;
   context.lineWidth = 2;
   context.strokeRect(x, y, w, h);
@@ -77,18 +85,20 @@ function drawCard(context: CanvasRenderingContext2D, card: ReturnType<typeof pre
   const answerX = layout === "fold" ? x + w / 2 + 28 : x + 28;
   const answerY = layout === "fold" ? y + 72 : y + 92 + card.word.length * 53;
   context.fillStyle = ink;
-  drawLines(context, card.word, x + 28, y + 72, "bold 43px sans-serif", 53);
-  drawLines(context, card.answer, answerX, answerY, "bold 32px sans-serif", 40);
-  drawLines(context, card.example, answerX, answerY + card.answer.length * 40 + 20, "27px sans-serif", 34);
+  drawLines(context, card.word, x + 28, y + 72, "bold 43px sans-serif", 53, print);
+  drawLines(context, card.answer, answerX, answerY, "bold 32px sans-serif", 40, print);
+  drawLines(context, card.example, answerX, answerY + card.answer.length * 40 + 20, "27px sans-serif", 34, print);
 }
 
 export function renderWordCardSheets(items: VocabularyItem[], layout: WordCardLayout, instructions: string, logo: HTMLImageElement | null) {
   const measure = contextForSheet();
   const sheets: string[] = [];
+  const printSheets: PrintSheet[] = [];
   const oversized: string[] = [];
   for (let offset = 0; offset < items.length;) {
     const pageStart = offset;
     const context = contextForSheet();
+    const print: PrintSheet = { lines: [], cards: [] };
     context.fillStyle = "#fff";
     context.fillRect(0, 0, width, height);
     context.textBaseline = "top";
@@ -97,15 +107,15 @@ export function renderWordCardSheets(items: VocabularyItem[], layout: WordCardLa
       const scale = Math.min(210 / logo.naturalWidth, 60 / logo.naturalHeight);
       context.drawImage(logo, margin, 50, logo.naturalWidth * scale, logo.naturalHeight * scale);
     } else {
-      drawLines(context, ["NERIVA"], margin, 59, "bold 49px sans-serif", 50);
+      drawLines(context, ["NERIVA"], margin, 59, "bold 49px sans-serif", 50, print);
     }
     const label = `${instructions}   ·   ${sheets.length + 1}`;
-    drawLines(context, [label], margin, 120, "27px sans-serif", 34);
+    drawLines(context, [label], margin, 120, "27px sans-serif", 34, print);
     let y = top;
     for (let row = 0; row < 3 && offset < items.length; row++) {
       const pair = items.slice(offset, offset + 2).map((item) => prepareCard(measure, item, 2, layout));
       if (pair.every((card) => card.height <= cardHeight)) {
-        pair.forEach((card, column) => drawCard(context, card, margin + column * (cardWidth + gap), y, cardWidth, cardHeight, layout));
+        pair.forEach((card, column) => drawCard(context, card, margin + column * (cardWidth + gap), y, cardWidth, cardHeight, layout, print));
         offset += pair.length;
         y += cardHeight + gap;
         continue;
@@ -118,14 +128,15 @@ export function renderWordCardSheets(items: VocabularyItem[], layout: WordCardLa
         offset++;
         break;
       }
-      drawCard(context, card, margin, y, width - margin * 2, Math.max(cardHeight, card.height), layout);
+      drawCard(context, card, margin, y, width - margin * 2, Math.max(cardHeight, card.height), layout, print);
       y += cardHeight;
       offset++;
       break;
     }
     if (offset > pageStart && y > top) {
       sheets.push(context.canvas.toDataURL("image/png"));
+      printSheets.push(print);
     }
   }
-  return { sheets, oversized };
+  return { sheets, oversized, printSheets };
 }
