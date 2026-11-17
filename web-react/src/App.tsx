@@ -94,6 +94,7 @@ import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
 import { TextPractice } from "./components/TextPractice";
+import { TravelRoute } from "./components/TravelRoute";
 import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner, syncOfflineCards } from "./components/OfflineReview";
 import { MistakeTransfer } from "./components/MistakeTransfer";
 import { buildMistakeTransfer, type MistakeTransferTask } from "./lib/mistakeTransfer";
@@ -6398,6 +6399,9 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
           start={props.restartTutorLesson}
           startMistakePractice={props.startMistakePractice}
         />
+      )}
+      {props.session?.authenticated && user.learning_language === "en" && languageCode(user.interface_language) === "ru" && (
+        <TravelRoute russian onRoleplay={() => setView("roleplay")} />
       )}
       <section className="v2-panel home-focus">
         <h2>{copy("progress", "Progress")}</h2>

@@ -1054,6 +1054,22 @@ const todayReviewItem = {
   status: "due",
 };
 
+test("travel route unlocks printable cards after three exercises", async ({ page }) => {
+  await page.goto("/app/?view=home");
+  const route = page.locator(".travel-route");
+  await route.locator("summary").click();
+  await route.getByRole("button", { name: "menu", exact: true }).click();
+  await expect(route).toContainText("0/3");
+  for (const answer of ["reservation", "ticket", "menu"]) {
+    await route.getByRole("button", { name: answer, exact: true }).click();
+  }
+  await expect(route).toContainText("3/3");
+  await route.getByRole("button", { name: "Печатные карточки" }).click();
+  await expect(route.locator("[data-word-card-sheet]")).toHaveCount(1);
+  await route.getByRole("button", { name: "Открыть ролевые сцены" }).click();
+  await expect(page.locator(".roleplay-grid-v2")).toBeVisible();
+});
+
 test("practice with pasted text checks the learner answer in context", async ({ page }) => {
   await page.route("**/api/practice/text-questions", (route) => {
     expect(route.request().postDataJSON()).toEqual({ text: "The train leaves at nine." });
