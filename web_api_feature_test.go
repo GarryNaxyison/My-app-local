@@ -1318,6 +1318,22 @@ func TestWebLessonAndPracticeFallbackPersistMistakes(t *testing.T) {
 	if len(mistakes) != 2 {
 		t.Fatalf("expected two persisted mistakes, got %#v", mistakes)
 	}
+	// Web roleplay sends its scenario prompt through the same practice endpoint.
+	queue := requestJSON(t, api, cookie, http.MethodGet, "/api/learning-reviews", nil)
+	reviews, _ := queue["items"].([]any)
+	if len(reviews) != 2 {
+		t.Fatalf("expected both saved mistakes in the review queue: %#v", queue)
+	}
+	reviewTitles := make(map[string]bool)
+	for _, review := range reviews {
+		item := review.(map[string]any)
+		if item["source"] == "mistake" {
+			reviewTitles[item["title"].(string)] = true
+		}
+	}
+	if !reviewTitles["She go home"] || !reviewTitles["I want coffee please"] {
+		t.Fatalf("expected lesson and practice mistakes: %#v", queue)
+	}
 	if call != len(responses) {
 		t.Fatalf("expected %d OpenRouter calls, got %d", len(responses), call)
 	}

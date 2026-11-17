@@ -3209,12 +3209,17 @@ func (api *webAPI) handleMistakePracticeStart(w http.ResponseWriter, r *http.Req
 		return
 	}
 	var req struct {
-		Index *int `json:"index"`
+		Index    *int   `json:"index"`
+		ReviewID string `json:"review_id"`
 	}
 	if !decodeJSONRequest(w, r, &req) {
 		return
 	}
 	mistakes := mistakesForLanguage(user)
+	if req.ReviewID != "" && len(mistakes) == 0 {
+		writeAPIError(w, http.StatusNotFound, "This review is no longer available.")
+		return
+	}
 	if len(mistakes) == 0 {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"empty":   true,
@@ -3223,14 +3228,26 @@ func (api *webAPI) handleMistakePracticeStart(w http.ResponseWriter, r *http.Req
 		return
 	}
 	index := len(mistakes) - 1
+	modeKey := ""
 	if req.Index != nil {
 		index = *req.Index
+	}
+	if req.ReviewID != "" {
+		index = mistakeLearningReviewIndex(mistakes, req.ReviewID)
+		modeKey = req.ReviewID
+		if index < 0 {
+			writeAPIError(w, http.StatusNotFound, "This review is no longer available.")
+			return
+		}
 	}
 	if index < 0 || index >= len(mistakes) {
 		writeAPIError(w, http.StatusBadRequest, "Mistake index is out of range.")
 		return
 	}
-	if err := api.bot.store.setMode(user.TelegramID, modeWebMistakePrefix+itoa(index)); err != nil {
+	if modeKey == "" {
+		modeKey = itoa(index)
+	}
+	if err := api.bot.store.setMode(user.TelegramID, modeWebMistakePrefix+modeKey); err != nil {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -3268,6 +3285,9 @@ func (api *webAPI) handleMistakePracticeAnswer(w http.ResponseWriter, r *http.Re
 	}
 	index, err := strconv.Atoi(rawIndex)
 	mistakes := mistakesForLanguage(user)
+	if strings.HasPrefix(rawIndex, "mistake:") {
+		index, err = mistakeLearningReviewIndex(mistakes, rawIndex), nil
+	}
 	if err != nil || index < 0 || index >= len(mistakes) {
 		_ = api.bot.store.setMode(user.TelegramID, "idle")
 		writeAPIError(w, http.StatusNotFound, "Не нашёл ошибку для тренировки. Откройте словарь ошибок заново.")

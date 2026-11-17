@@ -5,6 +5,7 @@ import { normalizeAppLocale } from "../lib/i18n";
 import { Button } from "./ui/button";
 
 type ReviewItem = {
+  id: string;
   source: string;
   lesson_id: string;
   title: string;
@@ -18,15 +19,18 @@ type Props = {
   hasActiveLesson: boolean;
   busy: boolean;
   start: (lessonId: string) => Promise<boolean>;
+  startMistakePractice: (reviewId: string) => Promise<void>;
 };
 
-export function TodayReview({ interfaceLanguage, canStart, hasActiveLesson, busy, start }: Props) {
+export function TodayReview({ interfaceLanguage, canStart, hasActiveLesson, busy, start, startMistakePractice }: Props) {
   const [item, setItem] = useState<ReviewItem | null>(null);
   useEffect(() => {
     const controller = new AbortController();
     void api<{ items: ReviewItem[] }>("/api/learning-reviews", { signal: controller.signal }).then((response) => {
       if (controller.signal.aborted) return;
-      const next = response.items.find((entry) => entry.source === "ai_tutor" && entry.lesson_id && Number.isFinite(Date.parse(entry.due_at)));
+      const next = response.items.find((entry) =>
+        (entry.source === "ai_tutor" && entry.lesson_id || entry.source === "mistake" && entry.id) && Number.isFinite(Date.parse(entry.due_at)),
+      );
       setItem(next ?? null);
     }).catch(() => {
       if (!controller.signal.aborted) setItem(null);
@@ -38,6 +42,7 @@ export function TodayReview({ interfaceLanguage, canStart, hasActiveLesson, busy
   const locale = normalizeAppLocale(interfaceLanguage);
   const russian = locale === "ru";
   const due = item.status === "due";
+  const mistake = item.source === "mistake";
   const formattedDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.due_at));
 
   return (
@@ -46,12 +51,12 @@ export function TodayReview({ interfaceLanguage, canStart, hasActiveLesson, busy
       <div className="today-review__details">
         <h2>{due ? russian ? "Пора повторить" : "Review due" : russian ? "Ближайшее повторение" : "Next review"}</h2>
         <p dir="auto">{item.title}</p>
-        <time dateTime={item.due_at}>{formattedDate}</time>
+        {!mistake && <time dateTime={item.due_at}>{formattedDate}</time>}
         {due && hasActiveLesson && <p>{russian ? "Сначала завершите текущий урок." : "Finish the current lesson first."}</p>}
       </div>
-      {due && canStart && (
-        <Button type="button" variant="outline" disabled={hasActiveLesson || busy} onClick={() => void start(item.lesson_id)}>
-          {russian ? "Повторить урок" : "Review lesson"}
+      {due && (mistake || canStart) && (
+        <Button type="button" variant="outline" disabled={hasActiveLesson || busy} onClick={() => void (mistake ? startMistakePractice(item.id) : start(item.lesson_id))}>
+          {mistake ? (russian ? "Исправить ошибку" : "Fix the mistake") : (russian ? "Повторить урок" : "Review lesson")}
         </Button>
       )}
     </section>

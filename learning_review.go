@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -10,13 +13,27 @@ import (
 type learningReviewItem struct {
 	ID       string    `json:"id"`
 	Source   string    `json:"source"`
-	LessonID string    `json:"lesson_id"`
+	LessonID string    `json:"lesson_id,omitempty"`
 	Title    string    `json:"title"`
 	DueAt    time.Time `json:"due_at"`
 	Status   string    `json:"status"`
 }
 
-func listTutorLearningReviews(storage store, user userState, now time.Time) ([]learningReviewItem, error) {
+func mistakeLearningReviewID(entry mistakeEntry) string {
+	key, _ := json.Marshal([4]string{normalizeLearningLanguage(entry.Language), entry.Word, entry.Correction, formatDBTime(entry.AddedAt)})
+	return fmt.Sprintf("mistake:%x", sha256.Sum256(key))
+}
+
+func mistakeLearningReviewIndex(mistakes []mistakeEntry, reviewID string) int {
+	for index, entry := range mistakes {
+		if mistakeLearningReviewID(entry) == reviewID {
+			return index
+		}
+	}
+	return -1
+}
+
+func listLearningReviews(storage store, user userState, now time.Time) ([]learningReviewItem, error) {
 	reviews, err := storage.listScheduledAITutorReviews(user.TelegramID)
 	if err != nil {
 		return nil, err
@@ -60,7 +77,19 @@ func listTutorLearningReviews(storage store, user userState, now time.Time) ([]l
 			DueAt: dueAt.UTC(), Status: status,
 		})
 	}
+	for _, mistake := range mistakesForLanguage(user) {
+		if mistake.Word == "" || mistake.Correction == "" {
+			continue
+		}
+		items = append(items, learningReviewItem{
+			ID: mistakeLearningReviewID(mistake), Source: "mistake",
+			Title: mistake.Word, DueAt: mistake.AddedAt.UTC(), Status: "due",
+		})
+	}
 	sort.Slice(items, func(i, j int) bool {
+		if items[i].Status != items[j].Status {
+			return items[i].Status == "due"
+		}
 		if items[i].DueAt.Equal(items[j].DueAt) {
 			return items[i].ID < items[j].ID
 		}
@@ -78,7 +107,7 @@ func (api *webAPI) handleLearningReviews(w http.ResponseWriter, r *http.Request)
 		api.writeCurrentUserError(w, err)
 		return
 	}
-	items, err := listTutorLearningReviews(api.bot.store, user, time.Now().UTC())
+	items, err := listLearningReviews(api.bot.store, user, time.Now().UTC())
 	if err != nil {
 		log.Printf("list learning reviews: %v", err)
 		writeAPIError(w, http.StatusInternalServerError, "Unable to load learning reviews.")

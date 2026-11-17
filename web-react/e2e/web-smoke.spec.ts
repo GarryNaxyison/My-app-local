@@ -1085,6 +1085,22 @@ test("Today shows the date for an upcoming tutor review without a start action",
   await expect(card.getByRole("button")).toHaveCount(0);
 });
 
+test("Today opens a saved mistake by its review ID", async ({ page }) => {
+  const review = { ...todayReviewItem, id: "mistake:review", source: "mistake", title: "I go yesterday" };
+  let reviewID = "";
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [review] } }));
+  await page.route("**/api/mistakes/practice/start", (route) => {
+    reviewID = route.request().postDataJSON().review_id;
+    return route.fulfill({ json: { mistake: { index: 0, word: review.title, correction: "I went yesterday" } } });
+  });
+  await page.goto("/app/?view=home");
+  const card = page.locator(".today-review");
+  await expect(card).toContainText(review.title);
+  await card.getByRole("button").click();
+  await expect(page.locator(".context-display--mistakes")).toBeVisible();
+  expect(reviewID).toBe(review.id);
+});
+
 test("home Continue resumes the existing ordinary lesson for a Premium learner", async ({ page }) => {
   usePremiumSession();
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [todayReviewItem] } }));

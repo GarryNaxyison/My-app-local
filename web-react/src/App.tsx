@@ -2965,8 +2965,8 @@ export function App() {
     return items;
   };
 
-  const startMistakePractice = async (index?: number) => {
-    const body = typeof index === "number" ? { index } : {};
+  const startMistakePractice = async (selection?: number | string) => {
+    const body = typeof selection === "string" ? { review_id: selection } : { index: selection };
     const payload = await runAction("mistake-practice", () => api<ApiRecord>("/api/mistakes/practice/start", { method: "POST", body }));
     if (!payload) return;
     const record = getRecord(payload);
@@ -2978,7 +2978,7 @@ export function App() {
     }
     const selectedMistake = (record.mistake || null) as MistakeItem | null;
     setMistakePractice(selectedMistake);
-    const selectedIndex = typeof selectedMistake?.index === "number" ? selectedMistake.index : typeof index === "number" ? index : null;
+    const selectedIndex = typeof selectedMistake?.index === "number" ? selectedMistake.index : typeof selection === "number" ? selection : null;
     setMistakePracticeIndex(selectedIndex);
     setMistakeAnswer("");
     setMistakeResult(null);
@@ -5218,7 +5218,7 @@ type ViewRendererProps = {
   mistakePracticeIndex: number | null;
   mistakeAnswer: string;
   setMistakeAnswer: (value: string) => void;
-  startMistakePractice: (index?: number) => Promise<void>;
+  startMistakePractice: (selection?: number | string) => Promise<void>;
   submitMistakeAnswer: () => Promise<void>;
   cancelMistakePractice: () => void;
   mistakeResult: TrainerResult | null;
@@ -6263,7 +6263,7 @@ function aiTutorWordPhraseCandidates(word: NonNullable<AiTutorStep["word"]>, sav
   return candidates;
 }
 
-function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages"> & Partial<Pick<ViewRendererProps, "session" | "restartTutorLesson">>) {
+function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson" | "startWord" | "startShadowing" | "setView" | "loadVocabulary" | "loadMistakes" | "loadPremiumPlans" | "busy" | "habitLog" | "dailyBonus" | "claimDailyBonus" | "openOnboarding" | "activeLessonTaskId" | "aiTutorStep" | "messages"> & Partial<Pick<ViewRendererProps, "session" | "restartTutorLesson" | "startMistakePractice">>) {
   const { user, copy, startLesson, startWord, startShadowing, setView, loadVocabulary, loadMistakes, loadPremiumPlans, busy, habitLog, dailyBonus, claimDailyBonus, openOnboarding } = props;
   const todayKey = localDateKey();
   const completedDates = Object.entries(habitLog).filter(([, day]) => day.complete).map(([date]) => date);
@@ -6335,14 +6335,15 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
         </div>
         <img className="learning-start__art" src="/app/assets/neriva-symbol.png" alt="" />
       </section>
-      {props.session?.authenticated && props.restartTutorLesson && (
+      {props.session?.authenticated && props.restartTutorLesson && props.startMistakePractice && (
         <TodayReview
           key={JSON.stringify([props.session.account?.login, user.telegram_account?.id, user.learning_language])}
           interfaceLanguage={user.interface_language}
           canStart={Boolean(user.premium)}
           hasActiveLesson={canResume}
-          busy={busy === "lesson" || busy === "tutor"}
+          busy={busy === "lesson" || busy === "tutor" || busy === "mistake-practice"}
           start={props.restartTutorLesson}
+          startMistakePractice={props.startMistakePractice}
         />
       )}
       <section className="v2-panel home-focus">

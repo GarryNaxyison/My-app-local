@@ -61,3 +61,32 @@ func TestWebLearningReviewsRequireAuthentication(t *testing.T) {
 		t.Fatalf("status = %d, want 401", response.Code)
 	}
 }
+
+func TestWebLearningReviewsIncludeMistakes(t *testing.T) {
+	api, storage, cookie := newTestWebAPI(t)
+	entry := mistakeEntry{Word: "I go yesterday", Correction: "I went yesterday", AddedAt: time.Now().Add(-time.Minute)}
+	if err := storage.addMistakes(-42, "en", []mistakeEntry{entry}); err != nil {
+		t.Fatal(err)
+	}
+	queue := requestJSON(t, api, cookie, http.MethodGet, "/api/learning-reviews", nil)
+	items, ok := queue["items"].([]any)
+	if !ok || len(items) != 1 {
+		t.Fatalf("expected a review for the saved mistake: %#v", queue)
+	}
+	item := items[0].(map[string]any)
+	if item["source"] != "mistake" || item["status"] != "due" || item["title"] != entry.Word {
+		t.Fatalf("unexpected mistake review: %#v", item)
+	}
+	started := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/start", map[string]any{"review_id": item["id"]})
+	if mistake, ok := started["mistake"].(map[string]any); !ok || mistake["word"] != entry.Word {
+		t.Fatalf("wrong exercise: %#v", started)
+	}
+	result := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": entry.Correction})
+	if result["correct"] != true {
+		t.Fatalf("correction rejected: %#v", result)
+	}
+	queue = requestJSON(t, api, cookie, http.MethodGet, "/api/learning-reviews", nil)
+	if items, ok := queue["items"].([]any); !ok || len(items) != 0 {
+		t.Fatalf("corrected mistake remained in the queue: %#v", queue)
+	}
+}
