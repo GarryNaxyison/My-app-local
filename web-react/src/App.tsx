@@ -1963,7 +1963,7 @@ export function App() {
   const [mistakePracticeIndex, setMistakePracticeIndex] = useState<number | null>(null);
   const [mistakeAnswer, setMistakeAnswer] = useState("");
   const [mistakeResult, setMistakeResult] = useState<TrainerResult | null>(null);
-  const [mistakeTransfer, setMistakeTransfer] = useState<MistakeTransferTask | null>(null);
+  const [mistakeTransfer, setMistakeTransfer] = useState<{ task: MistakeTransferTask; reviewId?: string } | null>(null);
   const [shadowingTarget, setShadowingTarget] = useState("");
   const [pronunciationTarget, setPronunciationTarget] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -3003,7 +3003,8 @@ export function App() {
     const mistake = (record.mistake || mistakePractice || {}) as MistakeItem;
     setMistakeResult(makeTrainerResult(record, copy, undefined));
     if (record.correct) {
-      setMistakeTransfer(buildMistakeTransfer(mistake.word || "", mistake.correction || "", user.learning_language || ""));
+      const task = buildMistakeTransfer(mistake.word || "", mistake.correction || "", user.learning_language || "");
+      setMistakeTransfer(task ? { task, reviewId: mistake.review_id || mistakePractice?.review_id } : null);
       setMistakePractice(null);
       setMistakePracticeIndex(null);
       setMistakeAnswer("");
@@ -5231,7 +5232,7 @@ type ViewRendererProps = {
   submitMistakeAnswer: () => Promise<void>;
   cancelMistakePractice: () => void;
   mistakeResult: TrainerResult | null;
-  mistakeTransfer?: MistakeTransferTask | null;
+  mistakeTransfer?: { task: MistakeTransferTask; reviewId?: string } | null;
   dismissMistakeTransfer?: () => void;
   deleteMistake: (index: number) => Promise<void>;
   clearMistakes: () => Promise<void>;
@@ -7953,7 +7954,7 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
   );
 
   if (mistakeTransfer && dismissMistakeTransfer) {
-    return <MistakeTransfer task={mistakeTransfer} russian={languageCode(user.interface_language) === "ru"} onClose={dismissMistakeTransfer} />;
+    return <MistakeTransfer key={mistakeTransfer.reviewId} task={mistakeTransfer.task} reviewId={mistakeTransfer.reviewId} russian={languageCode(user.interface_language) === "ru"} onClose={dismissMistakeTransfer} />;
   }
 
   if (mistakePractice) {

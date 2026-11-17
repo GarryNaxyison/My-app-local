@@ -72,51 +72,52 @@ type referralInviteeEntry struct {
 }
 
 type userState struct {
-	TelegramID              int64                    `json:"telegram_id"`
-	FirstName               string                   `json:"first_name"`
-	Plan                    string                   `json:"plan"`
-	PremiumUntil            time.Time                `json:"premium_until"`
-	InvitedBy               int64                    `json:"invited_by"`
-	ReferralCode            string                   `json:"referral_code,omitempty"`
-	ReferralCount           int                      `json:"referral_count"`
-	ReferralBalanceKopecks  int64                    `json:"referral_balance_kopecks"`
-	ReferralLevelRewarded   bool                     `json:"referral_level_rewarded,omitempty"`
-	ReferralRewardChargeIDs []string                 `json:"referral_reward_charge_ids,omitempty"`
-	Mode                    string                   `json:"mode"`
-	InterfaceLanguage       string                   `json:"interface_language,omitempty"`
-	InterfaceSelected       bool                     `json:"interface_selected,omitempty"`
-	LearningLanguage        string                   `json:"learning_language,omitempty"`
-	LanguageSelected        bool                     `json:"language_selected,omitempty"`
-	Level                   string                   `json:"level"`
-	LearningFocus           string                   `json:"learning_focus,omitempty"`
-	LessonCount             int                      `json:"lesson_count"`
-	PracticeCount           int                      `json:"practice_count"`
-	VoiceCount              int                      `json:"voice_count"`
-	WordLessonCount         int                      `json:"word_lesson_count"`
-	WordGameCount           int                      `json:"word_game_count"`
-	XP                      int                      `json:"xp"`
-	DailyDate               string                   `json:"daily_date"`
-	LessonsToday            int                      `json:"lessons_today"`
-	PracticeToday           int                      `json:"practice_today"`
-	VoiceToday              int                      `json:"voice_today"`
-	LessonHistory           []string                 `json:"lesson_history,omitempty"`
-	PracticeHistory         []string                 `json:"practice_history,omitempty"`
-	DailyBonusClaims        []string                 `json:"daily_bonus_claims,omitempty"`
-	DailyBonusLastClaimedAt time.Time                `json:"daily_bonus_last_claimed_at,omitempty"`
-	HabitLog                map[string]habitDayEntry `json:"habit_log,omitempty"`
-	NavigationLayout        navigationLayout         `json:"navigation_layout,omitempty"`
-	LastPaymentChargeID     string                   `json:"last_payment_charge_id"`
-	LastLessonPrompt        string                   `json:"last_lesson_prompt"`
-	ReminderEnabled         bool                     `json:"reminder_enabled"`
-	ReminderUTCOffset       int                      `json:"reminder_utc_offset_minutes"`
-	ReminderHour            int                      `json:"reminder_hour"`
-	TimezoneSelected        bool                     `json:"timezone_selected"`
-	LastReminderDate        string                   `json:"last_reminder_date"`
-	Mistakes                []mistakeEntry           `json:"mistakes,omitempty"`
-	LearnedWords            []learnedWordEntry       `json:"learned_words,omitempty"`
-	Phrasebook              []phrasebookEntry        `json:"phrasebook,omitempty"`
-	CreatedAt               time.Time                `json:"created_at"`
-	UpdatedAt               time.Time                `json:"updated_at"`
+	TelegramID              int64                            `json:"telegram_id"`
+	FirstName               string                           `json:"first_name"`
+	Plan                    string                           `json:"plan"`
+	PremiumUntil            time.Time                        `json:"premium_until"`
+	InvitedBy               int64                            `json:"invited_by"`
+	ReferralCode            string                           `json:"referral_code,omitempty"`
+	ReferralCount           int                              `json:"referral_count"`
+	ReferralBalanceKopecks  int64                            `json:"referral_balance_kopecks"`
+	ReferralLevelRewarded   bool                             `json:"referral_level_rewarded,omitempty"`
+	ReferralRewardChargeIDs []string                         `json:"referral_reward_charge_ids,omitempty"`
+	Mode                    string                           `json:"mode"`
+	InterfaceLanguage       string                           `json:"interface_language,omitempty"`
+	InterfaceSelected       bool                             `json:"interface_selected,omitempty"`
+	LearningLanguage        string                           `json:"learning_language,omitempty"`
+	LanguageSelected        bool                             `json:"language_selected,omitempty"`
+	Level                   string                           `json:"level"`
+	LearningFocus           string                           `json:"learning_focus,omitempty"`
+	LessonCount             int                              `json:"lesson_count"`
+	PracticeCount           int                              `json:"practice_count"`
+	VoiceCount              int                              `json:"voice_count"`
+	WordLessonCount         int                              `json:"word_lesson_count"`
+	WordGameCount           int                              `json:"word_game_count"`
+	XP                      int                              `json:"xp"`
+	DailyDate               string                           `json:"daily_date"`
+	LessonsToday            int                              `json:"lessons_today"`
+	PracticeToday           int                              `json:"practice_today"`
+	VoiceToday              int                              `json:"voice_today"`
+	LessonHistory           []string                         `json:"lesson_history,omitempty"`
+	PracticeHistory         []string                         `json:"practice_history,omitempty"`
+	DailyBonusClaims        []string                         `json:"daily_bonus_claims,omitempty"`
+	DailyBonusLastClaimedAt time.Time                        `json:"daily_bonus_last_claimed_at,omitempty"`
+	HabitLog                map[string]habitDayEntry         `json:"habit_log,omitempty"`
+	MistakeTransfers        map[string]mistakeTransferRecord `json:"mistake_transfers,omitempty"`
+	NavigationLayout        navigationLayout                 `json:"navigation_layout,omitempty"`
+	LastPaymentChargeID     string                           `json:"last_payment_charge_id"`
+	LastLessonPrompt        string                           `json:"last_lesson_prompt"`
+	ReminderEnabled         bool                             `json:"reminder_enabled"`
+	ReminderUTCOffset       int                              `json:"reminder_utc_offset_minutes"`
+	ReminderHour            int                              `json:"reminder_hour"`
+	TimezoneSelected        bool                             `json:"timezone_selected"`
+	LastReminderDate        string                           `json:"last_reminder_date"`
+	Mistakes                []mistakeEntry                   `json:"mistakes,omitempty"`
+	LearnedWords            []learnedWordEntry               `json:"learned_words,omitempty"`
+	Phrasebook              []phrasebookEntry                `json:"phrasebook,omitempty"`
+	CreatedAt               time.Time                        `json:"created_at"`
+	UpdatedAt               time.Time                        `json:"updated_at"`
 }
 
 type jsonStore struct {
@@ -203,6 +204,8 @@ type store interface {
 	extendPremium(telegramID int64, chargeID string, duration time.Duration, tier string) (time.Time, error)
 	addMistakes(telegramID int64, language string, entries []mistakeEntry) error
 	completeMistakeReview(telegramID int64, mode string, mistake mistakeEntry) (bool, error)
+	mistakeTransferCount(telegramID int64, language string) (int, error)
+	finishMistakeTransfer(telegramID int64, language, id string) (bool, error)
 	removeMistake(telegramID int64, language string, word string, correction string) error
 	clearMistakes(telegramID int64, language string) error
 	nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error)

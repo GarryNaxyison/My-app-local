@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -118,5 +119,30 @@ func TestWebLearningReviewsIncludeMistakes(t *testing.T) {
 		map[string]any{"text": entry.Correction, "review_id": item["id"]})
 	if status != http.StatusConflict {
 		t.Fatalf("stale answer after opening another exercise returned %d", status)
+	}
+}
+func TestWebMistakeTransferResultIsSavedOnce(t *testing.T) {
+	api, storage, cookie := newTestWebAPI(t)
+	body := map[string]any{"review_id": "mistake:" + strings.Repeat("a", 64)}
+	status, _ := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/mistakes/transfer", body)
+	if status != http.StatusNotFound {
+		t.Fatalf("unknown exercise: %d", status)
+	}
+	entry := mistakeEntry{Language: "en", Word: "I go yesterday", Correction: "I went yesterday", AddedAt: time.Now().UTC()}
+	if err := storage.addMistakes(-42, "en", []mistakeEntry{entry}); err != nil {
+		t.Fatal(err)
+	}
+	body["review_id"] = mistakeLearningReviewID(entry)
+	requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/start", body)
+	requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": entry.Correction, "review_id": body["review_id"]})
+	for i := 0; i < 2; i++ {
+		result := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/transfer", body)
+		if result["completed"] != float64(1) {
+			t.Fatalf("completion count after write %d: %#v", i, result)
+		}
+	}
+	result := requestJSON(t, api, cookie, http.MethodGet, "/api/mistakes/transfer", nil)
+	if result["completed"] != float64(1) {
+		t.Fatalf("stored result: %#v", result)
 	}
 }

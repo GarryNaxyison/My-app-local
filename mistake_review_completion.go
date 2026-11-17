@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"maps"
 	"time"
 )
 
@@ -33,6 +34,13 @@ func (s *sqliteStore) completeMistakeReview(userID int64, mode string, mistake m
 	if err != nil || changed == 0 {
 		return false, err
 	}
+	if normalizeLearningLanguage(mistake.Language) == "en" {
+		_, err = tx.Exec(`INSERT OR IGNORE INTO mistake_transfers (telegram_id, review_id, language) VALUES (?, ?, 'en')`,
+			userID, mistakeLearningReviewID(mistake))
+		if err != nil {
+			return false, err
+		}
+	}
 	if err := tx.Commit(); err != nil {
 		return false, err
 	}
@@ -55,6 +63,16 @@ func (s *jsonStore) completeMistakeReview(userID int64, mode string, mistake mis
 	}
 	user := previous
 	user.Mistakes = append(append([]mistakeEntry(nil), previous.Mistakes[:index]...), previous.Mistakes[index+1:]...)
+	if normalizeLearningLanguage(mistake.Language) == "en" {
+		user.MistakeTransfers = maps.Clone(previous.MistakeTransfers)
+		if user.MistakeTransfers == nil {
+			user.MistakeTransfers = make(map[string]mistakeTransferRecord)
+		}
+		id := mistakeLearningReviewID(mistake)
+		if _, exists := user.MistakeTransfers[id]; !exists {
+			user.MistakeTransfers[id] = mistakeTransferRecord{Language: "en"}
+		}
+	}
 	user.XP += mistakeReviewXP
 	user.Mode = "idle"
 	user.UpdatedAt = time.Now().UTC()

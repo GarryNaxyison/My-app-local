@@ -1088,6 +1088,12 @@ test("Today shows the date for an upcoming tutor review without a start action",
 test("Today opens a saved mistake by its review ID", async ({ page }) => {
   const review = { ...todayReviewItem, id: "mistake:review", source: "mistake", title: "I go yesterday" };
   let reviewID = "";
+  let transferSaves = 0;
+  await page.route("**/api/mistakes/transfer", (route) => {
+    expect(route.request().postDataJSON()).toEqual({ review_id: review.id });
+    transferSaves += 1;
+    return route.fulfill(transferSaves === 1 ? { status: 503 } : { json: { completed: 1 } });
+  });
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [review] } }));
   await page.route("**/api/mistakes/practice/start", (route) => {
     reviewID = route.request().postDataJSON().review_id;
@@ -1115,6 +1121,9 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await transferAnswer.fill("Yesterday, I walked to the station.");
   await transferAnswer.press("Enter");
   await expect(transfer.getByRole("status")).toContainText(/Верно|Correct/);
+  await transfer.getByRole("button", { name: /Повторить сохранение|Retry saving/ }).click();
+  await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
+  expect(transferSaves).toBe(2);
   await transfer.getByRole("button", { name: /К списку ошибок|Back to mistakes/ }).click();
   await expect(transfer).toHaveCount(0);
 });
