@@ -3065,6 +3065,14 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   await expect(page.locator(".pronunciation-result-window-v2")).toContainText("Ударение в слове падает слишком поздно: coffee.");
   await expect(page.locator(".pronunciation-tools-v2 .pronunciation-report-v2")).toHaveCount(0);
 
+  const comparison = page.locator(".pronunciation-comparison");
+  await expect(comparison).toHaveCount(0);
+  await page.locator('.pronunciation-tools-v2 input[type="file"]').setInputFiles({
+    name: "pronunciation-retry.webm", mimeType: "audio/webm", buffer: Buffer.from("retry-audio"),
+  });
+  await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
+  await expect(comparison).toContainText("67/100 → 67/100");
+
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
   await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
   await expect(page.locator(".pronunciation-result-window-v2")).toHaveCount(0);

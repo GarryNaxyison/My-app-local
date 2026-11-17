@@ -6629,12 +6629,14 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
     .map((tip) => localizePronunciationCoachText(tip, user, copy))
     .filter(Boolean)));
   const [practiceResult, setPracticeResult] = useState<PronunciationAssessment | null>(null);
+  const [previousPracticeResult, setPreviousPracticeResult] = useState<PronunciationAssessment | null>(null);
   useEffect(() => {
     if (!pronunciationTarget && !busy) void startPronunciation();
   }, [Boolean(pronunciationTarget), Boolean(busy)]);
   const activeTarget = cleanAppText(pronunciationTarget || defaultTarget);
   useEffect(() => {
     setPracticeResult(null);
+    setPreviousPracticeResult(null);
     setVoiceFile(null);
   }, [pronunciationTarget]);
   const checkPronunciation = async () => {
@@ -6642,6 +6644,7 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
     const result = pronunciationFrom(record || {});
     if (result) {
       const resultWithTarget = { ...result, expected: result.expected || activeTarget };
+      setPreviousPracticeResult(practiceResult?.expected === resultWithTarget.expected ? practiceResult : null);
       setPracticeResult(resultWithTarget);
       setStoredReports((current) => {
         const merged = mergePronunciationHistory([resultWithTarget], current);
@@ -6652,6 +6655,7 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
   };
   const nextPronunciationSample = () => {
     setPracticeResult(null);
+    setPreviousPracticeResult(null);
     setVoiceFile(null);
     void startPronunciation();
   };
@@ -6687,6 +6691,12 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
         <section className="v2-panel pronunciation-result-window-v2">
           <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
           <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
+          {previousPracticeResult && (
+            <p className="pronunciation-comparison">
+              {languageCode(user.interface_language) === "ru" ? "Оценка той же фразы" : "Score for the same phrase"}{" "}
+              <strong>{normalizedPronunciationScore(previousPracticeResult)}/100 → {normalizedPronunciationScore(practiceResult)}/100</strong>
+            </p>
+          )}
           <PronunciationReport pronunciation={practiceResult} user={user} copy={copy} />
         </section>
       ) : null}
