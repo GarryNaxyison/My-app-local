@@ -61,7 +61,20 @@ function PrimaryAction({ copy }: { copy: ErrorPageCopy }) {
 }
 
 export function ErrorPageApp({ kind }: { kind: ErrorPageKind }) {
-  const copy = copyByKind[kind];
+  const requested = new URLSearchParams(location.search).get("lang");
+  const language = (requested || localStorage.getItem("poliglot_site_language")) === "en" ? "en" : "ru";
+  document.documentElement.lang = language;
+  const defaults = copyByKind[kind];
+  const copy = language === "ru" ? defaults : {
+    ...defaults,
+    title: kind === "not-found" ? "Page not found" : "Scheduled maintenance",
+    body: defaults.english,
+    primaryLabel: kind === "not-found" ? "Home" : "Refresh",
+    primaryHref: defaults.primaryHref ? "/neriva.html?lang=en" : undefined,
+    secondaryLabel: kind === "not-found" ? "Open the web app" : "Home",
+    secondaryHref: kind === "not-found" ? "/app/" : "/neriva.html?lang=en",
+    detail: kind === "not-found" ? "If you followed a link from Telegram or email, check that you copied the full address." : "The website and help pages may remain available while the app reconnects.",
+  };
 
   return (
     <main className="error-page" data-error-kind={kind}>
@@ -80,7 +93,13 @@ export function ErrorPageApp({ kind }: { kind: ErrorPageKind }) {
           </p>
           <h1 id="error-page-title">{copy.title}</h1>
           <p className="error-page__body">{copy.body}</p>
-          <p className="error-page__english">{copy.english}</p>
+          <label className="error-page__english">{language === "ru" ? "Язык" : "Language"}{" "}
+            <select aria-label={language === "ru" ? "Язык" : "Language"} value={language} onChange={(event) => {
+              const next = new URL(location.href);
+              next.searchParams.set("lang", event.currentTarget.value);
+              location.assign(next);
+            }}><option value="ru">Русский</option><option value="en">English</option></select>
+          </label>
 
           <div className="error-page__actions">
             <PrimaryAction copy={copy} />

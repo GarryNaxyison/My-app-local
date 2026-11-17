@@ -1,5 +1,42 @@
 import { expect, test } from "@playwright/test";
 
+test('legal pages preserve full documents and offer Russian and English', async ({ page }) => {
+  for (const path of ['privacy', 'terms', 'agreement', 'consent']) {
+    await page.goto(`/${path}.html?lang=en`);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    const picker = page.locator('[data-site-language-select]').first();
+    await expect(picker.locator('option')).toHaveCount(2);
+    await expect(picker).toHaveValue('en');
+    const documentBody = page.locator('.legal-document-shell');
+    await expect(documentBody).toContainText(/personal data|agreement|service|privacy/i);
+    await picker.selectOption('ru');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
+    await expect(documentBody).toContainText(/[А-Яа-яЁё]{5}/);
+  }
+});
+
+test('knowledge navigator opens the existing English guides and returns to Russian articles', async ({ page }) => {
+  await page.goto('/knowledge/');
+  await page.locator('.knowledge-language').selectOption('en');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('main a[href^="/en/"]')).not.toHaveCount(0);
+  await page.locator('.knowledge-language').selectOption('ru');
+  await expect(page).toHaveURL(/\/knowledge\/$/);
+});
+
+test('visitors see a lesson example and can jump to pricing', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/neriva.html?lang=ru');
+  await expect(page.locator('.hero-actions a[data-entry="web-app"]')).toHaveText('Начать урок');
+  await expect(page.locator('.hero-actions a[data-entry="web-app"]')).toBeInViewport();
+  await expect(page.locator('main > section').nth(1)).toHaveClass('lesson-scenario');
+  await expect(page.locator('.lesson-example')).toContainText('I have a reservation.');
+  await expect(page.locator('main > section').nth(3)).toHaveAttribute('id', 'pricing');
+  await page.locator('.nav-pricing-link').click();
+  await expect(page).toHaveURL(/#pricing$/);
+  await expect(page.locator('#pricing h2')).toBeInViewport();
+});
+
 test("official brand and current application screenshots are visible", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("poliglot-cookie-consent", JSON.stringify({ version: 1, necessary: true, analyticsMarketing: false })));
   await page.goto("/neriva.html?lang=ru");

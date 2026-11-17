@@ -1819,7 +1819,7 @@
     ]
   }
 };
-  const locales = ["ru","en","es","de","fr","it","zh","ja","ko","tg","uz","tt","hy","kk","ky","ka","uk","pl","ro","pt"];
+  const locales = ["ru", "en"];
 
   function escapeHTML(value) {
     return String(value)

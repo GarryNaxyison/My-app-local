@@ -278,10 +278,12 @@ test("landing v3 mobile hero and methodology do not look clipped", async ({ page
 test("landing v3 product screenshots open a focused preview", async ({ page }) => {
   await page.goto("/neriva.html?lang=en");
 
-  await page.locator(".hero-product-frame .product-shot__button").first().click();
+  const shot = page.locator(".hero-product-frame .product-shot__button:visible").first();
+  const shotSource = await shot.locator("img").getAttribute("src");
+  await shot.click();
   await expect(page.locator(".image-preview")).toBeVisible();
   const previewImage = page.locator(".image-preview img");
-  await expect(previewImage).toHaveAttribute("src", "/assets/product/2026-11-15/today-desktop.png");
+  await expect(previewImage).toHaveAttribute("src", shotSource!);
   await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-scale", "1.00");
 
   await page.locator(".image-preview__frame").hover();

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { seoPages } from "./static-seo-pages-data.mjs";
 import {
   articlesForCategory,
   categoryRouteFor,
@@ -137,7 +138,7 @@ function renderKnowledgeHeader({ active = true } = {}) {
       </div>
       <div class="knowledge-topnav__actions">
         <a class="knowledge-nav__link--knowledge${active ? " is-active" : ""}" href="/knowledge/">База знаний</a>
-        <select class="knowledge-language" aria-label="Язык">
+        <select class="knowledge-language" aria-label="Язык" onchange="if (this.value === 'en') location.href = '/knowledge/english-guides.html'">
           <option value="ru">Русский</option>
           <option value="en">English</option>
         </select>
@@ -916,3 +917,17 @@ async function writeGeneratedPage(filename, content, encoding) {
   await fs.writeFile(temporary, content, encoding);
   await fs.rename(temporary, filename);
 }
+
+const englishGuideCards = seoPages.map(({ en }) => `<li><a href="${escapeHtml(en.path)}">${escapeHtml(en.h1)}</a></li>`).join("\n");
+await writeGeneratedPage(path.join(knowledgeRoot, "english-guides.html"), `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Base — NERIVA</title><meta name="description" content="English guides to language practice, pronunciation and lessons with NERIVA.">
+<link rel="canonical" href="${knowledgeOrigin}/knowledge/english-guides.html">
+<link rel="icon" href="/assets/brand/neriva-icon-192.png?v=official"><link rel="stylesheet" href="/assets/knowledge-base.css"></head>
+<body><nav class="knowledge-topnav" aria-label="Main navigation"><div class="knowledge-topnav__inner">
+<a class="knowledge-brand" href="/neriva.html?lang=en" aria-label="NERIVA"><img src="/assets/brand/neriva-symbol.png" alt=""><span>NERIVA</span></a>
+<div class="knowledge-topnav__actions"><select class="knowledge-language" aria-label="Language" onchange="if (this.value === 'ru') location.href = '/knowledge/'"><option value="ru">Русский</option><option value="en" selected>English</option></select><a class="knowledge-app-button" href="/app/">Open app</a></div>
+</div></nav>
+<main style="max-width: 900px; margin: 48px auto; padding: 0 24px"><h1>Knowledge Base</h1>
+<p>Explore the English guides below. The full collection of learning articles is available <a href="/knowledge/" lang="ru">in Russian</a>.</p>
+<ul style="line-height: 2.4">${englishGuideCards}</ul></main></body></html>`, "utf8");

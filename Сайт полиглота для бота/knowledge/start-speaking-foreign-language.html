@@ -40,7 +40,7 @@
       </div>
       <div class="knowledge-topnav__actions">
         <a class="knowledge-nav__link--knowledge is-active" href="/knowledge/">База знаний</a>
-        <select class="knowledge-language" aria-label="Язык">
+        <select class="knowledge-language" aria-label="Язык" onchange="if (this.value === 'en') location.href = '/knowledge/english-guides.html'">
           <option value="ru">Русский</option>
           <option value="en">English</option>
         </select>

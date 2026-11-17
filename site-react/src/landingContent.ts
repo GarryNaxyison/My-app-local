@@ -34,6 +34,7 @@ export type LandingContent = {
     telegram: string;
   };
   hero: {
+    start: string;
     eyebrow: string;
     title: string;
     lead: string;
@@ -199,9 +200,10 @@ const english: LandingContent = {
   },
   hero: {
     eyebrow: "AI tutor in browser and Telegram",
-    title: "NERIVA turns every answer into a real lesson",
-    lead: "A strict AI tutor gives a short story, useful chunks, questions, your answer, a correction and a review date. Browser and Telegram keep one learning profile.",
-    announcement: "New lesson in 3 minutes",
+    start: "Start a lesson",
+    title: "NERIVA, your AI language tutor",
+    lead: "Take a short lesson, get feedback on your answer and review the phrases you find difficult.",
+    announcement: "English and other languages",
     proof: [
       ["Browser + Telegram", "One learning profile"],
       ["Story -> answer", "Practice starts from context"],
@@ -483,9 +485,10 @@ const russian: LandingContent = {
   },
   hero: {
     eyebrow: "AI-репетитор в браузере и Telegram",
-    title: "NERIVA превращает изучение языков в короткий урок с AI-репетитором",
-    lead: "NERIVA помогает учить английский и другие языки под ваш уровень: ситуация, полезные фразы, вопросы, проверка ответа и повтор. В браузере и Telegram остается один профиль.",
-    announcement: "Новый урок за 3 минуты",
+    start: "Начать урок",
+    title: "NERIVA — AI-репетитор по языкам",
+    lead: "Пройдите короткий урок, получите объяснение ошибок и повторите трудные фразы.",
+    announcement: "Английский и другие языки",
     proof: [
       ["Браузер + Telegram", "Один учебный профиль"],
       ["История -> ответ", "Практика начинается с контекста"],
@@ -519,7 +522,7 @@ const russian: LandingContent = {
   },
   beforeAfter: {
     eyebrow: "До / После",
-    title: "Больше чем словарик: NERIVA закрывает цикл обучения",
+    title: "Используйте новые слова в ответах",
     beforeTitle: "До",
     before: ["слова лежат без дела", "ответы быстро забываются", "нет графика повтора"],
     afterTitle: "После",
@@ -528,7 +531,7 @@ const russian: LandingContent = {
   scenario: {
     eyebrow: "Живой урок",
     title: "Короткий урок с понятным результатом",
-    body: "Например, заселение в отель. NERIVA подбирает ситуацию под ваш уровень, дает нужные фразы, задает вопросы, проверяет ответ и возвращает слабые места в повтор.",
+    body: "Вот пример задания на заселение в отель. Напишите ответ по-английски, а репетитор объяснит, что исправить.",
     tags: ["Ситуация", "Фразы", "Ответ", "Повтор"],
     captionLabel: "Заселение в отель",
     caption: "Задание, ответ, правка и варианты повтора остаются в одном уроке.",
@@ -577,7 +580,7 @@ const russian: LandingContent = {
   },
   features: {
     eyebrow: "Четыре функции",
-    title: "Четыре инструмента кормят одну учебную память",
+    title: "Уроки, произношение, перевод и работа над ошибками",
     items: [
       {
         title: "AI-репетитор",
@@ -612,7 +615,7 @@ const russian: LandingContent = {
   pricing: {
     ...english.pricing,
     eyebrow: "Тарифы",
-    title: "Free для пробы. Premium для нормальной ежедневной практики.",
+    title: "Тарифы NERIVA",
     lead: "Premium нужен, когда вы занимаетесь почти каждый день: открываются голос, фото, больше уроков и нормальный запас сообщений. Оплата через Telegram Stars и YooKassa/SBP.",
     choose: "Выбрать тариф",
     plans: [

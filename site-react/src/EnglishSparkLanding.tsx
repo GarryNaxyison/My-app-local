@@ -263,7 +263,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             <p className="hero-lead">{copy.hero.lead}</p>
             <div className="hero-actions">
               <a className="entry-cta hero-action hero-action--primary" data-entry="web-app" href={WEB_APP_HREF}>
-                {copy.nav.webApp} <ArrowRight size={18} />
+                {copy.hero.start} <ArrowRight size={18} />
               </a>
               <a className="entry-cta hero-action hero-action--secondary" data-entry="telegram" href={TELEGRAM_HREF}>
                 {copy.nav.telegram} <MessageCircle size={18} />
@@ -285,6 +285,106 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           </div>
         </div>
       </section>
+
+      <RevealSection className="lesson-scenario" aria-label="How NERIVA runs a short lesson">
+        <div className="lesson-scenario__copy">
+          <span className="eyebrow">{copy.scenario.eyebrow}</span>
+          <h2>{copy.scenario.title}</h2>
+          <p>{copy.scenario.body}</p>
+          <dl className="lesson-example">
+            <dt>{language === "ru" ? "Задание" : "Task"}</dt>
+            <dd>{language === "ru" ? "Сообщите на ресепшене, что у вас забронирован номер." : "Tell the receptionist you have a reservation."}</dd>
+            <dt>{language === "ru" ? "Ответ" : "Answer"}</dt>
+            <dd lang="en">I have reservation.</dd>
+            <dt>{language === "ru" ? "Правка" : "Correction"}</dt>
+            <dd><strong lang="en">I have a reservation.</strong><br />{language === "ru" ? "Перед reservation в единственном числе нужен артикль a." : "Use a before the singular countable noun reservation."}</dd>
+          </dl>
+          <div className="lesson-scenario__tags" aria-label="Lesson flow">
+            {copy.scenario.tags.map((tag) => <span className="lesson-scenario__tag" key={tag}>{tag}</span>)}
+          </div>
+        </div>
+        <div className="scenario-shot" aria-label="AI Tutor lesson example">
+          <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
+          <div className="scenario-shot__caption">
+            <span>{copy.scenario.captionLabel}</span>
+            <strong>{copy.scenario.caption}</strong>
+          </div>
+        </div>
+      </RevealSection>
+
+      <RevealSection id="features" className="spark-section modules-section">
+        <div className="section-copy">
+          <span className="eyebrow">{copy.features.eyebrow}</span>
+          <h2>{copy.features.title}</h2>
+        </div>
+        <div className="feature-carousel">
+          <div className="feature-carousel__tabs" role="tablist" aria-label={copy.features.title}>
+            {copy.features.items.map((feature, index) => {
+              const Icon = featureIcons[index] ?? BrainCircuit;
+              return (
+                <button
+                  className={index === activeFeature ? "feature-carousel__tab is-active" : "feature-carousel__tab"}
+                  key={feature.title}
+                  type="button"
+                  role="tab"
+                  aria-selected={index === activeFeature}
+                  onClick={() => setActiveFeature(index)}
+                >
+                  <Icon size={18} />
+                  <span>{feature.title}</span>
+                  <small>{feature.short}</small>
+                </button>
+              );
+            })}
+          </div>
+          <RevealBlock className="feature-carousel__viewport">
+            <RevealArticle className="feature-panel" role="tabpanel">
+              <div className="feature-panel__copy">
+                <ActiveIcon size={26} />
+                <span>{active.stat}</span>
+                <h3>{active.title}</h3>
+                <p>{active.body}</p>
+              </div>
+              <ProductShot image={activeImage} alt={imgAlt(activeImage)} onOpen={openPreview} />
+            </RevealArticle>
+          </RevealBlock>
+        </div>
+      </RevealSection>
+
+      <RevealSection id="pricing" className="pricing-section">
+        <div className="section-copy">
+          <span className="eyebrow">{copy.pricing.eyebrow}</span>
+          <h2>{copy.pricing.title}</h2>
+          <p className="pricing-lead">{copy.pricing.lead}</p>
+        </div>
+        <div className="pricing-grid">
+          {copy.pricing.plans.map((plan, index) => (
+            <RevealArticle className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name} transition={{ delay: index * 0.08 }}>
+              {index === 1 ? <span className="plan-recommendation">Recommended</span> : null}
+              <span className="plan-label">{plan.label}</span>
+              <h3>{plan.name}</h3>
+              <div className="price-line">
+                {plan.oldPrice ? <s>{plan.oldPrice}</s> : null}
+                <strong>{plan.price}</strong>
+                <small>{plan.period}</small>
+              </div>
+              <p>{plan.body}</p>
+              <ul>
+                {plan.limits.map((item) => (
+                  <li key={item}>
+                    <CheckCircle size={16} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="plan-access" aria-label={`${plan.name} access`}>
+                {plan.access.map((item) => <span key={item}>{item}</span>)}
+              </div>
+              <a href={WEB_APP_HREF}>{copy.pricing.choose}</a>
+            </RevealArticle>
+          ))}
+        </div>
+      </RevealSection>
 
       <RevealSection className="stitch-metrics" aria-label="NERIVA operating metrics">
         {copy.metrics.map((metric, index) => (
@@ -336,23 +436,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </RevealSection>
 
-      <RevealSection className="lesson-scenario" aria-label="How NERIVA runs a short lesson">
-        <div className="lesson-scenario__copy">
-          <span className="eyebrow">{copy.scenario.eyebrow}</span>
-          <h2>{copy.scenario.title}</h2>
-          <p>{copy.scenario.body}</p>
-          <div className="lesson-scenario__tags" aria-label="Lesson flow">
-            {copy.scenario.tags.map((tag) => <span className="lesson-scenario__tag" key={tag}>{tag}</span>)}
-          </div>
-        </div>
-        <div className="scenario-shot" aria-label="AI Tutor lesson example">
-          <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
-          <div className="scenario-shot__caption">
-            <span>{copy.scenario.captionLabel}</span>
-            <strong>{copy.scenario.caption}</strong>
-          </div>
-        </div>
-      </RevealSection>
+
 
       <RevealSection className="spark-section use-case-section" aria-label={copy.useCases.title}>
         <div className="section-copy">
@@ -377,44 +461,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </RevealSection>
 
-      <RevealSection id="features" className="spark-section modules-section">
-        <div className="section-copy">
-          <span className="eyebrow">{copy.features.eyebrow}</span>
-          <h2>{copy.features.title}</h2>
-        </div>
-        <div className="feature-carousel">
-          <div className="feature-carousel__tabs" role="tablist" aria-label={copy.features.title}>
-            {copy.features.items.map((feature, index) => {
-              const Icon = featureIcons[index] ?? BrainCircuit;
-              return (
-                <button
-                  className={index === activeFeature ? "feature-carousel__tab is-active" : "feature-carousel__tab"}
-                  key={feature.title}
-                  type="button"
-                  role="tab"
-                  aria-selected={index === activeFeature}
-                  onClick={() => setActiveFeature(index)}
-                >
-                  <Icon size={18} />
-                  <span>{feature.title}</span>
-                  <small>{feature.short}</small>
-                </button>
-              );
-            })}
-          </div>
-          <RevealBlock className="feature-carousel__viewport">
-            <RevealArticle className="feature-panel" role="tabpanel">
-              <div className="feature-panel__copy">
-                <ActiveIcon size={26} />
-                <span>{active.stat}</span>
-                <h3>{active.title}</h3>
-                <p>{active.body}</p>
-              </div>
-              <ProductShot image={activeImage} alt={imgAlt(activeImage)} onOpen={openPreview} />
-            </RevealArticle>
-          </RevealBlock>
-        </div>
-      </RevealSection>
+
 
       <RevealSection className="spark-section methodology-timeline" aria-label={copy.methodology.title}>
         <div className="section-copy">
@@ -456,40 +503,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </RevealSection>
 
-      <RevealSection id="pricing" className="pricing-section">
-        <div className="section-copy">
-          <span className="eyebrow">{copy.pricing.eyebrow}</span>
-          <h2>{copy.pricing.title}</h2>
-          <p className="pricing-lead">{copy.pricing.lead}</p>
-        </div>
-        <div className="pricing-grid">
-          {copy.pricing.plans.map((plan, index) => (
-            <RevealArticle className={index === 1 ? "plan-card is-featured" : "plan-card"} key={plan.name} transition={{ delay: index * 0.08 }}>
-              {index === 1 ? <span className="plan-recommendation">Recommended</span> : null}
-              <span className="plan-label">{plan.label}</span>
-              <h3>{plan.name}</h3>
-              <div className="price-line">
-                {plan.oldPrice ? <s>{plan.oldPrice}</s> : null}
-                <strong>{plan.price}</strong>
-                <small>{plan.period}</small>
-              </div>
-              <p>{plan.body}</p>
-              <ul>
-                {plan.limits.map((item) => (
-                  <li key={item}>
-                    <CheckCircle size={16} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="plan-access" aria-label={`${plan.name} access`}>
-                {plan.access.map((item) => <span key={item}>{item}</span>)}
-              </div>
-              <a href={WEB_APP_HREF}>{copy.pricing.choose}</a>
-            </RevealArticle>
-          ))}
-        </div>
-      </RevealSection>
+
 
       <RevealSection className="spark-section ecosystem-showcase" aria-label={copy.ecosystem.title}>
         <div className="section-copy">

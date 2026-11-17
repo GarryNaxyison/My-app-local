@@ -452,11 +452,12 @@ function SiteNavDrawer({ page, theme, copy, showThemeToggle, onThemeToggle }: { 
         <OfficialBrand decorative />
       </a>
       <div className="public-nav__actions">
+        {page === "landing" && <a className="nav-pricing-link" href="#pricing">{copy.pricing}</a>}
         <a className="nav-knowledge-link" href="/knowledge/" data-no-localize-href>
           {knowledgeLabel}
         </a>
         <select data-site-language-select aria-label="Language">
-          {page === "landing" ? <LandingLanguageOptions /> : null}
+          <LandingLanguageOptions />
         </select>
         {showThemeToggle ? (
           <button className="nav-theme-toggle" type="button" onClick={onThemeToggle} aria-label={themeLabel}>
@@ -542,7 +543,7 @@ function SiteNav({ page, theme, onThemeToggle }: { page: PageId; theme: SiteThem
         </a>
       </nav>
       <div className="public-nav__actions">
-        <select data-site-language-select aria-label="Язык" />
+        <select data-site-language-select aria-label="Язык"><LandingLanguageOptions /></select>
         <button className="nav-theme-toggle" type="button" onClick={onThemeToggle} aria-label={theme === "dark" ? "Включить светлую тему" : "Включить темную тему"}>
           {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
         </button>

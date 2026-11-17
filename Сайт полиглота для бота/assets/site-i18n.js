@@ -1,14 +1,5 @@
-﻿(function () {
-    const languages = [
-        ["ru", "Русский"], ["en", "English"], ["es", "Español"], ["de", "Deutsch"],
-        ["fr", "Français"], ["it", "Italiano"], ["zh", "中文"], ["ja", "日本語"], ["ko", "한국어"], ["tg", "Тоҷикӣ"], ["uz", "O‘zbekcha"],
-        ["tt", "Татарча"], ["hy", "Հայերեն"], ["kk", "Қазақша"], ["ky", "Кыргызча"],
-        ["ka", "ქართული"], ["uk", "Українська"], ["pl", "Polski"], ["ro", "Română"],
-        ["pt", "Português"], ["ar", "العربية"], ["bn", "বাংলা"], ["cs", "Čeština"],
-        ["el", "Ελληνικά"], ["hi", "हिंदी"], ["hu", "Magyar"], ["id", "Bahasa Indonesia"],
-        ["nl", "Nederlands"], ["sv", "svenska"], ["ta", "தமிழ்"], ["te", "తెలుగు"],
-        ["th", "ภาษาไทย"], ["tl", "Tagalog"], ["tr", "Türkçe"], ["vi", "Tiếng Việt"]
-    ];
+(function () {
+    const languages = [["ru", "Русский"], ["en", "English"]];
 
     const copy = {
         ru: {
@@ -1277,10 +1268,6 @@
     function normalizeLanguage(value) {
         const code = String(value || "").toLowerCase().trim();
         if (code === "rus") return "ru";
-        if (code === "rom") return "ro";
-        if (code === "por") return "pt";
-        if (code === "kir") return "ky";
-        if (code === "geo" || code === "kat") return "ka";
         return supported.has(code) ? code : "ru";
     }
 
@@ -1423,7 +1410,7 @@
         document.documentElement.lang = lang;
         localStorage.setItem("poliglot_site_language", lang);
         document.querySelectorAll("[data-site-language-select]").forEach((select) => {
-            if (!select.options.length) {
+            if (Array.from(select.options).map((option) => option.value).join(",") !== "ru,en") {
                 select.innerHTML = languages.map(([code, label]) => `<option value="${code}">${label}</option>`).join("");
             }
             select.value = lang;

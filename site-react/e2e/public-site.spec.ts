@@ -638,14 +638,12 @@ test("landing hero pairs the official brand with current product screenshots", a
 
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator(".hero-brand-emblem img")).toHaveAttribute("src", "/assets/brand/neriva-symbol.png");
-  await expect(page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-desktop.png"]')).toBeVisible();
+  const desktopHomeShot = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-desktop.png"]');
   const viewportWidth = page.viewportSize()?.width ?? 1440;
   const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-mobile.png"]');
-  if (viewportWidth <= 860) {
-    await expect(mobileHomeShot).toHaveCount(1);
-  } else {
-    await expect(mobileHomeShot).toBeVisible();
-  }
+  if (viewportWidth <= 760) await expect(desktopHomeShot).toBeHidden();
+  else await expect(desktopHomeShot).toBeVisible();
+  await expect(mobileHomeShot).toBeVisible();
 });
 
 test.skip("landing startup is localized, lean, and theme-aware", async ({ page, request }) => {
