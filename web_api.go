@@ -95,6 +95,7 @@ type webWordOptionDTO struct {
 
 type webMistakeDTO struct {
 	Index       int    `json:"index"`
+	ReviewID    string `json:"review_id"`
 	Word        string `json:"word"`
 	Correction  string `json:"correction"`
 	Explanation string `json:"explanation"`
@@ -3268,7 +3269,8 @@ func (api *webAPI) handleMistakePracticeAnswer(w http.ResponseWriter, r *http.Re
 		return
 	}
 	var req struct {
-		Text string `json:"text"`
+		Text     string `json:"text"`
+		ReviewID string `json:"review_id"`
 	}
 	if !decodeJSONRequest(w, r, &req) {
 		return
@@ -3289,11 +3291,14 @@ func (api *webAPI) handleMistakePracticeAnswer(w http.ResponseWriter, r *http.Re
 		index, err = mistakeLearningReviewIndex(mistakes, rawIndex), nil
 	}
 	if err != nil || index < 0 || index >= len(mistakes) {
-		_ = api.bot.store.setMode(user.TelegramID, "idle")
 		writeAPIError(w, http.StatusNotFound, "Не нашёл ошибку для тренировки. Откройте словарь ошибок заново.")
 		return
 	}
 	mistake := mistakes[index]
+	if req.ReviewID != "" && req.ReviewID != mistakeLearningReviewID(mistake) {
+		writeAPIError(w, http.StatusConflict, "This answer belongs to a different mistake review.")
+		return
+	}
 	if normalizeAnswer(answer) != normalizeAnswer(mistake.Correction) {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"correct": false,
@@ -3302,16 +3307,13 @@ func (api *webAPI) handleMistakePracticeAnswer(w http.ResponseWriter, r *http.Re
 		})
 		return
 	}
-	if err := api.bot.store.removeMistake(user.TelegramID, user.LearningLanguage, mistake.Word, mistake.Correction); err != nil {
+	completed, err := api.bot.store.completeMistakeReview(user.TelegramID, user.Mode, mistake)
+	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	if err := api.bot.store.addXP(user.TelegramID, 8); err != nil {
-		writeAPIError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	if err := api.bot.store.setMode(user.TelegramID, "idle"); err != nil {
-		writeAPIError(w, http.StatusInternalServerError, err.Error())
+	if !completed {
+		writeAPIError(w, http.StatusConflict, "This mistake practice has already changed.")
 		return
 	}
 	promotedTo, err := api.bot.maybePromoteLearningLevelForWeb(r.Context(), user.TelegramID, user.FirstName)
@@ -3324,7 +3326,7 @@ func (api *webAPI) handleMistakePracticeAnswer(w http.ResponseWriter, r *http.Re
 		"correct":               true,
 		"mistake":               webMistakeDTOFromEntry(mistake, index),
 		"correction_audio_text": mistake.Correction,
-		"xp":                    8,
+		"xp":                    mistakeReviewXP,
 		"promoted_to":           promotedTo,
 		"user":                  api.userDTO(refreshed),
 	})
@@ -3835,6 +3837,7 @@ func webMistakeDTOFromEntry(mistake mistakeEntry, index int) webMistakeDTO {
 	}
 	return webMistakeDTO{
 		Index:       index,
+		ReviewID:    mistakeLearningReviewID(mistake),
 		Word:        mistake.Word,
 		Correction:  mistake.Correction,
 		Explanation: mistake.Explanation,

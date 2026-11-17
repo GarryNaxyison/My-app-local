@@ -202,6 +202,7 @@ type store interface {
 	removePhrasebookEntry(telegramID int64, id string) ([]phrasebookEntry, error)
 	extendPremium(telegramID int64, chargeID string, duration time.Duration, tier string) (time.Time, error)
 	addMistakes(telegramID int64, language string, entries []mistakeEntry) error
+	completeMistakeReview(telegramID int64, mode string, mistake mistakeEntry) (bool, error)
 	removeMistake(telegramID int64, language string, word string, correction string) error
 	clearMistakes(telegramID int64, language string) error
 	nextTutorLesson(user userState, factory tutorLessonFactory) (tutorLesson, error)

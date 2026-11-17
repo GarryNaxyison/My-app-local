@@ -81,6 +81,21 @@ func TestWebLearningReviewsIncludeMistakes(t *testing.T) {
 	if mistake, ok := started["mistake"].(map[string]any); !ok || mistake["word"] != entry.Word {
 		t.Fatalf("wrong exercise: %#v", started)
 	}
+	if _, err := storage.db.Exec(`CREATE TRIGGER reject_review_xp BEFORE UPDATE OF xp ON users
+		WHEN NEW.xp > OLD.xp BEGIN SELECT RAISE(ABORT,'simulated review reward failure'); END`); err != nil {
+		t.Fatal(err)
+	}
+	status, _ := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": entry.Correction})
+	if status != http.StatusInternalServerError {
+		t.Fatalf("forced failure status = %d", status)
+	}
+	if _, err := storage.db.Exec("DROP TRIGGER reject_review_xp"); err != nil {
+		t.Fatal(err)
+	}
+	queue = requestJSON(t, api, cookie, http.MethodGet, "/api/learning-reviews", nil)
+	if items, ok := queue["items"].([]any); !ok || len(items) != 1 {
+		t.Fatalf("failed answer consumed its review: %#v", queue)
+	}
 	result := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": entry.Correction})
 	if result["correct"] != true {
 		t.Fatalf("correction rejected: %#v", result)
@@ -88,5 +103,20 @@ func TestWebLearningReviewsIncludeMistakes(t *testing.T) {
 	queue = requestJSON(t, api, cookie, http.MethodGet, "/api/learning-reviews", nil)
 	if items, ok := queue["items"].([]any); !ok || len(items) != 0 {
 		t.Fatalf("corrected mistake remained in the queue: %#v", queue)
+	}
+	status, _ = requestJSONRaw(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": entry.Correction})
+	user, err := storage.getOrCreateUser(-42, "")
+	if status != http.StatusConflict || err != nil || user.XP != 8 {
+		t.Fatalf("replay status = %d, XP = %d, error = %v", status, user.XP, err)
+	}
+	next := mistakeEntry{Word: "I went yesterday?", Correction: entry.Correction, AddedAt: time.Now()}
+	if err := storage.addMistakes(-42, "en", []mistakeEntry{next}); err != nil {
+		t.Fatal(err)
+	}
+	requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/start", map[string]any{"index": 0})
+	status, _ = requestJSONRaw(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer",
+		map[string]any{"text": entry.Correction, "review_id": item["id"]})
+	if status != http.StatusConflict {
+		t.Fatalf("stale answer after opening another exercise returned %d", status)
 	}
 }

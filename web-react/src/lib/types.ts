@@ -299,6 +299,7 @@ export type VocabularyPage = {
 
 export type MistakeItem = {
   index?: number;
+  review_id?: string;
   word?: string;
   correction?: string;
   context?: string;

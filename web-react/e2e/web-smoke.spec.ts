@@ -1091,7 +1091,7 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [review] } }));
   await page.route("**/api/mistakes/practice/start", (route) => {
     reviewID = route.request().postDataJSON().review_id;
-    return route.fulfill({ json: { mistake: { index: 0, word: review.title, correction: "I went yesterday" } } });
+    return route.fulfill({ json: { mistake: { index: 0, review_id: review.id, word: review.title, correction: "I went yesterday" } } });
   });
   await page.goto("/app/?view=home");
   const card = page.locator(".today-review");
@@ -1099,6 +1099,11 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await card.getByRole("button").click();
   await expect(page.locator(".context-display--mistakes")).toBeVisible();
   expect(reviewID).toBe(review.id);
+  const answerRequest = page.waitForRequest("**/api/mistakes/practice/answer");
+  const answer = page.locator(".mistake-practice-v2 input");
+  await answer.fill("I went yesterday");
+  await answer.press("Enter");
+  expect((await answerRequest).postDataJSON()).toEqual({ text: "I went yesterday", review_id: review.id });
 });
 
 test("home Continue resumes the existing ordinary lesson for a Premium learner", async ({ page }) => {

@@ -2991,7 +2991,9 @@ export function App() {
       setStatus({ kind: "error", text: copy("type_answer", "Type the answer") });
       return;
     }
-    const payload = await runAction("mistake-answer", () => api<ApiRecord>("/api/mistakes/practice/answer", { method: "POST", body: { text } }));
+    const payload = await runAction("mistake-answer", () => api<ApiRecord>("/api/mistakes/practice/answer", {
+      method: "POST", body: { text, review_id: mistakePractice?.review_id },
+    }));
     if (!payload) return;
     const record = getRecord(payload);
     const mistake = (record.mistake || mistakePractice || {}) as MistakeItem;
