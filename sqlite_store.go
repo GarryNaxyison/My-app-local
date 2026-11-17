@@ -2681,6 +2681,26 @@ func (s *sqliteStore) scheduleAITutorReview(telegramID int64, lessonID string, d
 	return err
 }
 
+func (s *sqliteStore) listScheduledAITutorReviews(telegramID int64) ([]aiTutorReviewRecord, error) {
+	rows, err := s.db.Query(
+		`SELECT id, lesson_id, due_at, interval_code, updated_at
+		FROM ai_tutor_reviews WHERE telegram_id = ? AND status = 'scheduled'`, telegramID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var reviews []aiTutorReviewRecord
+	for rows.Next() {
+		review := aiTutorReviewRecord{TelegramID: telegramID, Status: "scheduled"}
+		if err := rows.Scan(&review.ID, &review.LessonID, &review.DueAt, &review.IntervalCode, &review.UpdatedAt); err != nil {
+			return nil, err
+		}
+		reviews = append(reviews, review)
+	}
+	return reviews, rows.Err()
+}
+
 func (s *sqliteStore) clearLegacyTutorLessonBase() error {
 	if _, err := s.db.Exec(`DELETE FROM tutor_user_lessons`); err != nil {
 		return err

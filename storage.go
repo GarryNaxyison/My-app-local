@@ -230,6 +230,7 @@ type store interface {
 	findPendingAITutorWordReportByFixPrompt(chatID string, messageID int64) (aiTutorWordReportRecord, bool, error)
 	updateAITutorLessonQuality(lessonID string, status string, postScore int) error
 	scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error
+	listScheduledAITutorReviews(telegramID int64) ([]aiTutorReviewRecord, error)
 	clearLegacyTutorLessonBase() error
 	referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error)
 	leaderboard(limit int) []leaderboardEntry
@@ -1426,6 +1427,18 @@ func (s *jsonStore) scheduleAITutorReview(telegramID int64, lessonID string, due
 		UpdatedAt:    now,
 	}
 	return nil
+}
+
+func (s *jsonStore) listScheduledAITutorReviews(telegramID int64) ([]aiTutorReviewRecord, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var reviews []aiTutorReviewRecord
+	for _, review := range s.aiTutorReviews {
+		if review.TelegramID == telegramID && review.Status == "scheduled" {
+			reviews = append(reviews, review)
+		}
+	}
+	return reviews, nil
 }
 
 func (s *jsonStore) clearLegacyTutorLessonBase() error {
