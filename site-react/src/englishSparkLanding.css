@@ -329,7 +329,6 @@ html[data-site-theme="dark"] body {
 
 .landing-hero,
 .stitch-metrics,
-.before-after-bridge,
 .spark-section,
 .pricing-section,
 .final-cta-section {
@@ -560,11 +559,9 @@ html[data-site-theme="dark"] body {
 .hero-proof span,
 .stitch-metric-card,
 .outcome-card,
-.before-after-bridge article,
 .feature-carousel__tab,
 .feature-panel,
 .use-case-card,
-.proof-step,
 .methodology-step,
 .ecosystem-card,
 .mobile-carousel__tab,
@@ -585,7 +582,6 @@ html[data-site-theme="dark"] body {
 .outcome-card,
 .feature-panel,
 .use-case-card,
-.proof-step,
 .methodology-step,
 .ecosystem-card,
 .mobile-panel,
@@ -616,7 +612,6 @@ html[data-site-theme="dark"] .english-spark-landing .stitch-metric-card,
 html[data-site-theme="dark"] .english-spark-landing .outcome-card,
 html[data-site-theme="dark"] .english-spark-landing .feature-panel,
 html[data-site-theme="dark"] .english-spark-landing .use-case-card,
-html[data-site-theme="dark"] .english-spark-landing .proof-step,
 html[data-site-theme="dark"] .english-spark-landing .methodology-step,
 html[data-site-theme="dark"] .english-spark-landing .ecosystem-card,
 html[data-site-theme="dark"] .english-spark-landing .mobile-panel,
@@ -762,7 +757,6 @@ html[data-site-theme="dark"] .english-spark-landing .final-cta-visual {
   white-space: nowrap;
 }
 
-.before-after-bridge,
 .spark-section,
 .pricing-section,
 .final-cta-section {
@@ -788,15 +782,13 @@ html[data-site-theme="dark"] .english-spark-landing .final-cta-visual {
     linear-gradient(180deg, rgba(19, 28, 42, 0.84), rgba(8, 17, 31, 0.68));
 }
 
-.outcome-card > span,
-.proof-step > span {
+.outcome-card > span {
   color: var(--neriva-cyan);
   font: 700 12px "JetBrains Mono", monospace;
 }
 
 .outcome-card h3,
-.use-case-card h3,
-.proof-step h3 {
+.use-case-card h3 {
   margin: 16px 0 12px;
   color: #ffffff;
   font-family: "Sora", sans-serif;
@@ -805,8 +797,7 @@ html[data-site-theme="dark"] .english-spark-landing .final-cta-visual {
 }
 
 .outcome-card p,
-.use-case-card p,
-.proof-step p {
+.use-case-card p {
   margin: 0;
   color: rgba(218, 227, 247, 0.74);
   line-height: 1.62;
@@ -931,24 +922,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   line-height: 1.65;
 }
 
-.before-after-bridge__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.before-after-bridge article {
-  min-height: 320px;
-  padding: 30px;
-  border-radius: 24px;
-}
-
-.before-after-bridge article > span {
-  color: var(--neriva-cyan);
-  font: 700 12px "JetBrains Mono", monospace;
-}
-
-.before-after-bridge h3,
 .plan-card h3,
 .landing-faq__item h3,
 .telegram-panel__copy strong,
@@ -959,7 +932,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   font-family: "Sora", sans-serif;
 }
 
-.before-after-bridge ul,
 .plan-card ul {
   display: grid;
   gap: 12px;
@@ -968,15 +940,9 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   list-style: none;
 }
 
-.before-after-bridge li,
 .plan-card li {
   color: rgba(218, 227, 247, 0.76);
   line-height: 1.55;
-}
-
-.before-after-bridge .is-after {
-  border-color: rgba(118, 216, 255, 0.24);
-  background: linear-gradient(180deg, rgba(0, 50, 160, 0.32), rgba(8, 17, 31, 0.68));
 }
 
 .lesson-scenario {
@@ -1230,19 +1196,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
 .proof-section__shots .product-shot img {
   max-height: 430px;
   object-fit: contain;
-}
-
-.proof-steps {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 28px;
-}
-
-.proof-step {
-  min-height: 260px;
-  padding: 24px;
-  border-radius: 24px;
 }
 
 .methodology-timeline .section-copy {
@@ -1801,7 +1754,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   .stitch-metrics,
   .outcome-grid,
   .use-case-grid,
-  .proof-steps,
   .ecosystem-showcase__grid,
   .pricing-grid,
   .site-footer {
@@ -1842,7 +1794,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   .public-nav--drawer,
   .landing-hero,
   .stitch-metrics,
-  .before-after-bridge,
   .spark-section,
   .pricing-section,
   .final-cta-section,
@@ -1894,10 +1845,8 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
     width: 100%;
   }
 
-  .before-after-bridge__grid,
   .outcome-grid,
   .use-case-grid,
-  .proof-steps,
   .landing-faq__grid,
   .pricing-grid {
     grid-template-columns: 1fr;
@@ -1930,7 +1879,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
     max-width: 58%;
   }
 
-  .before-after-bridge,
   .spark-section,
   .pricing-section,
   .lesson-scenario,
@@ -1988,7 +1936,6 @@ html[data-site-theme="light"] .english-spark-landing .pricing-section {
   .mobile-panel,
   .outcome-card,
   .use-case-card,
-  .proof-step,
   .ecosystem-card,
   .telegram-panel,
   .community-panel,

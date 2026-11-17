@@ -1945,6 +1945,7 @@ export function App() {
   const [aiTutorStep, setAiTutorStep] = useState<AiTutorStep | null>(null);
   const [aiTutorFeedback, setAiTutorFeedback] = useState<AiTutorFeedbackState | null>(null);
   const [aiTutorFeedbackStage, setAiTutorFeedbackStage] = useState("");
+  const [tutorReview, setTutorReview] = useState<{ error?: string; choice?: string }>({});
   const [tutorLoadError, setTutorLoadError] = useState("");
   const [spellingChallenge, setSpellingChallenge] = useState<SpellingChallenge | null>(null);
   const [spellingResult, setSpellingResult] = useState<TrainerResult | null>(null);
@@ -2453,6 +2454,7 @@ export function App() {
     }
     setTutorLoadError("");
     setAiTutorSessionId(sessionID);
+    setTutorReview({});
     setAiTutorStep(step);
     setAiTutorFeedback(response.feedback || null);
     setAiTutorFeedbackStage(step.stage);
@@ -2506,6 +2508,7 @@ export function App() {
       return false;
     }
     setAiTutorSessionId(sessionID);
+    setTutorReview({});
     setAiTutorStep(step);
     setAiTutorFeedback(response.feedback || null);
     setAiTutorFeedbackStage(step.stage);
@@ -2542,6 +2545,13 @@ export function App() {
     const sessionID = String(response.session?.id || response.session?.ID || aiTutorSessionId);
     if (sessionID) setAiTutorSessionId(sessionID);
     setAiTutorFeedbackStage(stage);
+    if (stage === "production" && response.next_step?.stage === "lesson_feedback") {
+      const error = aiTutorActualErrorLines(parseAITutorFeedbackJSON(response.feedback?.json))[0];
+      setTutorReview({ error });
+    }
+    if (stage === "review_schedule" && response.next_step?.stage === "complete") {
+      setTutorReview((current) => ({ ...current, choice }));
+    }
     setAiTutorStep(response.next_step || null);
     setAiTutorFeedback(response.feedback || null);
   };
@@ -3407,6 +3417,7 @@ export function App() {
     aiTutorStep,
     aiTutorFeedback,
     aiTutorFeedbackStage,
+    tutorReview,
     submitAiTutorStep,
     reportAiTutorWord,
     tutorLoadError,
@@ -5136,6 +5147,7 @@ type ViewRendererProps = {
   aiTutorStep: AiTutorStep | null;
   aiTutorFeedback: AiTutorFeedbackState | null;
   aiTutorFeedbackStage: string;
+  tutorReview: { error?: string; choice?: string };
   submitAiTutorStep: (stage: string, text: string, choice?: string) => Promise<void>;
   reportAiTutorWord: (input: { stage: string; proposedWord: string; proposedTranslation: string; comment: string }) => Promise<boolean>;
   tutorLoadError: string;
@@ -5252,7 +5264,20 @@ function ViewRenderer(props: ViewRendererProps) {
   return <MetricsView {...props} />;
 }
 
-function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView }: ViewRendererProps) {
+function tutorStageLabel(stage: string, copy: ViewRendererProps["copy"]) {
+  if (stage === "story_intro") return copy("tutor_step_story", "Story");
+  if (stage === "retell") return copy("tutor_step_retell", "Retell");
+  if (/^question_\d+$/.test(stage)) return `${copy("tutor_choice_progress", "Question")} ${stage.replace("question_", "")}`;
+  if (isTutorWordLearnStage(stage)) return `${copy("tutor_step_words", "New words")} ${stage.replace("word_learn_", "")}`;
+  if (isTutorWordRecallStage(stage)) return `${copy("tutor_final_check_progress", "Word check")} ${stage.replace("word_recall_", "")}`;
+  if (stage === "production") return copy("tutor_step_writing", "Writing");
+  if (stage === "lesson_feedback") return copy("tutor_step_assessment", "Tutor assessment");
+  if (stage === "review_schedule") return copy("tutor_step_review", "Memory review");
+  if (stage === "complete") return copy("tutor_lesson_complete", "Lesson complete");
+  return copy("ai_tutor", "AI Tutor");
+}
+
+function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, tutorReview, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView, loadMistakes }: ViewRendererProps) {
   const tutorPlatform = usePlatform();
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
@@ -5395,18 +5420,7 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
     };
   }, [completedLessonsOpen]);
 
-  const stageLabel = (stage: string) => {
-    if (stage === "story_intro") return copy("tutor_step_story", "Story");
-    if (stage === "retell") return copy("tutor_step_retell", "Retell");
-    if (/^question_\d+$/.test(stage)) return `${copy("tutor_choice_progress", "Question")} ${stage.replace("question_", "")}`;
-    if (isTutorWordLearnStage(stage)) return `${copy("tutor_step_words", "New words")} ${stage.replace("word_learn_", "")}`;
-    if (isTutorWordRecallStage(stage)) return `${copy("tutor_final_check_progress", "Word check")} ${stage.replace("word_recall_", "")}`;
-    if (stage === "production") return copy("tutor_step_writing", "Writing");
-    if (stage === "lesson_feedback") return copy("tutor_step_assessment", "Tutor assessment");
-    if (stage === "review_schedule") return copy("tutor_step_review", "Memory review");
-    if (stage === "complete") return copy("tutor_lesson_complete", "Lesson complete");
-    return copy("ai_tutor", "AI Tutor");
-  };
+  const stageLabel = (stage: string) => tutorStageLabel(stage, copy);
 
   const stageInstruction = (stage: string) => {
     if (stage === "story_intro") return copy("tutor_story_instruction", "Read the story, remember the main plot, then continue.");
@@ -5469,6 +5483,8 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
   const isReviewChoiceStage = Boolean(aiTutorStep && ["rating", "review"].includes(aiTutorStep.kind));
   const isComplete = aiTutorStep?.kind === "complete" || aiTutorStep?.stage === "complete";
   const isVisibleComplete = visibleTutorStep?.kind === "complete" || visibleTutorStep?.stage === "complete";
+  const { choice: reviewChoice, error: tutorReviewError } = tutorReview;
+  const tutorReviewWords = isComplete ? words.map((word) => display(word.target)).filter(Boolean).slice(0, 3) : [];
   const isProduction = visibleTutorStep?.stage === "production";
   const defaultReviewChoice = aiTutorStep?.stage === "review_schedule" ? "no_review" : aiTutorStep?.stage === "lesson_feedback" ? "good" : "";
   const productionSentenceCount = countTutorSentences(tutorDraft);
@@ -5640,6 +5656,9 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
             <div className="tutor-review-summary-v2">
               <span>{copy("tutor_complete_body", "Lesson finished: story, retell, questions, words, writing, assessment, and review.")}</span>
               <span>{copy("ai_tutor_xp_awarded", "+40 XP awarded for this AI Tutor lesson.")}</span>
+              {tutorReviewError ? <span><strong>{copy("mistakes", "Mistakes")}</strong> {tutorReviewError}</span> : null}
+              {tutorReviewWords.length ? <span><strong>{copy("lesson_review_words", "Words to revisit")}</strong> <span lang={user.learning_language}>{tutorReviewWords.join(" · ")}</span></span> : null}
+              {reviewChoice && reviewChoice !== "no_review" ? <span>{copy("tutor_review_scheduled", "Review scheduled")} · {localizedTutorOptionText(reviewChoice, reviewChoice, copy)}</span> : null}
             </div>
           ) : null}
           {options.length ? (
@@ -5848,6 +5867,13 @@ function TutorView({ user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbac
                 </Button>
               </div>
             )}
+
+            {isVisibleComplete && !isPreviewing ? (
+              <div className="lesson-result-summary__actions tutor-review-actions">
+                {tutorReviewError ? <Button type="button" variant="outline" disabled={busy === "mistakes"} onClick={() => void loadMistakes()}>{copy("mistakes", "Mistakes")}</Button> : null}
+                <Button type="button" variant="outline" onClick={() => setView("word-game")}>{copy("word_game", "Review")}</Button>
+              </div>
+            ) : null}
 
             {tutorNoteCandidates.length ? <TutorNoteStrip candidates={tutorNoteCandidates} savePhrase={savePhrase} isPhraseSaved={isPhraseSaved} copy={copy} /> : null}
             {tutorActualErrorLines.length ? (
@@ -6151,13 +6177,25 @@ function HomeView(props: ViewRendererProps) {
   const weakSpot = Number(user.mistakes || 0) > 0 ? copy("today_plan_body_active", "Today starts with one repair, then a short speak-listen loop so new material does not pile up over old mistakes.") : copy("today_plan_body_steady", "Today keeps the rhythm: words first, then output, then listening, then one quick check.");
   const hasActiveLesson = Boolean(props.activeLessonTaskId);
   const opensTutor = user.premium && !hasActiveLesson;
-  const canResume = hasActiveLesson || (opensTutor && props.aiTutorStep && props.aiTutorStep.stage !== "complete");
+  const tutorStep = opensTutor && props.aiTutorStep?.stage !== "complete" && props.aiTutorStep?.kind !== "complete" ? props.aiTutorStep : null;
+  const canResume = hasActiveLesson || Boolean(tutorStep);
+  const activeTask = hasActiveLesson ? props.messages.find((message) => message.meta === "lesson" && message.details?.task_id === props.activeLessonTaskId) : undefined;
+  const resumeTopic = activeTask
+    ? recordField(activeTask.details || {}, ["topic", "theme", "title"]) || cleanAppText(activeTask.body).trim().split(/\r?\n/, 1)[0]
+    : cleanTutorPrompt(tutorStep?.lesson?.theme || tutorStep?.lesson?.title || tutorStep?.lesson?.story?.title_interface);
+  const resumeStep = hasActiveLesson ? copy("lesson_answer", "Lesson answer") : tutorStep ? tutorStageLabel(tutorStep.stage, copy) : "";
   return (
     <div className="home-grid">
       <section className="learning-start">
         <div className="learning-start__copy">
           <h2>{canResume ? copy("tutor_continue", "Continue") : copy("new_lesson_title", "New lesson")}</h2>
           <p className="learning-start__mode">{opensTutor ? copy("ai_tutor", "AI Tutor") : copy("new_lesson", "Lesson")}</p>
+          {resumeStep ? (
+            <div className="learning-start__resume">
+              <strong>{resumeStep}</strong>
+              {resumeTopic ? <p>{resumeTopic}</p> : null}
+            </div>
+          ) : null}
           <Button type="button" disabled={busy === "lesson" || busy === "tutor"} onClick={() => {
             if (hasActiveLesson) setView("lesson");
             else if (opensTutor) setView("tutor");
@@ -6813,6 +6851,8 @@ function ChatWorkView({
   user,
   savePhrase,
   isPhraseSaved,
+  setView,
+  loadMistakes,
 }: ViewRendererProps & { mode: "lesson" | "practice" | "shadowing" }) {
   const isLesson = mode === "lesson";
   const isPractice = mode === "practice";
@@ -6827,7 +6867,11 @@ function ChatWorkView({
   const practiceEmpty = isPractice && !visibleMessages.length;
   const phraseCandidates = isLesson || isPractice || isShadowing ? phraseCandidatesFromMessages(scopedMessages, user.learning_language || "") : [];
   const lessonHasActiveTask = isLesson && Boolean(activeLessonTaskId);
-  const lessonHasCompletedAnswer = isLesson && !lessonHasActiveTask && scopedMessages.some((message) => message.tone === "success" && Boolean(message.details?.task_id));
+  const completedAnswer = isLesson && !lessonHasActiveTask
+    ? scopedMessages.find((message) => message.tone === "success" && Boolean(message.details?.task_id))?.details
+    : undefined;
+  const lessonMistakes = recordMistakes(completedAnswer?.mistakes);
+  const reviewPhrase = recordField(lessonMistakes[0] ?? {}, ["correction"]) || recordField(completedAnswer ?? {}, ["correction", "model_phrase"]);
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
   const textareaRef = useAutoResizeTextarea(draft);
   const answerLabel = copy("lesson_answer", "Lesson answer");
@@ -6866,11 +6910,20 @@ function ChatWorkView({
           ) : (
             <>
               <ChatPanel messages={visibleMessages} copy={copy} targetLanguage={user.learning_language} />
-              {lessonHasCompletedAnswer ? (
-                <Button className="lesson-panel-next-v2" type="button" onClick={() => void startLesson()} disabled={busy === "lesson"}>
-                  {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
-                  {copy("ai_tutor_next_lesson", "Next lesson")}
-                </Button>
+              {completedAnswer ? (
+                <section className="v2-panel lesson-result-summary">
+                  <h2>{copy("tutor_lesson_complete", "Lesson complete")}</h2>
+                  <p>{reviewPhrase ? copy("lesson_review_tomorrow", "Try saying the corrected phrase from memory tomorrow.") : copy("lesson_review_tomorrow_generic", "Tomorrow, try answering this task again from memory.")}</p>
+                  {reviewPhrase ? <p lang={user.learning_language}><strong>{reviewPhrase}</strong></p> : null}
+                  <div className="lesson-result-summary__actions">
+                    {lessonMistakes.length ? <Button type="button" variant="outline" disabled={busy === "mistakes"} onClick={() => void loadMistakes()}>{copy("mistakes", "Mistakes")}</Button> : null}
+                    <Button type="button" variant="outline" onClick={() => setView("word-game")}>{copy("word_game", "Review")}</Button>
+                    <Button className="lesson-panel-next-v2" type="button" onClick={() => void startLesson()} disabled={busy === "lesson"}>
+                      {busy === "lesson" ? <Spinner size="small" className="button-spinner-v2" /> : <BookOpen size={16} />}
+                      {copy("ai_tutor_next_lesson", "Next lesson")}
+                    </Button>
+                  </div>
+                </section>
               ) : null}
             </>
           )}

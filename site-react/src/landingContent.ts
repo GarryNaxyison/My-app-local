@@ -56,14 +56,6 @@ export type LandingContent = {
       body: string;
     }[];
   };
-  beforeAfter: {
-    eyebrow: string;
-    title: string;
-    beforeTitle: string;
-    before: readonly string[];
-    afterTitle: string;
-    after: readonly string[];
-  };
   scenario: {
     eyebrow: string;
     title: string;
@@ -87,10 +79,6 @@ export type LandingContent = {
     eyebrow: string;
     title: string;
     body: string;
-    steps: readonly {
-      title: string;
-      body: string;
-    }[];
   };
   features: {
     eyebrow: string;
@@ -235,14 +223,6 @@ const english: LandingContent = {
       },
     ],
   },
-  beforeAfter: {
-    eyebrow: "Before / After",
-    title: "More than a vocabulary app: NERIVA closes the loop",
-    beforeTitle: "Before",
-    before: ["words saved without use", "chat replies forgotten", "no review schedule"],
-    afterTitle: "After",
-    after: ["context lesson", "teacher-style correction", "review on time"],
-  },
   scenario: {
     eyebrow: "Live lesson",
     title: "One micro-lesson has structure, not random chat",
@@ -286,12 +266,6 @@ const english: LandingContent = {
     eyebrow: "Product proof",
     title: "How it looks inside the product",
     body: "The screenshots show the actual loop: open a lesson, answer, get a correction, then come back to weak phrases.",
-    steps: [
-      { title: "Pick a task", body: "Choose the goal and level, then start with a concrete situation." },
-      { title: "Answer in your words", body: "Type, speak or use a photo when the context comes from real life." },
-      { title: "Get the correction", body: "NERIVA explains what to change and shows a better phrase." },
-      { title: "Repeat later", body: "Mistakes, notes and reminders bring the phrase back when it matters." },
-    ],
   },
   features: {
     eyebrow: "Four functions",
@@ -520,14 +494,6 @@ const russian: LandingContent = {
       },
     ],
   },
-  beforeAfter: {
-    eyebrow: "До / После",
-    title: "Используйте новые слова в ответах",
-    beforeTitle: "До",
-    before: ["слова лежат без дела", "ответы быстро забываются", "нет графика повтора"],
-    afterTitle: "После",
-    after: ["урок из контекста", "правка как от преподавателя", "повтор вовремя"],
-  },
   scenario: {
     eyebrow: "Живой урок",
     title: "Короткий урок с понятным результатом",
@@ -571,12 +537,6 @@ const russian: LandingContent = {
     eyebrow: "Доказательство продуктом",
     title: "Как это выглядит в продукте",
     body: "На скринах не абстрактные обещания, а рабочий цикл: открыть урок, ответить, получить правку и вернуться к слабой фразе.",
-    steps: [
-      { title: "Выбираете задачу", body: "Цель и уровень задают короткий урок под ситуацию." },
-      { title: "Отвечаете своими словами", body: "Можно писать, говорить голосом или использовать фото из реальной жизни." },
-      { title: "Получаете правку", body: "NERIVA показывает, что исправить, и даёт более естественную фразу." },
-      { title: "Повторяете позже", body: "Ошибки, заметки и напоминания возвращают фразу в нужный момент." },
-    ],
   },
   features: {
     eyebrow: "Четыре функции",

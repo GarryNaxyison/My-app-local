@@ -433,31 +433,6 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
       </RevealSection>
 
-      <RevealSection className="before-after-bridge" aria-label="Before and after NERIVA">
-        <div className="section-copy">
-          <span className="eyebrow">{copy.beforeAfter.eyebrow}</span>
-          <h2>{copy.beforeAfter.title}</h2>
-        </div>
-        <div className="before-after-bridge__grid">
-          <RevealArticle>
-            <span>01</span>
-            <h3>{copy.beforeAfter.beforeTitle}</h3>
-            <ul>
-              {copy.beforeAfter.before.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </RevealArticle>
-          <RevealArticle className="is-after" transition={{ delay: 0.08 }}>
-            <span>02</span>
-            <h3>{copy.beforeAfter.afterTitle}</h3>
-            <ul>
-              {copy.beforeAfter.after.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </RevealArticle>
-        </div>
-      </RevealSection>
-
-
-
       <RevealSection className="spark-section use-case-section" aria-label={copy.useCases.title}>
         <div className="section-copy">
           <span className="eyebrow">{copy.useCases.eyebrow}</span>
@@ -511,15 +486,6 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
             <ProductShot image={productImages.mistakes} alt={imgAlt(productImages.mistakes)} onOpen={openPreview} />
           </div>
-        </div>
-        <div className="proof-steps">
-          {copy.proof.steps.map((step, index) => (
-            <RevealArticle className="proof-step" key={step.title} transition={{ delay: index * 0.07 }}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{step.title}</h3>
-              <p>{step.body}</p>
-            </RevealArticle>
-          ))}
         </div>
       </RevealSection>
 

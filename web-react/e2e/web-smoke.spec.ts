@@ -1065,6 +1065,8 @@ test("home Continue resumes the existing ordinary lesson for a Premium learner",
   await openSection(page, "home");
   const resume = page.locator(".learning-start button").first();
   await expect(page.locator(".learning-start__mode")).toHaveText(appCopy("ru", "new_lesson"));
+  await expect(page.locator(".learning-start__resume")).toContainText("Resume this existing ordinary lesson.");
+  await expect(page.locator(".learning-start__resume")).toContainText(appCopy("ru", "lesson_answer"));
   await expect(resume).toContainText(appCopy("ru", "tutor_continue"));
   await resume.click();
   await expect(page.locator(".context-display--lesson")).toBeVisible();
@@ -1114,6 +1116,10 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   await expect(lesson.locator(".chat-interface")).toContainText(prompt);
   await expect(lesson.locator(".lesson-panel-next-v2")).toBeVisible();
   await expect(shortcut).toHaveCount(0);
+  const summary = lesson.locator(".lesson-result-summary");
+  await expect(summary).toContainText(correction);
+  await summary.getByRole("button", { name: appCopy("ru", "word_game") }).click();
+  await expect(page).toHaveURL(/view=word-game/);
 });
 
 test("next long lesson starts at the document beginning after completing the previous lesson", async ({ page }) => {
@@ -2019,6 +2025,10 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(page.locator(".tutor-context-v2__head > span")).not.toContainText("story_intro");
   await expect(page.locator(".tutor-context-v2")).toContainText("Mia wakes up at seven");
   await expect(page.locator(".tutor-context-v2 .audio-wave-button-v2")).toContainText(appCopy("ru", "tutor_story_audio"));
+  await openSection(page, "home");
+  await expect(page.locator(".learning-start__resume")).toContainText("Утренняя рутина");
+  await expect(page.locator(".learning-start__resume")).toContainText(appCopy("ru", "tutor_step_story"));
+  await page.locator(".learning-start button").first().click();
 
   const tutorSubmit = page.locator(".tutor-context-v2 .tutor-composer-v2 button").last();
   await tutorSubmit.click();
@@ -2108,6 +2118,11 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await tutorSubmit.click();
   await expect(page.locator(".tutor-context-v2__head h2")).toContainText("Урок завершён");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Complete");
+  const summary = page.locator(".tutor-review-summary-v2");
+  await expect(summary).toContainText(appCopy("ru", "lesson_review_words"));
+  await expect(summary).toContainText("I wake up at seven.: Use at + time.");
+  await expect(summary).toContainText(`${appCopy("ru", "tutor_review_scheduled")} · ${appCopy("ru", "ai_tutor_option_tomorrow")}`);
+  await expect(page.locator(".tutor-review-actions").getByRole("button", { name: appCopy("ru", "word_game") })).toBeVisible();
   await expect(page.locator(".xp-gain-pop-v2")).toContainText("+40 XP");
   await expect(page.locator(".xp-gain-pop-v2")).toContainText("AI Репетитор");
 

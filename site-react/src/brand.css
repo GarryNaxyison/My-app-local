@@ -223,14 +223,13 @@ html[data-site-theme="dark"] .english-spark-landing .hero-proof > span {
   backdrop-filter: none;
 }
 
-html[data-site-theme="dark"] .english-spark-landing :is(.stitch-metric-card, .outcome-card, .feature-panel, .mobile-panel, .use-case-card, .ecosystem-card, .proof-step, .methodology-step, .plan-card, .community-panel, .landing-faq__item, .final-cta-visual) {
+html[data-site-theme="dark"] .english-spark-landing :is(.stitch-metric-card, .outcome-card, .feature-panel, .mobile-panel, .use-case-card, .ecosystem-card, .methodology-step, .plan-card, .community-panel, .landing-faq__item, .final-cta-visual) {
   border: 1px solid #343959;
   background: #151833;
   box-shadow: none;
   animation: none;
 }
 .english-spark-landing .outcome-card > span,
-.english-spark-landing .before-after-bridge__grid > article > span { display: none; }
 .english-spark-landing .section-copy p,
 .english-spark-landing .lesson-scenario__copy p { max-width: 68ch; }
 .english-spark-landing .entry-cta,

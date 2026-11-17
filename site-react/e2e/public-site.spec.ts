@@ -927,7 +927,7 @@ test("legal documents include the updated Telegram, AI, and Metrika clauses", as
   await expect(page.locator(".legal-document-shell")).toContainText("зарубежными провайдерами моделей искусственного интеллекта (AI)");
 });
 
-test("production public-site output keeps all image and localization assets for deploy", async ({ page, request }) => {
+test("production public-site output keeps all image and localization assets for deploy", async ({ page, request, isMobile }) => {
   const assetPaths = [
     "/assets/site-i18n.js",
     "/assets/site-phrases.js",
@@ -968,7 +968,8 @@ test("production public-site output keeps all image and localization assets for 
   }
 
   await page.goto("/neriva.html?lang=en");
-  const heroImage = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-desktop.png"]');
+  const heroImagePath = `/assets/product/2026-11-15/today-${isMobile ? "mobile" : "desktop"}.png`;
+  const heroImage = page.locator(`.landing-hero img[src="${heroImagePath}"]`);
   await heroImage.waitFor({ state: "visible" });
   await expect
     .poll(() =>
@@ -991,6 +992,6 @@ test("production public-site output keeps all image and localization assets for 
   );
 
   expect(imageState.length).toBeGreaterThanOrEqual(7);
-  expect(imageState.some((image) => image.src.includes("2026-11-15/today-desktop.png") && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
+  expect(imageState.some((image) => image.src === heroImagePath && image.visible && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
   expect(imageState.some((image) => image.src.includes("telegram-app-dark.png"))).toBe(true);
 });

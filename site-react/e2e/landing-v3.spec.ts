@@ -91,7 +91,7 @@ test("landing hero uses the official logo and respects reduced motion", async ({
   expect(Math.abs(heroBrandState.boxWidth / heroBrandState.boxHeight - heroBrandState.width / heroBrandState.height)).toBeLessThan(0.05);
 });
 
-test("landing v3 uses before-after bridge and a controlled feature carousel", async ({ page }) => {
+test("landing presents the lesson and features before pricing without a repeated comparison", async ({ page }) => {
   await page.goto("/neriva.html?lang=en");
 
   await expect(page.locator(".stitch-metrics")).toBeVisible();
@@ -99,9 +99,10 @@ test("landing v3 uses before-after bridge and a controlled feature carousel", as
   await expect(page.locator(".stitch-metrics")).toContainText("score");
   await expect(page.locator(".stitch-metrics")).toContainText("A1-C2");
 
-  await expect(page.locator(".before-after-bridge")).toBeVisible();
-  await expect(page.locator(".before-after-bridge")).toContainText("Before");
-  await expect(page.locator(".before-after-bridge")).toContainText("After");
+  await expect(page.locator(".before-after-bridge")).toHaveCount(0);
+  await expect(page.locator("main > section").nth(1)).toHaveClass("lesson-scenario");
+  await expect(page.locator("main > section").nth(2)).toHaveAttribute("id", "features");
+  await expect(page.locator("main > section").nth(3)).toHaveAttribute("id", "pricing");
 
   await expect(page.locator(".feature-carousel")).toBeVisible();
   await expect(page.locator(".feature-carousel__tab")).toHaveCount(4);

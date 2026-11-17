@@ -250,6 +250,31 @@ body:has(.v2-shell--learning),
   padding-inline: 22px;
 }
 
+.v2-shell--learning .learning-start__resume {
+  margin: -8px 0 16px;
+  overflow-wrap: anywhere;
+}
+
+.v2-shell--learning .learning-start__resume p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 4px 0 0;
+}
+
+.lesson-result-summary {
+  margin-block: 16px;
+  padding: clamp(16px, 3vw, 24px);
+}
+
+.lesson-result-summary h2 { margin: 0 0 8px; }
+.lesson-result-summary p { margin: 0 0 12px; overflow-wrap: anywhere; }
+.lesson-result-summary__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lesson-result-summary__actions button { min-height: 44px; }
+.lesson-result-summary__actions .lesson-panel-next-v2 { margin: 0; }
+.tutor-review-actions { margin-block: 12px; }
+
 .v2-shell--learning .learning-start__art,
 .v2-shell--learning .learning-start > img {
   display: block;
