@@ -20,6 +20,7 @@ func (api *webAPI) handleLearningEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	var input struct {
 		ID        string `json:"id"`
+		AttemptID string `json:"attempt_id"`
 		Stage     string `json:"stage"`
 		Format    string `json:"format"`
 		ElapsedMS int    `json:"elapsed_ms"`
@@ -29,7 +30,7 @@ func (api *webAPI) handleLearningEvent(w http.ResponseWriter, r *http.Request) {
 	}
 	stages := []string{"today_opened", "lesson_started", "answer_submitted", "answer_checked", "retry_submitted", "review_due", "transfer_completed"}
 	formats := []string{"", "text", "voice"}
-	if !learningEventID.MatchString(input.ID) || !slices.Contains(stages, input.Stage) ||
+	if !learningEventID.MatchString(input.ID) || (input.AttemptID != "" && !learningEventID.MatchString(input.AttemptID)) || !slices.Contains(stages, input.Stage) ||
 		!slices.Contains(formats, input.Format) || input.ElapsedMS < 0 || input.ElapsedMS > 86400000 {
 		writeAPIError(w, http.StatusBadRequest, "Invalid learning event.")
 		return
@@ -40,8 +41,8 @@ func (api *webAPI) handleLearningEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = storage.db.ExecContext(r.Context(), `INSERT INTO learning_events
-		(telegram_id,event_id,stage,format,elapsed_ms,created_at) VALUES (?,?,?,?,?,?)
-		ON CONFLICT(telegram_id,event_id) DO NOTHING`, user.TelegramID, input.ID, input.Stage, input.Format, input.ElapsedMS, formatDBTime(time.Now()))
+		(telegram_id,event_id,attempt_id,stage,format,elapsed_ms,created_at) VALUES (?,?,?,?,?,?,?)
+		ON CONFLICT(telegram_id,event_id) DO NOTHING`, user.TelegramID, input.ID, input.AttemptID, input.Stage, input.Format, input.ElapsedMS, formatDBTime(time.Now()))
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "Could not store learning event.")
 		return

@@ -1345,7 +1345,9 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   const lesson = page.locator(".context-display--lesson");
   const shortcut = lesson.getByRole("button", { name: /К ответу|Go to answer/ });
   await expect(shortcut).toHaveCount(0);
+  const startedEvent = page.waitForRequest((request) => request.url().endsWith("/api/learning-events") && request.postDataJSON()?.stage === "lesson_started");
   await page.locator(".lesson-empty-v2 button").click();
+  const attemptID = (await startedEvent).postDataJSON().attempt_id;
   await expect(lesson.locator(".chat-interface")).toContainText(prompt);
   await expect(shortcut).toBeInViewport();
   const textarea = lesson.locator("textarea");
@@ -1364,7 +1366,8 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   await lesson.locator(".composer-submit-v2").click();
   expect((await submission).postDataJSON()).toMatchObject({ text: draft });
   const checked = (await checkedEvent).postDataJSON();
-  expect(checked).toEqual({ id: expect.any(String), stage: "answer_checked", format: "text", elapsed_ms: expect.any(Number) });
+  expect(attemptID).toEqual(expect.any(String));
+  expect(checked).toEqual({ id: expect.any(String), attempt_id: attemptID, stage: "answer_checked", format: "text", elapsed_ms: expect.any(Number) });
   await expect(lesson.locator(".chat-interface")).toContainText(correction);
   await expect(lesson.locator(".chat-interface")).toContainText(prompt);
   await expect(lesson.locator(".lesson-panel-next-v2")).toBeVisible();

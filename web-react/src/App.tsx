@@ -1950,7 +1950,7 @@ export function App() {
   ]);
   const messageObjectUrlsRef = useRef<Set<string>>(new Set());
   const [activeLessonTaskId, setActiveLessonTaskId] = useState("");
-  const lessonStartedAt = useRef<number | null>(null);
+  const lessonAttempt = useRef<{ prompt: string; owner: string; id: string; startedAt: number } | null>(null);
   const [draft, setDraft] = useState("");
   const [savedLessonDraft, setSavedLessonDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
@@ -2168,6 +2168,7 @@ export function App() {
   const accountKey = asText(session?.account?.login || user.telegram_account?.id || "guest", "guest");
   const lessonPrompt = messages.find((message) => message.meta === "lesson" && message.details?.task_id === activeLessonTaskId && message.tone === "default")?.body;
   const lessonDraftKey = `neriva-lesson-draft:${accountKey}`;
+  const lessonAttemptKey = `neriva-lesson-attempt:${accountKey}`;
   useEffect(() => {
     if (!activeLessonTaskId || !lessonPrompt || accountKey === "guest") {
       setSavedLessonDraft("");
@@ -2452,10 +2453,18 @@ export function App() {
     const payload = await runAction("lesson", () => api<ApiRecord>("/api/lesson/start", { method: "POST", body: {} }), copy("lesson_ready", "Lesson is ready."));
     if (!payload) return;
     updateLessonDraft("");
-    lessonStartedAt.current = performance.now();
-    recordLearningEvent("lesson_started");
     const record = getRecord(payload);
     const body = recordField(record, ["lesson", "prompt", "question", "task", "message"]) || copy("lesson_generated", "Lesson generated.");
+    if (accountKey !== "guest" && typeof globalThis.crypto?.randomUUID === "function") {
+      const attempt = { prompt: body, owner: accountKey, id: crypto.randomUUID(), startedAt: Date.now() };
+      lessonAttempt.current = attempt;
+      try {
+        localStorage.setItem(lessonAttemptKey, JSON.stringify(attempt));
+      } catch {
+        // The attempt remains available in this session.
+      }
+      recordLearningEvent("lesson_started", "", 0, attempt.id);
+    }
     const taskId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     setActiveLessonTaskId(taskId);
     setMessages((current) => [
@@ -2699,7 +2708,17 @@ export function App() {
     const endpoint = mode === "lesson" ? "/api/lesson/answer" : "/api/practice";
     const sentAt = performance.now();
     const format = voiceFile ? "voice" : "text";
-    if (mode === "lesson") recordLearningEvent("answer_submitted", format, lessonStartedAt.current === null ? 0 : sentAt - lessonStartedAt.current);
+    let attempt = lessonAttempt.current;
+    if (mode === "lesson" && !attempt) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(lessonAttemptKey) || "null");
+        if (saved?.owner === accountKey && saved.prompt === lessonPrompt && typeof saved.id === "string" && Number.isFinite(saved.startedAt)) attempt = saved;
+      } catch {
+        // Legacy lessons can still send unlinked events.
+      }
+    }
+    if (attempt?.owner !== accountKey || attempt?.prompt !== lessonPrompt) attempt = null;
+    if (mode === "lesson") recordLearningEvent("answer_submitted", format, attempt ? Date.now() - attempt.startedAt : 0, attempt?.id);
     const hasFile = Boolean(voiceFile || (mode === "practice" && imageFile));
     const payload = await runAction(mode, async () => {
       if (!hasFile) return api<ApiRecord>(endpoint, { method: "POST", body: { text } });
@@ -2710,7 +2729,7 @@ export function App() {
       return apiForm<ApiRecord>(endpoint, form);
     });
     if (!payload) return;
-    if (mode === "lesson") recordLearningEvent("answer_checked", format, performance.now() - sentAt);
+    if (mode === "lesson") recordLearningEvent("answer_checked", format, performance.now() - sentAt, attempt?.id);
     const record = getRecord(payload);
     const responseText = formatLearningRecord(record, copy, copy("done", "Done."));
     const transcript = asText(record.transcript || text || (voiceFile ? copy("voice_message", "Voice message") : imageFile ? copy("image_message", "Image message") : ""), "");
@@ -2726,6 +2745,8 @@ export function App() {
     setVoiceFile(null);
     setImageFile(null);
     if (mode === "lesson") {
+      lessonAttempt.current = null;
+      try { localStorage.removeItem(lessonAttemptKey); } catch { /* Storage may be unavailable. */ }
       updateLessonDraft("");
       setActiveLessonTaskId("");
     }
