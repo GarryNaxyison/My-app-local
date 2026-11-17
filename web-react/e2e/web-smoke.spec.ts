@@ -1294,6 +1294,7 @@ test("home Continue resumes the existing ordinary lesson for a Premium learner",
 });
 
 test("lesson answer shortcut focuses a reachable reply and keeps lesson progression", async ({ page, isMobile }) => {
+  usePremiumSession();
   const prompt = "Complete the hotel check-in exercise.";
   const taskLines = Array.from({ length: 40 }, (_, index) => `Example ${index + 1}: read this line before you answer.`).join("\n");
   const draft = "I have a reservation under the name Alex.";
@@ -1340,6 +1341,16 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   await expect(summary.locator(".audio-wave-button-v2")).toBeVisible();
   await expect(summary).toBeFocused();
   await expect(summary).toBeInViewport();
+  const retry = summary.locator(".lesson-voice-retry");
+  await retry.locator("summary").click();
+  await retry.locator('input[type="file"]').setInputFiles({
+    name: "repeat.webm", mimeType: "audio/webm", buffer: Buffer.from("test-audio"),
+  });
+  await expect(retry.locator("audio")).toBeVisible();
+  const retryRequest = page.waitForRequest("**/api/pronunciation/check");
+  await retry.getByRole("button", { name: appCopy("ru", "check"), exact: true }).click();
+  expect((await retryRequest).postData()).toContain(correction);
+  await expect(retry.locator(".pronunciation-report-v2")).toBeVisible();
   await summary.getByRole("button", { name: appCopy("ru", "word_game") }).click();
   await expect(page).toHaveURL(/view=word-game/);
 });

@@ -7164,6 +7164,7 @@ function ChatWorkView({
   submitPractice,
   startShadowing,
   submitShadowing,
+  submitPronunciation,
   shadowingTarget,
   busy,
   copy,
@@ -7172,7 +7173,7 @@ function ChatWorkView({
   isPhraseSaved,
   setView,
   loadMistakes,
-}: Pick<ViewRendererProps, "messages" | "activeLessonTaskId" | "draft" | "setDraft" | "voiceFile" | "imageFile" | "setVoiceFile" | "setImageFile" | "startLesson" | "submitLesson" | "submitPractice" | "startShadowing" | "submitShadowing" | "shadowingTarget" | "busy" | "copy" | "user" | "savePhrase" | "isPhraseSaved" | "setView" | "loadMistakes"> & { mode: "lesson" | "practice" | "shadowing" }) {
+}: Pick<ViewRendererProps, "messages" | "activeLessonTaskId" | "draft" | "setDraft" | "voiceFile" | "imageFile" | "setVoiceFile" | "setImageFile" | "startLesson" | "submitLesson" | "submitPractice" | "startShadowing" | "submitShadowing" | "shadowingTarget" | "busy" | "copy" | "user" | "savePhrase" | "isPhraseSaved" | "setView" | "loadMistakes"> & Partial<Pick<ViewRendererProps, "submitPronunciation">> & { mode: "lesson" | "practice" | "shadowing" }) {
   const isLesson = mode === "lesson";
   const isPractice = mode === "practice";
   const isShadowing = mode === "shadowing";
@@ -7249,6 +7250,18 @@ function ChatWorkView({
                   {learnerAnswer && <p>{copy("you", "Your answer")}: <span lang={user.learning_language} dir="auto">{learnerAnswer}</span></p>}
                   {reviewPhrase && <AudioActionRow clips={[{ label: copy("correct_variant", "Correct variant"), text: reviewPhrase, targetLanguage: user.learning_language }]} />}
                   {primaryExplanation && <p dir="auto">{primaryExplanation}</p>}
+                  {reviewPhrase && submitPronunciation && user.premium && (
+                    <LessonVoiceRetry
+                      key={String(completedAnswer.task_id) + reviewPhrase}
+                      phrase={reviewPhrase}
+                      user={user}
+                      copy={copy}
+                      voiceFile={voiceFile}
+                      setVoiceFile={setVoiceFile}
+                      check={submitPronunciation}
+                      busy={busy === "pronunciation"}
+                    />
+                  )}
                   {lessonMistakes.length > 1 && <details>
                     <summary>{copy("mistakes", "Mistakes")} · {lessonMistakes.length - 1}</summary>
                     <ul>{lessonMistakes.slice(1).map((mistake, index) => (
@@ -8932,6 +8945,48 @@ function ToolButton({ active, icon: Icon, title, onClick }: { active: boolean; i
       <Icon size={18} />
       {title}
     </button>
+  );
+}
+
+function LessonVoiceRetry({ phrase, user, copy, voiceFile, setVoiceFile, check, busy }: {
+  phrase: string;
+  user: UserProfile;
+  copy: ViewRendererProps["copy"];
+  voiceFile: File | null;
+  setVoiceFile: (file: File | null) => void;
+  check: NonNullable<ViewRendererProps["submitPronunciation"]>;
+  busy: boolean;
+}) {
+  const russian = languageCode(user.interface_language) === "ru";
+  const [report, setReport] = useState<PronunciationAssessment | null>(null);
+  const [preview, setPreview] = useState("");
+  const pending = useRef(false);
+  useEffect(() => {
+    if (!voiceFile) { setPreview(""); return; }
+    const url = URL.createObjectURL(voiceFile);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [voiceFile]);
+  return (
+    <details className="lesson-voice-retry">
+      <summary>{russian ? "Произнести исправленную фразу" : "Say the corrected phrase"}</summary>
+      <FileControls voiceFile={voiceFile} imageFile={null} setVoiceFile={setVoiceFile} setImageFile={() => {}} allowImage={false} user={user} copy={copy} />
+      {preview && <audio controls src={preview} aria-label={russian ? "Прослушать запись" : "Play your recording"} />}
+      {voiceFile && <Button type="button" variant="outline" disabled={busy} onClick={() => setVoiceFile(null)}>{copy("cancel", "Cancel")}</Button>}
+      <Button type="button" disabled={busy || !voiceFile} onClick={async () => {
+        if (pending.current) return;
+        pending.current = true;
+        try {
+          const result = pronunciationFrom(await check(phrase) || {});
+          if (result) setReport(result);
+        } finally {
+          pending.current = false;
+        }
+      }}>{copy("check", "Check")}</Button>
+      {report && (pronunciationNeedsRetry(report)
+        ? <p role="status">{russian ? "Запись распознана неуверенно. Попробуйте ещё раз." : "The recording was hard to recognise. Try again."}</p>
+        : <PronunciationReport pronunciation={report} user={user} copy={copy} compact />)}
+    </details>
   );
 }
 
