@@ -204,7 +204,7 @@ type store interface {
 	extendPremium(telegramID int64, chargeID string, duration time.Duration, tier string) (time.Time, error)
 	addMistakes(telegramID int64, language string, entries []mistakeEntry) error
 	completeMistakeReview(telegramID int64, mode string, mistake mistakeEntry) (bool, error)
-	mistakeTransferCount(telegramID int64, language string) (int, error)
+	mistakeTransferProgress(telegramID int64, language string, cutoff time.Time) (mistakeTransferProgress, error)
 	finishMistakeTransfer(telegramID int64, language, id string) (bool, error)
 	removeMistake(telegramID int64, language string, word string, correction string) error
 	clearMistakes(telegramID int64, language string) error

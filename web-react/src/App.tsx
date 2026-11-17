@@ -6898,15 +6898,21 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
 }
 
 function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: ViewRendererProps) {
-  const [transferProgress, setTransferProgress] = useState<{ scope: string; completed: number } | null>(null);
+  const [transferProgress, setTransferProgress] = useState<{ scope: string; completed: number; recent: number | null } | null>(null);
   const transferScope = JSON.stringify([session.account?.login, user.telegram_account?.id, user.learning_language]);
   const transferCompleted = transferProgress?.scope === transferScope ? transferProgress.completed : null;
+  const recentTransfers = transferProgress?.scope === transferScope ? transferProgress.recent : null;
+  const russian = languageCode(user.interface_language) === "ru";
   useEffect(() => {
     if (!session.authenticated) return;
     const controller = new AbortController();
-    void api<{ completed: number }>("/api/mistakes/transfer", { signal: controller.signal }).then(({ completed }) => {
+    void api<{ completed: number; completed_last_7_days?: number }>("/api/mistakes/transfer", { signal: controller.signal }).then(({ completed, completed_last_7_days: recent }) => {
       if (!controller.signal.aborted && Number.isInteger(completed) && completed >= 0) {
-        setTransferProgress({ scope: transferScope, completed });
+        setTransferProgress({
+          scope: transferScope,
+          completed,
+          recent: typeof recent === "number" && Number.isInteger(recent) && recent >= 0 && recent <= completed ? recent : null,
+        });
       }
     }).catch(() => {
       if (!controller.signal.aborted) setTransferProgress(null);
@@ -6941,9 +6947,10 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
     { label: copy("voice_attempts", "Озвучено"), value: voiceCount, icon: Volume2 },
     { label: copy("mistakes_repaired", "Ошибок в работе"), value: mistakeCount, icon: Search },
     ...(transferCompleted === null ? [] : [{
-      label: languageCode(user.interface_language) === "ru" ? "Новых ситуаций отработано" : "New situations practised",
+      label: russian ? "Новых ситуаций отработано" : "New situations practised",
       value: transferCompleted,
       icon: CheckCircle,
+      detail: recentTransfers === null ? null : russian ? `За последние 7 дней: ${compactNumber(recentTransfers)}` : `Last 7 days: ${compactNumber(recentTransfers)}`,
     }]),
   ];
   const activityRows = [
@@ -6975,6 +6982,7 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
                 <Icon size={18} />
                 <span>{metric.label}</span>
                 <strong>{compactNumber(metric.value)}</strong>
+                {"detail" in metric && metric.detail ? <small>{metric.detail}</small> : null}
               </article>
             );
           })}

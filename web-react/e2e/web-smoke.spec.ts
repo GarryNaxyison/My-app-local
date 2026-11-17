@@ -205,7 +205,7 @@ let testSessionPayloadOverride: typeof sessionPayload | null = null;
 let testPhrasebookItemsOverride: unknown[] | null = null;
 
 async function mockApi(page: Page) {
-  await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed: 0 } }));
+  await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed: 0, completed_last_7_days: 0 } }));
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [] } }));
   await page.addInitScript(
     ({ phrases, payments }) => {
@@ -1056,13 +1056,14 @@ const todayReviewItem = {
 
 test("Progress loads saved exercises from the profile after reload", async ({ page }) => {
   let completed = 0;
-  await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed } }));
+  await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed, completed_last_7_days: completed ? 2 : 0 } }));
   await page.goto("/app/?view=progress");
   const metric = page.locator(".dashboard-learning-v2__grid article").filter({ hasText: /Новых ситуаций отработано|New situations practised/ });
   await expect(metric).toContainText("0");
   completed = 7;
   await page.reload();
-  await expect(metric).toContainText("7");
+  await expect(metric.locator("strong")).toHaveText("7");
+  await expect(metric.locator("small")).toHaveText(/За последние 7 дней: 2|Last 7 days: 2/);
 });
 
 test("Today opens the scheduled tutor lesson", async ({ page }) => {

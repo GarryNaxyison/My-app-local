@@ -137,12 +137,41 @@ func TestWebMistakeTransferResultIsSavedOnce(t *testing.T) {
 	requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/practice/answer", map[string]any{"text": entry.Correction, "review_id": body["review_id"]})
 	for i := 0; i < 2; i++ {
 		result := requestJSON(t, api, cookie, http.MethodPost, "/api/mistakes/transfer", body)
-		if result["completed"] != float64(1) {
+		if result["completed"] != float64(1) || result["completed_last_7_days"] != float64(1) {
 			t.Fatalf("completion count after write %d: %#v", i, result)
 		}
 	}
 	result := requestJSON(t, api, cookie, http.MethodGet, "/api/mistakes/transfer", nil)
 	if result["completed"] != float64(1) {
 		t.Fatalf("stored result: %#v", result)
+	}
+}
+
+func TestMistakeTransferSevenDayBoundary(t *testing.T) {
+	_, sqlite, _ := newTestWebAPI(t)
+	cutoff := time.Date(2026, 11, 10, 9, 30, 0, 0, time.UTC)
+	jsonStorage := newTestJSONStore(t)
+	user := newUserState(-42, cutoff)
+	user.MistakeTransfers = map[string]mistakeTransferRecord{}
+	for id, item := range map[string]mistakeTransferRecord{
+		"old":            {Language: "en", CompletedAt: formatDBTime(cutoff.Add(-time.Nanosecond))},
+		"edge":           {Language: "en", CompletedAt: formatDBTime(cutoff)},
+		"recent":         {Language: "en", CompletedAt: formatDBTime(cutoff.Add(time.Nanosecond))},
+		"pending":        {Language: "en"},
+		"other-language": {Language: "de", CompletedAt: formatDBTime(cutoff)},
+	} {
+		user.MistakeTransfers[id] = item
+		if _, err := sqlite.db.Exec("INSERT INTO mistake_transfers VALUES (?, ?, ?, ?)", -42, id, item.Language, item.CompletedAt); err != nil {
+			t.Fatal(err)
+		}
+	}
+	jsonStorage.users[-42] = user
+	for name, storage := range map[string]store{"sqlite": sqlite, "json": jsonStorage} {
+		t.Run(name, func(t *testing.T) {
+			progress, err := storage.mistakeTransferProgress(-42, "en", cutoff)
+			if err != nil || progress.Completed != 3 || progress.CompletedLast7Days != 2 {
+				t.Fatalf("unexpected progress %+v: %v", progress, err)
+			}
+		})
 	}
 }

@@ -11,11 +11,38 @@ type mistakeTransferRecord struct {
 	CompletedAt string `json:"completed_at,omitempty"`
 }
 
-func (s *sqliteStore) mistakeTransferCount(userID int64, language string) (int, error) {
-	var count int
-	err := s.db.QueryRow(`SELECT COUNT(*) FROM mistake_transfers
-		WHERE telegram_id=? AND language=? AND completed_at<>''`, userID, language).Scan(&count)
-	return count, err
+type mistakeTransferProgress struct {
+	Completed          int `json:"completed"`
+	CompletedLast7Days int `json:"completed_last_7_days"`
+}
+
+func (p *mistakeTransferProgress) count(stamp string, cutoff time.Time) {
+	completedAt := parseDBTime(stamp)
+	if completedAt.IsZero() {
+		return
+	}
+	p.Completed++
+	if !completedAt.Before(cutoff) {
+		p.CompletedLast7Days++
+	}
+}
+
+func (s *sqliteStore) mistakeTransferProgress(userID int64, language string, cutoff time.Time) (mistakeTransferProgress, error) {
+	var progress mistakeTransferProgress
+	rows, err := s.db.Query(`SELECT completed_at FROM mistake_transfers
+		WHERE telegram_id=? AND language=? AND completed_at<>''`, userID, language)
+	if err != nil {
+		return progress, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var stamp string
+		if err := rows.Scan(&stamp); err != nil {
+			return progress, err
+		}
+		progress.count(stamp, cutoff)
+	}
+	return progress, rows.Err()
 }
 
 func (s *sqliteStore) finishMistakeTransfer(userID int64, language, id string) (bool, error) {
@@ -29,16 +56,16 @@ func (s *sqliteStore) finishMistakeTransfer(userID int64, language, id string) (
 	return count > 0, err
 }
 
-func (s *jsonStore) mistakeTransferCount(userID int64, language string) (int, error) {
+func (s *jsonStore) mistakeTransferProgress(userID int64, language string, cutoff time.Time) (mistakeTransferProgress, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	count := 0
+	var progress mistakeTransferProgress
 	for _, item := range s.users[userID].MistakeTransfers {
-		if item.Language == language && item.CompletedAt != "" {
-			count++
+		if item.Language == language {
+			progress.count(item.CompletedAt, cutoff)
 		}
 	}
-	return count, nil
+	return progress, nil
 }
 
 func (s *jsonStore) finishMistakeTransfer(userID int64, language, id string) (bool, error) {
@@ -96,10 +123,10 @@ func (api *webAPI) handleMistakeTransfer(w http.ResponseWriter, r *http.Request)
 			return
 		}
 	}
-	count, err := api.bot.store.mistakeTransferCount(user.TelegramID, language)
+	progress, err := api.bot.store.mistakeTransferProgress(user.TelegramID, language, time.Now().UTC().Add(-7*24*time.Hour))
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "Unable to load practice progress.")
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]int{"completed": count})
+	writeJSON(w, http.StatusOK, progress)
 }
