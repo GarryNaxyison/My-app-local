@@ -6349,6 +6349,7 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
       </section>
       {props.session?.authenticated && props.restartTutorLesson && props.startMistakePractice && (
         <TodayReview
+          requestedId={new URLSearchParams(location.search).get("review") || undefined}
           key={JSON.stringify([props.session.account?.login, user.telegram_account?.id, user.learning_language])}
           interfaceLanguage={user.interface_language}
           canStart={Boolean(user.premium)}

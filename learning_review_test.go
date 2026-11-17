@@ -8,6 +8,13 @@ import (
 	"time"
 )
 
+func TestLearningReviewWebURL(t *testing.T) {
+	got, err := learningReviewWebURL("https://neriva.ru/app?lang=ru", "ai_tutor:lesson/1")
+	if err != nil || got != "https://neriva.ru/app?lang=ru&review=ai_tutor%3Alesson%2F1&view=home" {
+		t.Fatalf("review URL = %q, error = %v", got, err)
+	}
+}
+
 func TestWebLearningReviewsReadExistingTutorSchedule(t *testing.T) {
 	api, store, cookie := newTestWebAPI(t)
 	now := time.Now().UTC()

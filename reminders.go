@@ -34,7 +34,7 @@ func (b *bot) sendDueReminders(ctx context.Context) {
 	for _, target := range targets {
 		user := userState{TelegramID: target.TelegramID, FirstName: target.FirstName, InterfaceLanguage: target.InterfaceLanguage}
 		text := reminderTextForDate(target.LocalDate, target.InterfaceLanguage)
-		if err := b.telegram.sendMessageWithCopy(ctx, target.TelegramID, text, ui(user)); err != nil {
+		if err := b.sendLearningReminder(ctx, user, text); err != nil {
 			log.Printf("failed to send reminder to %d: %v", target.TelegramID, err)
 			continue
 		}
@@ -47,6 +47,20 @@ func (b *bot) sendDueReminders(ctx context.Context) {
 		case <-time.After(200 * time.Millisecond):
 		}
 	}
+}
+
+func (b *bot) sendLearningReminder(ctx context.Context, target userState, text string) error {
+	user, err := b.store.getOrCreateUser(target.TelegramID, target.FirstName)
+	if err == nil {
+		items, err := listLearningReviews(b.store, user, time.Now().UTC())
+		if err == nil && len(items) > 0 && items[0].Status == "due" {
+			keyboard, err := learningReviewKeyboard(items[0], normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru")
+			if err == nil {
+				return b.telegram.sendInlineMessage(ctx, target.TelegramID, text, keyboard)
+			}
+		}
+	}
+	return b.telegram.sendMessageWithCopy(ctx, target.TelegramID, text, ui(target))
 }
 
 func reminderDue(user userState, now time.Time) (reminderTarget, bool) {

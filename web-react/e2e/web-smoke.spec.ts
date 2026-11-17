@@ -1054,6 +1054,16 @@ const todayReviewItem = {
   status: "due",
 };
 
+test("Telegram review link selects the exact item and never substitutes another", async ({ page }) => {
+  const target = { ...todayReviewItem, id: "mistake:linked", source: "mistake", title: "Linked exercise" };
+  await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [todayReviewItem, target] } }));
+  await page.goto("/app/?view=home&review=mistake%3Alinked");
+  await expect(page.locator(".today-review")).toContainText(target.title);
+  await page.goto("/app/?view=home&review=mistake%3Aunknown");
+  await expect(page.locator(".today-review")).toContainText(/Повторение недоступно|Review unavailable/);
+  await expect(page.locator(".today-review button")).toHaveCount(0);
+});
+
 test("Progress loads saved exercises from the profile after reload", async ({ page }) => {
   let completed = 0;
   await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed, completed_last_7_days: completed ? 2 : 0 } }));

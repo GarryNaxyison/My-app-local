@@ -14,6 +14,7 @@ type ReviewItem = {
 };
 
 type Props = {
+  requestedId?: string;
   compact?: boolean;
   interfaceLanguage?: string;
   canStart: boolean;
@@ -23,25 +24,30 @@ type Props = {
   startMistakePractice: (reviewId: string) => Promise<void>;
 };
 
-export function TodayReview({ compact = false, interfaceLanguage, canStart, hasActiveLesson, busy, start, startMistakePractice }: Props) {
+export function TodayReview({ requestedId, compact = false, interfaceLanguage, canStart, hasActiveLesson, busy, start, startMistakePractice }: Props) {
   const [item, setItem] = useState<ReviewItem | null>(null);
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     void api<{ items: ReviewItem[] }>("/api/learning-reviews", { signal: controller.signal }).then((response) => {
       if (controller.signal.aborted) return;
       const next = response.items.find((entry) =>
+        (!requestedId || entry.id === requestedId) &&
         (entry.source === "ai_tutor" && entry.lesson_id || entry.source === "mistake" && entry.id) && Number.isFinite(Date.parse(entry.due_at)),
       );
       setItem(next ?? null);
+      setLoaded(true);
     }).catch(() => {
       if (!controller.signal.aborted) setItem(null);
     });
     return () => controller.abort();
-  }, []);
+  }, [requestedId]);
 
-  if (!item) return null;
   const locale = normalizeAppLocale(interfaceLanguage);
   const russian = locale === "ru";
+  if (!item) return loaded && requestedId
+    ? <section className="v2-panel today-review" role="status">{russian ? "Повторение недоступно" : "Review unavailable"}</section>
+    : null;
   const due = item.status === "due";
   const mistake = item.source === "mistake";
   const formattedDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(item.due_at));

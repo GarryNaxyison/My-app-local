@@ -1,14 +1,73 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
 	"sort"
+	"strings"
 	"time"
 )
+
+func learningReviewWebURL(base, id string) (string, error) {
+	target, err := url.Parse(base)
+	if err != nil || target.Scheme != "https" || target.Hostname() == "" {
+		return "", fmt.Errorf("invalid review web URL")
+	}
+	query := target.Query()
+	query.Set("view", "home")
+	query.Set("review", id)
+	target.RawQuery = query.Encode()
+	return target.String(), nil
+}
+
+func (b *bot) sendLearningReview(ctx context.Context, chatID int64, user userState) error {
+	items, err := listLearningReviews(b.store, user, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	russian := normalizeInterfaceLanguage(user.InterfaceLanguage) == "ru"
+	if len(items) == 0 {
+		message := "No reviews scheduled."
+		if russian {
+			message = "Повторений пока нет."
+		}
+		return b.telegram.sendInlineMessage(ctx, chatID, message, backToMenuKeyboard(ui(user)))
+	}
+	item := items[0]
+	keyboard, err := learningReviewKeyboard(item, russian)
+	if err != nil {
+		return err
+	}
+	title := "Next review"
+	if russian {
+		title = "Ближайшее повторение"
+	}
+	return b.telegram.sendInlineMessage(ctx, chatID, title+"\n"+item.Title, keyboard)
+}
+
+func learningReviewKeyboard(item learningReviewItem, russian bool) (map[string]any, error) {
+	base := strings.TrimSpace(os.Getenv("WEB_APP_URL"))
+	if base == "" {
+		base = "https://neriva.ru/app"
+	}
+	link, err := learningReviewWebURL(base, item.ID)
+	if err != nil {
+		return nil, err
+	}
+	action := "Open review"
+	if russian {
+		action = "Открыть повторение"
+	}
+	return map[string]any{
+		"inline_keyboard": [][]map[string]string{{{"text": action, "url": link}}},
+	}, nil
+}
 
 type learningReviewItem struct {
 	ID       string    `json:"id"`

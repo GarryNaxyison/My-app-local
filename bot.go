@@ -531,6 +531,8 @@ func (b *bot) handleCommand(ctx context.Context, chatID int64, text string, user
 		return b.sendReferralMenu(ctx, chatID, user)
 	case "/mistakes":
 		return b.sendMistakes(ctx, chatID, user, 0)
+	case "/reviews":
+		return b.sendLearningReview(ctx, chatID, user)
 	case "/clearmistakes":
 		return b.clearMistakes(ctx, chatID, user)
 	case "/leaderboard":
