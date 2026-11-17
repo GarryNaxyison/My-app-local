@@ -183,7 +183,7 @@ func TestSQLiteAITutorFindApprovedUsesSeparateLessonBank(t *testing.T) {
 	}
 }
 
-func TestSQLiteAITutorMigrationClearsLegacyTutorBase(t *testing.T) {
+func TestSQLiteStartupPreservesLegacyTutorBase(t *testing.T) {
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "app.sqlite"), "")
 	if err != nil {
 		t.Fatalf("newSQLiteStore() error = %v", err)
@@ -206,8 +206,8 @@ func TestSQLiteAITutorMigrationClearsLegacyTutorBase(t *testing.T) {
 	if err := tx.Commit(); err != nil {
 		t.Fatalf("commit error = %v", err)
 	}
-	if err := store.clearLegacyTutorLessonBase(); err != nil {
-		t.Fatalf("clearLegacyTutorLessonBase() error = %v", err)
+	if err := store.init(); err != nil {
+		t.Fatalf("store.init() error = %v", err)
 	}
 	var lessons, assignments int
 	if err := store.db.QueryRow(`SELECT COUNT(*) FROM tutor_lessons`).Scan(&lessons); err != nil {
@@ -216,8 +216,8 @@ func TestSQLiteAITutorMigrationClearsLegacyTutorBase(t *testing.T) {
 	if err := store.db.QueryRow(`SELECT COUNT(*) FROM tutor_user_lessons`).Scan(&assignments); err != nil {
 		t.Fatalf("count tutor_user_lessons error = %v", err)
 	}
-	if lessons != 0 || assignments != 0 {
-		t.Fatalf("legacy rows remain: lessons=%d assignments=%d", lessons, assignments)
+	if lessons != 1 || assignments != 1 {
+		t.Fatalf("unexpected legacy row counts: lessons=%d assignments=%d", lessons, assignments)
 	}
 }
 

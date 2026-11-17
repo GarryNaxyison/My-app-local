@@ -237,7 +237,6 @@ type store interface {
 	updateAITutorLessonQuality(lessonID string, status string, postScore int) error
 	scheduleAITutorReview(telegramID int64, lessonID string, dueAt string, intervalCode string) error
 	listScheduledAITutorReviews(telegramID int64) ([]aiTutorReviewRecord, error)
-	clearLegacyTutorLessonBase() error
 	referralInvitees(telegramID int64, limit int) ([]referralInviteeEntry, error)
 	leaderboard(limit int) []leaderboardEntry
 	languageLeaderboard(language string, limit int) []languageLeaderboardEntry
@@ -1448,15 +1447,6 @@ func (s *jsonStore) listScheduledAITutorReviews(telegramID int64) ([]aiTutorRevi
 		}
 	}
 	return reviews, nil
-}
-
-func (s *jsonStore) clearLegacyTutorLessonBase() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.tutorLessons = map[string]tutorLesson{}
-	s.tutorUserLessons = map[int64]map[string]time.Time{}
-	return nil
 }
 
 func (s *jsonStore) ensureAITutorMapsLocked() {

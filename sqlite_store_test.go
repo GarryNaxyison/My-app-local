@@ -73,7 +73,7 @@ func TestSQLiteSimpleUserUpdatesDoNotRewriteCollections(t *testing.T) {
 	}
 }
 
-func TestSQLiteLearningProgressResetRunsOnceAndPreservesAccounts(t *testing.T) {
+func TestSQLiteStartupPreservesLearningProgressWithoutLegacyMarker(t *testing.T) {
 	store, err := newSQLiteStore(filepath.Join(t.TempDir(), "reset.sqlite"), "")
 	if err != nil {
 		t.Fatal(err)
@@ -88,9 +88,6 @@ func TestSQLiteLearningProgressResetRunsOnceAndPreservesAccounts(t *testing.T) {
 	if err := store.setLearningLanguage(987, "de"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := store.db.Exec(`UPDATE users SET level='B2', xp=900, lesson_count=4, practice_count=3, voice_count=2, word_lesson_count=5, word_game_count=6, lesson_history='old lesson', practice_history='old practice', learning_focus='travel' WHERE telegram_id=987`); err != nil {
-		t.Fatal(err)
-	}
 	if _, _, err := store.addLearnedWord(987, vocabWord{ID: "en:hello", Language: "en", English: "hello", Russian: "привет"}); err != nil {
 		t.Fatal(err)
 	}
@@ -100,10 +97,13 @@ func TestSQLiteLearningProgressResetRunsOnceAndPreservesAccounts(t *testing.T) {
 	if _, err := store.db.Exec(`INSERT INTO phrasebook_entries (telegram_id,id,phrase,translation,note,source,language,created_at) VALUES (987,'note-1','hello','привет','','manual','en','now')`); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := store.db.Exec(`UPDATE users SET level='B2', xp=900, lesson_count=4, practice_count=3, voice_count=2, word_lesson_count=5, word_game_count=6, lesson_history='old lesson', practice_history='old practice', learning_focus='travel' WHERE telegram_id=987`); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := store.db.Exec(`DELETE FROM app_migrations WHERE migration_id='2026-10-17-reset-learning-progress'`); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.resetUserLearningProgressOnce(); err != nil {
+	if err := store.init(); err != nil {
 		t.Fatal(err)
 	}
 	var level, learningLanguage, focus, lessonHistory string
@@ -111,38 +111,23 @@ func TestSQLiteLearningProgressResetRunsOnceAndPreservesAccounts(t *testing.T) {
 	if err := store.db.QueryRow(`SELECT level,learning_language,learning_focus,lesson_history,xp,lesson_count,practice_count,voice_count,word_lesson_count,word_game_count FROM users WHERE telegram_id=987`).Scan(&level, &learningLanguage, &focus, &lessonHistory, &xp, &lessons, &practices, &voices, &wordLessons, &wordGames); err != nil {
 		t.Fatal(err)
 	}
-	if level != "A1" || learningLanguage != "de" || focus != "travel" || lessonHistory != "" || xp+lessons+practices+voices+wordLessons+wordGames != 0 {
-		t.Fatalf("user progress/profile after reset: level=%q language=%q focus=%q history=%q totals=%d", level, learningLanguage, focus, lessonHistory, xp+lessons+practices+voices+wordLessons+wordGames)
+	if level != "B2" || learningLanguage != "de" || focus != "travel" || lessonHistory != "old lesson" || xp != 900 || lessons != 4 || practices != 3 || voices != 2 || wordLessons != 5 || wordGames != 6 {
+		t.Fatalf("user progress/profile after startup: level=%q language=%q focus=%q history=%q totals=%d", level, learningLanguage, focus, lessonHistory, xp+lessons+practices+voices+wordLessons+wordGames)
 	}
 	for table, dst := range map[string]*int{"learned_words": &learned, "mistakes": &mistakes, "phrasebook_entries": &notes} {
 		if err := store.db.QueryRow(`SELECT COUNT(*) FROM ` + table + ` WHERE telegram_id=987`).Scan(dst); err != nil {
 			t.Fatal(err)
 		}
-		if *dst != 0 {
-			t.Fatalf("%s rows after reset = %d", table, *dst)
+		if *dst != 1 {
+			t.Fatalf("%s rows after startup = %d", table, *dst)
 		}
-	}
-	if err := store.resetUserLearningProgressOnce(); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := store.db.Exec(`UPDATE users SET xp=12 WHERE telegram_id=987`); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.resetUserLearningProgressOnce(); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.db.QueryRow(`SELECT xp FROM users WHERE telegram_id=987`).Scan(&xp); err != nil {
-		t.Fatal(err)
-	}
-	if xp != 12 {
-		t.Fatalf("one-time reset ran again on startup, xp=%d", xp)
 	}
 	var accountCount int
 	if err := store.db.QueryRow(`SELECT COUNT(*) FROM web_accounts WHERE user_id=987`).Scan(&accountCount); err != nil {
 		t.Fatal(err)
 	}
 	if accountCount != 1 {
-		t.Fatalf("web account rows after reset = %d, want 1", accountCount)
+		t.Fatalf("web account rows after startup = %d, want 1", accountCount)
 	}
 }
 

@@ -441,48 +441,7 @@ func (s *sqliteStore) init() error {
 	if _, err := s.db.Exec(`CREATE INDEX IF NOT EXISTS idx_ai_tutor_word_report_admin_messages_report ON ai_tutor_word_report_admin_messages(report_id)`); err != nil {
 		return err
 	}
-	if err := s.clearLegacyTutorLessonBase(); err != nil {
-		return err
-	}
-	if err := s.resetUserLearningProgressOnce(); err != nil {
-		return err
-	}
 	return nil
-}
-
-// resetUserLearningProgressOnce performs the requested one-time global learning
-// reset while preserving accounts, authentication, language preferences, and
-// other profile settings. The migration marker makes subsequent startups safe.
-func (s *sqliteStore) resetUserLearningProgressOnce() error {
-	const migrationID = "2026-10-17-reset-learning-progress"
-	tx, err := s.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	var applied int
-	if err := tx.QueryRow(`SELECT COUNT(*) FROM app_migrations WHERE migration_id = ?`, migrationID).Scan(&applied); err != nil {
-		return err
-	}
-	if applied != 0 {
-		return tx.Commit()
-	}
-	for _, table := range []string{
-		"mistakes", "learned_words", "phrasebook_entries", "daily_bonus_claims", "habit_days",
-		"tutor_user_lessons", "ai_tutor_sessions", "ai_tutor_answers", "ai_tutor_reviews",
-		"ai_tutor_quality_checks", "ai_tutor_word_reports", "ai_tutor_word_report_admin_messages",
-	} {
-		if _, err := tx.Exec(`DELETE FROM ` + table); err != nil {
-			return err
-		}
-	}
-	if _, err := tx.Exec(`UPDATE users SET mode = 'idle', level = 'A1', lesson_count = 0, practice_count = 0, voice_count = 0, word_lesson_count = 0, word_game_count = 0, xp = 0, daily_date = '', lessons_today = 0, practice_today = 0, voice_today = 0, lesson_history = '', practice_history = '', last_lesson_prompt = '', updated_at = CURRENT_TIMESTAMP`); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(`INSERT INTO app_migrations (migration_id, applied_at) VALUES (?, CURRENT_TIMESTAMP)`, migrationID); err != nil {
-		return err
-	}
-	return tx.Commit()
 }
 
 func (s *sqliteStore) initAITutorLessonBank() error {
@@ -2740,16 +2699,6 @@ func (s *sqliteStore) listScheduledAITutorReviews(telegramID int64) ([]aiTutorRe
 		reviews = append(reviews, review)
 	}
 	return reviews, rows.Err()
-}
-
-func (s *sqliteStore) clearLegacyTutorLessonBase() error {
-	if _, err := s.db.Exec(`DELETE FROM tutor_user_lessons`); err != nil {
-		return err
-	}
-	if _, err := s.db.Exec(`DELETE FROM tutor_lessons`); err != nil {
-		return err
-	}
-	return nil
 }
 
 type aiTutorLessonScanner interface {
