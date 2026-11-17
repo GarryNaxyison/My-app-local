@@ -1057,7 +1057,7 @@ const todayReviewItem = {
 test("practice with pasted text checks the learner answer in context", async ({ page }) => {
   await page.route("**/api/practice/text-questions", (route) => {
     expect(route.request().postDataJSON()).toEqual({ text: "The train leaves at nine." });
-    return route.fulfill({ json: { questions: ["When does the train leave?", "What vehicle is mentioned?"] } });
+    return route.fulfill({ json: { questions: ["When does the train leave?", "What vehicle is mentioned?"], words: [{ word: "train", translation: "поезд" }] } });
   });
   await page.route("**/api/practice", (route) => {
     expect(route.request().postDataJSON().text).toContain("The train leaves at nine.");
@@ -1073,6 +1073,8 @@ test("practice with pasted text checks the learner answer in context", async ({ 
   await expect(prepare).toBeDisabled();
   await panel.locator("textarea").fill("The train leaves at nine.");
   await prepare.click();
+  await panel.getByRole("button", { name: /Печатные карточки|Print word cards/ }).click();
+  await expect(panel.locator("[data-word-card-sheet]")).toHaveCount(1);
   await panel.getByRole("button", { name: "When does the train leave?" }).click();
   await panel.getByLabel(/Ваш ответ|Your answer/).fill("The train leaves in the morning.");
   await panel.getByRole("button", { name: /Проверить ответ|Check answer/ }).click();

@@ -1,6 +1,8 @@
 import { useId, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { api } from "../lib/api";
+import type { VocabularyItem } from "../lib/types";
+import { WordCardPrint } from "./WordCardPrint";
 
 const maxLength = 1200;
 
@@ -13,6 +15,8 @@ export function TextPractice({ russian }: { russian: boolean }) {
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
   const [generated, setGenerated] = useState<string[]>([]);
+  const [words, setWords] = useState<VocabularyItem[]>([]);
+  const [exportVersion, setExportVersion] = useState(0);
   const [usingFallback, setUsingFallback] = useState(false);
   const pending = useRef(false);
   const questions = russian
@@ -31,10 +35,16 @@ export function TextPractice({ russian }: { russian: boolean }) {
         setAnswer("");
         setFeedback("");
         setUsingFallback(false);
+        setWords([]);
+        setExportVersion((version) => version + 1);
         try {
-          const result = await api<{ questions: string[] }>("/api/practice/text-questions", { method: "POST", body: { text } });
+          const result = await api<{ questions: string[]; words?: { word: string; translation: string }[] }>("/api/practice/text-questions", { method: "POST", body: { text } });
           if (!Array.isArray(result.questions) || result.questions.length !== 2 || !result.questions.every((value) => typeof value === "string" && value.trim())) throw new Error("Invalid questions");
           setGenerated(result.questions);
+          if (Array.isArray(result.words)) {
+            setWords(result.words.filter((item) => item && typeof item.word === "string" && typeof item.translation === "string")
+              .slice(0, 6).map((item, index) => ({ ...item, id: `text-word-${index}` })));
+          }
         } catch {
           setGenerated(questions);
           setUsingFallback(true);
@@ -61,6 +71,7 @@ export function TextPractice({ russian }: { russian: boolean }) {
       {material && <ul>{generated.map((question) => <li key={question}>
         <Button type="button" variant="outline" disabled={busy} onClick={() => { setQuestion(question); setAnswer(""); setFeedback(""); }}>{question}</Button>
       </li>)}</ul>}
+      {material && words.length > 0 && <WordCardPrint key={exportVersion} items={words} russian={russian} />}
       {question && <form onSubmit={async (event) => {
         event.preventDefault();
         if (!answer.trim() || pending.current) return;
