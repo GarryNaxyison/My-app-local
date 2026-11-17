@@ -47,6 +47,28 @@ test("landing v3 Russian copy avoids removed Telegram block and awkward AI wordi
   await expect(page.locator(".mobile-section").getByRole("tabpanel")).toContainText("серию занятий");
 });
 
+test("mobile language selector has room for the full Russian label", async ({ page }) => {
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/neriva.html?lang=ru");
+    const select = page.locator(".public-nav [data-site-language-select]");
+    await expect(select).toHaveValue("ru");
+    const measurements = await select.evaluate(async (element: HTMLSelectElement) => {
+      await document.fonts.ready;
+      const style = getComputedStyle(element);
+      const canvas = document.createElement("canvas").getContext("2d")!;
+      canvas.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+      return {
+        label: canvas.measureText(element.selectedOptions[0].textContent || "").width,
+        available: element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
+    });
+    expect(measurements.available).toBeGreaterThanOrEqual(measurements.label + 2);
+    expect(measurements.overflow).toBeLessThanOrEqual(1);
+  }
+});
+
 test("landing hero uses the official logo and respects reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/neriva.html?lang=en");

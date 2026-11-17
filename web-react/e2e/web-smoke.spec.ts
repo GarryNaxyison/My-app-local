@@ -1000,7 +1000,7 @@ test("learning redesign reflows without nested chat scrolling across widths", as
   for (const width of [360, 390, 760, 820, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/app/?view=practice");
-    await expect(page.locator(".context-display--practice textarea")).toBeVisible();
+    await expect(page.locator(".context-display--practice .composer-textarea-shell-v2 textarea")).toBeVisible();
     const geometry = await page.evaluate(() => ({
       viewport: innerWidth,
       width: document.documentElement.scrollWidth,
@@ -3878,7 +3878,7 @@ test("PWA controller updates preserve an unsent practice answer", async ({ page 
     Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: worker });
   });
   await page.goto("/app/?view=practice");
-  const input = page.locator(".chat-workspace--practice textarea");
+  const input = page.locator(".chat-workspace--practice .composer-textarea-shell-v2 textarea");
   await input.fill("Do not lose this answer");
   let navigated = false;
   page.on("framenavigated", (frame) => { if (frame === page.mainFrame()) navigated = true; });
@@ -4244,7 +4244,7 @@ test("mobile lesson keeps output readable and phrase save inside input controls"
 
   await page.locator(".composer-panel-v2 textarea").fill("I have a reservation.");
   await page.locator(".composer-panel-v2 textarea").press("Enter");
-  await expect(page.getByText("Use under the name for reservations.")).toBeVisible();
+  await expect(page.getByText("Use under the name for reservations.", { exact: true })).toBeVisible();
   await expect(page.locator(".chat-interface__audio .audio-wave-button-v2").first()).toBeVisible();
   await expect(page.locator(".context-display--lesson .lesson-panel-next-v2")).toHaveCount(1);
   await expect(page.locator(".lesson-new-button-v2")).toHaveCount(0);
@@ -4660,7 +4660,7 @@ test("mobile practice and tools keep input controls visible and tools selectable
   expect(viewport).not.toBeNull();
   expect(practiceOutput!.height).toBeLessThan(320);
   expect(practiceInput!.y + practiceInput!.height).toBeLessThanOrEqual(viewport!.height - 64);
-  const practiceTextareaMetrics = await page.locator(".context-display--practice textarea").evaluate((node) => {
+  const practiceTextareaMetrics = await page.locator(".context-display--practice .composer-textarea-shell-v2 textarea").evaluate((node) => {
     const style = getComputedStyle(node);
     return {
       clientHeight: node.clientHeight,

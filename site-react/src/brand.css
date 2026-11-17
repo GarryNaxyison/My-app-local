@@ -313,7 +313,7 @@ html[data-site-theme="dark"] .english-spark-landing :is(.stitch-metric-card, .ou
   .public-nav--drawer .public-nav__actions { gap: 7px; }
   .public-nav--drawer .nav-knowledge-link { display: none; }
   .public-nav--drawer .nav-drawer .nav-drawer__knowledge { display: flex; }
-  .public-nav--drawer select { width: 82px; padding-inline: 9px 20px; }
+  .public-nav--drawer select { width: 94px; padding-inline: 9px 20px; }
   html[data-site-theme="dark"] .english-spark-landing .landing-hero { padding: 34px 0 44px; }
   .english-spark-landing .landing-hero__inner { width: calc(100% - 32px); gap: 36px; }
   .hero-brand-caption { gap: 12px; margin-bottom: 18px; }
