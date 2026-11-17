@@ -30,11 +30,28 @@ test('visitors see a lesson example and can jump to pricing', async ({ page }) =
   await expect(page.locator('.hero-actions a[data-entry="web-app"]')).toHaveText('Начать урок');
   await expect(page.locator('.hero-actions a[data-entry="web-app"]')).toBeInViewport();
   await expect(page.locator('main > section').nth(1)).toHaveClass('lesson-scenario');
-  await expect(page.locator('.lesson-example')).toContainText('I have a reservation.');
+  const example = page.locator('.lesson-example');
+  const feedback = example.getByRole('status');
+  await expect(feedback).toBeEmpty();
+  await example.getByRole('button', { name: 'I have reservation.', exact: true }).click();
+  await expect(feedback).toContainText('Нужен артикль');
+  await example.getByRole('button', { name: 'I have a reservation.', exact: true }).click();
+  await expect(feedback).toContainText('Верно');
   await expect(page.locator('main > section').nth(3)).toHaveAttribute('id', 'pricing');
   await page.locator('.nav-pricing-link').click();
   await expect(page).toHaveURL(/#pricing$/);
   await expect(page.locator('#pricing h2')).toBeInViewport();
+});
+
+test('English lesson example supports keyboard answers and feedback', async ({ page }) => {
+  await page.goto('/neriva.html?lang=en');
+  const example = page.locator('.lesson-example');
+  await expect(example).toContainText('Tell the receptionist you have a reservation.');
+  const answer = example.getByRole('button', { name: 'I have a reservation.', exact: true });
+  await answer.focus();
+  await page.keyboard.press('Enter');
+  await expect(answer).toHaveAttribute('aria-pressed', 'true');
+  await expect(example.getByRole('status')).toContainText('Correct.');
 });
 
 test("official brand and current application screenshots are visible", async ({ page }) => {

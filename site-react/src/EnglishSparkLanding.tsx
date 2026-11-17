@@ -135,6 +135,33 @@ function ProductShot({
   );
 }
 
+function LessonExample({ language }: { language: LandingLocale }) {
+  const [answer, setAnswer] = useState<string>();
+  const russian = language === "ru";
+  const correctAnswer = "I have a reservation.";
+  const explanation = russian
+    ? "Нужен артикль a, потому что reservation здесь исчисляемое существительное в единственном числе."
+    : "Use a before the singular countable noun reservation.";
+
+  return (
+    <fieldset className="lesson-example">
+      <legend>{russian ? "Попробуйте: какая фраза верна?" : "Try it: which sentence is correct?"}</legend>
+      <p>{russian ? "Сообщите на ресепшене, что у вас забронирован номер." : "Tell the receptionist you have a reservation."}</p>
+      <div className="lesson-example__answers">
+        {["I have reservation.", correctAnswer].map((option) => (
+          <button type="button" key={option} lang="en" aria-pressed={answer === option} onClick={() => setAnswer(option)}>
+            {option}
+          </button>
+        ))}
+      </div>
+      <p className="lesson-example__feedback" role="status">
+        {answer === correctAnswer && <strong>{russian ? "Верно. " : "Correct. "}</strong>}
+        {answer && explanation}
+      </p>
+    </fieldset>
+  );
+}
+
 export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProps) {
   const reduceMotion = useReducedMotion();
   const copy = getLandingContent(language);
@@ -291,14 +318,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <span className="eyebrow">{copy.scenario.eyebrow}</span>
           <h2>{copy.scenario.title}</h2>
           <p>{copy.scenario.body}</p>
-          <dl className="lesson-example">
-            <dt>{language === "ru" ? "Задание" : "Task"}</dt>
-            <dd>{language === "ru" ? "Сообщите на ресепшене, что у вас забронирован номер." : "Tell the receptionist you have a reservation."}</dd>
-            <dt>{language === "ru" ? "Ответ" : "Answer"}</dt>
-            <dd lang="en">I have reservation.</dd>
-            <dt>{language === "ru" ? "Правка" : "Correction"}</dt>
-            <dd><strong lang="en">I have a reservation.</strong><br />{language === "ru" ? "Перед reservation в единственном числе нужен артикль a." : "Use a before the singular countable noun reservation."}</dd>
-          </dl>
+          <LessonExample key={language} language={language} />
           <div className="lesson-scenario__tags" aria-label="Lesson flow">
             {copy.scenario.tags.map((tag) => <span className="lesson-scenario__tag" key={tag}>{tag}</span>)}
           </div>

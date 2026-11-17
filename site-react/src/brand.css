@@ -349,10 +349,16 @@ html[data-site-theme="dark"] .english-spark-landing :is(.stitch-metric-card, .ou
 .nav-pricing-link:hover { text-decoration: underline; }
 .nav-pricing-link:focus-visible { outline: 2px solid #c2c5ff; outline-offset: 2px; }
 .english-spark-landing #pricing { scroll-margin-top: 24px; }
-.lesson-example { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 12px; margin: 20px 0; }
-.lesson-example dt { color: #c2c5ff; font-weight: 650; }
-.lesson-example dd { margin: 0; overflow-wrap: anywhere; }
-.lesson-example dd strong { color: #f7e1bf; }
+.lesson-example { min-inline-size: 0; margin: 20px 0; padding: 12px 16px 16px; border: 1px solid #6870a4; border-radius: 16px; }
+.lesson-example legend { padding-inline: 6px; color: #c2c5ff; font-weight: 650; }
+.lesson-example p { margin-block: 0 12px; }
+.lesson-example__answers { display: flex; flex-wrap: wrap; gap: 8px; }
+.lesson-example__answers button { min-height: 44px; padding: 8px 12px; border: 1px solid #6870a4; border-radius: 10px; background: #171e39; color: #f3f4ff; text-align: start; cursor: pointer; }
+.lesson-example__answers button[aria-pressed="true"] { border-color: #c2c5ff; background: #343e79; }
+.lesson-example__answers button:focus-visible { outline: 2px solid #f7e1bf; outline-offset: 2px; }
+.lesson-example .lesson-example__feedback { margin: 12px 0 0; }
+.lesson-example__feedback:empty { margin: 0; }
+.lesson-example__feedback strong { color: #f7e1bf; }
 
 @media (max-width: 760px) {
   .english-spark-landing .landing-hero__matter {

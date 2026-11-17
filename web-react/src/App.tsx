@@ -6149,18 +6149,22 @@ function HomeView(props: ViewRendererProps) {
     { day: copy("sunday_short", "Sun"), title: copy("plan_dashboard", "Weekly review"), meta: copy("weekly_review", "Check progress and choose next week's focus."), view: "dashboard" as ViewId },
   ];
   const weakSpot = Number(user.mistakes || 0) > 0 ? copy("today_plan_body_active", "Today starts with one repair, then a short speak-listen loop so new material does not pile up over old mistakes.") : copy("today_plan_body_steady", "Today keeps the rhythm: words first, then output, then listening, then one quick check.");
+  const hasActiveLesson = Boolean(props.activeLessonTaskId);
+  const opensTutor = user.premium && !hasActiveLesson;
+  const canResume = hasActiveLesson || (opensTutor && props.aiTutorStep && props.aiTutorStep.stage !== "complete");
   return (
     <div className="home-grid">
       <section className="learning-start">
         <div className="learning-start__copy">
-          <h2>{props.activeLessonTaskId || (user.premium && props.aiTutorStep && props.aiTutorStep.stage !== "complete") ? copy("tutor_continue", "Continue") : copy("new_lesson_title", "New lesson")}</h2>
+          <h2>{canResume ? copy("tutor_continue", "Continue") : copy("new_lesson_title", "New lesson")}</h2>
+          <p className="learning-start__mode">{opensTutor ? copy("ai_tutor", "AI Tutor") : copy("new_lesson", "Lesson")}</p>
           <Button type="button" disabled={busy === "lesson" || busy === "tutor"} onClick={() => {
-            if (props.activeLessonTaskId) setView("lesson");
-            else if (user.premium) setView("tutor");
+            if (hasActiveLesson) setView("lesson");
+            else if (opensTutor) setView("tutor");
             else void startLesson();
           }}>
             <Play size={18} />
-            {props.activeLessonTaskId || (user.premium && props.aiTutorStep && props.aiTutorStep.stage !== "complete") ? copy("tutor_continue", "Continue") : copy("view_lesson_action", "New lesson")}
+            {canResume ? copy("tutor_continue", "Continue") : copy("view_lesson_action", "New lesson")}
             <ChevronRight size={17} />
           </Button>
         </div>

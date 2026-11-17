@@ -967,6 +967,7 @@ test("learning redesign uses a sidebar or five destinations and an inline catalo
   await page.unroute("**/app/assets/**");
   await page.goto("/app/?view=home");
   await expect(page.locator(".learning-start")).toBeVisible();
+  await expect(page.locator(".learning-start__mode")).toHaveText(appCopy("ru", "new_lesson"));
   await expect(page.locator(".function-ribbon")).toHaveCount(0);
   const hero = await page.locator(".learning-start").boundingBox();
   expect(hero).not.toBeNull();
@@ -1063,6 +1064,7 @@ test("home Continue resumes the existing ordinary lesson for a Premium learner",
   await expect(page.locator(".context-display--lesson")).toContainText("Resume this existing ordinary lesson.");
   await openSection(page, "home");
   const resume = page.locator(".learning-start button").first();
+  await expect(page.locator(".learning-start__mode")).toHaveText(appCopy("ru", "new_lesson"));
   await expect(resume).toContainText(appCopy("ru", "tutor_continue"));
   await resume.click();
   await expect(page.locator(".context-display--lesson")).toBeVisible();
