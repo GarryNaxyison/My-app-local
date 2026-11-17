@@ -9043,9 +9043,13 @@ function FileControls({ voiceFile, imageFile, setVoiceFile, setImageFile, allowI
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
+    } catch (error) {
       startingRef.current = false;
-      setRecordError(copy("mic_unavailable", "Microphone is unavailable"));
+      if (mountedRef.current) {
+        setRecordError(error instanceof DOMException && error.name === "NotAllowedError"
+          ? copy("mic_permission_denied", "Allow microphone access for this site in your browser settings, or upload an audio file.")
+          : copy("mic_unavailable", "Microphone is unavailable"));
+      }
       return;
     }
     startingRef.current = false;

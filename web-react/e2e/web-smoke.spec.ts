@@ -3774,6 +3774,29 @@ test("AI Tutor preparation timer survives a page refresh", async ({ page }) => {
   await expect(page.locator(".tutor-loading-panel [role=timer]")).not.toHaveText("Прошло: 00:00");
 });
 
+test("voice recording recovers after microphone permission is denied", async ({ page }) => {
+  await page.addInitScript(() => {
+    let calls = 0;
+    Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: {
+      getUserMedia: async () => {
+        if (++calls === 1) throw new DOMException("Denied", "NotAllowedError");
+        return { getTracks: () => [{ stop() {} }] };
+      },
+    } });
+    Object.defineProperty(window, "MediaRecorder", { configurable: true, value: class {
+      state = "inactive";
+      start() { this.state = "recording"; }
+      stop() { this.state = "inactive"; }
+    } });
+  });
+  await page.goto("/app/?view=practice");
+  await page.locator(".voice-input-shell").click();
+  await expect(page.locator(".file-error-v2")).toContainText(/Разрешите доступ к микрофону|Allow microphone access/);
+  await page.locator(".voice-input-shell").click();
+  await expect(page.locator(".record-button-v2.is-recording")).toBeVisible();
+  await expect(page.locator(".file-error-v2")).toHaveCount(0);
+});
+
 test("voice recording releases the microphone when leaving practice", async ({ page, isMobile }) => {
   await page.addInitScript(() => {
     (window as any).__stoppedTracks = 0;
