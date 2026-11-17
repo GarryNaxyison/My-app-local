@@ -202,7 +202,7 @@ test("landing v3 pricing, community and final CTA are product-specific dark sect
   await expect(page.locator(".telegram-panel")).toHaveCount(0);
 
   await expect(page.locator(".ecosystem-showcase")).toBeVisible();
-  await expect(page.locator(".ecosystem-showcase .product-shot")).toHaveCount(3);
+  await expect(page.locator(".ecosystem-showcase .product-window")).toHaveCount(3);
   await expect(page.locator(".ecosystem-showcase")).toContainText("Web app");
   await expect(page.locator(".ecosystem-showcase")).toContainText("Telegram");
 
@@ -269,39 +269,20 @@ test("landing v3 mobile hero and methodology do not look clipped", async ({ page
   expect(layout.labelLeft).toBeGreaterThanOrEqual(layout.dotRight + 12);
 });
 
-test("landing v3 product screenshots open a focused preview", async ({ page }) => {
+test("product windows show their own examples with keyboard and touch controls", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/neriva.html?lang=en");
-
-  const shot = page.locator(".hero-product-frame .product-shot__button:visible").first();
-  const shotSource = await shot.locator("img").getAttribute("src");
-  await shot.click();
-  await expect(page.locator(".image-preview")).toBeVisible();
-  const previewImage = page.locator(".image-preview img");
-  await expect(previewImage).toHaveAttribute("src", shotSource!);
-  await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-scale", "1.00");
-
-  await page.locator(".image-preview__frame").hover();
-  await page.mouse.wheel(0, -360);
-  await expect(page.locator(".image-preview")).not.toHaveAttribute("data-preview-scale", "1.00");
-  await expect(page.locator(".image-preview")).toHaveAttribute("data-preview-pan", "0,0");
-
-  const frameOverflow = await page.locator(".image-preview__frame").evaluate((frame) => {
-    const style = getComputedStyle(frame);
-    return {
-      overflowX: style.overflowX,
-      overflowY: style.overflowY,
-    };
-  });
-  expect(frameOverflow).toEqual({ overflowX: "hidden", overflowY: "hidden" });
-
-  const frameBox = await page.locator(".image-preview__frame").boundingBox();
-  expect(frameBox).not.toBeNull();
-  await page.mouse.move(frameBox!.x + frameBox!.width / 2, frameBox!.y + frameBox!.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(frameBox!.x + frameBox!.width / 2 + 90, frameBox!.y + frameBox!.height / 2 + 42);
-  await page.mouse.up();
-  await expect(page.locator(".image-preview")).not.toHaveAttribute("data-preview-pan", "0,0");
-
-  await page.locator(".image-preview__close").click();
-  await expect(page.locator(".image-preview")).toHaveCount(0);
+  await expect(page.locator(".english-spark-landing img[src*='/assets/product/']")).toHaveCount(0);
+  const feature = page.locator(".feature-panel");
+  await page.locator(".feature-carousel__tab").nth(2).click();
+  await expect(feature.locator("[data-window='photo']")).toBeVisible();
+  const translation = feature.getByText("Show the translation", { exact: true });
+  await translation.focus();
+  await page.keyboard.press("Enter");
+  await expect(feature.getByText("Breakfast until 10:30.", { exact: true })).toBeVisible();
+  await expect(translation).toBeFocused();
+  await page.locator(".feature-carousel__tab").nth(1).click();
+  await expect(feature.locator("[data-window='voice']")).toBeVisible();
+  await feature.getByText("See a pronunciation tip", { exact: true }).click();
+  await expect(feature.getByText("Stress check in and say now more softly.")).toBeVisible();
 });

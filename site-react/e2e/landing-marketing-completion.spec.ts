@@ -31,7 +31,7 @@ test("Russian landing adds human pain, use-case and premium value blocks", async
 
   await expect(page.locator(".proof-section")).toContainText("Как это выглядит в продукте");
   await expect(page.locator(".proof-step")).toHaveCount(0);
-  await expect(page.locator(".proof-section .product-shot")).toHaveCount(2);
+  await expect(page.locator(".proof-section .product-window")).toHaveCount(2);
 
   await expect(page.locator(".pricing-section")).toContainText("Premium нужен, когда вы занимаетесь почти каждый день");
   await expect(page.locator(".plan-card.is-featured")).toContainText("голос, фото и разбор ошибок");

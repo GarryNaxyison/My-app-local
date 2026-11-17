@@ -37,6 +37,7 @@ test('visitors see a lesson example and can jump to pricing', async ({ page }) =
   await expect(feedback).toContainText('Нужен артикль');
   await example.getByRole('button', { name: 'I have a reservation.', exact: true }).click();
   await expect(feedback).toContainText('Верно');
+  await expect(page.locator('.hero-windows__review')).toContainText('I have a reservation.');
   await expect(page.locator('main > section').nth(3)).toHaveAttribute('id', 'pricing');
   await page.locator('.nav-pricing-link').click();
   await expect(page).toHaveURL(/#pricing$/);
@@ -80,7 +81,7 @@ test('feature and mobile tabs support arrow keys and a visible focus target', as
   }
 });
 
-test("official brand and current application screenshots are visible", async ({ page }) => {
+test("official brand and live application windows are visible", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("poliglot-cookie-consent", JSON.stringify({ version: 1, necessary: true, analyticsMarketing: false })));
   await page.goto("/neriva.html?lang=ru");
   const icon = await page.locator('head link[rel="icon"]').getAttribute('href');
@@ -90,7 +91,8 @@ test("official brand and current application screenshots are visible", async ({ 
   await expect(logo).toHaveAttribute("src", /\/assets\/brand\/neriva-/);
   await expect(page.locator('.public-brand .official-brand').first()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(page.locator('.hero-brand-emblem')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-  await expect(page.locator('.hero-product-frame img').first()).toHaveAttribute("src", /\/assets\/product\/2026-11-15\//);
+  await expect(page.locator('.hero-product-frame .product-window')).toHaveCount(2);
+  await expect(page.locator('.hero-product-frame img')).toHaveCount(0);
   await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const aspect = await logo.evaluate((img: HTMLImageElement) => ({ actual: img.getBoundingClientRect().width / img.getBoundingClientRect().height, natural: img.naturalWidth / img.naturalHeight }));
   expect(Math.abs(aspect.actual / aspect.natural - 1)).toBeLessThan(.05);

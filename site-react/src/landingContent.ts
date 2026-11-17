@@ -265,7 +265,7 @@ const english: LandingContent = {
   proof: {
     eyebrow: "Product proof",
     title: "How it looks inside the product",
-    body: "The screenshots show the actual loop: open a lesson, answer, get a correction, then come back to weak phrases.",
+    body: "Open an example answer and a correction to see how you can revisit a tricky phrase.",
   },
   features: {
     eyebrow: "Four functions",
@@ -460,13 +460,13 @@ const russian: LandingContent = {
   hero: {
     eyebrow: "AI-репетитор в браузере и Telegram",
     start: "Начать урок",
-    title: "NERIVA — AI-репетитор по языкам",
+    title: "NERIVA — AI‑репетитор по языкам",
     lead: "Пройдите короткий урок, получите объяснение ошибок и повторите трудные фразы.",
     announcement: "Английский и другие языки",
     proof: [
       ["Браузер + Telegram", "Один учебный профиль"],
-      ["История -> ответ", "Практика начинается с контекста"],
-      ["Правка -> повтор", "Ошибки возвращаются вовремя"],
+      ["История → ответ", "Практика начинается с контекста"],
+      ["Правка → повтор", "Ошибки возвращаются вовремя"],
     ],
     badges: ["уровень CEFR", "6 чанков", "дата повтора"],
   },
@@ -536,7 +536,7 @@ const russian: LandingContent = {
   proof: {
     eyebrow: "Доказательство продуктом",
     title: "Как это выглядит в продукте",
-    body: "На скринах не абстрактные обещания, а рабочий цикл: открыть урок, ответить, получить правку и вернуться к слабой фразе.",
+    body: "Откройте пример ответа и разбор ошибки, чтобы увидеть, как вернуться к сложной фразе.",
   },
   features: {
     eyebrow: "Четыре функции",

@@ -633,17 +633,13 @@ test.skip("Russian landing uses edited copy and keeps compact CTAs aligned", asy
   expect(alignment.sectionCounts).toEqual({ faq: 4, community: 1, oldDeviceFlow: 0, oldEntryPanels: 0, productShots: 13 });
 });
 
-test("landing hero pairs the official brand with current product screenshots", async ({ page }) => {
+test("landing hero pairs the official brand with live product windows", async ({ page }) => {
   await page.goto("/neriva.html?lang=en");
-
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator(".hero-brand-emblem img")).toHaveAttribute("src", "/assets/brand/neriva-symbol.png");
-  const desktopHomeShot = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-desktop.png"]');
-  const viewportWidth = page.viewportSize()?.width ?? 1440;
-  const mobileHomeShot = page.locator('.landing-hero img[src="/assets/product/2026-11-15/today-mobile.png"]');
-  if (viewportWidth <= 760) await expect(desktopHomeShot).toBeHidden();
-  else await expect(desktopHomeShot).toBeVisible();
-  await expect(mobileHomeShot).toBeVisible();
+  await expect(page.locator(".hero-windows__lesson")).toBeVisible();
+  await expect(page.locator(".hero-windows__review")).toBeVisible();
+  await expect(page.locator(".landing-hero img[src*='/assets/product/']")).toHaveCount(0);
 });
 
 test.skip("landing startup is localized, lean, and theme-aware", async ({ page, request }) => {
@@ -927,7 +923,7 @@ test("legal documents include the updated Telegram, AI, and Metrika clauses", as
   await expect(page.locator(".legal-document-shell")).toContainText("зарубежными провайдерами моделей искусственного интеллекта (AI)");
 });
 
-test("production public-site output keeps all image and localization assets for deploy", async ({ page, request, isMobile }) => {
+test("production public-site output keeps all image and localization assets for deploy", async ({ page, request }) => {
   const assetPaths = [
     "/assets/site-i18n.js",
     "/assets/site-phrases.js",
@@ -968,30 +964,7 @@ test("production public-site output keeps all image and localization assets for 
   }
 
   await page.goto("/neriva.html?lang=en");
-  const heroImagePath = `/assets/product/2026-11-15/today-${isMobile ? "mobile" : "desktop"}.png`;
-  const heroImage = page.locator(`.landing-hero img[src="${heroImagePath}"]`);
-  await heroImage.waitFor({ state: "visible" });
-  await expect
-    .poll(() =>
-      heroImage.evaluate((image) => {
-        const productImage = image as HTMLImageElement;
-        return productImage.complete && productImage.naturalWidth >= 240 && productImage.naturalHeight >= 160;
-      }),
-    )
-    .toBe(true);
-  const imageState = await page.evaluate(() =>
-    Array.from(document.images)
-      .filter((image) => image.src.includes("/assets/product/"))
-      .map((image) => ({
-        src: new URL(image.src).pathname,
-        naturalWidth: image.naturalWidth,
-        naturalHeight: image.naturalHeight,
-        complete: image.complete,
-        visible: image.getClientRects().length > 0,
-      })),
-  );
-
-  expect(imageState.length).toBeGreaterThanOrEqual(7);
-  expect(imageState.some((image) => image.src === heroImagePath && image.visible && image.complete && image.naturalWidth >= 240 && image.naturalHeight >= 160)).toBe(true);
-  expect(imageState.some((image) => image.src.includes("telegram-app-dark.png"))).toBe(true);
+  await expect(page.locator(".english-spark-landing img[src*='/assets/product/']")).toHaveCount(0);
+  await expect(page.locator(".ecosystem-showcase [data-window='telegram']")).toBeVisible();
+  await expect(page.locator(".hero-windows .lesson-example")).toBeVisible();
 });

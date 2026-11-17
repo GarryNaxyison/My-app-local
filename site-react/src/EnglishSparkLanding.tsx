@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import { useState, type ComponentPropsWithoutRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -12,36 +11,15 @@ import {
   Mic,
   Repeat2,
   Star,
-  X,
 } from "lucide-react";
 import { SocialIconLinks } from "./components/SocialLinks";
 import { PremiumHeroAnimation } from "@/components/ui/premium-hero-animation";
-import { getLandingContent, type LandingContent, type LandingLocale } from "./landingContent";
+import { getLandingContent, type LandingLocale } from "./landingContent";
+
+import { HeroLesson, ProductWindow } from "./ProductWindows";
 
 const WEB_APP_HREF = "/app/";
 const TELEGRAM_HREF = "https://t.me/NERIVAapp_bot";
-
-type ProductImageKey = keyof LandingContent["images"];
-type ProductImage = {
-  src: string;
-  altKey: ProductImageKey;
-  width: number;
-  height: number;
-};
-
-const productImages = {
-  dashboard: { src: "/assets/product/2026-11-15/today-desktop.png", altKey: "dashboard", width: 1440, height: 1000 },
-  mobileHome: { src: "/assets/product/2026-11-15/today-mobile.png", altKey: "mobileHome", width: 390, height: 844 },
-  aiTutor: { src: "/assets/product/2026-11-15/tutor-desktop.png", altKey: "aiTutor", width: 1440, height: 1000 },
-  mistakes: { src: "/assets/product/2026-11-15/mistakes-desktop.png", altKey: "mistakes", width: 1440, height: 1000 },
-  voice: { src: "/assets/product/2026-11-15/voice-desktop.png", altKey: "voice", width: 1440, height: 1100 },
-  photo: { src: "/assets/product/2026-11-15/photo-desktop.png", altKey: "photo", width: 1440, height: 1000 },
-  notes: { src: "/assets/product/2026-11-15/notes-desktop.png", altKey: "notes", width: 1440, height: 1000 },
-  telegram: { src: "/assets/product/telegram-app-dark.png", altKey: "telegram", width: 629, height: 690 },
-  mobileLesson: { src: "/assets/product/2026-11-15/lesson-mobile.png", altKey: "mobileLesson", width: 390, height: 844 },
-  mobileMistakes: { src: "/assets/product/2026-11-15/mistakes-mobile.png", altKey: "mobileMistakes", width: 390, height: 844 },
-  mobileVoice: { src: "/assets/product/2026-11-15/voice-mobile.png", altKey: "mobileVoice", width: 390, height: 1000 },
-} satisfies Record<string, ProductImage>;
 
 const featureIcons = [BrainCircuit, Mic, Camera, Repeat2] as const;
 const mobileIcons = [Star, BookOpen, Repeat2, Mic] as const;
@@ -134,165 +112,16 @@ function RevealBlock({ children, transition, ...props }: RevealBlockProps) {
   );
 }
 
-function ProductShot({
-  image,
-  alt,
-  className = "",
-  onOpen,
-}: {
-  image: ProductImage;
-  alt: string;
-  className?: string;
-  onOpen: (image: ProductImage, alt: string, trigger: HTMLButtonElement) => void;
-}) {
-  return (
-    <figure className={`product-shot ${className}`.trim()}>
-      <button className="product-shot__button" type="button" onClick={(event) => onOpen(image, alt, event.currentTarget)} aria-label={alt}>
-        <img src={image.src} alt={alt} width={image.width} height={image.height} loading={className.includes("product-shot--") ? "eager" : "lazy"} decoding="async" />
-      </button>
-    </figure>
-  );
-}
-
-function LessonExample({ language }: { language: LandingLocale }) {
-  const [answer, setAnswer] = useState<string>();
-  const russian = language === "ru";
-  const correctAnswer = "I have a reservation.";
-  const explanation = russian
-    ? "Нужен артикль a, потому что reservation здесь исчисляемое существительное в единственном числе."
-    : "Use a before the singular countable noun reservation.";
-
-  return (
-    <fieldset className="lesson-example">
-      <legend>{russian ? "Попробуйте: какая фраза верна?" : "Try it: which sentence is correct?"}</legend>
-      <p>{russian ? "Сообщите на ресепшене, что у вас забронирован номер." : "Tell the receptionist you have a reservation."}</p>
-      <div className="lesson-example__answers">
-        {["I have reservation.", correctAnswer].map((option) => (
-          <button type="button" key={option} lang="en" aria-pressed={answer === option} onClick={() => setAnswer(option)}>
-            {option}
-          </button>
-        ))}
-      </div>
-      <p className="lesson-example__feedback" role="status">
-        {answer === correctAnswer && <strong>{russian ? "Верно. " : "Correct. "}</strong>}
-        {answer && explanation}
-      </p>
-    </fieldset>
-  );
-}
-
 export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProps) {
   const reduceMotion = useReducedMotion();
   const copy = getLandingContent(language);
   const [activeFeature, setActiveFeature] = useState(0);
   const [activeMobile, setActiveMobile] = useState(0);
-  const [preview, setPreview] = useState<{ image: ProductImage; alt: string } | null>(null);
-  const [previewScale, setPreviewScale] = useState(1);
-  const [previewPan, setPreviewPan] = useState({ x: 0, y: 0 });
-  const previewDragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
-  const previewTriggerRef = useRef<HTMLElement | null>(null);
-  const previewCloseRef = useRef<HTMLButtonElement | null>(null);
   const active = copy.features.items[activeFeature] ?? copy.features.items[0];
   const ActiveIcon = featureIcons[activeFeature] ?? BrainCircuit;
-  const activeImage = productImages[active.imageKey] ?? productImages.aiTutor;
   const activeMobileItem = copy.mobile.items[activeMobile] ?? copy.mobile.items[0];
   const ActiveMobileIcon = mobileIcons[activeMobile] ?? Star;
-  const activeMobileImage = productImages[activeMobileItem.imageKey] ?? productImages.mobileHome;
-  const imgAlt = (image: ProductImage) => copy.images[image.altKey];
-  const openPreview = (image: ProductImage, alt: string, trigger: HTMLButtonElement) => {
-    previewTriggerRef.current = trigger;
-    setPreview({ image, alt });
-    setPreviewScale(1);
-    setPreviewPan({ x: 0, y: 0 });
-  };
-  const closePreview = () => {
-    setPreview(null);
-    setPreviewScale(1);
-    setPreviewPan({ x: 0, y: 0 });
-    previewDragRef.current = null;
-    previewTriggerRef.current?.focus({ preventScroll: true });
-  };
-  useEffect(() => {
-    if (!preview) return undefined;
-
-    previewCloseRef.current?.focus({ preventScroll: true });
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const zoom = (step: number) => {
-      setPreviewScale((value) => Math.min(3, Math.max(1, value + step)));
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closePreview();
-      } else if (event.key === "Tab") {
-        // The close control is the only keyboard action inside this image viewer.
-        event.preventDefault();
-        previewCloseRef.current?.focus();
-      } else if (event.key === "+" || event.key === "=" || event.key === "-") {
-        event.preventDefault();
-        zoom(event.key === "-" ? -0.16 : 0.16);
-      } else if (event.key === "0") {
-        setPreviewScale(1);
-      }
-    };
-
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      if (event.deltaY) zoom(event.deltaY < 0 ? 0.16 : -0.16);
-    };
-
-    window.addEventListener("wheel", onWheel, { passive: false });
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [preview]);
-
-  useEffect(() => {
-    if (previewScale <= 1) {
-      setPreviewPan({ x: 0, y: 0 });
-      previewDragRef.current = null;
-    }
-  }, [previewScale]);
-
-  const startPreviewPan = (event: React.PointerEvent<HTMLElement>) => {
-    if (previewScale <= 1) return;
-    event.preventDefault();
-    event.stopPropagation();
-    previewDragRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: previewPan.x,
-      originY: previewPan.y,
-    };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const movePreviewPan = (event: React.PointerEvent<HTMLElement>) => {
-    const drag = previewDragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    event.preventDefault();
-    setPreviewPan({
-      x: Math.round(drag.originX + event.clientX - drag.startX),
-      y: Math.round(drag.originY + event.clientY - drag.startY),
-    });
-  };
-
-  const stopPreviewPan = (event: React.PointerEvent<HTMLElement>) => {
-    const drag = previewDragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) return;
-    previewDragRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-  };
-
   return (
-    <>
     <main className="english-spark-landing" data-visual-anchor="official-neriva-brand">
       <section className="landing-hero" data-hero-preset="dark">
         {!reduceMotion && <div className="landing-hero__matter" aria-hidden="true"><PremiumHeroAnimation /></div>}
@@ -332,10 +161,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             </div>
           </div>
 
-          <div className="hero-product-frame" aria-label="NERIVA product screenshots">
-            <ProductShot image={productImages.dashboard} alt={imgAlt(productImages.dashboard)} className="product-shot--desktop" onOpen={openPreview} />
-            <ProductShot image={productImages.mobileHome} alt={imgAlt(productImages.mobileHome)} className="product-shot--phone" onOpen={openPreview} />
-          </div>
+          <HeroLesson key={language} language={language} />
         </div>
       </section>
 
@@ -344,13 +170,12 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <span className="eyebrow">{copy.scenario.eyebrow}</span>
           <h2>{copy.scenario.title}</h2>
           <p>{copy.scenario.body}</p>
-          <LessonExample key={language} language={language} />
           <div className="lesson-scenario__tags" aria-label="Lesson flow">
             {copy.scenario.tags.map((tag) => <span className="lesson-scenario__tag" key={tag}>{tag}</span>)}
           </div>
         </div>
         <div className="scenario-shot" aria-label="AI Tutor lesson example">
-          <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
+          <ProductWindow kind="aiTutor" language={language} />
           <div className="scenario-shot__caption">
             <span>{copy.scenario.captionLabel}</span>
             <strong>{copy.scenario.caption}</strong>
@@ -394,7 +219,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 <h3>{active.title}</h3>
                 <p>{active.body}</p>
               </div>
-              <ProductShot image={activeImage} alt={imgAlt(activeImage)} onOpen={openPreview} />
+              <ProductWindow key={active.imageKey} kind={active.imageKey} language={language} />
             </RevealArticle>
           </RevealBlock>
         </div>
@@ -470,10 +295,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
         <div className="use-case-grid">
           {copy.useCases.items.map((item, index) => {
-            const image = productImages[item.imageKey] ?? productImages.aiTutor;
             return (
               <RevealArticle className="use-case-card" key={item.title} transition={{ delay: index * 0.07 }}>
-                <ProductShot image={image} alt={imgAlt(image)} onOpen={openPreview} />
+                <ProductWindow kind={item.imageKey} language={language} />
                 <div>
                   <h3>{item.title}</h3>
                   <p>{item.body}</p>
@@ -512,8 +336,8 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             <p>{copy.proof.body}</p>
           </div>
           <div className="proof-section__shots" aria-label={copy.proof.title}>
-            <ProductShot image={productImages.aiTutor} alt={imgAlt(productImages.aiTutor)} onOpen={openPreview} />
-            <ProductShot image={productImages.mistakes} alt={imgAlt(productImages.mistakes)} onOpen={openPreview} />
+            <ProductWindow kind="aiTutor" language={language} />
+            <ProductWindow kind="mistakes" language={language} />
           </div>
         </div>
       </RevealSection>
@@ -528,10 +352,9 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
         </div>
         <div className="ecosystem-showcase__grid">
           {copy.ecosystem.items.map((item) => {
-            const image = productImages[item.imageKey] ?? productImages.dashboard;
             return (
               <RevealArticle className="ecosystem-card" key={item.title}>
-                <ProductShot image={image} alt={imgAlt(image)} onOpen={openPreview} />
+                <ProductWindow kind={item.imageKey} language={language} />
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.body}</p>
@@ -579,7 +402,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 <h3>{activeMobileItem.title}</h3>
                 <p>{activeMobileItem.body}</p>
               </div>
-              <ProductShot image={activeMobileImage} alt={imgAlt(activeMobileImage)} onOpen={openPreview} />
+              <ProductWindow key={activeMobileItem.imageKey} kind={activeMobileItem.imageKey} language={language} />
             </RevealArticle>
           </RevealBlock>
         </div>
@@ -643,41 +466,5 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
       </RevealSection>
 
     </main>
-
-      {preview ? createPortal(
-        <div
-          className="image-preview"
-          data-preview-scale={previewScale.toFixed(2)}
-          data-preview-pan={`${previewPan.x},${previewPan.y}`}
-          style={
-            {
-              "--preview-scale": previewScale,
-              "--preview-pan-x": `${previewPan.x}px`,
-              "--preview-pan-y": `${previewPan.y}px`,
-            } as CSSProperties
-          }
-          role="dialog"
-          aria-modal="true"
-          aria-label={preview.alt}
-          onClick={closePreview}
-        >
-          <button ref={previewCloseRef} className="image-preview__close" type="button" onClick={(event) => { event.stopPropagation(); closePreview(); }} aria-label={language === "ru" ? "Закрыть изображение" : "Close image preview"}>
-            <X size={24} />
-          </button>
-          <figure
-            className="image-preview__frame"
-            onClick={(event) => event.stopPropagation()}
-            onPointerDown={startPreviewPan}
-            onPointerMove={movePreviewPan}
-            onPointerUp={stopPreviewPan}
-            onPointerCancel={stopPreviewPan}
-          >
-            <img src={preview.image.src} alt={preview.alt} width={preview.image.width} height={preview.image.height} />
-            <figcaption>{preview.alt}</figcaption>
-          </figure>
-        </div>,
-        document.body
-      ) : null}
-    </>
   );
 }

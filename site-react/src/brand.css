@@ -385,10 +385,6 @@ html[data-site-theme="dark"] .english-spark-landing .landing-hero {
     linear-gradient(155deg, #181629 0%, #10142b 53%, #0d1026 100%);
 }
 .english-spark-landing .landing-hero h1 { letter-spacing: -.045em; }
-.english-spark-landing .hero-product-frame .product-shot img {
-  border: 1px solid #929bf442;
-  box-shadow: 0 22px 50px #05072266, inset 0 0 0 1px #ffffff12;
-}
 .english-spark-landing .lesson-example {
   border-color: #6a71ad85;
   background: linear-gradient(150deg, #22294c, #181e36);
@@ -421,13 +417,6 @@ html[data-site-theme="light"] .english-spark-landing .lesson-example__feedback s
     mask-image: linear-gradient(transparent, #000 32%);
   }
   .english-spark-landing .hero-product-frame { min-height: 0; padding: 0; }
-  .english-spark-landing .hero-product-frame .product-shot--desktop { display: none; }
-  .english-spark-landing .hero-product-frame .product-shot--phone {
-    position: static;
-    width: min(100%, 208px);
-    margin-inline: auto;
-    transform: none;
-  }
 }
 @media (max-width: 620px) {
   html[data-site-theme="dark"] .english-spark-landing .landing-hero { padding-block: 24px 30px; }
