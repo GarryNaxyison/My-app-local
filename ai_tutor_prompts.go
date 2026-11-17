@@ -15,7 +15,7 @@ func aiTutorLessonGenerationPrompt(language learningLanguage, interfaceLanguage 
 	})
 	userPrompt := renderAppPrompt("ai_tutor.lesson.generate.user", aiTutorLessonGenerationPromptFallback, vars)
 	return []chatMessage{
-		{Role: "system", Content: "You are an expert CEFR language lesson designer. Return valid JSON only."},
+		{Role: "system", Content: "You are an expert CEFR language lesson designer. Return valid JSON only. Write one observable communicative goal that the final task can demonstrate. Use one level-appropriate language pattern in the story, and teach that same pattern through the grammar focus and its model sentence. Ask the learner to apply it in a new but related everyday situation, not to copy or retell the story again. Make the transfer task and its success criteria clear before the learner starts writing."},
 		{Role: "user", Content: userPrompt},
 	}
 }
@@ -40,10 +40,14 @@ func aiTutorQuestionCheckPrompt(language learningLanguage, interfaceLanguage lea
 func aiTutorProductionCheckPrompt(language learningLanguage, interfaceLanguage learningLanguage, level string, lesson aiTutorLessonPayload, learnerAnswer string) []chatMessage {
 	payload := aiTutorJSON(map[string]any{
 		"words":           lesson.Words,
+		"lesson_goal":     lesson.LessonGoal,
+		"grammar_focus":   lesson.GrammarFocus,
 		"production_task": lesson.ProductionTask,
 		"learner_answer":  strings.TrimSpace(learnerAnswer),
 	})
-	return aiTutorCheckerPrompt("ai_tutor.production.check.user", aiTutorProductionCheckPromptFallback, language, interfaceLanguage, level, payload)
+	messages := aiTutorCheckerPrompt("ai_tutor.production.check.user", aiTutorProductionCheckPromptFallback, language, interfaceLanguage, level, payload)
+	messages[0].Content += " Assess whether the answer completes the stated communicative task. Accept valid paraphrases and natural inflections. Use grammar focus for coaching unless the task explicitly requires that pattern. When the answer needs revision, identify the most useful next change in the learner's interface language. Preserve the learner's meaning in any correction."
+	return messages
 }
 
 func aiTutorQualityPrompt(language learningLanguage, interfaceLanguage learningLanguage, lesson aiTutorLessonPayload, sessionSummary any, kind string) []chatMessage {

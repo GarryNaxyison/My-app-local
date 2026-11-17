@@ -374,6 +374,70 @@ select {
   gap: 8px;
 }
 
+.tutor-lesson-route {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 100px), 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tutor-lesson-route li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.tutor-lesson-route li span {
+  flex: 0 0 18px;
+  display: grid;
+  place-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tutor-lesson-route li[aria-current="step"] {
+  border-color: color-mix(in srgb, var(--primary) 60%, var(--line));
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-strong));
+  color: var(--text);
+  font-weight: 750;
+}
+
+.tutor-lesson-route li.is-done span { color: var(--teal); }
+
+.tutor-exercise-list > summary,
+.tutor-lesson-reference > summary {
+  cursor: pointer;
+  padding-block: 10px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.tutor-lesson-reference,
+.tutor-production-checklist {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 14px;
+  background: var(--surface-strong);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tutor-lesson-reference summary span { margin-inline-start: 8px; color: var(--muted); }
+.tutor-lesson-reference p { margin: 0 0 8px; }
+.tutor-lesson-reference .tutor-lesson-example { border-inline-start: 2px solid var(--primary); padding-inline-start: 10px; }
+.tutor-production-checklist ul { display: grid; gap: 6px; margin: 8px 0 0; padding-inline-start: 18px; }
+.tutor-production-checklist li span { margin-inline-start: 6px; font-variant-numeric: tabular-nums; color: var(--primary); font-weight: 750; }
+
 .tutor-step-v2 {
   min-width: 0;
   display: grid;

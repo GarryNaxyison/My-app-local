@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+func TestAITutorPromptsConnectModelToRealTask(t *testing.T) {
+	language := learningLanguageByCode("en")
+	interfaceLanguage := learningLanguageByCode("ru")
+	generation := aiTutorLessonGenerationPrompt(language, interfaceLanguage, "A2", "train travel", nil)
+	for _, concept := range []string{"observable communicative goal", "new but related everyday situation", "model sentence"} {
+		if !strings.Contains(generation[0].Content, concept) {
+			t.Errorf("lesson design guidance missing %q", concept)
+		}
+	}
+	check := aiTutorProductionCheckPrompt(language, interfaceLanguage, "A2", aiTutorLessonPayload{
+		LessonGoal:   "Ask for a ticket",
+		GrammarFocus: aiTutorGrammarFocus{Name: "Polite requests"},
+	}, "I'd like a ticket.")
+	if !strings.Contains(check[1].Content, "Ask for a ticket") || !strings.Contains(check[1].Content, "Polite requests") {
+		t.Error("production checker is missing the lesson context")
+	}
+}
+
 func TestAITutorGenerationPromptContract(t *testing.T) {
 	language := learningLanguageByCode("en")
 	interfaceLanguage := learningLanguageByCode("ru")

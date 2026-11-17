@@ -5524,8 +5524,18 @@ function tutorStageLabel(stage: string, copy: ViewRendererProps["copy"]) {
   return copy("ai_tutor", "AI Tutor");
 }
 
+const tutorLessonPhases = [
+  { start: "story_intro", ru: "Контекст", en: "Context" },
+  { start: "retell", ru: "Понимание", en: "Comprehension" },
+  { start: "word_learn_1", ru: "Слова и примеры", en: "Words and examples" },
+  { start: "word_recall_1", ru: "Вспоминаем слова", en: "Recall" },
+  { start: "production", ru: "Применение и итог", en: "Apply and review" },
+];
+
 function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFeedback, aiTutorFeedbackStage, tutorReview, submitAiTutorStep, reportAiTutorWord, tutorLoadError, startTutor, restartTutorLesson, busy, copy, savePhrase, isPhraseSaved, setView, loadMistakes }: Pick<ViewRendererProps, "user" | "session" | "aiTutorStep" | "aiTutorFeedback" | "aiTutorFeedbackStage" | "tutorReview" | "submitAiTutorStep" | "reportAiTutorWord" | "tutorLoadError" | "startTutor" | "restartTutorLesson" | "busy" | "copy" | "savePhrase" | "isPhraseSaved" | "setView" | "loadMistakes"> & { fixtureMode?: boolean }) {
   const tutorPlatform = usePlatform();
+  const russian = languageCode(user.interface_language) === "ru";
+  const lessonLabel = (ru: string, en: string) => russian ? ru : en;
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
@@ -5624,6 +5634,7 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
   }, []);
 
   const currentStageIndex = Math.max(0, serverStages.indexOf(aiTutorStep?.stage || "story_intro"));
+  const currentPhase = tutorLessonPhases.filter((phase) => serverStages.indexOf(phase.start) <= currentStageIndex).length - 1;
   const completedCount = aiTutorStep?.stage === "complete" ? serverStages.length : currentStageIndex;
   const progressPercent = Math.round((completedCount / Math.max(serverStages.length, 1)) * 100);
   const localCompletedLessons = useMemo(
@@ -5745,6 +5756,10 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
     })
     : [];
   const isProduction = visibleTutorStep?.stage === "production";
+  const grammar = lesson?.grammar_focus;
+  const showGrammar = (visibleTutorStep?.stage === "story_intro" || isProduction) &&
+    Boolean(grammar?.short_explanation_interface || grammar?.model_sentence_target);
+  const productionWordCount = lesson?.production_task?.required_word_count || 3;
   const defaultReviewChoice = aiTutorStep?.stage === "review_schedule" ? "no_review" : aiTutorStep?.stage === "lesson_feedback" ? "good" : "";
   const productionSentenceCount = countTutorSentences(tutorDraft);
   const textBlocked = needsText && (!tutorDraft.trim() || (isProduction && productionSentenceCount < 2));
@@ -5906,7 +5921,7 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
           {visibleTutorStep.kind === "story" && storyText ? (
             <>
               <p className="tutor-task-copy-v2">{storyText}</p>
-              {storyAudioText ? <AudioActionRow clips={[{ label: copy("tutor_story_audio", "Story audio"), text: storyAudioText, targetLanguage: user.learning_language }]} /> : null}
+              {storyAudioText ? <AudioActionRow compact clips={[{ label: copy("tutor_story_audio", "Story audio"), text: storyAudioText, targetLanguage: user.learning_language, showText: false }]} /> : null}
             </>
           ) : null}
           {renderWord()}
@@ -5953,10 +5968,9 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
         <div className="tutor-hero__copy">
           <span className="eyebrow">{copy("ai_tutor", "AI Tutor")}</span>
           <h2>{tutorPremiumLocked ? copy("tutor_premium_title", "AI Tutor is included with Premium") : aiTutorStep ? `${heroLevel} · ${heroTopic || copy("tutor_words_title", "Theme vocabulary")}` : copy("tutor_loading", "Preparing a guided lesson")}</h2>
-          <p>{tutorPremiumLocked ? copy("tutor_premium_body", "Free keeps basic text practice. Upgrade to Premium to use guided AI Tutor lessons.") : heroGoal}</p>
+          <p>{tutorPremiumLocked ? copy("tutor_premium_body", "Free keeps basic text practice. Upgrade to Premium to use guided AI Tutor lessons.") : <>{aiTutorStep ? <strong>{lessonLabel("Цель урока", "Lesson goal")}. </strong> : null}{heroGoal}</>}</p>
           <div className="tutor-hero__meta">
             <span>{copy("tutor_duration", "5-10 minutes")}</span>
-            <span>{copy("tutor_course_label", "Course")}: AI</span>
           </div>
         </div>
         <div className="tutor-hero__actions">
@@ -6024,7 +6038,9 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
               <h2>{progressPercent}%</h2>
             </div>
             <div className="tutor-progress-v2" aria-hidden="true"><span style={{ width: `${progressPercent}%` }} /></div>
-            <div className="tutor-step-list-v2">
+            <details className="tutor-exercise-list">
+              <summary>{lessonLabel("Все упражнения", "All exercises")}</summary>
+              <div className="tutor-step-list-v2">
               {serverStages.map((stage, index) => (
                 <button
                   key={stage}
@@ -6037,10 +6053,20 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
                   <strong>{stageLabel(stage)}</strong>
                 </button>
               ))}
-            </div>
+              </div>
+            </details>
           </details>
 
           <section className="v2-panel tutor-context-v2">
+            <ol className="tutor-lesson-route" aria-label={lessonLabel("Этапы урока", "Lesson phases")}>
+              {tutorLessonPhases.map((phase, index) => {
+                const completed = isComplete || index < currentPhase;
+                return <li key={phase.start} aria-current={!isComplete && index === currentPhase ? "step" : undefined} className={completed ? "is-done" : undefined}>
+                  <span aria-hidden="true">{completed ? <Check size={13} /> : index + 1}</span>
+                  {russian ? phase.ru : phase.en}
+                </li>;
+              })}
+            </ol>
             <div className="tutor-context-v2__head">
               <div>
                 <span className="eyebrow">{copy("tutor_context_title", "Tutor context")}</span>
@@ -6060,6 +6086,18 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
             <div className="tutor-transcript-v2" aria-live="polite">
               {renderMaterial()}
             </div>
+            {showGrammar && <details key={visibleTutorStep?.stage} className="tutor-lesson-reference">
+              <summary>{lessonLabel("Разбор конструкции", "Language focus")}{grammar?.name ? <span>{display(grammar.name)}</span> : null}</summary>
+              {grammar?.short_explanation_interface ? <p>{display(grammar.short_explanation_interface)}</p> : null}
+              {grammar?.model_sentence_target ? <p className="tutor-lesson-example" lang={user.learning_language}>{display(grammar.model_sentence_target)}</p> : null}
+            </details>}
+            {isProduction && !isPreviewing && <aside className="tutor-production-checklist" aria-label={lessonLabel("Критерии ответа", "Answer criteria")}>
+              <strong>{lessonLabel("Критерии ответа", "Answer criteria")}</strong>
+              <ul>
+                <li>{lessonLabel("Напишите минимум два полных предложения", "Write at least two complete sentences")} <span>{productionSentenceCount}/2</span></li>
+                <li>{lessonLabel("Используйте слова из урока", "Use words from the lesson")} <span>{productionWordCount}+</span></li>
+              </ul>
+            </aside>}
 
             {isPreviewing ? (
               <div className="tutor-composer-v2 tutor-composer-v2--preview">

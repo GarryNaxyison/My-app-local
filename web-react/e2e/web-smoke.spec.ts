@@ -2325,6 +2325,7 @@ test("AI Tutor server-driven lesson blocks old local flow and awards XP", async 
   await expect(page.locator(".tutor-message-v2.is-active")).toContainText("What time does the person wake up?");
   await expect(page.locator(".tutor-context-v2")).not.toContainText("Ответ сохранён");
   if (isMobile) await page.locator(".tutor-plan-summary").click();
+  await page.locator(".tutor-exercise-list > summary").click();
   await page.locator(".tutor-step-v2").filter({ hasText: "Пересказ" }).click();
   await expect(page.locator(".tutor-context-v2")).toContainText("Ответ сохранён");
   await expect(page.locator(".tutor-context-v2")).toContainText("Mia wakes up at seven and goes to work.");
@@ -3905,6 +3906,49 @@ test("PWA controller updates preserve an unsent practice answer", async ({ page 
   await page.waitForTimeout(300);
   expect(navigated).toBe(false);
   await expect(input).toHaveValue("Do not lose this answer");
+});
+
+test("AI Tutor introduces the lesson goal and marked learning route", async ({ page }, testInfo) => {
+  usePremiumSession();
+  await useInterfaceLanguage(page, "ru");
+  await page.goto("/app/?view=tutor");
+  const route = page.locator(".tutor-lesson-route");
+  await expect(route.getByRole("listitem")).toHaveCount(5);
+  await expect(route.locator("[aria-current=step]")).toContainText("Контекст");
+  await expect(page.locator(".tutor-hero")).toContainText("Цель урока");
+  await page.screenshot({ path: testInfo.outputPath("lesson-context.png"), animations: "disabled" });
+  await page.locator(".tutor-context-v2 .tutor-composer-v2 button").last().click();
+  await expect(route.locator("[aria-current=step]")).toContainText("Понимание");
+});
+
+test("AI Tutor shows a language model on demand and live writing criteria", async ({ page }) => {
+  usePremiumSession();
+  await useInterfaceLanguage(page, "ru");
+  await page.route("**/api/ai-tutor/start", (route) => route.fulfill({ json: {
+    session: { id: "lesson-test", current_stage: "production" },
+    next_step: {
+      stage: "production", kind: "free_text", instruction: "Опишите своё утро.",
+      lesson: {
+        theme: "Утро", lesson_goal: "Описать утренние привычки",
+        grammar_focus: { name: "Present Simple", short_explanation_interface: "Используйте форму настоящего времени.", model_sentence_target: "I walk to work." },
+        production_task: { required_word_count: 4 },
+      },
+    },
+  } }));
+  await page.goto("/app/?view=tutor");
+  const reference = page.locator(".tutor-lesson-reference");
+  await expect(reference.getByText("I walk to work.")).toBeHidden();
+  await reference.locator("summary").click();
+  await expect(reference.getByText("I walk to work.")).toBeVisible();
+  const criteria = page.getByRole("complementary", { name: "Критерии ответа" });
+  await expect(criteria).toContainText("4+");
+  const form = page.locator(".tutor-context-v2 form.tutor-composer-v2");
+  await form.locator("textarea").fill("I wake up early.");
+  await expect(criteria).toContainText("1/2");
+  await expect(form.locator('button[type="submit"]')).toBeDisabled();
+  await form.locator("textarea").fill("I wake up early. I walk to work.");
+  await expect(criteria).toContainText("2/2");
+  await expect(form.locator('button[type="submit"]')).toBeEnabled();
 });
 
 test("tutor draft survives reload and answer carries its stage", async ({ page }) => {
