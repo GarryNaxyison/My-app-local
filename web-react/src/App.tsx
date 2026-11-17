@@ -6898,6 +6898,21 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
 }
 
 function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: ViewRendererProps) {
+  const [transferProgress, setTransferProgress] = useState<{ scope: string; completed: number } | null>(null);
+  const transferScope = JSON.stringify([session.account?.login, user.telegram_account?.id, user.learning_language]);
+  const transferCompleted = transferProgress?.scope === transferScope ? transferProgress.completed : null;
+  useEffect(() => {
+    if (!session.authenticated) return;
+    const controller = new AbortController();
+    void api<{ completed: number }>("/api/mistakes/transfer", { signal: controller.signal }).then(({ completed }) => {
+      if (!controller.signal.aborted && Number.isInteger(completed) && completed >= 0) {
+        setTransferProgress({ scope: transferScope, completed });
+      }
+    }).catch(() => {
+      if (!controller.signal.aborted) setTransferProgress(null);
+    });
+    return () => controller.abort();
+  }, [session.authenticated, transferScope]);
   const learnedWords = Number(user.learned_words || vocabulary.length || 0);
   const lessonCount = Number(user.lesson_count || user.lessons_today || 0);
   const practiceCount = Number(user.practice_count || user.practice_today || 0);
@@ -6925,6 +6940,11 @@ function TeacherDashboardView({ user, session, vocabulary, mistakes, copy }: Vie
     { label: copy("review_rounds", "Повторений"), value: reviewCount, icon: Repeat2 },
     { label: copy("voice_attempts", "Озвучено"), value: voiceCount, icon: Volume2 },
     { label: copy("mistakes_repaired", "Ошибок в работе"), value: mistakeCount, icon: Search },
+    ...(transferCompleted === null ? [] : [{
+      label: languageCode(user.interface_language) === "ru" ? "Новых ситуаций отработано" : "New situations practised",
+      value: transferCompleted,
+      icon: CheckCircle,
+    }]),
   ];
   const activityRows = [
     { label: copy("lessons_today", "Lessons today"), value: user.lessons_today, max: user.lesson_limit },

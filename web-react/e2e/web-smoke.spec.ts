@@ -205,6 +205,7 @@ let testSessionPayloadOverride: typeof sessionPayload | null = null;
 let testPhrasebookItemsOverride: unknown[] | null = null;
 
 async function mockApi(page: Page) {
+  await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed: 0 } }));
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [] } }));
   await page.addInitScript(
     ({ phrases, payments }) => {
@@ -1052,6 +1053,17 @@ const todayReviewItem = {
   due_at: "2025-11-16T09:30:00Z",
   status: "due",
 };
+
+test("Progress loads saved exercises from the profile after reload", async ({ page }) => {
+  let completed = 0;
+  await page.route("**/api/mistakes/transfer", (route) => route.fulfill({ json: { completed } }));
+  await page.goto("/app/?view=progress");
+  const metric = page.locator(".dashboard-learning-v2__grid article").filter({ hasText: /Новых ситуаций отработано|New situations practised/ });
+  await expect(metric).toContainText("0");
+  completed = 7;
+  await page.reload();
+  await expect(metric).toContainText("7");
+});
 
 test("Today opens the scheduled tutor lesson", async ({ page }) => {
   usePremiumSession();
