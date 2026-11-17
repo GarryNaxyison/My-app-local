@@ -1,11 +1,31 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"regexp"
 	"slices"
 	"time"
 )
+
+func recordTutorLearningEvent(ctx context.Context, storage store, session aiTutorSessionRecord, stage, step, format string, now time.Time) {
+	db, ok := storage.(*sqliteStore)
+	if !ok {
+		return
+	}
+	surface := "web"
+	if session.Surface == "telegram" {
+		surface = "telegram"
+	}
+	_, err := db.db.ExecContext(ctx, `INSERT INTO learning_events
+		(telegram_id,event_id,attempt_id,stage,format,elapsed_ms,created_at,surface)
+		VALUES (?,?,?,?,?,0,?,?) ON CONFLICT(telegram_id,event_id) DO NOTHING`,
+		session.TelegramID, "tutor:"+session.ID+":"+stage+":"+step, session.ID, stage, format, formatDBTime(now), surface)
+	if err != nil {
+		log.Printf("Could not record AI Tutor learning event: %v", err)
+	}
+}
 
 var learningEventID = regexp.MustCompile(`^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$`)
 

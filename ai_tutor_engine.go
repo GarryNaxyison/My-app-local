@@ -153,7 +153,7 @@ func seedAITutorVocabulary(payload aiTutorLessonPayload) {
 	}
 }
 
-func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID string, input aiTutorSubmitInput) (aiTutorResult, error) {
+func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID string, input aiTutorSubmitInput) (result aiTutorResult, resultErr error) {
 	// Fixed stripes serialize session mutations across engine instances without retaining session IDs.
 	var stripe uint32
 	for _, c := range sessionID {
@@ -187,6 +187,14 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 	answerText := strings.TrimSpace(input.Text)
 	if strings.TrimSpace(input.Choice) != "" {
 		answerText = strings.TrimSpace(input.Choice)
+	}
+	if aiTutorStageNeedsChecker(current) && answerText != "" {
+		recordTutorLearningEvent(ctx, e.store, session, "tutor_answer_submitted", current, "text", e.now())
+		defer func() {
+			if resultErr == nil && result.Feedback.JSON != "" {
+				recordTutorLearningEvent(ctx, e.store, session, "tutor_answer_checked", current, "text", e.now())
+			}
+		}()
 	}
 	if aiTutorStageNeedsChecker(current) {
 		if current == aiTutorStageProduction && countAITutorCompleteSentences(answerText) < 2 {
@@ -393,6 +401,9 @@ func (e *aiTutorEngine) createSessionForLesson(user userState, surface string, l
 	if err := e.store.createAITutorSession(session); err != nil {
 		return aiTutorResult{}, err
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	recordTutorLearningEvent(ctx, e.store, session, "tutor_started", "", "", e.now())
 	return aiTutorResult{
 		Session:  session,
 		Lesson:   lesson,

@@ -1,12 +1,32 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 )
+
+func TestTutorLearningEventsKeepSessionAndSurface(t *testing.T) {
+	_, storage, _ := newTestWebAPI(t)
+	engine := newAITutorEngine(storage, nil)
+	user := userState{TelegramID: -42}
+	for _, surface := range []string{"web", "telegram"} {
+		result, err := engine.createSessionForLesson(user, surface, aiTutorLessonRecord{ID: "lesson"})
+		if err != nil {
+			t.Fatal(err)
+		}
+		recordTutorLearningEvent(context.Background(), storage, result.Session, "tutor_started", "", "", time.Now())
+		var count int
+		err = storage.db.QueryRow(`SELECT COUNT(*) FROM learning_events
+			WHERE telegram_id=? AND attempt_id=? AND surface=? AND stage='tutor_started'`, user.TelegramID, result.Session.ID, surface).Scan(&count)
+		if err != nil || count != 1 {
+			t.Fatalf("%s: count = %d, error = %v", surface, count, err)
+		}
+	}
+}
 
 func TestWebLearningEventIsIdempotent(t *testing.T) {
 	api, storage, cookie := newTestWebAPI(t)
