@@ -12,6 +12,13 @@ Always delegate routine sub-tasks to the locally installed Mimo CLI using the fr
 
 Do not verify, start, or call MCP servers by default. Use MCP tools only when the current task directly needs that capability or local shell/file inspection is insufficient. Prefer local repository context first, and use `MCP_STARTUP.md` as an on-demand trigger map rather than a startup checklist.
 
+## Навыки для NERIVA
+
+- Для проектирования сайта или веб-приложения применяй `frontend-design`. Для проверки адаптивности, клавиатуры и доступности веба используй `web-design-guidelines`. Дополняй их `apple-design` при работе с iPhone, iPad или macOS: визуальная иерархия, области касания, безопасные отступы, обратная связь и системные сценарии. Переноси принципы на HTML и CSS с учётом ограничений браузера.
+- Для реализации в React используй `vercel-react-best-practices`. `vercel-composition-patterns` подключай для рефакторинга структуры компонентов. Для браузерных сценариев и регрессий используй `playwright`, для изменений поведения — `test-driven-development`, перед публикацией — `verification-before-completion`.
+- Для текста лендинга, интерфейса и анонсов используй `copywriting`, для индексации, метаданных и языковых страниц — `seo-technical`. Публикуй утверждения о скорости, результатах обучения и офлайн-режиме только в пределах проверенных сценариев.
+- `ios-camera-and-photos-design`, `ios-chat-and-messaging-design`, `ios-interaction-primitives-design` и `macos-app-design` нужны при работе с соответствующими нативными функциями. Для React веба по умолчанию достаточно `frontend-design` и браузерных инструментов. Общий чеклист `apple-design` заменяет отдельный универсальный навык мобильной полировки. Для делегирования действуют проектные правила выше.
+
 Headroom MCP is configured in Codex as `headroom`. Keep it available for context savings, but call `headroom_stats` only when MCP availability matters or before compression-heavy work. Use `headroom_compress` for large tool outputs, logs, search results, or files, and `headroom_retrieve` when the original content is needed. If the current Codex process does not expose the Headroom tools yet, restart Codex so it reloads `C:\Users\Admin\.codex\config.toml`.
 
 Use Headroom MCP for large context payloads: tool outputs over ~200 lines, files over ~20 KB, large JSON/CSS/TSX/logs/search results, and repeated diagnostics. Do not compress short diffs, concise errors, or exact code fragments needed for editing unless they are unusually large.

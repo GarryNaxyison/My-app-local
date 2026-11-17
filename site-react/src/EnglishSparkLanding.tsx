@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   Camera,
   CheckCircle,
+  Download,
   MessageCircle,
   Mic,
   Repeat2,
@@ -54,6 +55,24 @@ type RevealArticleProps = Omit<ComponentPropsWithoutRef<typeof motion.article>, 
 type RevealBlockProps = Omit<ComponentPropsWithoutRef<typeof motion.div>, "children"> & { children: ReactNode };
 
 const revealViewport = { once: true, amount: 0.12, margin: "0px 0px -10% 0px" };
+
+function handleTabNavigation(event: ReactKeyboardEvent<HTMLDivElement>, active: number, select: (index: number) => void) {
+  const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+  const count = tabs.length;
+  const rtl = getComputedStyle(event.currentTarget).direction === "rtl";
+  const direction = rtl ? -1 : 1;
+  let next: number;
+  switch (event.key) {
+    case "ArrowRight": next = (active + direction + count) % count; break;
+    case "ArrowLeft": next = (active - direction + count) % count; break;
+    case "Home": next = 0; break;
+    case "End": next = count - 1; break;
+    default: return;
+  }
+  event.preventDefault();
+  select(next);
+  tabs[next]?.focus();
+}
 
 function RevealSection({ children, transition, ...props }: RevealSectionProps) {
   const reduceMotion = useReducedMotion();
@@ -296,6 +315,13 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                 {copy.nav.telegram} <MessageCircle size={18} />
               </a>
             </div>
+            <a className="hero-install-link" href={`${WEB_APP_HREF}?install=1&lang=${language}`}>
+              <Download size={18} aria-hidden="true" />
+              <span>
+                <strong>{language === "ru" ? "Установить NERIVA" : "Install NERIVA"}</strong>
+                <small>{language === "ru" ? "На телефон, планшет или компьютер" : "On your phone, tablet or computer"}</small>
+              </span>
+            </a>
             <div className="hero-proof" aria-label="NERIVA product status">
               {copy.hero.proof.map(([title, body]) => (
                 <span key={title}>
@@ -338,7 +364,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <h2>{copy.features.title}</h2>
         </div>
         <div className="feature-carousel">
-          <div className="feature-carousel__tabs" role="tablist" aria-label={copy.features.title}>
+          <div className="feature-carousel__tabs" role="tablist" aria-label={copy.features.title} onKeyDown={(event) => handleTabNavigation(event, activeFeature, setActiveFeature)}>
             {copy.features.items.map((feature, index) => {
               const Icon = featureIcons[index] ?? BrainCircuit;
               return (
@@ -347,7 +373,10 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                   key={feature.title}
                   type="button"
                   role="tab"
+                  id={`site-feature-tab-${index}`}
+                  aria-controls="site-feature-panel"
                   aria-selected={index === activeFeature}
+                  tabIndex={index === activeFeature ? 0 : -1}
                   onClick={() => setActiveFeature(index)}
                 >
                   <Icon size={18} />
@@ -358,7 +387,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             })}
           </div>
           <RevealBlock className="feature-carousel__viewport">
-            <RevealArticle className="feature-panel" role="tabpanel">
+            <RevealArticle className="feature-panel" id="site-feature-panel" role="tabpanel" aria-labelledby={`site-feature-tab-${activeFeature}`}>
               <div className="feature-panel__copy">
                 <ActiveIcon size={26} />
                 <span>{active.stat}</span>
@@ -520,7 +549,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           <p>{copy.mobile.body}</p>
         </div>
         <div className="mobile-carousel">
-          <div className="mobile-carousel__tabs" role="tablist" aria-label={copy.mobile.title}>
+          <div className="mobile-carousel__tabs" role="tablist" aria-label={copy.mobile.title} onKeyDown={(event) => handleTabNavigation(event, activeMobile, setActiveMobile)}>
             {copy.mobile.items.map((item, index) => {
               const Icon = mobileIcons[index] ?? Star;
               return (
@@ -529,7 +558,10 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
                   key={item.title}
                   type="button"
                   role="tab"
+                  id={`site-mobile-tab-${index}`}
+                  aria-controls="site-mobile-panel"
                   aria-selected={index === activeMobile}
+                  tabIndex={index === activeMobile ? 0 : -1}
                   onClick={() => setActiveMobile(index)}
                 >
                   <Icon size={18} />
@@ -540,7 +572,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
             })}
           </div>
           <RevealBlock className="mobile-carousel__viewport">
-            <RevealArticle className="mobile-panel" role="tabpanel">
+            <RevealArticle className="mobile-panel" id="site-mobile-panel" role="tabpanel" aria-labelledby={`site-mobile-tab-${activeMobile}`}>
               <div className="mobile-panel__copy">
                 <ActiveMobileIcon size={26} />
                 <span>{activeMobileItem.stat}</span>

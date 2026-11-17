@@ -91,6 +91,7 @@ import { appCopy, appNavDescription, cleanAppText, translateViewDetails } from "
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
+import { pwaUsesRussian } from "./components/PwaInstall";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
 import { InstagramIcon, TelegramIcon, TikTokIcon, YouTubeIcon } from "./components/BrandIcons";
 import { VoiceInput } from "./components/ui/voice-input";
@@ -1937,12 +1938,13 @@ export function App() {
   const [draft, setDraft] = useState("");
   const [voiceFile, setVoiceFile] = useState<File | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  updateSafeRef.current = !busy && !draft.trim() && !voiceFile && !imageFile;
   const [wordChallenge, setWordChallenge] = useState<WordChallenge | null>(null);
   const [wordResult, setWordResult] = useState<TrainerResult | null>(null);
   const [wordGameResult, setWordGameResult] = useState<TrainerResult | null>(null);
   const [aiTutorSessionId, setAiTutorSessionId] = useState("");
   const [aiTutorStep, setAiTutorStep] = useState<AiTutorStep | null>(null);
+  updateSafeRef.current = !busy && !draft.trim() && !voiceFile && !imageFile
+    && !activeLessonTaskId && !aiTutorStep;
   const [aiTutorFeedback, setAiTutorFeedback] = useState<AiTutorFeedbackState | null>(null);
   const [aiTutorFeedbackStage, setAiTutorFeedbackStage] = useState("");
   const [tutorReview, setTutorReview] = useState<{ error?: string; choice?: string }>({});
@@ -3388,6 +3390,18 @@ export function App() {
 
   const authStandalone = isAuthStandaloneRoute();
   if (sessionLoading) return <LoadingScreen theme={theme} />;
+  if (!session && !navigator.onLine) {
+    const russian = pwaUsesRussian();
+    return (
+      <main className="pwa-offline-screen">
+        <section className="v2-panel">
+          <h1>{russian ? "Нет подключения" : "You’re offline"}</h1>
+          <p>{russian ? "Подключитесь к интернету, чтобы войти и загрузить прогресс." : "Connect to the internet to sign in and load your progress."}</p>
+          <Button type="button" onClick={() => location.reload()}>{russian ? "Попробовать снова" : "Try again"}</Button>
+        </section>
+      </main>
+    );
+  }
   if (authStandalone) {
     if (session?.authenticated && session.user) {
       location.replace("/app");
@@ -3396,7 +3410,13 @@ export function App() {
     return <AuthStandaloneView session={session} theme={theme} setTheme={setTheme} onAuthenticated={setSession} />;
   }
   if (!session?.authenticated || !session.user) {
-    location.replace(appLoginPath);
+    const params = new URLSearchParams(location.search);
+    const login = new URL(appLoginPath, location.origin);
+    if (params.get("install") === "1") {
+      login.searchParams.set("install", "1");
+      login.searchParams.set("lang", pwaUsesRussian() ? "ru" : "en");
+    }
+    location.replace(login);
     return <LoadingScreen theme={theme} />;
   }
 

@@ -54,6 +54,32 @@ test('English lesson example supports keyboard answers and feedback', async ({ p
   await expect(example.getByRole('status')).toContainText('Correct.');
 });
 
+test('home page offers a localized web app installation link', async ({ page }) => {
+  await page.goto('/neriva.html?lang=ru');
+  await expect(page.getByRole('link', { name: /Установить NERIVA/ })).toHaveAttribute('href', '/app/?install=1&lang=ru');
+  await page.goto('/neriva.html?lang=en');
+  await expect(page.getByRole('link', { name: /Install NERIVA/ })).toHaveAttribute('href', '/app/?install=1&lang=en');
+});
+
+test('feature and mobile tabs support arrow keys and a visible focus target', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/neriva.html?lang=en');
+  for (const scope of ['feature-carousel', 'mobile-carousel']) {
+    const carousel = page.locator(`.${scope}`);
+    const tabs = carousel.getByRole('tab');
+    await tabs.first().focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(tabs.nth(1)).toBeFocused();
+    await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+    await expect(tabs.nth(1)).toHaveAttribute('tabindex', '0');
+    await expect(tabs.first()).toHaveAttribute('tabindex', '-1');
+    await expect(carousel.getByRole('tabpanel')).toHaveAttribute('aria-labelledby', (await tabs.nth(1).getAttribute('id'))!);
+    expect((await tabs.nth(1).boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press('Home');
+    await expect(tabs.first()).toBeFocused();
+  }
+});
+
 test("official brand and current application screenshots are visible", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("poliglot-cookie-consent", JSON.stringify({ version: 1, necessary: true, analyticsMarketing: false })));
   await page.goto("/neriva.html?lang=ru");

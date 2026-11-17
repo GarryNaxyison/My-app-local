@@ -1193,17 +1193,18 @@ test("app shell embeds branded loader before JavaScript hydrates", () => {
   expect(html).toContain("poliglotBootDrift");
 });
 
-test("PWA service worker cache is bumped for the current offline deck release", () => {
+test("PWA service worker limits cleanup to app shell caches", () => {
   const worker = readFileSync("public/offline-deck-sw.js", "utf8");
-  expect(worker).toContain('const CACHE_NAME = "poliglot-v2-static-shell-20261116-official-brand"');
+  expect(worker).toContain('const CACHE_NAME = "neriva-app-static-v3"');
+  expect(worker).toContain("neriva-app-static-|poliglot-v2-static-shell-");
 });
 
 test("PWA caches static app assets without caching API responses", () => {
   const worker = readFileSync("public/offline-deck-sw.js", "utf8");
-  expect(worker).toContain('if (url.pathname.startsWith("/api/")) return;');
-  expect(worker).toContain("function isStaticAsset(request, url)");
-  expect(worker).toContain("caches.match(request).then((cached) => cached || fetchAndCache(request))");
-  expect(worker).toContain("precacheAppShell");
+  expect(worker).toContain('url.pathname.startsWith("/api/")');
+  expect(worker).toContain("isBuildAsset(url)");
+  expect(worker).toContain("if (cached) return cached");
+  expect(worker).toContain("cacheShell");
 });
 
 test("v2 required labels are localized for all 35 interface languages", () => {

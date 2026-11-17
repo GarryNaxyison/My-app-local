@@ -147,3 +147,32 @@ html[data-theme="dark"] {
   }
   .auth-brand-wordmark { width: 184px; margin-bottom: 24px; }
 }
+.pwa-install-panel {
+  position: fixed;
+  z-index: 110;
+  inset-block-start: max(16px, env(safe-area-inset-top));
+  inset-inline-end: max(16px, env(safe-area-inset-right));
+  width: min(390px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 16px;
+  border: 1px solid #777dcc;
+  border-radius: 16px;
+  background: #111831;
+  color: #f4f5ff;
+  box-shadow: 0 12px 36px #0005;
+}
+.pwa-install-panel > svg { margin-top: 2px; color: #b9bcff; }
+.pwa-install-panel h2 { margin: 0; font-size: 16px; }
+.pwa-install-panel p { margin: 6px 0 0; color: #d3daf2; font-size: 14px; line-height: 1.5; }
+.pwa-install-panel__close, .pwa-install-panel__action { cursor: pointer; color: inherit; }
+.pwa-install-panel__close { display: grid; place-items: center; min-width: 44px; min-height: 44px; margin: -8px -8px 0 0; border: 0; background: transparent; }
+.pwa-install-panel__action { min-height: 44px; margin-top: 10px; padding: 6px 12px; border: 1px solid #969aff; border-radius: 9px; background: #414cc7; font-weight: 650; }
+.pwa-install-panel button:focus-visible { outline: 2px solid #c2c5ff; outline-offset: 2px; border-radius: 6px; }
+.pwa-offline-screen { min-height: 100svh; display: grid; place-items: center; padding: 24px; }
+.pwa-offline-screen section { width: min(100%, 420px); padding: 24px; }
+.pwa-offline-screen p { margin: 6px 0 16px; }
+.v2-shell--learning :is(.lesson-answer-shortcut, .lesson-result-summary__actions) button { min-height: 44px; }
+.v2-shell--learning :is(.lesson-answer-shortcut, .lesson-result-summary__actions) button:focus-visible { outline: 2px solid var(--accent, #969aff); outline-offset: 3px; }

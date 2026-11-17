@@ -1,6 +1,7 @@
 {
   "name": "NERIVA",
   "short_name": "NERIVA",
+  "id": "/app/",
   "start_url": "/app/",
   "scope": "/app/",
   "display": "standalone",

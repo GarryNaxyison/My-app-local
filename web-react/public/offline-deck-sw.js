@@ -1,68 +1,98 @@
-const CACHE_NAME = "poliglot-v2-static-shell-20261116-official-brand";
-const APP_SHELL = ["/app/", "/app/index.html", "/app/assets/neriva-symbol.png", "/app/assets/neriva-wordmark.png", "/app/assets/neriva-icon-192.png"];
+const CACHE_NAME = "neriva-app-static-v3";
+const SHELL_PATH = "/app/";
+const BRAND_ASSETS = ["neriva-symbol.png", "neriva-wordmark.png", "neriva-icon-192.png"];
+const NETWORK_SHELL_PATHS = new Set([SHELL_PATH, "/app/index.html", "/app/mobile", "/app/desktop"]);
 
-function isStaticAsset(request, url) {
-  return request.method === "GET"
-    && (url.pathname.startsWith("/app/assets/") || /\.(?:css|js|mjs|png|jpe?g|webp|svg|woff2?)$/i.test(url.pathname));
+function isBuildAsset(url) {
+  return /^\/app\/assets\/[\w-]+-[\w-]{8}\.(?:js|css)$/.test(url.pathname);
 }
 
-async function cacheResponse(request, response) {
-  if (!response || !response.ok) return response;
-  const cache = await caches.open(CACHE_NAME);
-  await cache.put(request, response.clone());
+function isBrandAsset(url) {
+  return BRAND_ASSETS.some((name) => url.pathname === `/app/assets/${name}`);
+}
+
+async function storeAsset(cache, request, response) {
+  if (response.ok && !response.redirected) {
+    await cache.put(request, response.clone()).catch(() => undefined);
+  }
   return response;
 }
 
-async function fetchAndCache(request) {
-  return cacheResponse(request, await fetch(request));
-}
+async function cacheShell(cache, response) {
+  if (!response.ok || response.redirected || !response.headers.get("content-type")?.includes("text/html")) return;
+  const html = await response.clone().text();
+  const entryAssets = new Set();
+  for (const [, attribute] of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
+    const url = new URL(attribute, self.location.origin);
+    if (url.origin === self.location.origin && isBuildAsset(url)) entryAssets.add(url.pathname);
+  }
+  if (!entryAssets.size) return;
 
-async function precacheAppShell() {
-  const cache = await caches.open(CACHE_NAME);
-  await cache.addAll(APP_SHELL);
-  const response = await fetch("/app/", { cache: "reload" });
-  if (!response.ok) return;
-  await cache.put("/app/", response.clone());
-  const html = await response.text();
-  const assets = Array.from(html.matchAll(/(?:src|href)=["']([^"']+)["']/g), (match) => match[1])
-    .map((asset) => new URL(asset, self.location.origin))
-    .filter((asset) => asset.origin === self.location.origin && (asset.pathname.startsWith("/app/") || asset.pathname.startsWith("/app/assets/")))
-    .map((asset) => asset.href);
-  await Promise.all(assets.map((asset) => cache.add(asset).catch(() => undefined)));
+  const assetsReady = await Promise.all([...entryAssets].map(async (path) => {
+    if (await cache.match(path)) return true;
+    const asset = await fetch(path);
+    if (!asset.ok || asset.redirected) return false;
+    await cache.put(path, asset);
+    return true;
+  }));
+  if (assetsReady.every(Boolean)) await cache.put(SHELL_PATH, response);
 }
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(precacheAppShell().catch(() => undefined));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await Promise.allSettled([
+      fetch(SHELL_PATH, { cache: "reload" }).then((response) => cacheShell(cache, response)),
+      ...BRAND_ASSETS.map((name) => cache.add(`/app/assets/${name}`)),
+    ]);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME && key.startsWith("poliglot-v2-")).map((key) => caches.delete(key))),
-    ),
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    if (self.registration.navigationPreload) {
+      await self.registration.navigationPreload.enable().catch(() => undefined);
+    }
+    // Drop only earlier NERIVA shell caches. Offline decks live separately.
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key !== CACHE_NAME && /^(?:neriva-app-static-|poliglot-v2-static-shell-)/.test(key)).map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.pathname.startsWith("/api/")) return;
-  if (!url.pathname.startsWith("/app/") && !url.pathname.startsWith("/app/assets/")) return;
-  if (url.pathname === "/app/offline-deck-sw.js" || url.pathname === "/app/manifest.webmanifest") return;
+  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith(fetchAndCache(request).catch(() => caches.match("/app/").then((cached) => cached || Response.error())));
+  if (request.mode === "navigate" && NETWORK_SHELL_PATHS.has(url.pathname)) {
+    const network = (async () => {
+      const preload = await Promise.resolve(event.preloadResponse).catch(() => undefined);
+      return preload || fetch(request);
+    })();
+    if (url.pathname === SHELL_PATH && !url.searchParams.has("shell")) {
+      const offlineShell = network.then((response) => response.clone());
+      event.waitUntil(offlineShell.then(async (response) => cacheShell(await caches.open(CACHE_NAME), response)).catch(() => undefined));
+    }
+    event.respondWith(network.catch(async () => {
+      const cache = await caches.open(CACHE_NAME);
+      return (await cache.match(SHELL_PATH)) || Response.error();
+    }));
     return;
   }
 
-  if (isStaticAsset(request, url)) {
-    event.respondWith(caches.match(request).then((cached) => cached || fetchAndCache(request)));
+  if (!url.search && (isBuildAsset(url) || isBrandAsset(url))) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      // These same-origin URLs identify one asset, including for module requests with Origin.
+      const cached = await cache.match(url.pathname, { ignoreVary: true });
+      if (cached) return cached;
+      return storeAsset(cache, request, await fetch(request));
+    })());
   }
 });
 
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+  if (event.data?.type === "SKIP_WAITING") event.waitUntil(self.skipWaiting());
 });

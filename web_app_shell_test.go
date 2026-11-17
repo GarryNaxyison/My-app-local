@@ -394,7 +394,7 @@ func TestReactPWAUpdatesInstalledShellFromNetwork(t *testing.T) {
 		`const hadController = !!navigator.serviceWorker.controller`,
 		`registration.update()`,
 		`SKIP_WAITING`,
-		`poliglot-v2-static-shell-20261116-official-brand`,
+		`neriva-app-static-v3`,
 		`fetch(request)`,
 		`request.mode === "navigate"`,
 	} {
