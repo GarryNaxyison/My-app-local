@@ -28,23 +28,29 @@ func TestTutorSQLiteCompletionAtomicAndReplaySafe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err = s.scheduleAITutorReview(42, "lesson", "2026-11-13T12:00:00Z", "tomorrow"); err != nil {
+		t.Fatal(err)
+	}
 	_, err = s.db.Exec(`CREATE TRIGGER reject_reward BEFORE UPDATE OF xp ON users BEGIN SELECT RAISE(ABORT,'simulated reward failure'); END`)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = s.completeAITutorSession("atomic", 42, 40, "2026-11-14T12:00:00Z"); err == nil {
+	if err = s.completeAITutorSession("atomic", 42, 40, "2026-11-14T12:00:00Z", "no_review"); err == nil {
 		t.Fatal("expected reward failure")
 	}
 	session, _, _ := s.getAITutorSession("atomic")
 	if session.Status == aiTutorSessionComplete {
 		t.Fatal("completion committed without reward")
 	}
+	if reviews, err := s.listScheduledAITutorReviews(42); err != nil || len(reviews) != 1 {
+		t.Fatalf("failed completion changed the queue: %+v, %v", reviews, err)
+	}
 	_, err = s.db.Exec(`DROP TRIGGER reject_reward`)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i := 0; i < 2; i++ {
-		if err = s.completeAITutorSession("atomic", 42, 40, "2026-11-14T12:00:00Z"); err != nil {
+		if err = s.completeAITutorSession("atomic", 42, 40, "2026-11-14T12:00:00Z", "no_review"); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -54,6 +60,9 @@ func TestTutorSQLiteCompletionAtomicAndReplaySafe(t *testing.T) {
 	}
 	if user.XP != 40 || user.LessonCount != 1 {
 		t.Fatalf("duplicate reward: %+v", user)
+	}
+	if reviews, err := s.listScheduledAITutorReviews(42); err != nil || len(reviews) != 0 {
+		t.Fatalf("completed review is still scheduled: %+v, %v", reviews, err)
 	}
 }
 
@@ -69,6 +78,55 @@ func TestTutorStaleStageDoesNotAdvance(t *testing.T) {
 	session, _, _ := s.getAITutorSession("s")
 	if session.CurrentStage != aiTutorWordLearnStage(2) {
 		t.Fatal("stale answer advanced lesson")
+	}
+}
+
+func TestTutorCompletionReplacesScheduleOnce(t *testing.T) {
+	sqlite, err := newSQLiteStore(filepath.Join(t.TempDir(), "reviews.sqlite"), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sqlite.db.Close()
+	for name, storage := range map[string]store{"sqlite": sqlite, "json": newTestJSONStore(t)} {
+		t.Run(name, func(t *testing.T) {
+			const completionTime = "2026-11-14T12:00:00Z"
+			if err := storage.createAITutorSession(aiTutorSessionRecord{
+				ID: "review", LessonID: "lesson", TelegramID: 42, Status: aiTutorSessionActive,
+			}); err != nil {
+				t.Fatal(err)
+			}
+			for _, seed := range []struct {
+				owner            int64
+				lesson, interval string
+			}{
+				{42, "lesson", "tomorrow"},
+				{42, "lesson", "1_week"},
+				{42, "other", "tomorrow"},
+				{43, "lesson", "tomorrow"},
+			} {
+				if err := storage.scheduleAITutorReview(seed.owner, seed.lesson, "2026-11-13T12:00:00Z", seed.interval); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := storage.completeAITutorSession("review", 42, 40, completionTime, "tomorrow"); err != nil {
+				t.Fatal(err)
+			}
+			if err := storage.completeAITutorSession("review", 42, 40, completionTime, "3_days"); err != nil {
+				t.Fatal(err)
+			}
+			reviews, err := storage.listScheduledAITutorReviews(42)
+			if err != nil || len(reviews) != 2 {
+				t.Fatalf("wrong schedule: %+v, %v", reviews, err)
+			}
+			for _, item := range reviews {
+				if item.LessonID == "lesson" && (item.IntervalCode != "tomorrow" || item.DueAt != "2026-11-15T12:00:00Z") {
+					t.Fatalf("replay changed the new schedule: %+v", item)
+				}
+			}
+			if other, err := storage.listScheduledAITutorReviews(43); err != nil || len(other) != 1 {
+				t.Fatalf("another account's schedule changed: %+v, %v", other, err)
+			}
+		})
 	}
 }
 

@@ -269,12 +269,7 @@ func (e *aiTutorEngine) Submit(ctx context.Context, user userState, sessionID st
 		status = aiTutorSessionComplete
 		next = aiTutorStageComplete
 		completedAt = formatDBTime(e.now().UTC())
-		if input.Choice != "" && input.Choice != "no_review" {
-			if err := e.store.scheduleAITutorReview(user.TelegramID, lesson.ID, aiTutorReviewDueAt(e.now().UTC(), input.Choice), input.Choice); err != nil {
-				return aiTutorResult{}, err
-			}
-		}
-		if err := e.store.completeAITutorSession(session.ID, user.TelegramID, aiTutorCompletionXP, completedAt); err != nil {
+		if err := e.store.completeAITutorSession(session.ID, user.TelegramID, aiTutorCompletionXP, completedAt, input.Choice); err != nil {
 			return aiTutorResult{}, err
 		}
 		qualityCtx, cancel := context.WithTimeout(ctx, 5*time.Second)

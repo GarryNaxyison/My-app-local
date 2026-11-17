@@ -213,7 +213,7 @@ type store interface {
 	createAITutorSession(session aiTutorSessionRecord) error
 	getAITutorSession(sessionID string) (aiTutorSessionRecord, bool, error)
 	updateAITutorSessionStage(sessionID string, stage string, status string, completedAt string) error
-	completeAITutorSession(sessionID string, telegramID int64, amount int, completedAt string) error
+	completeAITutorSession(sessionID string, telegramID int64, amount int, completedAt, reviewChoice string) error
 	completedAITutorLessons(telegramID int64, limit int) ([]aiTutorCompletedLessonRecord, error)
 	userCanRestartAITutorLesson(telegramID int64, lessonID string) (bool, error)
 	saveAITutorAnswer(answer aiTutorAnswerRecord) error
@@ -1413,8 +1413,12 @@ func (s *jsonStore) scheduleAITutorReview(telegramID int64, lessonID string, due
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.scheduleAITutorReviewLocked(telegramID, lessonID, dueAt, intervalCode, formatDBTime(time.Now().UTC()))
+	return nil
+}
+
+func (s *jsonStore) scheduleAITutorReviewLocked(telegramID int64, lessonID, dueAt, intervalCode, now string) {
 	s.ensureAITutorMapsLocked()
-	now := formatDBTime(time.Now().UTC())
 	id := itoa(int(telegramID)) + "|" + strings.TrimSpace(lessonID) + "|" + strings.TrimSpace(intervalCode)
 	s.aiTutorReviews[id] = aiTutorReviewRecord{
 		ID:           id,
@@ -1426,7 +1430,6 @@ func (s *jsonStore) scheduleAITutorReview(telegramID int64, lessonID string, due
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
-	return nil
 }
 
 func (s *jsonStore) listScheduledAITutorReviews(telegramID int64) ([]aiTutorReviewRecord, error) {

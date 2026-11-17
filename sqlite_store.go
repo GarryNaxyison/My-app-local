@@ -2658,9 +2658,14 @@ func (s *sqliteStore) scheduleAITutorReview(telegramID int64, lessonID string, d
 	if telegramID == 0 || strings.TrimSpace(lessonID) == "" || strings.TrimSpace(intervalCode) == "" || strings.TrimSpace(intervalCode) == "no_review" {
 		return nil
 	}
-	now := formatDBTime(time.Now().UTC())
+	return upsertAITutorReview(s.db, telegramID, lessonID, dueAt, intervalCode, formatDBTime(time.Now().UTC()))
+}
+
+func upsertAITutorReview(db interface {
+	Exec(string, ...any) (sql.Result, error)
+}, telegramID int64, lessonID, dueAt, intervalCode, now string) error {
 	id := itoa(int(telegramID)) + "|" + strings.TrimSpace(lessonID) + "|" + strings.TrimSpace(intervalCode)
-	_, err := s.db.Exec(
+	_, err := db.Exec(
 		`INSERT INTO ai_tutor_reviews (
 			id, telegram_id, lesson_id, due_at, interval_code, status, created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)

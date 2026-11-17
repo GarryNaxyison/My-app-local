@@ -36,7 +36,7 @@ func (s *sqliteStore) aiTutorSessionAnswers(id string) ([]aiTutorAnswerRecord, e
 }
 
 // Completion and its reward share a commit boundary. Replays are no-ops.
-func (s *sqliteStore) completeAITutorSession(id string, userID int64, amount int, stamp string) error {
+func (s *sqliteStore) completeAITutorSession(id string, userID int64, amount int, stamp, reviewChoice string) error {
 	user, exists, err := s.getUser(userID)
 	if err == nil && !exists {
 		user, err = s.getOrCreateUser(userID, "")
@@ -60,6 +60,22 @@ func (s *sqliteStore) completeAITutorSession(id string, userID int64, amount int
 	if changed == 0 {
 		return tx.Commit()
 	}
+	reviewDueAt := aiTutorReviewDueAt(parseDBTime(stamp), reviewChoice)
+	var lessonID string
+	if err := tx.QueryRow(`SELECT lesson_id FROM ai_tutor_sessions WHERE id=?`, id).Scan(&lessonID); err != nil {
+		return err
+	}
+	_, err = tx.Exec(`UPDATE ai_tutor_reviews SET status='complete', updated_at=?
+		WHERE telegram_id=? AND lesson_id=? AND status='scheduled' AND
+		(? <> '' OR julianday(due_at) <= julianday(?))`, stamp, userID, lessonID, reviewDueAt, stamp)
+	if err != nil {
+		return err
+	}
+	if reviewDueAt != "" {
+		if err := upsertAITutorReview(tx, userID, lessonID, reviewDueAt, reviewChoice, stamp); err != nil {
+			return err
+		}
+	}
 	now := time.Now().UTC()
 	day := todayUTC(now)
 	habitDate := localDateForUser(user, now)
@@ -80,7 +96,7 @@ func (s *sqliteStore) completeAITutorSession(id string, userID int64, amount int
 	return nil
 }
 
-func (s *jsonStore) completeAITutorSession(id string, userID int64, amount int, stamp string) error {
+func (s *jsonStore) completeAITutorSession(id string, userID int64, amount int, stamp, reviewChoice string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	session, ok := s.aiTutorSessions[id]
@@ -123,5 +139,21 @@ func (s *jsonStore) completeAITutorSession(id string, userID int64, amount int, 
 	session.CompletedAt = stamp
 	session.UpdatedAt = stamp
 	s.aiTutorSessions[id] = session
+	completedAt := parseDBTime(stamp)
+	reviewDueAt := aiTutorReviewDueAt(completedAt, reviewChoice)
+	for key, review := range s.aiTutorReviews {
+		if review.TelegramID != userID || review.LessonID != session.LessonID || review.Status != "scheduled" {
+			continue
+		}
+		due := parseDBTime(review.DueAt)
+		if reviewDueAt != "" || (!due.IsZero() && !due.After(completedAt)) {
+			review.Status = "complete"
+			review.UpdatedAt = stamp
+			s.aiTutorReviews[key] = review
+		}
+	}
+	if reviewDueAt != "" {
+		s.scheduleAITutorReviewLocked(userID, session.LessonID, reviewDueAt, reviewChoice, stamp)
+	}
 	return nil
 }
