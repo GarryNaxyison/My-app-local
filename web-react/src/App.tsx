@@ -1971,7 +1971,7 @@ export function App() {
   const [mistakePracticeIndex, setMistakePracticeIndex] = useState<number | null>(null);
   const [mistakeAnswer, setMistakeAnswer] = useState("");
   const [mistakeResult, setMistakeResult] = useState<TrainerResult | null>(null);
-  const [mistakeTransfer, setMistakeTransfer] = useState<{ task: MistakeTransferTask; reviewId?: string } | null>(null);
+  const [mistakeTransfer, setMistakeTransfer] = useState<{ task: MistakeTransferTask; reviewId?: string; savedAnswer?: string } | null>(null);
   const [shadowingTarget, setShadowingTarget] = useState("");
   const [pronunciationTarget, setPronunciationTarget] = useState("");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -3510,6 +3510,9 @@ export function App() {
     mistakeResult,
     mistakeTransfer,
     dismissMistakeTransfer: () => setMistakeTransfer(null),
+    saveMistakeTransferAnswer: (reviewId, savedAnswer) => setMistakeTransfer((current) =>
+      current && current.reviewId === reviewId ? { ...current, savedAnswer } : current),
+    openMistakeTransferPremium: () => setView("premium"),
     deleteMistake,
     clearMistakes,
     shadowingTarget,
@@ -5243,8 +5246,10 @@ type ViewRendererProps = {
   submitMistakeAnswer: () => Promise<void>;
   cancelMistakePractice: () => void;
   mistakeResult: TrainerResult | null;
-  mistakeTransfer?: { task: MistakeTransferTask; reviewId?: string } | null;
+  mistakeTransfer?: { task: MistakeTransferTask; reviewId?: string; savedAnswer?: string } | null;
   dismissMistakeTransfer?: () => void;
+  saveMistakeTransferAnswer?: (reviewId: string | undefined, answer: string) => void;
+  openMistakeTransferPremium?: () => void;
   deleteMistake: (index: number) => Promise<void>;
   clearMistakes: () => Promise<void>;
   shadowingTarget: string;
@@ -8010,7 +8015,7 @@ function PhrasebookView({ phrasebook, savePhrase, removePhrase, copy, user }: Pi
   );
 }
 
-function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, mistakeTransfer, dismissMistakeTransfer, busy, copy, user }: Pick<ViewRendererProps, "mistakes" | "loadMistakes" | "startMistakePractice" | "submitMistakeAnswer" | "cancelMistakePractice" | "deleteMistake" | "clearMistakes" | "mistakePractice" | "mistakePracticeIndex" | "mistakeAnswer" | "setMistakeAnswer" | "mistakeResult" | "mistakeTransfer" | "dismissMistakeTransfer" | "busy" | "copy" | "user">) {
+function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMistakeAnswer, cancelMistakePractice, deleteMistake, clearMistakes, mistakePractice, mistakePracticeIndex, mistakeAnswer, setMistakeAnswer, mistakeResult, mistakeTransfer, dismissMistakeTransfer, saveMistakeTransferAnswer, openMistakeTransferPremium, busy, copy, user }: Pick<ViewRendererProps, "mistakes" | "loadMistakes" | "startMistakePractice" | "submitMistakeAnswer" | "cancelMistakePractice" | "deleteMistake" | "clearMistakes" | "mistakePractice" | "mistakePracticeIndex" | "mistakeAnswer" | "setMistakeAnswer" | "mistakeResult" | "mistakeTransfer" | "dismissMistakeTransfer" | "saveMistakeTransferAnswer" | "openMistakeTransferPremium" | "busy" | "copy" | "user">) {
   const [confirmClear, setConfirmClear] = useState(false);
   const [activeCategory, setActiveCategory] = useState<MistakeCategory | "all">("all");
   const [page, setPage] = useState(0);
@@ -8064,7 +8069,18 @@ function MistakesView({ mistakes, loadMistakes, startMistakePractice, submitMist
   );
 
   if (mistakeTransfer && dismissMistakeTransfer) {
-    return <MistakeTransfer key={mistakeTransfer.reviewId} task={mistakeTransfer.task} reviewId={mistakeTransfer.reviewId} russian={languageCode(user.interface_language) === "ru"} onClose={dismissMistakeTransfer} />;
+    return (
+      <MistakeTransfer
+        key={mistakeTransfer.reviewId}
+        task={mistakeTransfer.task}
+        reviewId={mistakeTransfer.reviewId}
+        savedAnswer={mistakeTransfer.savedAnswer}
+        onSaved={(answer) => saveMistakeTransferAnswer?.(mistakeTransfer.reviewId, answer)}
+        onPremium={user.premium ? undefined : openMistakeTransferPremium}
+        russian={languageCode(user.interface_language) === "ru"}
+        onClose={dismissMistakeTransfer}
+      />
+    );
   }
 
   if (mistakePractice) {

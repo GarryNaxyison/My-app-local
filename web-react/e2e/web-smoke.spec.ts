@@ -1152,6 +1152,8 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await answer.press("Enter");
   expect((await answerRequest).postDataJSON()).toEqual({ text: "I went yesterday", review_id: review.id });
   const transfer = page.locator(".mistake-transfer");
+  const premiumOffer = transfer.getByRole("button", { name: /Посмотреть Premium|Explore Premium/ });
+  await expect(premiumOffer).toHaveCount(0);
   const transferAnswer = transfer.getByRole("textbox");
   await transferAnswer.fill("I go to the station yesterday.");
   await transferAnswer.press("Enter");
@@ -1162,6 +1164,10 @@ test("Today opens a saved mistake by its review ID", async ({ page }) => {
   await transfer.getByRole("button", { name: /Повторить сохранение|Retry saving/ }).click();
   await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
   expect(transferSaves).toBe(2);
+  await premiumOffer.click();
+  await expect(page.locator(".context-display--premium")).toBeVisible();
+  await page.goBack();
+  await expect(transfer.getByRole("status")).toContainText(/Результат сохранён|Result saved/);
   await transfer.getByRole("button", { name: /К списку ошибок|Back to mistakes/ }).click();
   await expect(transfer).toHaveCount(0);
 });

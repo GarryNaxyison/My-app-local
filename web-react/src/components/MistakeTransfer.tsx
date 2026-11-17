@@ -3,17 +3,20 @@ import { Button } from "./ui/button";
 import { checkMistakeTransfer, type MistakeTransferTask } from "../lib/mistakeTransfer";
 import { api } from "../lib/api";
 
-export function MistakeTransfer({ task, reviewId, russian, onClose }: {
+export function MistakeTransfer({ task, reviewId, russian, savedAnswer, onSaved, onPremium, onClose }: {
   task: MistakeTransferTask;
   reviewId?: string;
   russian: boolean;
+  savedAnswer?: string;
+  onSaved?: (answer: string) => void;
+  onPremium?: () => void;
   onClose: () => void;
 }) {
   const id = useId();
   const locale = russian ? "ru" : "en";
-  const [answer, setAnswer] = useState("");
-  const [result, setResult] = useState<"retry" | "correct" | null>(null);
-  const [saveState, setSaveState] = useState<"saving" | "saved" | "error" | null>(null);
+  const [answer, setAnswer] = useState(savedAnswer ?? "");
+  const [result, setResult] = useState<"retry" | "correct" | null>(savedAnswer ? "correct" : null);
+  const [saveState, setSaveState] = useState<"saving" | "saved" | "error" | null>(savedAnswer ? "saved" : null);
   const saving = useRef(false);
 
   async function saveProgress() {
@@ -23,6 +26,7 @@ export function MistakeTransfer({ task, reviewId, russian, onClose }: {
     try {
       await api("/api/mistakes/transfer", { method: "POST", body: { review_id: reviewId } });
       setSaveState("saved");
+      onSaved?.(answer);
     } catch {
       setSaveState("error");
     } finally {
@@ -58,6 +62,12 @@ export function MistakeTransfer({ task, reviewId, russian, onClose }: {
         {saveState === "error" && <p>{russian ? "Не удалось сохранить результат." : "Could not save your result."}</p>}
       </div>
       {saveState === "error" && <Button type="button" variant="outline" onClick={() => void saveProgress()}>{russian ? "Повторить сохранение" : "Retry saving"}</Button>}
+      {saveState === "saved" && onPremium && (
+        <div className="mistake-transfer__premium">
+          <p>{russian ? "С Premium можно тренировать произношение и проверять голосовые записи." : "With Premium you can practise pronunciation and get feedback on your recordings."}</p>
+          <Button type="button" variant="outline" onClick={onPremium}>{russian ? "Посмотреть Premium" : "Explore Premium"}</Button>
+        </div>
+      )}
       <details>
         <summary>{russian ? "Показать пример" : "Show an example"}</summary>
         <p lang="en">{task.example}</p>
