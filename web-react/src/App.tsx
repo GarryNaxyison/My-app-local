@@ -180,6 +180,7 @@ type PronunciationAssessment = {
   fluency?: number;
   similarity?: number;
   average_confidence?: number;
+  confidence_source?: string;
   speech_rate_wpm?: number;
   problem_words?: PronunciationProblem[];
   phoneme_issues?: PronunciationProblem[];
@@ -1227,6 +1228,13 @@ function normalizedPronunciationScore(report: Partial<PronunciationAssessment> |
 function pronunciationFrom(record: ApiRecord): PronunciationAssessment | null {
   const value = record.pronunciation;
   return value && typeof value === "object" ? (value as PronunciationAssessment) : null;
+}
+
+function pronunciationNeedsRetry(report: PronunciationAssessment) {
+  return report.confidence_source === "logprobs"
+    && typeof report.average_confidence === "number"
+    && report.average_confidence >= 0
+    && report.average_confidence < 0.45;
 }
 
 function pronunciationStorageKey(session: SessionData, user: UserProfile) {
@@ -6600,7 +6608,7 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
   const liveReports = useMemo(
     () => messages
       .map((message) => pronunciationFrom(getRecord(message.details)))
-      .filter((item): item is PronunciationAssessment => Boolean(item)),
+      .filter((item): item is PronunciationAssessment => item !== null && !pronunciationNeedsRetry(item)),
     [messages],
   );
   const storageKey = pronunciationStorageKey(session, user);
@@ -6616,7 +6624,7 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
       return merged;
     });
   }, [storageKey, liveReports]);
-  const reports = mergePronunciationHistory(liveReports, storedReports);
+  const reports = mergePronunciationHistory(liveReports, storedReports).filter((report) => !pronunciationNeedsRetry(report));
   const latest = reports[0];
   const score = normalizedPronunciationScore(latest);
   const defaultTarget = cleanAppText(pronunciationTarget || pronunciationPracticeFallback(user, copy));
@@ -6630,19 +6638,29 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
     .filter(Boolean)));
   const [practiceResult, setPracticeResult] = useState<PronunciationAssessment | null>(null);
   const [previousPracticeResult, setPreviousPracticeResult] = useState<PronunciationAssessment | null>(null);
+  const [focusTarget, setFocusTarget] = useState("");
+  const [needsRetry, setNeedsRetry] = useState(false);
+  const russian = languageCode(user.interface_language) === "ru";
   useEffect(() => {
     if (!pronunciationTarget && !busy) void startPronunciation();
   }, [Boolean(pronunciationTarget), Boolean(busy)]);
-  const activeTarget = cleanAppText(pronunciationTarget || defaultTarget);
+  const activeTarget = cleanAppText(focusTarget || pronunciationTarget || defaultTarget);
+  const focusWord = cleanPronunciationWord(practiceResult?.phoneme_issues?.[0]?.word || practiceResult?.problem_words?.[0]?.word);
   useEffect(() => {
     setPracticeResult(null);
     setPreviousPracticeResult(null);
+    setNeedsRetry(false);
     setVoiceFile(null);
-  }, [pronunciationTarget]);
+  }, [activeTarget]);
   const checkPronunciation = async () => {
     const record = await submitPronunciation(activeTarget);
     const result = pronunciationFrom(record || {});
     if (result) {
+      if (pronunciationNeedsRetry(result)) {
+        setNeedsRetry(true);
+        return;
+      }
+      setNeedsRetry(false);
       const resultWithTarget = { ...result, expected: result.expected || activeTarget };
       setPreviousPracticeResult(practiceResult?.expected === resultWithTarget.expected ? practiceResult : null);
       setPracticeResult(resultWithTarget);
@@ -6654,6 +6672,8 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
     }
   };
   const nextPronunciationSample = () => {
+    setFocusTarget("");
+    setNeedsRetry(false);
     setPracticeResult(null);
     setPreviousPracticeResult(null);
     setVoiceFile(null);
@@ -6687,7 +6707,12 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
           </div>
         </aside>
       </section>
-      {practiceResult ? (
+      {needsRetry && (
+        <section className="v2-panel pronunciation-retry-notice" role="status">
+          {russian ? "Запись распознана неуверенно. Послушайте образец и запишите фразу ещё раз." : "The recording was hard to recognise. Listen to the example and record it again."}
+        </section>
+      )}
+      {practiceResult && !needsRetry ? (
         <section className="v2-panel pronunciation-result-window-v2">
           <span className="eyebrow"><CheckCircle size={15} />{copy("pronunciation_result", "Статистика произношения")}</span>
           <p>{copy("pronunciation_result_body", "Разбор записи готов: оценка, слабые слова, звуки и следующий шаг.")}</p>
@@ -6698,6 +6723,11 @@ function PronunciationDashboardView({ fixtureMode = false, messages, mistakes, u
             </p>
           )}
           <PronunciationReport pronunciation={practiceResult} user={user} copy={copy} />
+          {focusWord && focusWord !== activeTarget && (
+            <Button className="pronunciation-focus-retry" type="button" variant="outline" disabled={busy === "pronunciation" || busy === "pronunciation-start"} onClick={() => setFocusTarget(focusWord)}>
+              {russian ? "Отработать слово" : "Practise the word"} <span dir="auto">{focusWord}</span>
+            </Button>
+          )}
         </section>
       ) : null}
       <section className="v2-panel pronunciation-hero-v2">

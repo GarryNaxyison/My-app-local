@@ -3072,6 +3072,18 @@ test("pronunciation is a standalone sample, voice input, result and next sample 
   });
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
   await expect(comparison).toContainText("67/100 → 67/100");
+  await page.locator(".pronunciation-focus-retry").click();
+  await expect(page.locator(".pronunciation-target-primary-v2 h2")).toHaveText("coffee");
+  await expect(comparison).toHaveCount(0);
+  await page.route("**/api/pronunciation/check", (route) => route.fulfill({
+    json: { pronunciation: { expected: "coffee", spoken: "", score: 18, confidence_source: "logprobs", average_confidence: 0.2 } },
+  }));
+  await page.locator('.pronunciation-tools-v2 input[type="file"]').setInputFiles({
+    name: "quiet.webm", mimeType: "audio/webm", buffer: Buffer.from("quiet-audio"),
+  });
+  await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Record and check|Записать|Проверить/ }).click();
+  await expect(page.locator(".pronunciation-retry-notice")).toBeVisible();
+  await expect(page.locator(".pronunciation-result-window-v2 .pronunciation-report-v2")).toHaveCount(0);
 
   await page.locator(".pronunciation-tools-v2").getByRole("button", { name: /Next phrase|Следующая|Следующий/ }).click();
   await expect(page.locator(".pronunciation-workbench-v2")).toBeVisible();
