@@ -3822,6 +3822,25 @@ test("AI Tutor preparation timer survives a page refresh", async ({ page }) => {
   await expect(page.locator(".tutor-loading-panel [role=timer]")).not.toHaveText("Прошло: 00:00");
 });
 
+test("microphone icon stays in place when the recording button is hovered", async ({ page, isMobile }) => {
+  test.skip(isMobile, "pointer hover");
+  await page.goto("/app/?view=practice");
+  const button = page.locator(".record-button-v2 .voice-input-shell");
+  const icon = button.locator("svg");
+  await expect(icon).toBeVisible();
+  const before = await button.boundingBox();
+  await button.hover();
+  await button.evaluate(async (element) => {
+    element.getBoundingClientRect();
+    await Promise.all(element.getAnimations().map((animation) => animation.finished));
+  });
+  const after = await button.boundingBox();
+  const glyph = await icon.boundingBox();
+  expect(after!.y).toBeCloseTo(before!.y, 1);
+  expect(glyph!.y).toBeGreaterThan(after!.y);
+  expect(glyph!.y + glyph!.height).toBeLessThan(after!.y + after!.height);
+});
+
 test("voice recording recovers after microphone permission is denied", async ({ page }) => {
   await page.addInitScript(() => {
     let calls = 0;

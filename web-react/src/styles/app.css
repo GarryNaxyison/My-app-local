@@ -6118,6 +6118,10 @@ select {
   box-shadow: 0 14px 32px color-mix(in srgb, var(--primary) 13%, transparent);
 }
 
+.record-button-v2:hover button.voice-input-shell {
+  transform: none;
+}
+
 .audio-upload-card-v2.is-compact {
   width: min(260px, 100%);
   max-width: 260px;
