@@ -93,6 +93,7 @@ import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
 import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
+import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner } from "./components/OfflineReview";
 import { MistakeTransfer } from "./components/MistakeTransfer";
 import { buildMistakeTransfer, type MistakeTransferTask } from "./lib/mistakeTransfer";
 import { pwaUsesRussian } from "./components/PwaInstall";
@@ -2159,6 +2160,9 @@ export function App() {
   };
 
   const accountKey = asText(session?.account?.login || user.telegram_account?.id || "guest", "guest");
+  useEffect(() => {
+    if (session) selectOfflineOwner(session.authenticated ? asText(session.account?.login || user.telegram_account?.id) : "");
+  }, [session?.authenticated, accountKey]);
   const onboardingKey = `poliglot-onboarding-v2:${accountKey}`;
   const paymentHistoryKey = `poliglot-payment-history-v2:${accountKey}`;
   const habitKey = `poliglot-habit-v2:${accountKey}`;
@@ -3299,6 +3303,7 @@ export function App() {
     setBusy("logout");
     try {
       await logout();
+      clearOfflineOwner();
     } finally {
       setSession(null);
       location.replace(appLoginPath);
@@ -3420,6 +3425,7 @@ export function App() {
       <main className="pwa-offline-screen">
         <section className="v2-panel">
           <h1>{russian ? "Нет подключения" : "You’re offline"}</h1>
+          <OfflineReview russian={russian} />
           <p>{russian ? "Подключитесь к интернету, чтобы войти и загрузить прогресс." : "Connect to the internet to sign in and load your progress."}</p>
           <Button type="button" onClick={() => location.reload()}>{russian ? "Попробовать снова" : "Try again"}</Button>
         </section>
@@ -6861,7 +6867,8 @@ function formatOfflineDeckTxt(deck: OfflineDeckItem[], copy: (key: string, fallb
     .join("\n\n");
 }
 
-function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, loadMistakes, busy, copy }: ViewRendererProps) {
+function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, loadMistakes, busy, copy, session, user }: ViewRendererProps) {
+  const owner = asText(session.account?.login || user.telegram_account?.id);
   const [deck, setDeck] = useState<OfflineDeckItem[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("poliglot-offline-deck-v2") || "[]") as OfflineDeckItem[];
@@ -6890,11 +6897,13 @@ function OfflineDecksView({ vocabulary, mistakes, phrasebook, loadVocabulary, lo
     const [nextVocabulary, nextMistakes] = await Promise.all([loadVocabulary(0, { navigate: false }), loadMistakes({ navigate: false })]);
     const next = buildOfflineDeck(nextVocabulary.length ? nextVocabulary : vocabulary, nextMistakes.length ? nextMistakes : mistakes, phrasebook);
     setDeck(next);
+    saveOfflineCards(owner, next);
     localStorage.setItem("poliglot-offline-deck-v2", JSON.stringify(next));
   };
   const removeDeckItem = (itemId: string) => {
     const next = sourceDeck.filter((item) => item.id !== itemId);
     setDeck(next);
+    saveOfflineCards(owner, next, true);
     localStorage.setItem("poliglot-offline-deck-v2", JSON.stringify(next));
   };
   const downloadDeck = (format: "txt" | "json") => {

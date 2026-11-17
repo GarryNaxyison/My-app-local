@@ -1054,6 +1054,16 @@ const todayReviewItem = {
   status: "due",
 };
 
+test("refreshing the offline deck saves cards under the signed-in account", async ({ page }) => {
+  await page.goto("/app/?view=offline");
+  await page.locator(".offline-hero-v2 .home-insights-v2__actions button").first().click();
+  await expect.poll(() => page.evaluate(() => {
+    const owner = localStorage.getItem("neriva-offline-owner");
+    const cards = JSON.parse(localStorage.getItem(`neriva-offline-cards:${owner}`) || "[]");
+    return owner === "demor22" && cards.length > 0 && cards.length <= 100;
+  })).toBe(true);
+});
+
 test("Telegram review link selects the exact item and never substitutes another", async ({ page }) => {
   const target = { ...todayReviewItem, id: "mistake:linked", source: "mistake", title: "Linked exercise" };
   await page.route("**/api/learning-reviews", (route) => route.fulfill({ json: { items: [todayReviewItem, target] } }));

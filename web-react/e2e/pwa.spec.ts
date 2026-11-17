@@ -56,6 +56,18 @@ test("the service worker reuses entry assets and stores a single public app shel
   const response = await page.goto("/app/?install=1&lang=en");
   expect(response?.fromServiceWorker()).toBe(true);
   await expect(page.getByText("You’re offline", { exact: true })).toBeVisible();
+  await page.evaluate(() => {
+    localStorage.setItem("neriva-offline-owner", "test");
+    localStorage.setItem("neriva-offline-cards:test", JSON.stringify([{ id: "one", title: "apple", answer: "яблоко" }]));
+  });
+  await page.reload();
+  await expect(page.getByText("apple", { exact: true })).toBeVisible();
+  await expect(page.getByText("яблоко", { exact: true })).toBeHidden();
+  await page.getByText("Show answer", { exact: true }).click();
+  await expect(page.getByText("яблоко", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "I remembered" }).click();
+  await page.reload();
+  await expect(page.getByText("Reviewed on this device: 1")).toBeVisible();
   const keys = await cacheKeys();
   expect(keys.filter((key) => key === "/app/")).toHaveLength(1);
   expect(keys.every((key) => !key.includes("?") && !key.startsWith("/api/"))).toBe(true);
