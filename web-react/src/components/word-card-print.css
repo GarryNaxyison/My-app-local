@@ -1,0 +1,41 @@
+.word-card-print {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-block: 12px 24px;
+}
+
+.word-card-print__controls,
+.word-card-print__controls label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.word-card-print button,
+.word-card-print select,
+.word-card-print figcaption a {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+.word-card-print summary { cursor: pointer; }
+.word-card-print__selection { list-style: none; padding: 0; }
+.word-card-print__selection label { display: flex; gap: 8px; align-items: baseline; }
+
+.word-card-print__sheets {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 360px));
+  gap: 16px;
+}
+
+.word-card-print__sheet { margin: 0; min-width: 0; }
+.word-card-print__sheet img { display: block; width: 100%; height: auto; }
+.word-card-print__sheet figcaption { display: flex; margin-top: 8px; }
+.word-card-print__frame { position: fixed; width: 0; height: 0; border: 0; }

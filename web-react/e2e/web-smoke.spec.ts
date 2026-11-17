@@ -5196,3 +5196,23 @@ test("regression: mobile leaderboard stays readable above bottom menu", async ({
   expect(scrollMetrics.windowScrollY).toBeGreaterThanOrEqual(0);
   expect(scrollMetrics.overflowX).toBeLessThanOrEqual(1);
 });
+
+test("prints vocabulary as ordered folding sheets", async ({ page }) => {
+  await mockApi(page);
+  await page.goto("/app/?view=vocabulary");
+  await page.getByRole("button", { name: /Print word cards|Печатные карточки/ }).click();
+  const sheets = page.locator("[data-word-card-sheet]");
+  await expect(sheets).toHaveCount(2);
+  await expect(sheets.first()).toHaveAttribute("width", "1240");
+  const download = page.waitForEvent("download");
+  await page.getByRole("link", { name: "PNG 2" }).click();
+  expect((await download).suggestedFilename()).toBe("NERIVA-A4-2.png");
+  const layout = page.getByRole("combobox", { name: /Layout|Раскладка/ });
+  await layout.selectOption("cut");
+  await expect(sheets).toHaveCount(2);
+  await page.locator(".word-card-print summary").click();
+  for (const checkbox of (await page.locator(".word-card-print__selection input").all()).slice(6)) {
+    await checkbox.uncheck();
+  }
+  await expect(sheets).toHaveCount(1);
+});

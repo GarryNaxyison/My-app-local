@@ -91,6 +91,7 @@ import { appCopy, appNavDescription, cleanAppText, normalizeAppLocale, translate
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
+import { WordCardPrint } from "./components/WordCardPrint";
 import { pwaUsesRussian } from "./components/PwaInstall";
 import ChatComponent, { type ChatConfig } from "./components/ui/chat-interface";
 import { InstagramIcon, TelegramIcon, TikTokIcon, YouTubeIcon } from "./components/BrandIcons";
@@ -7702,6 +7703,7 @@ function VocabularyView({ vocabulary, vocabularyMeta, loadVocabulary, busy, copy
           />
         </div>
       </div>
+      {vocabulary.length > 0 && <WordCardPrint key={vocabularyMeta.page} items={vocabulary} russian={languageCode(user.interface_language) === "ru"} />}
       <div className="vocabulary-grid-v2">
         {vocabulary.length ? (
           vocabulary.map((item) => (
