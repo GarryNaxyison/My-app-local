@@ -638,7 +638,9 @@ test("landing hero pairs the official brand with live product windows", async ({
   await expect(page.locator(".landing-hero__matter canvas")).toHaveCount(1);
   await expect(page.locator(".hero-brand-emblem img")).toHaveAttribute("src", "/assets/brand/neriva-symbol.png");
   await expect(page.locator(".hero-windows__lesson")).toBeVisible();
-  await expect(page.locator(".hero-windows [data-window=mistakes]")).toBeVisible();
+  await expect(page.locator(".scenario-shot [data-window=mistakes] iframe")).toBeVisible();
+  await page.locator(".scenario-shot").scrollIntoViewIfNeeded();
+  await expect(page.frameLocator(".scenario-shot iframe").getByText("I have a reservation.", { exact: true }).first()).toBeInViewport();
   await expect(page.locator(".landing-hero img[src*='/assets/product/']")).toHaveCount(0);
 });
 

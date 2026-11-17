@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ArrowDown, BookOpen, Camera, LayoutDashboard, MessageCircle, Mic, NotebookPen, Repeat2 } from "lucide-react";
+import { BookOpen, Camera, LayoutDashboard, MessageCircle, Mic, NotebookPen, Repeat2 } from "lucide-react";
 import type { LandingContent, LandingLocale } from "./landingContent";
 import "./productWindows.css";
 
@@ -18,19 +17,18 @@ const windows = {
   telegram: { view: "lesson", label: { ru: "Урок в веб-приложении", en: "Web app lesson" }, icon: MessageCircle },
 } satisfies Record<WindowKind, unknown>;
 
-function PreviewFrame({ kind, language }: { kind: WindowKind; language: LandingLocale }) {
+function PreviewFrame({ kind, language, eager = false }: { kind: WindowKind; language: LandingLocale; eager?: boolean }) {
   const window = windows[kind];
-  return <iframe className="product-window__frame" src={`/product-preview.html?view=${window.view}&lang=${language}`} title={window.label[language]} sandbox="allow-scripts allow-same-origin allow-forms" allow="camera 'none'; microphone 'none'" />;
+  return <iframe className="product-window__frame" src={`/product-preview.html?view=${window.view}&lang=${language}`} title={window.label[language]} loading={eager ? "eager" : "lazy"} sandbox="allow-scripts allow-same-origin allow-forms" allow="camera 'none'; microphone 'none'" />;
 }
 
 export function ProductWindow({ kind, language }: { kind: WindowKind; language: LandingLocale }) {
-  const [loaded, setLoaded] = useState(false);
   const { label, icon: Icon } = windows[kind];
   return (
-    <details className="product-window" data-window={kind} onToggle={(event) => { if (event.currentTarget.open) setLoaded(true); }}>
-      <summary className="product-window__title"><Icon size={17} aria-hidden="true" />{label[language]}<ArrowDown className="product-window__arrow" size={15} aria-hidden="true" /></summary>
-      {loaded && <PreviewFrame kind={kind} language={language} />}
-    </details>
+    <figure className="product-window" data-window={kind}>
+      <div className="product-window__title"><Icon size={17} aria-hidden="true" />{label[language]}</div>
+      <PreviewFrame kind={kind} language={language} />
+    </figure>
   );
 }
 
@@ -39,9 +37,8 @@ export function HeroLesson({ language }: { language: LandingLocale }) {
     <div className="hero-product-frame hero-windows">
       <div className="product-window hero-windows__lesson" data-window="tutor">
         <div className="product-window__title"><BookOpen size={19} aria-hidden="true" /><strong>{language === "ru" ? "Пробный урок" : "Sample lesson"}</strong></div>
-        <PreviewFrame kind="aiTutor" language={language} />
+        <PreviewFrame kind="aiTutor" language={language} eager />
       </div>
-      <ProductWindow kind="mistakes" language={language} />
     </div>
   );
 }

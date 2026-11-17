@@ -21,12 +21,8 @@
   font-weight: 650;
 }
 .product-window__title svg { flex: none; color: #b6baff; }
-summary.product-window__title { cursor: pointer; list-style: none; }
-summary.product-window__title::-webkit-details-marker { display: none; }
-summary.product-window__title:focus-visible { outline: 2px solid #b6baff; outline-offset: -3px; }
-.product-window__arrow { margin-inline-start: auto; }
-.product-window[open] .product-window__arrow { transform: rotate(180deg); }
-.product-window__frame { display: block; width: 100%; height: 330px; border: 0; border-top: 1px solid #8d9df044; background: #0c1324; }
+.product-window__frame { display: block; width: 100%; height: 392px; border: 0; border-top: 1px solid #8d9df044; background: #0c1324; }
+.product-window:focus-within { border-color: #9da9f7; }
 
 .english-spark-landing .hero-product-frame.hero-windows {
   position: relative;
@@ -41,19 +37,19 @@ summary.product-window__title:focus-visible { outline: 2px solid #b6baff; outlin
 .english-spark-landing .hero-windows::before { content: none; }
 .hero-windows__lesson { width: 100%; }
 .hero-windows__lesson .product-window__frame { height: 418px; }
-.hero-windows > details { justify-self: end; width: min(100%, 330px); }
-.english-spark-landing :is(.scenario-shot, .feature-panel, .mobile-panel, .use-case-card, .ecosystem-card, .proof-section__shots) .product-window { width: 100%; }
+.english-spark-landing :is(.scenario-shot, .feature-panel, .mobile-panel, .use-case-card, .ecosystem-card, .proof-section__shots) .product-window { grid-column: auto; width: 100%; }
 .english-spark-landing .scenario-shot { padding: 12px; }
+.scenario-shot .product-window__frame { height: 510px; }
+.lesson-scenario__copy h2 { margin-block-end: 14px; }
 .english-spark-landing :is(.feature-panel, .mobile-panel):has(.product-window) { min-height: 0; align-items: center; }
+.use-case-card .product-window__frame, .ecosystem-card .product-window__frame { height: 320px; }
 
 @media (max-width: 620px) {
   .hero-windows__lesson .product-window__frame { height: 375px; }
-  .hero-windows > details { width: 100%; }
+  .product-window__frame { height: 360px; }
+  .scenario-shot .product-window__frame { height: 460px; }
 }
 @media (min-width: 360px) and (max-width: 620px) {
   .english-spark-landing .hero-actions { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 8px; }
   .english-spark-landing .hero-actions .hero-action { padding-inline: 12px; }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .product-window__arrow { transition: transform 160ms ease-out; }
 }

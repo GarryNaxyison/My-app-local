@@ -175,7 +175,7 @@ export function EnglishSparkLanding({ language = "en" }: EnglishSparkLandingProp
           </div>
         </div>
         <div className="scenario-shot" aria-label="AI Tutor lesson example">
-          <ProductWindow kind="aiTutor" language={language} />
+          <ProductWindow kind="mistakes" language={language} />
           <div className="scenario-shot__caption">
             <span>{copy.scenario.captionLabel}</span>
             <strong>{copy.scenario.caption}</strong>

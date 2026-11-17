@@ -269,18 +269,17 @@ test("landing v3 mobile hero and methodology do not look clipped", async ({ page
   expect(layout.labelLeft).toBeGreaterThanOrEqual(layout.dotRight + 12);
 });
 
-test("product windows show their own examples with keyboard and touch controls", async ({ page }) => {
+test("product windows show their live screens without a disclosure click", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/neriva.html?lang=en");
   await expect(page.locator(".english-spark-landing img[src*='/assets/product/']")).toHaveCount(0);
   const feature = page.locator(".feature-panel");
   await page.locator(".feature-carousel__tab").nth(2).click();
   await expect(feature.locator("[data-window='photo']")).toBeVisible();
-  const photo = feature.locator("[data-window='photo'] summary");
-  await photo.focus();
-  await page.keyboard.press("Enter");
   await expect(feature.frameLocator("iframe").locator(".tools-layout-v2")).toBeVisible();
+  await feature.frameLocator("iframe").getByRole("button", { name: "Show a sample translation" }).click();
+  await expect(feature.frameLocator("iframe").locator(".chat-panel-v2")).toContainText("Breakfast until 10:30.");
   await page.locator(".feature-carousel__tab").nth(1).click();
-  await feature.locator("[data-window='voice'] summary").click();
   await expect(feature.frameLocator("iframe").locator(".pronunciation-workbench-v2")).toContainText("Could I check in now?");
+  await expect(page.locator("details.product-window")).toHaveCount(0);
 });

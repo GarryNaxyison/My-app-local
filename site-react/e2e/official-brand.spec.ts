@@ -96,7 +96,7 @@ test("official brand and live application windows are visible", async ({ page })
   await expect(logo).toHaveAttribute("src", /\/assets\/brand\/neriva-/);
   await expect(page.locator('.public-brand .official-brand').first()).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(page.locator('.hero-brand-emblem')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-  await expect(page.locator('.hero-product-frame .product-window')).toHaveCount(2);
+  await expect(page.locator('.hero-product-frame .product-window')).toHaveCount(1);
   await expect(page.locator('.hero-product-frame img')).toHaveCount(0);
   await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   const aspect = await logo.evaluate((img: HTMLImageElement) => ({ actual: img.getBoundingClientRect().width / img.getBoundingClientRect().height, natural: img.naturalWidth / img.naturalHeight }));
