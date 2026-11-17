@@ -745,11 +745,13 @@ func TestPublicSiteReactBuildSupportsLandingAndLegalPages(t *testing.T) {
 			t.Fatalf("public React site source is missing %q", want)
 		}
 	}
-	localePage := string(i18nSource)
-	for _, code := range []string{"ru", "en", "es", "de", "fr", "it", "zh", "ja", "ko", "tg", "uz", "tt", "hy", "kk", "ky", "ka", "uk", "pl", "ro", "pt"} {
-		if !strings.Contains(localePage, `"`+code+`"`) {
-			t.Fatalf("public React site is missing locale %q", code)
-		}
+	locales := regexp.MustCompile(`(?m)^\s*const languages\s*=\s*(\[.*\]);`).FindSubmatch(i18nSource)
+	var languageOptions [][]string
+	if len(locales) != 2 || json.Unmarshal(locales[1], &languageOptions) != nil {
+		t.Fatal("public site language options are missing or invalid")
+	}
+	if len(languageOptions) != 2 || len(languageOptions[0]) != 2 || len(languageOptions[1]) != 2 || languageOptions[0][0] != "ru" || languageOptions[1][0] != "en" {
+		t.Fatalf("public site should offer Russian and English, got %v", languageOptions)
 	}
 }
 

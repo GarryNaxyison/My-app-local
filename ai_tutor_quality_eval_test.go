@@ -87,6 +87,10 @@ func TestTutorQualityLive(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			raw, err := engine.checkFreeTextStage(ctx, user, lesson, aiTutorStageQuestion1, item.answer)
 			if err != nil {
+				var httpError *openRouterHTTPError
+				if errors.As(err, &httpError) {
+					t.Fatalf("%s run %d: provider returned HTTP %d", item.name, i+1, httpError.status)
+				}
 				var schemaError *json.UnmarshalTypeError
 				if errors.As(err, &schemaError) {
 					t.Fatalf("%s run %d: provider response field %q has type %s, expected %s", item.name, i+1, schemaError.Field, schemaError.Value, schemaError.Type)

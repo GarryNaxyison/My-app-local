@@ -21,6 +21,18 @@ type openRouterClient struct {
 	http    *http.Client
 }
 
+type openRouterHTTPError struct {
+	status  int
+	message string
+}
+
+func (e *openRouterHTTPError) Error() string {
+	if e.message != "" {
+		return fmt.Sprintf("openrouter: status %d: %s", e.status, e.message)
+	}
+	return fmt.Sprintf("openrouter: status %d", e.status)
+}
+
 type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
@@ -98,14 +110,16 @@ func (c *openRouterClient) completeWithModel(ctx context.Context, model string, 
 			Message string `json:"message"`
 		} `json:"error"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
-		return "", err
-	}
+	decodeErr := json.NewDecoder(resp.Body).Decode(&decoded)
 	if resp.StatusCode >= 400 {
-		if decoded.Error != nil && decoded.Error.Message != "" {
-			return "", fmt.Errorf("openrouter: %s", decoded.Error.Message)
+		providerErr := &openRouterHTTPError{status: resp.StatusCode}
+		if decodeErr == nil && decoded.Error != nil {
+			providerErr.message = decoded.Error.Message
 		}
-		return "", fmt.Errorf("openrouter: status %d", resp.StatusCode)
+		return "", providerErr
+	}
+	if decodeErr != nil {
+		return "", decodeErr
 	}
 	if len(decoded.Choices) == 0 || decoded.Choices[0].Message.Content == "" {
 		return "", fmt.Errorf("openrouter returned an empty response")
