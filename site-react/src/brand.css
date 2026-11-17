@@ -379,6 +379,40 @@ html[data-site-theme="light"] .english-spark-landing .hero-install-link small { 
 .lesson-example__feedback:empty { margin: 0; }
 .lesson-example__feedback strong { color: #f7e1bf; }
 
+html[data-site-theme="dark"] .english-spark-landing .landing-hero {
+  background:
+    radial-gradient(ellipse at 77% 25%, #262953 0%, transparent 52%),
+    linear-gradient(155deg, #181629 0%, #10142b 53%, #0d1026 100%);
+}
+.english-spark-landing .landing-hero h1 { letter-spacing: -.045em; }
+.english-spark-landing .hero-product-frame .product-shot img {
+  border: 1px solid #929bf442;
+  box-shadow: 0 22px 50px #05072266, inset 0 0 0 1px #ffffff12;
+}
+.english-spark-landing .lesson-example {
+  border-color: #6a71ad85;
+  background: linear-gradient(150deg, #22294c, #181e36);
+}
+.english-spark-landing .lesson-example legend { color: #edf0ff; }
+.english-spark-landing .lesson-example__answers button { background: #151c36; }
+.english-spark-landing .lesson-example__answers button[aria-pressed="true"] { background: #354078; }
+html[data-site-theme="light"] .english-spark-landing .lesson-example { background: #edf0ff; border-color: #b2bae7; }
+html[data-site-theme="light"] .english-spark-landing .lesson-example legend { color: #232f77; }
+html[data-site-theme="light"] .english-spark-landing .lesson-example__feedback strong { color: #282e76; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .english-spark-landing .lesson-example__answers button {
+    transition: border-color 160ms ease-out, background-color 160ms ease-out;
+  }
+  .english-spark-landing .lesson-example__feedback:not(:empty) {
+    animation: lesson-feedback-enter 220ms cubic-bezier(.2, .75, .25, 1) both;
+  }
+  @keyframes lesson-feedback-enter {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
 @media (max-width: 760px) {
   .english-spark-landing .landing-hero__matter {
     top: 32%;

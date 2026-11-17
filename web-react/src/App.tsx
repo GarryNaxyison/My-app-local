@@ -87,7 +87,7 @@ import type {
   WordChallenge,
 } from "./lib/types";
 import { asText, compactNumber, percent, prettyDate } from "./lib/format";
-import { appCopy, appNavDescription, cleanAppText, translateViewDetails } from "./lib/i18n";
+import { appCopy, appNavDescription, cleanAppText, normalizeAppLocale, translateViewDetails } from "./lib/i18n";
 import { cn } from "./lib/utils";
 import { Button } from "./components/ui/button";
 import { LearningNavigation } from "./components/LearningNavigation";
@@ -2119,6 +2119,10 @@ export function App() {
   const user = session?.user || {};
 
   useEffect(() => {
+    if (user.interface_language) document.documentElement.lang = normalizeAppLocale(user.interface_language);
+  }, [user.interface_language]);
+
+  useEffect(() => {
     if (user.interface_language && toolTargetLanguage === "ru") {
       setToolTargetLanguage(user.interface_language);
     }
@@ -3724,6 +3728,9 @@ function AuthStandaloneView({
 }) {
   const storedLanguage = localStorage.getItem("poliglot-auth-language") || session?.user?.interface_language || languageCode(navigator.language || "ru");
   const [language, setLanguage] = useState(storedLanguage);
+  useEffect(() => {
+    document.documentElement.lang = normalizeAppLocale(language);
+  }, [language]);
   const [mode, setMode] = useState<SignInMode>("login");
   const [status, setStatus] = useState<{ kind: StatusKind; text: string } | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -6893,6 +6900,16 @@ function ChatWorkView({
   const lessonMistakes = recordMistakes(completedAnswer?.mistakes);
   const reviewPhrase = recordField(lessonMistakes[0] ?? {}, ["correction"]) || recordField(completedAnswer ?? {}, ["correction", "model_phrase"]);
   const lessonComposerLocked = isLesson && !lessonHasActiveTask;
+  const summaryRef = useRef<HTMLElement>(null);
+  const wasAnswering = useRef(lessonHasActiveTask);
+  useLayoutEffect(() => {
+    const justFinished = wasAnswering.current && !lessonHasActiveTask && Boolean(completedAnswer);
+    wasAnswering.current = lessonHasActiveTask;
+    if (!justFinished || !summaryRef.current) return;
+    summaryRef.current.focus({ preventScroll: true });
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    summaryRef.current.scrollIntoView({ block: "start", behavior: reduced ? "instant" : "smooth" });
+  }, [lessonHasActiveTask, completedAnswer]);
   const textareaRef = useAutoResizeTextarea(draft);
   const answerLabel = copy("lesson_answer", "Lesson answer");
   return (
@@ -6931,8 +6948,8 @@ function ChatWorkView({
             <>
               <ChatPanel messages={visibleMessages} copy={copy} targetLanguage={user.learning_language} />
               {completedAnswer ? (
-                <section className="v2-panel lesson-result-summary">
-                  <h2>{copy("tutor_lesson_complete", "Lesson complete")}</h2>
+                <section className="v2-panel lesson-result-summary" ref={summaryRef} tabIndex={-1} aria-labelledby="lesson-result-title">
+                  <h2 id="lesson-result-title">{copy("tutor_lesson_complete", "Lesson complete")}</h2>
                   <p>{reviewPhrase ? copy("lesson_review_tomorrow", "Try saying the corrected phrase from memory tomorrow.") : copy("lesson_review_tomorrow_generic", "Tomorrow, try answering this task again from memory.")}</p>
                   {reviewPhrase ? <p lang={user.learning_language}><strong>{reviewPhrase}</strong></p> : null}
                   <div className="lesson-result-summary__actions">

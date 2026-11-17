@@ -266,6 +266,8 @@ body:has(.v2-shell--learning),
 .lesson-result-summary {
   margin-block: 16px;
   padding: clamp(16px, 3vw, 24px);
+  scroll-margin-block-start: 96px;
+  border-color: color-mix(in srgb, var(--accent, #969aff) 40%, transparent);
 }
 
 .lesson-result-summary h2 { margin: 0 0 8px; }
@@ -274,6 +276,14 @@ body:has(.v2-shell--learning),
 .lesson-result-summary__actions button { min-height: 44px; }
 .lesson-result-summary__actions .lesson-panel-next-v2 { margin: 0; }
 .tutor-review-actions { margin-block: 12px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .lesson-result-summary { animation: lesson-result-enter 260ms cubic-bezier(.2, .7, .25, 1) both; }
+  @keyframes lesson-result-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
 
 .v2-shell--learning .learning-start__art,
 .v2-shell--learning .learning-start > img {

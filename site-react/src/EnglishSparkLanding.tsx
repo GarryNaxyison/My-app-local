@@ -83,10 +83,10 @@ function RevealSection({ children, transition, ...props }: RevealSectionProps) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 34, scale: 0.985 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={revealViewport}
-      transition={{ duration: 0.72, ease: [0.22, 1, 0.36, 1], ...transition }}
+      transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1], ...transition }}
       {...props}
     >
       {children}
@@ -103,10 +103,10 @@ function RevealArticle({ children, transition, ...props }: RevealArticleProps) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 26, filter: "blur(10px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={revealViewport}
-      transition={{ duration: 0.62, ease: [0.22, 1, 0.36, 1], ...transition }}
+      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1], ...transition }}
       {...props}
     >
       {children}

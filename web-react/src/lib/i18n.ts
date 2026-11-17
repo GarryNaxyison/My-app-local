@@ -1,4 +1,5 @@
 import type { ViewId } from "./types";
+import { lessonReviewCopy } from "./lessonReviewCopy";
 
 export const appLocaleCodes = [
   "ru",
@@ -96,9 +97,6 @@ const en: Record<string, string> = {
   image_message: "Image message",
   done: "Done.",
   lesson_feedback: "Lesson feedback",
-  lesson_review_tomorrow: "Try saying the corrected phrase from memory tomorrow.",
-  lesson_review_tomorrow_generic: "Tomorrow, try answering this task again from memory.",
-  lesson_review_words: "Words to revisit",
   practice_feedback: "Practice feedback",
   you: "You",
   phrase_ready: "Phrase is ready.",
@@ -543,9 +541,6 @@ const ru: Record<string, string> = {
   add_input_first: "Сначала добавьте текст, голос или фото для практики.",
   done: "Готово.",
   lesson_feedback: "Проверка урока",
-  lesson_review_tomorrow: "Завтра попробуйте произнести исправленную фразу по памяти.",
-  lesson_review_tomorrow_generic: "Завтра попробуйте заново ответить на это задание по памяти.",
-  lesson_review_words: "Слова для повторения",
   practice_feedback: "Ответ практики",
   you: "Вы",
   phrase_ready: "Фраза готова.",
@@ -6056,7 +6051,15 @@ const learningNavigationCopy: Record<AppLocaleCode, { navigation_search: string;
 };
 
 appLocaleCodes.forEach((code) => {
-  localeOverrides[code] = { ...(localeOverrides[code] || {}), ...learningNavigationCopy[code] };
+  const [correctedPhrase, openTask, words, requestFailed] = lessonReviewCopy[code];
+  localeOverrides[code] = {
+    ...(localeOverrides[code] || {}),
+    ...learningNavigationCopy[code],
+    lesson_review_tomorrow: correctedPhrase,
+    lesson_review_tomorrow_generic: openTask,
+    lesson_review_words: words,
+    request_failed: requestFailed,
+  };
 });
 
 function isLikelyFallbackLeak(locale: AppLocaleCode, key: string, value: string, fallback?: string) {
@@ -6113,7 +6116,7 @@ export function cleanAppText(value: unknown): string {
 }
 
 export function normalizeAppLocale(code: string | undefined | null): AppLocaleCode {
-  const normalized = String(code || "").toLowerCase().trim();
+  const normalized = String(code || "").toLowerCase().trim().split(/[-_]/, 1)[0];
   return appLocaleCodes.includes(normalized as AppLocaleCode) ? (normalized as AppLocaleCode) : "ru";
 }
 

@@ -135,7 +135,7 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
   expect(initialState.top).toBeGreaterThan(900);
   expect(Number(initialState.opacity)).toBeLessThan(0.05);
   expect(initialState.transform).not.toBe("none");
-  expect(initialState.filter).toContain("blur");
+  expect(initialState.filter).toBe("none");
 
   await featurePanel.scrollIntoViewIfNeeded();
 
@@ -148,12 +148,6 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
       return Math.abs(transform === "none" ? 0 : Number(transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*([^)]+)\)/)?.[1] ?? 0));
     }),
   ).toBeLessThan(0.5);
-  await expect.poll(async () =>
-    featurePanel.evaluate((element) => {
-      const filter = getComputedStyle(element).filter;
-      return Number(filter.match(/^blur\(([^)]+)px\)$/)?.[1] ?? 0);
-    }),
-  ).toBeLessThan(0.05);
 
   const revealedState = await featurePanel.evaluate((element) => {
     const style = getComputedStyle(element);
@@ -166,8 +160,7 @@ test("landing v3 blocks reveal as the visitor scrolls", async ({ page }) => {
   expect(Number(revealedState.opacity)).toBeGreaterThan(0.95);
   const translateY = revealedState.transform === "none" ? 0 : Number(revealedState.transform.match(/matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*([^)]+)\)/)?.[1] ?? 0);
   expect(Math.abs(translateY)).toBeLessThan(0.5);
-  const blurPx = Number(revealedState.filter.match(/^blur\(([^)]+)px\)$/)?.[1] ?? 0);
-  expect(blurPx).toBeLessThan(0.05);
+  expect(revealedState.filter).toBe("none");
 });
 
 test("Russian landing localizes metrics and methodology blocks", async ({ page }) => {

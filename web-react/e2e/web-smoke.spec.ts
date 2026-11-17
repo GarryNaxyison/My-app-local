@@ -1118,6 +1118,8 @@ test("lesson answer shortcut focuses a reachable reply and keeps lesson progress
   await expect(shortcut).toHaveCount(0);
   const summary = lesson.locator(".lesson-result-summary");
   await expect(summary).toContainText(correction);
+  await expect(summary).toBeFocused();
+  await expect(summary).toBeInViewport();
   await summary.getByRole("button", { name: appCopy("ru", "word_game") }).click();
   await expect(page).toHaveURL(/view=word-game/);
 });
