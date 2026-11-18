@@ -2,7 +2,6 @@ package ru.neriva.app.ui.screens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,10 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +29,7 @@ import ru.neriva.app.NERIVAApp
 import ru.neriva.app.R
 import ru.neriva.app.ui.SessionViewModel
 import ru.neriva.app.ui.components.NerivaAction
+import ru.neriva.app.ui.components.nerivaWingCover
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,16 +96,8 @@ private fun TutorCover(onStart: () -> Unit) {
     val shape = RoundedCornerShape(28.dp)
     Box(
         Modifier.fillMaxWidth().clip(shape)
-            .background(Brush.horizontalGradient(listOf(Color(0xFF191F58), Color(0xFF3037A4)))),
+            .nerivaWingCover(),
     ) {
-        Canvas(Modifier.matchParentSize()) {
-            val center = Offset(size.width * 0.90f, size.height * 0.20f)
-            for (ring in 1..5) {
-                drawCircle(Color(0xFFABB7FF).copy(alpha = 0.15f), size.height * (0.16f + ring * 0.14f), center, style = Stroke(1.dp.toPx()))
-            }
-            drawCircle(Color(0xFFFFBF7A), 3.dp.toPx(), Offset(size.width * 0.87f, size.height * 0.55f))
-            drawCircle(Color(0xFF9BA5FF), 4.dp.toPx(), Offset(size.width * 0.76f, size.height * 0.25f))
-        }
         Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Image(painterResource(R.drawable.neriva_brand_symbol), null, Modifier.width(58.dp))
             Text(stringResource(R.string.ai_tutor), color = Color.White, style = MaterialTheme.typography.displaySmall)

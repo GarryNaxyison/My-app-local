@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,7 +22,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -44,6 +42,7 @@ import ru.neriva.app.data.model.LessonData
 import ru.neriva.app.data.model.WordData
 import ru.neriva.app.data.repo.TutorRepository
 import ru.neriva.app.ui.components.NerivaAction
+import ru.neriva.app.ui.components.nerivaWingCover
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -204,7 +203,7 @@ private fun TutorLessonCover(lesson: LessonData) {
     Surface(shape = MaterialTheme.shapes.extraLarge) {
         Column(
             Modifier.fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Color(0xFF191F58), Color(0xFF3037A4))))
+                .nerivaWingCover()
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

@@ -1,6 +1,13 @@
 package ru.neriva.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,13 +45,31 @@ fun BottomNavBar(
     moreSelected: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
+    val active = if (moreSelected) items.size else items.indexOfFirst { it.route == currentRoute }
+    val activePosition by animateFloatAsState(
+        active.coerceAtLeast(0).toFloat(), tween(NerivaTransitionMillis), label = "dockActivePosition",
+    )
+    val activeAlpha by animateFloatAsState(if (active >= 0) 1f else 0f, label = "dockActiveAlpha")
     Surface(modifier, color = colors.surface) {
         Column {
             HorizontalDivider(color = colors.outline)
             Box(Modifier.fillMaxWidth().windowInsetsPadding(NavigationBarDefaults.windowInsets), contentAlignment = Alignment.Center) {
                 Row(
                     Modifier.widthIn(max = 720.dp).fillMaxWidth().height(IntrinsicSize.Min)
-                        .padding(horizontal = 6.dp, vertical = 4.dp).selectableGroup(),
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                        .drawBehind {
+                            val column = size.width / (items.size + 1)
+                            val start = column * (activePosition + .5f)
+                            val center = if (layoutDirection == LayoutDirection.Rtl) size.width - start else start
+                            val width = 19.dp.toPx()
+                            val height = 2.dp.toPx()
+                            drawRoundRect(
+                                color = colors.primary.copy(alpha = activeAlpha),
+                                topLeft = Offset(center - width / 2, size.height - height),
+                                size = Size(width, height),
+                                cornerRadius = CornerRadius(height / 2),
+                            )
+                        }.selectableGroup(),
                 ) {
                     items.forEach { screen ->
                         DockTab(

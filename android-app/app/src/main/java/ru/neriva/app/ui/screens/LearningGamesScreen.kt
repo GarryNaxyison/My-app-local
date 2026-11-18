@@ -7,7 +7,6 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
@@ -17,11 +16,11 @@ import androidx.compose.material.icons.outlined.Spellcheck
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import ru.neriva.app.ui.components.NerivaAction
+import ru.neriva.app.ui.components.nerivaWingCover
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -88,7 +87,7 @@ private fun GameCover(mode: Mode) {
     }
     Surface(shape = MaterialTheme.shapes.extraLarge, contentColor = Color.White) {
         Row(
-            Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF191F58), accent))).padding(20.dp),
+            Modifier.fillMaxWidth().nerivaWingCover(accent).padding(20.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

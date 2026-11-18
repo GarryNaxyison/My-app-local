@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import ru.neriva.app.ui.components.NerivaTransitionMillis
 import ru.neriva.app.ui.nav.Screen
 import ru.neriva.app.ui.nav.bottomNavItems
 import ru.neriva.app.ui.nav.moreNavItems
@@ -35,9 +36,9 @@ fun NavHost(onThemeChange: (ru.neriva.app.ThemeManager.ThemeMode) -> Unit = {}, 
 
     NavHost(
         navController = navController,
-        enterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 24 } },
+        enterTransition = { fadeIn(tween(NerivaTransitionMillis)) + slideInHorizontally(tween(NerivaTransitionMillis)) { it / 24 } },
         exitTransition = { fadeOut(tween(140)) },
-        popEnterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(220)) { -it / 24 } },
+        popEnterTransition = { fadeIn(tween(NerivaTransitionMillis)) + slideInHorizontally(tween(NerivaTransitionMillis)) { -it / 24 } },
         popExitTransition = { fadeOut(tween(140)) },
         startDestination = startRoute
     ) {
