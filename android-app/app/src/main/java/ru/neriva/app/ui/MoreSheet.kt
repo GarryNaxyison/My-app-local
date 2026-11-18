@@ -2,7 +2,6 @@ package ru.neriva.app.ui
 
 import ru.neriva.app.R
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -51,13 +50,13 @@ fun MoreSheet(
             }
             Spacer(Modifier.height(12.dp))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
+                columns = GridCells.Adaptive(104.dp),
                 contentPadding = PaddingValues(bottom = 24.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.heightIn(max = 480.dp)
             ) {
-                items(items) { screen ->
+                items(items, key = { it.route }, contentType = { "menuTile" }) { screen ->
                     MoreTile(
                         title = stringResource(screen.titleRes),
                         viewId = screen.viewId,
@@ -104,14 +103,12 @@ private fun MoreTile(
     onClick: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(96.dp)
-            .clickable(onClick = onClick),
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {

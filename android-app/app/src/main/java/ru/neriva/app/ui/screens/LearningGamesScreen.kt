@@ -4,7 +4,24 @@ import ru.neriva.app.data.model.GameCard
 import ru.neriva.app.data.model.gameCards
 import ru.neriva.app.data.model.spellingTiles
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Extension
+import androidx.compose.material.icons.outlined.Forum
+import androidx.compose.material.icons.outlined.Spellcheck
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import ru.neriva.app.ui.components.NerivaAction
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -31,22 +48,52 @@ private enum class Mode(@StringRes val title: Int) {
 fun LearningGamesScreen(navController: NavHostController) {
     var mode by rememberSaveable { mutableStateOf(Mode.Context) }
     ScreenScaffold(stringResource(R.string.learning_games), navController) { padding ->
-        Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        Box(Modifier.padding(padding).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Column(
+                Modifier.widthIn(max = 680.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Mode.entries.forEach { item ->
+                        FilterChip(mode == item, { mode = item }, { Text(stringResource(item.title)) })
+                    }
+                }
+                GameCover(mode)
+                key(mode) {
+                    if (mode == Mode.Context) {
+                        ContextGame()
+                    } else {
+                        VocabularyGame(mode == Mode.Spelling) { navController.navigate(Screen.Vocabulary.route) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GameCover(mode: Mode) {
+    val accent by animateColorAsState(
+        when (mode) {
+            Mode.Context -> Color(0xFF4F46BF)
+            Mode.Pairs -> Color(0xFF1A636C)
+            Mode.Spelling -> Color(0xFF8B416B)
+        },
+        label = "gameModeColor",
+    )
+    val icon = when (mode) {
+        Mode.Context -> Icons.Outlined.Forum
+        Mode.Pairs -> Icons.Outlined.Extension
+        Mode.Spelling -> Icons.Outlined.Spellcheck
+    }
+    Surface(shape = MaterialTheme.shapes.extraLarge, contentColor = Color.White) {
+        Row(
+            Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF191F58), accent))).padding(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Mode.entries.forEach { item ->
-                    FilterChip(mode == item, { mode = item }, { Text(stringResource(item.title)) })
-                }
-            }
-            key(mode) {
-                if (mode == Mode.Context) {
-                    ContextGame()
-                } else {
-                    VocabularyGame(mode == Mode.Spelling) { navController.navigate(Screen.Vocabulary.route) }
-                }
-            }
+            Icon(icon, null, Modifier.size(38.dp))
+            Text(stringResource(mode.title), style = MaterialTheme.typography.displaySmall)
         }
     }
 }
@@ -103,27 +150,48 @@ private fun ContextGame() {
         maxLines = 5,
         enabled = !busy,
     )
-    Button(onClick = { load(ContextGameRequest(text = source.trim())) }, enabled = !busy && source.isNotBlank()) {
-        Text(stringResource(R.string.game_generate))
-    }
+    NerivaAction(
+        stringResource(R.string.game_generate),
+        { load(ContextGameRequest(text = source.trim())) },
+        enabled = !busy && source.isNotBlank(),
+        modifier = Modifier.fillMaxWidth(),
+    )
     if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
     if (failed) Text(stringResource(R.string.game_load_error), color = MaterialTheme.colorScheme.error)
     if (busy) return
     val question = questions.getOrNull(index)
     if (question != null) {
         Text(stringResource(R.string.game_round_progress, index + 1, questions.size))
-        Text(question.context, style = MaterialTheme.typography.titleLarge)
+        val progress by animateFloatAsState((index + 1).toFloat() / questions.size, label = "gameProgress")
+        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
+            Text(question.context, Modifier.fillMaxWidth().padding(18.dp), style = MaterialTheme.typography.headlineSmall)
+        }
         question.options.forEachIndexed { option, word ->
             FilterChip(selected == option, {
                 selected = option
                 if (option == question.correctIndex) score++
             }, { Text(word) }, enabled = selected == -1, modifier = Modifier.fillMaxWidth())
         }
-        if (selected != -1) {
-            Text(stringResource(if (selected == question.correctIndex) R.string.game_correct else R.string.game_try_again))
-            Text(stringResource(R.string.game_correct_word, question.options[question.correctIndex]))
-            Text(question.explanation)
-            Button(onClick = { index++; selected = -1 }) { Text(stringResource(R.string.game_continue)) }
+        AnimatedVisibility(selected != -1) {
+            val correct = selected == question.correctIndex
+            val colors = MaterialTheme.colorScheme
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = if (correct) colors.primaryContainer else colors.errorContainer,
+                contentColor = if (correct) colors.onPrimaryContainer else colors.onErrorContainer,
+                modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(if (correct) Icons.Outlined.Check else Icons.Outlined.Refresh, null)
+                        Text(stringResource(if (correct) R.string.game_correct else R.string.game_try_again), style = MaterialTheme.typography.titleLarge)
+                    }
+                    Text(stringResource(R.string.game_correct_word, question.options[question.correctIndex]))
+                    Text(question.explanation)
+                    NerivaAction(stringResource(R.string.game_continue), { index++; selected = -1 })
+                }
+            }
         }
     } else if (questions.isNotEmpty()) {
         Text(stringResource(R.string.game_score, score, questions.size), style = MaterialTheme.typography.titleLarge)

@@ -37,14 +37,23 @@ internal fun ScreenScaffold(
     navController: androidx.navigation.NavHostController,
     content: @Composable (PaddingValues) -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Scaffold(
+        containerColor = colors.background,
         topBar = {
             TopAppBar(
-                title = { Text(title) },
+                title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.background),
                 navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
             )
         }
-    ) { content(it) }
+    ) { padding ->
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+            Box(Modifier.widthIn(max = 840.dp).fillMaxWidth()) {
+                content(padding)
+            }
+        }
+    }
 }
 
 @Composable
