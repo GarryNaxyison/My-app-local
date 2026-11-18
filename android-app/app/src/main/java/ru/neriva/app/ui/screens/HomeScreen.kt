@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +32,7 @@ import kotlinx.coroutines.launch
 import ru.neriva.app.NERIVAApp
 import ru.neriva.app.R
 import ru.neriva.app.ui.SessionViewModel
+import ru.neriva.app.ui.components.NerivaAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,15 +117,11 @@ private fun TutorCover(onStart: () -> Unit) {
                 modifier = Modifier.widthIn(max = 294.dp),
                 color = Color(0xFFE8EBFF), style = MaterialTheme.typography.bodyMedium,
             )
-            Button(
+            NerivaAction(
+                label = stringResource(R.string.home_start_lesson),
                 onClick = onStart,
-                modifier = Modifier.heightIn(min = 48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF202775)),
-            ) {
-                Text(stringResource(R.string.home_start_lesson))
-                Spacer(Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(18.dp))
-            }
+                onCover = true,
+            )
         }
     }
 }

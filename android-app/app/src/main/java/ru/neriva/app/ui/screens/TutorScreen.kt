@@ -35,6 +35,7 @@ import ru.neriva.app.data.model.AiTutorResponse
 import ru.neriva.app.data.model.LessonData
 import ru.neriva.app.data.model.WordData
 import ru.neriva.app.data.repo.TutorRepository
+import ru.neriva.app.ui.components.NerivaAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,7 +142,7 @@ fun TutorScreen(navController: NavHostController) {
                             Text(stringResource(R.string.tutor_loading), style = MaterialTheme.typography.titleMedium)
                         } else if (failed) {
                             Text(stringResource(R.string.tutor_start_failed), color = MaterialTheme.colorScheme.error)
-                            Button(onClick = { scope.launch { request() } }) { Text(stringResource(R.string.retry)) }
+                            NerivaAction(stringResource(R.string.retry), onClick = { scope.launch { request() } })
                         }
                     }
                 } else {
@@ -276,15 +277,15 @@ private fun TutorExercise(
         }
         step?.instruction?.takeIf { it.isNotBlank() }?.let { Text(it, color = colors.onSurfaceVariant) }
         step?.question?.questionTarget?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
-        step?.options.orEmpty().forEach { option ->
+        step?.options.orEmpty().filter { !it.text.isNullOrBlank() }.forEachIndexed { index, option ->
             val value = option.text.orEmpty()
-            if (value.isNotBlank()) {
-                OutlinedButton(
-                    onClick = { onSubmit(value) },
-                    enabled = !loading,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                ) { Text(value, Modifier.fillMaxWidth()) }
-            }
+            NerivaAction(
+                label = value,
+                onClick = { onSubmit(value) },
+                enabled = !loading,
+                modifier = Modifier.fillMaxWidth(),
+                optionNumber = index + 1,
+            )
         }
         OutlinedTextField(
             value = answer,
@@ -294,11 +295,12 @@ private fun TutorExercise(
             enabled = !loading,
             maxLines = 5,
         )
-        Button(
+        NerivaAction(
+            label = stringResource(R.string.send),
             onClick = { onSubmit(answer) },
             enabled = !loading && answer.isNotBlank(),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-        ) { Text(stringResource(R.string.send)) }
+            modifier = Modifier.fillMaxWidth(),
+        )
         AnimatedVisibility(loading) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         if (failed) {
             Text(stringResource(R.string.try_again), color = colors.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })

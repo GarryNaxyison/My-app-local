@@ -1,23 +1,29 @@
 package ru.neriva.app.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Forum
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import ru.neriva.app.R
 import ru.neriva.app.ui.nav.Screen
@@ -32,46 +38,62 @@ fun BottomNavBar(
     moreSelected: Boolean = false,
 ) {
     val colors = MaterialTheme.colorScheme
-    val itemColors = NavigationBarItemDefaults.colors(
-        selectedIconColor = colors.primary,
-        selectedTextColor = colors.primary,
-        unselectedIconColor = colors.onSurfaceVariant,
-        unselectedTextColor = colors.onSurfaceVariant,
-        indicatorColor = colors.primary.copy(alpha = 0.13f),
-    )
-    NavigationBar(modifier = modifier, containerColor = colors.surface, tonalElevation = 0.dp) {
-        items.forEach { screen ->
-            NavigationBarItem(
-                selected = currentRoute == screen.route,
-                onClick = { onNavigate(screen) },
-                icon = {
-                    if (screen == Screen.Tutor) {
-                        Image(painterResource(R.drawable.neriva_brand_symbol), null, Modifier.size(28.dp, 24.dp))
-                    } else {
-                        val icon = when (screen) {
-                            Screen.Home -> Icons.Outlined.Home
-                            Screen.Practice -> Icons.Outlined.Forum
-                            Screen.Words -> Icons.AutoMirrored.Outlined.MenuBook
-                            else -> Icons.Outlined.MoreHoriz
+    Surface(modifier, color = colors.surface) {
+        Column {
+            HorizontalDivider(color = colors.outline)
+            Box(Modifier.fillMaxWidth().windowInsetsPadding(NavigationBarDefaults.windowInsets), contentAlignment = Alignment.Center) {
+                Row(
+                    Modifier.widthIn(max = 720.dp).fillMaxWidth().height(IntrinsicSize.Min)
+                        .padding(horizontal = 6.dp, vertical = 4.dp).selectableGroup(),
+                ) {
+                    items.forEach { screen ->
+                        DockTab(
+                            stringResource(screen.titleRes),
+                            !moreSelected && currentRoute == screen.route,
+                            { onNavigate(screen) },
+                            Modifier.weight(1f).fillMaxHeight(),
+                        ) { tint ->
+                            if (screen == Screen.Tutor) {
+                                Image(painterResource(R.drawable.neriva_brand_symbol), null, Modifier.size(34.dp, 22.dp))
+                            } else {
+                                val vector = when (screen) {
+                                    Screen.Home -> Icons.Outlined.Home
+                                    Screen.Practice -> Icons.Outlined.Forum
+                                    Screen.Words -> Icons.AutoMirrored.Outlined.MenuBook
+                                    else -> Icons.Outlined.MoreHoriz
+                                }
+                                Icon(vector, null, Modifier.size(22.dp), tint = tint)
+                            }
                         }
-                        Icon(icon, null, Modifier.size(22.dp))
                     }
-                },
-                label = { NavLabel(stringResource(screen.titleRes)) },
-                colors = itemColors,
-            )
+                    DockTab(stringResource(R.string.more), moreSelected, onMore, Modifier.weight(1f).fillMaxHeight()) { tint ->
+                        Icon(Icons.Outlined.MoreHoriz, null, Modifier.size(22.dp), tint = tint)
+                    }
+                }
+            }
         }
-        NavigationBarItem(
-            selected = moreSelected,
-            onClick = onMore,
-            icon = { Icon(Icons.Outlined.MoreHoriz, null, Modifier.size(22.dp)) },
-            label = { NavLabel(stringResource(R.string.more)) },
-            colors = itemColors,
-        )
     }
 }
 
 @Composable
-private fun NavLabel(text: String) {
-    Text(text, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
+private fun DockTab(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier, icon: @Composable (Color) -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val tint by animateColorAsState(if (selected) colors.primary else colors.onSurfaceVariant, label = "dockTint")
+    val indicator by animateColorAsState(
+        if (selected) colors.primary.copy(alpha = 0.13f) else Color.Transparent,
+        label = "dockIndicator",
+    )
+    Column(
+        modifier.heightIn(min = 65.dp).clip(RoundedCornerShape(14.dp))
+            .selectable(selected, role = Role.Tab, onClick = onClick).padding(horizontal = 2.dp, vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.Top),
+    ) {
+        Box(
+            Modifier.size(width = 44.dp, height = 30.dp).clip(RoundedCornerShape(10.dp)).background(indicator),
+            contentAlignment = Alignment.Center,
+        ) { icon(tint) }
+        Text(label, style = MaterialTheme.typography.labelSmall, color = tint, textAlign = TextAlign.Center,
+            maxLines = 2, overflow = TextOverflow.Ellipsis)
+    }
 }
