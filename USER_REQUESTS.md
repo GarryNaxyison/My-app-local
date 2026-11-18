@@ -1,5 +1,9 @@
 # Пожелания владельца
 
+## 2026-11-18 — Дизайн Android
+
+Поднять качество нативного интерфейса NERIVA: улучшить графику, типографику и анимацию. Подобрать и установить навыки разработки Android и визуального дизайна.
+
 ## 2026-11-18 — NERIVA for Android
 
 Bring the existing native application in line with the current web app, verify it on an Android emulator, and prepare the initial RuStore test release. Use local Android Studio MCP or the local Android toolchain without requiring an IDE account login.

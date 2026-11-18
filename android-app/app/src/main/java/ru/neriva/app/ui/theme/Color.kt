@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 // ── Light theme ──────────────────────────────────────────────────────────────
-val LightBg = Color(0xFFEDF7FF)
+val LightBg = Color(0xFFF1F4FC)
 val LightSurface = Color(0xFFFFFFFF)
 val LightSurfaceMuted = Color(0xFFF2F6FC)
 val LightText = Color(0xFF07111F)
@@ -19,8 +19,8 @@ val LightPlum = Color(0xFF7C5CFF)
 val LightMint = Color(0xFFDDF8EF)
 
 // ── Dark theme ───────────────────────────────────────────────────────────────
-val DarkBg = Color(0xFF020511)
-val DarkSurface = Color(0xFF0D1627)
+val DarkBg = Color(0xFF0B1020)
+val DarkSurface = Color(0xFF141D32)
 val DarkSurfaceMuted = Color(0xFF152137)
 val DarkText = Color(0xFFF6F9FF)
 val DarkMuted = Color(0xFFA9B7CD)

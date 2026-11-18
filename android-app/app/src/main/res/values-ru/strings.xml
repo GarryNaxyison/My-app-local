@@ -838,4 +838,8 @@
     <string name="word_cards_cut">Вырезать</string>
     <string name="word_cards_saved">Карточки сохранены.</string>
     <string name="word_cards_failed">Не удалось сохранить карточки. Попробуйте ещё раз.</string>
+    <string name="home_tutor_summary">Урок по вашей теме: чтение, практика и повторение.</string>
+    <string name="home_start_lesson">Начать урок</string>
+    <string name="home_claim_bonus">Забрать</string>
+    <string name="home_learning_shortcuts">Практика и инструменты</string>
 </resources>

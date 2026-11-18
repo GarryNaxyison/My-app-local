@@ -2,14 +2,22 @@ package ru.neriva.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import ru.neriva.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/** Inter / system sans-serif — matches the web app's Inter stack. */
-val InterFamily = FontFamily.Default
+/** Bundled Latin, Greek and Cyrillic; Android supplies fallback for other scripts. */
+val InterFamily = FontFamily(
+    Font(R.font.inter_400, FontWeight.Normal),
+    Font(R.font.inter_500, FontWeight.Medium),
+    Font(R.font.inter_600, FontWeight.SemiBold),
+    Font(R.font.inter_700, FontWeight.Bold),
+)
 
 val NerivaTypography = Typography(
+    displaySmall = TextStyle(fontFamily = InterFamily, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp),
     displayLarge = TextStyle(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Bold,

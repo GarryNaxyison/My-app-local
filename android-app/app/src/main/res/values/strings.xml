@@ -841,4 +841,8 @@
     <string name="word_cards_failed">Could not save the cards. Try again.</string>
     <string name="word_cards_fold_filename" translatable="false">NERIVA-fold-A4.pdf</string>
     <string name="word_cards_cut_filename" translatable="false">NERIVA-cut-A4.pdf</string>
+    <string name="home_tutor_summary">A lesson on your topic: read, practice and review.</string>
+    <string name="home_start_lesson">Start lesson</string>
+    <string name="home_claim_bonus">Claim</string>
+    <string name="home_learning_shortcuts">Practice and tools</string>
 </resources>

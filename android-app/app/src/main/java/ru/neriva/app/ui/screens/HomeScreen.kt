@@ -1,96 +1,86 @@
 package ru.neriva.app.ui.screens
 
-import ru.neriva.app.R
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-
-import androidx.compose.ui.res.stringResource
-
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BugReport
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.material3.MaterialTheme
+import androidx.navigation.NavHostController
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import ru.neriva.app.NERIVAApp
+import ru.neriva.app.R
 import ru.neriva.app.ui.SessionViewModel
-import ru.neriva.app.ui.components.AnimatedBackground
-import ru.neriva.app.ui.components.GlassCard
-import ru.neriva.app.ui.components.GradientButton
-import ru.neriva.app.ui.components.XpProgressBar
-import ru.neriva.app.ui.components.ServerIcon
-import androidx.compose.foundation.isSystemInDarkTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: androidx.navigation.NavHostController) {
+fun HomeScreen(navController: NavHostController) {
     val vm: SessionViewModel = viewModel()
     val state by vm.state.collectAsState()
     val user = state.session?.user
-
+    val colors = MaterialTheme.colorScheme
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(R.drawable.neriva_brand_symbol),
-                            contentDescription = null,
-                            modifier = Modifier.width(40.dp).aspectRatio(1024f / 569f),
-                        )
-                        Text(stringResource(R.string.today), fontWeight = FontWeight.SemiBold)
+                        Image(painterResource(R.drawable.neriva_brand_symbol), null, Modifier.width(36.dp))
+                        Text(stringResource(R.string.today), style = MaterialTheme.typography.headlineMedium)
                     }
                 },
                 actions = {
                     user?.let { LearningTopicAction(it.learningFocus.orEmpty(), vm::updateLearningFocus) }
                     IconButton(onClick = { navController.navigate("bug-report") }) {
-                        Icon(Icons.Default.BugReport, contentDescription = stringResource(R.string.send_report))
+                        Icon(Icons.Outlined.BugReport, stringResource(R.string.send_report))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.background),
             )
-        }
+        },
     ) { padding ->
-        AnimatedBackground(modifier = Modifier.padding(padding)) {
+        Box(
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.TopCenter,
+        ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                Modifier.widthIn(max = 860.dp).fillMaxWidth().padding(horizontal = 18.dp).padding(top = 8.dp, bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                // Progress card
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(stringResource(R.string.progress), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                            StatItem("XP", "${user?.xp ?: 0}")
-                            StatItem(stringResource(R.string.level_label), "${user?.xpLevel ?: 0}")
-                            StatItem(stringResource(R.string.words), "${user?.learnedWords ?: 0}")
+                TutorCover { navController.navigate("tutor") }
+                LearningShortcuts { navController.navigate(it) }
+                Surface(shape = MaterialTheme.shapes.large, color = colors.surface) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.progress), style = MaterialTheme.typography.titleLarge)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            StatItem("XP", user?.xp ?: 0, Modifier.weight(1f))
+                            StatItem(stringResource(R.string.level_label), user?.xpLevel ?: 0, Modifier.weight(1f))
+                            StatItem(stringResource(R.string.words), user?.learnedWords ?: 0, Modifier.weight(1f))
                         }
-                        XpProgressBar(
-                            currentXp = user?.xpCurrent ?: 0,
-                            maxXp = user?.xpNeeded ?: 0,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                }
-
-                // Daily limits card
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(stringResource(R.string.learning_activity), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                        LearningProgress(user?.xpCurrent ?: 0, user?.xpNeeded ?: 0)
+                        HorizontalDivider(color = colors.outline)
+                        Text(stringResource(R.string.learning_activity), style = MaterialTheme.typography.titleMedium)
                         LimitRow(stringResource(R.string.lessons_today), user?.lessonsToday ?: 0, user?.lessonLimit ?: 0)
                         LimitRow(stringResource(R.string.practice_today), user?.practiceToday ?: 0, user?.practiceLimit ?: 0)
                         if ((user?.voiceLimit ?: 0) > 0) {
@@ -98,144 +88,159 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
                         }
                     }
                 }
-
-                // Daily bonus
-                var claimingBonus by remember { mutableStateOf(false) }
-                val app = ru.neriva.app.NERIVAApp.instance
-                val scope = androidx.compose.runtime.rememberCoroutineScope()
-                val claimDailyBonus = stringResource(R.string.claim_daily_bonus)
-                val bonusClaimed = stringResource(R.string.bonus_claimed)
-                var bonusResult by remember { mutableStateOf<String?>(null) }
-
-                GlassCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .padding(20.dp)
-                            .clip(MaterialTheme.shapes.medium),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.18f)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.claim_daily_bonus), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-                            Text(
-                                bonusResult ?: claimDailyBonus,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        if (claimingBonus) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        } else {
-                            GradientButton(
-                                onClick = {
-                                    if (!claimingBonus) {
-                                        claimingBonus = true
-                                        scope.launch {
-                                            try {
-                                                val res = app.sessionRepo.claimDailyBonus()
-                                                bonusResult = if (res.xp != null) "+${res.xp} XP!" else bonusClaimed
-                                                vm.refresh()
-                                            } catch (e: Exception) {
-                                                bonusResult = e.message
-                                            } finally { claimingBonus = false }
-                                        }
-                                    }
-                                },
-                                text = claimDailyBonus,
-                            )
-                        }
-                    }
-                }
-
-                // Quick actions
-                Text(stringResource(R.string.v2_learning_lab),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                QuickActionGrid(navController)
+                DailyBonus(onClaimed = { vm.refresh() })
             }
         }
     }
 }
 
 @Composable
-fun StatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+private fun TutorCover(onStart: () -> Unit) {
+    val shape = RoundedCornerShape(28.dp)
+    Box(
+        Modifier.fillMaxWidth().clip(shape)
+            .background(Brush.horizontalGradient(listOf(Color(0xFF191F58), Color(0xFF3037A4)))),
+    ) {
+        Canvas(Modifier.matchParentSize()) {
+            val center = Offset(size.width * 0.90f, size.height * 0.20f)
+            for (ring in 1..5) {
+                drawCircle(Color(0xFFABB7FF).copy(alpha = 0.15f), size.height * (0.16f + ring * 0.14f), center, style = Stroke(1.dp.toPx()))
+            }
+            drawCircle(Color(0xFFFFBF7A), 3.dp.toPx(), Offset(size.width * 0.87f, size.height * 0.55f))
+            drawCircle(Color(0xFF9BA5FF), 4.dp.toPx(), Offset(size.width * 0.76f, size.height * 0.25f))
+        }
+        Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Image(painterResource(R.drawable.neriva_brand_symbol), null, Modifier.width(58.dp))
+            Text(stringResource(R.string.ai_tutor), color = Color.White, style = MaterialTheme.typography.displaySmall)
+            Text(
+                stringResource(R.string.home_tutor_summary),
+                modifier = Modifier.widthIn(max = 294.dp),
+                color = Color(0xFFE8EBFF), style = MaterialTheme.typography.bodyMedium,
+            )
+            Button(
+                onClick = onStart,
+                modifier = Modifier.heightIn(min = 48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF202775)),
+            ) {
+                Text(stringResource(R.string.home_start_lesson))
+                Spacer(Modifier.width(8.dp))
+                Icon(Icons.AutoMirrored.Outlined.ArrowForward, null, Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+private data class Shortcut(val route: String, val label: Int, val icon: ImageVector)
+
+private val homeShortcuts = listOf(
+    Shortcut("practice", R.string.practice, Icons.Outlined.Forum),
+    Shortcut("words", R.string.learn_words, Icons.AutoMirrored.Outlined.MenuBook),
+    Shortcut("games", R.string.learning_games, Icons.Outlined.Extension),
+    Shortcut("roleplay-scenarios", R.string.roleplay, Icons.Outlined.TheaterComedy),
+    Shortcut("pronunciation", R.string.pronunciation, Icons.Outlined.RecordVoiceOver),
+    Shortcut("tools", R.string.tools, Icons.Outlined.Tune),
+)
+
+@Composable
+private fun LearningShortcuts(onOpen: (String) -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(stringResource(R.string.home_learning_shortcuts), style = MaterialTheme.typography.headlineSmall)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val columns = if (maxWidth >= 600.dp) 3 else 2
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                homeShortcuts.chunked(columns).forEach { tiles ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        tiles.forEach { tile ->
+                            Surface(
+                                onClick = { onOpen(tile.route) },
+                                modifier = Modifier.weight(1f).heightIn(min = 64.dp),
+                                shape = MaterialTheme.shapes.medium,
+                                color = colors.surface,
+                            ) {
+                                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Icon(tile.icon, null, Modifier.size(20.dp), tint = colors.primary)
+                                    Text(stringResource(tile.label), style = MaterialTheme.typography.titleSmall)
+                                }
+                            }
+                        }
+                        repeat(columns - tiles.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatItem(label: String, value: Number, modifier: Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(value.toString(), style = MaterialTheme.typography.headlineSmall)
         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-fun LimitRow(label: String, used: Int, limit: Int) {
-    Column {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+private fun LearningProgress(used: Int, limit: Int) {
+    val fraction by animateFloatAsState(
+        targetValue = if (limit > 0) (used.toFloat() / limit).coerceIn(0f, 1f) else 0f,
+        label = "learningProgress",
+    )
+    LinearProgressIndicator(
+        progress = { fraction }, modifier = Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(4.dp)),
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
+}
+
+@Composable
+private fun LimitRow(label: String, used: Int, limit: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
             Text("$used / $limit", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        LinearProgressIndicator(
-            progress = { if (limit > 0) used.toFloat() / limit else 0f },
-            modifier = Modifier.fillMaxWidth().height(6.dp),
-        )
+        LearningProgress(used, limit)
     }
 }
 
-private data class LabTile(val route: String, val label: String, val viewId: String)
-
 @Composable
-fun QuickActionGrid(navController: androidx.navigation.NavHostController) {
-    val darkTheme = isSystemInDarkTheme()
-    val tiles = listOf(
-        LabTile("tutor", stringResource(R.string.ai_tutor), "tutor"),
-        LabTile("practice", stringResource(R.string.practice), "practice"),
-        LabTile("words", stringResource(R.string.learn_words), "words"),
-        LabTile("roleplay", stringResource(R.string.roleplay), "roleplay"),
-        LabTile("pronunciation", stringResource(R.string.pronunciation), "pronunciation"),
-        LabTile("tools", stringResource(R.string.tools), "tools"),
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        tiles.chunked(2).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                row.forEach { tile ->
-                    GlassCard(modifier = Modifier.weight(1f).height(92.dp)) {
-                        androidx.compose.foundation.layout.Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                            ) {
-                                ServerIcon(
-                                    viewId = tile.viewId,
-                                    darkTheme = darkTheme,
-                                    size = 30.dp,
-                                    contentDescription = tile.label,
-                                )
-                                Spacer(Modifier.height(6.dp))
-                                Text(
-                                    tile.label,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
+private fun DailyBonus(onClaimed: () -> Unit) {
+    var claiming by remember { mutableStateOf(false) }
+    var result by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val claimed = stringResource(R.string.bonus_claimed)
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Outlined.Star, null, tint = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.claim_daily_bonus), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                FilledTonalButton(
+                    onClick = {
+                        claiming = true
+                        scope.launch {
+                            try {
+                                val res = NERIVAApp.instance.sessionRepo.claimDailyBonus()
+                                result = res.xp?.let { "+$it XP" } ?: claimed
+                                onClaimed()
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                result = e.message
+                            } finally {
+                                claiming = false
                             }
                         }
+                    },
+                    enabled = !claiming,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    AnimatedContent(claiming, label = "bonusStatus") { busy ->
+                        if (busy) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                        else Text(stringResource(R.string.home_claim_bonus))
                     }
                 }
-                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
+            result?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
         }
     }
 }
