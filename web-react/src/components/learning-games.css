@@ -55,11 +55,15 @@
 .learning-games__board textarea { width: 100%; min-height: 85px; padding: 8px; border: 1px solid var(--line); border-radius: 10px; }
 .learning-games__board summary { cursor: pointer; min-height: 35px; align-content: center; }
 
-.learning-nav-art--games {
-  display: inline-grid;
-  place-items: center;
-  color: var(--primary);
-  background-color: color-mix(in srgb, var(--primary) 13%, var(--surface-strong));
+.learning-games__art {
+  flex: none;
+  width: 64px;
+  height: 64px;
+  background: url("/app/assets/icon-games-light.png") center / contain no-repeat;
+}
+
+[data-theme="dark"] .learning-games__art {
+  background-image: url("/app/assets/icon-games-dark.png");
 }
 
 @media (max-width: 560px) {

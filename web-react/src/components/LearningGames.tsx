@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { ArrowRight, Blocks, BookOpen, Check, Gamepad2, Link2, RotateCcw } from "lucide-react";
+import { ArrowRight, Blocks, BookOpen, Check, Link2, RotateCcw } from "lucide-react";
 import { api } from "../lib/api";
 import type { VocabularyItem } from "../lib/types";
 import { Button } from "./ui/button";
@@ -133,7 +133,7 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
   return (
     <div className="learning-games">
       <header className="learning-games__header">
-        <Gamepad2 size={34} aria-hidden="true" />
+        <span className="learning-games__art" aria-hidden="true" />
         <div><h2>{t("Учебные игры", "Learning games")}</h2><p>{t("Выберите, что потренировать", "Choose what to practise")}</p></div>
       </header>
       <nav className="learning-games__modes" aria-label={t("Режимы игры", "Game modes")}>

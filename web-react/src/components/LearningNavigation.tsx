@@ -87,10 +87,6 @@ export function LearningNavigation({ nav, activeView, setView, theme, copy, plat
     setView(view);
   };
   const artwork = (item: NavItem) => {
-    if (item.id === "games") {
-      const Icon = item.icon;
-      return <span className="learning-nav-art function-chip__art learning-nav-art--games" aria-hidden="true"><Icon size={18} /></span>;
-    }
     return <span className="learning-nav-art function-chip__art" aria-hidden="true" style={{ backgroundImage: `url("${navigationAsset(item.id, theme)}")` }} />;
   };
 

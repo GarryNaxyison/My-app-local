@@ -3958,6 +3958,28 @@ test("learning topic stays accessible in the AI Tutor header in Arabic", async (
   await expect(dialog).toBeHidden();
 });
 
+for (const theme of ["light", "dark"] as const) {
+  test(`Games artwork matches the ${theme} theme`, async ({ page, isMobile }, testInfo) => {
+    await page.unroute("**/app/assets/**");
+    await page.addInitScript((value) => localStorage.setItem("poliglot-theme", value), theme);
+    await page.goto("/app/?view=games");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expect(page.locator(".learning-games__art")).toHaveCSS("background-image", new RegExp(`icon-games-${theme}\\.png`));
+    if (isMobile) await page.locator('.learning-bottom-nav [data-view="more"]').click();
+    const art = page.locator(`${isMobile ? ".learning-catalog" : ".learning-sidebar"} [data-view="games"] .learning-nav-art`);
+    await expect(art).toHaveCSS("background-image", new RegExp(`icon-games-${theme}\\.png`));
+    const loaded = await art.evaluate(async (node) => {
+      const url = getComputedStyle(node).backgroundImage.slice(5, -2);
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      return image.naturalWidth;
+    });
+    expect(loaded).toBeGreaterThan(500);
+    await page.screenshot({ path: testInfo.outputPath(`games-${theme}.png`), animations: "disabled" });
+  });
+}
+
 test("Games opens from Today and plays context, pairs and spelling", async ({ page }, testInfo) => {
   const gameRequests: Record<string, unknown>[] = [];
   await page.route("**/api/games/context", (route) => {
@@ -4011,7 +4033,7 @@ test("Games opens from Today and plays context, pairs and spelling", async ({ pa
   await expect(games.locator(".learning-games__board > strong")).toContainText("2 / 2");
   await openSection(page, "home");
   const gamesMenu = page.locator('.learning-sidebar:visible button[data-view="games"]');
-  if (await gamesMenu.count()) await expect(gamesMenu.locator("svg")).toBeVisible();
+  if (await gamesMenu.count()) await expect(gamesMenu.locator(".learning-nav-art")).toHaveCSS("background-image", /icon-games-light\.png/);
   await openSection(page, "games");
   await expect(games).toBeVisible();
 });
