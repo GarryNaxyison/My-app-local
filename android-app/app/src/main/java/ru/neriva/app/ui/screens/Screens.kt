@@ -1234,12 +1234,26 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
 
     ScreenScaffold(stringResource(R.string.settings), navController) { padding ->
         Column(Modifier.padding(padding).fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Theme toggle
-            Text(stringResource(R.string.toggle_theme), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.LIGHT, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.LIGHT) }, label = { Text("") }, leadingIcon = { Icon(Icons.Default.LightMode, stringResource(R.string.toggle_theme), modifier = Modifier.size(18.dp)) })
-                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.DARK, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.DARK) }, label = { Text("") }, leadingIcon = { Icon(Icons.Default.DarkMode, stringResource(R.string.toggle_theme), modifier = Modifier.size(18.dp)) })
-                FilterChip(selected = currentThemeMode == ru.neriva.app.ThemeManager.ThemeMode.SYSTEM, onClick = { onThemeChange(ru.neriva.app.ThemeManager.ThemeMode.SYSTEM) }, label = { Text("") }, leadingIcon = { Icon(Icons.Default.PhoneAndroid, stringResource(R.string.toggle_theme), modifier = Modifier.size(18.dp)) })
+            Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surface) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.toggle_theme), style = MaterialTheme.typography.headlineSmall)
+                    val choices = listOf(
+                        Triple(ru.neriva.app.ThemeManager.ThemeMode.LIGHT, R.string.settings_theme_light, Icons.Default.LightMode),
+                        Triple(ru.neriva.app.ThemeManager.ThemeMode.DARK, R.string.settings_theme_dark, Icons.Default.DarkMode),
+                        Triple(ru.neriva.app.ThemeManager.ThemeMode.SYSTEM, R.string.settings_theme_system, Icons.Default.PhoneAndroid),
+                    )
+                    choices.forEach { (mode, label, icon) ->
+                        val selected = currentThemeMode == mode
+                        FilterChip(
+                            selected = selected,
+                            onClick = { onThemeChange(mode) },
+                            label = { Text(stringResource(label)) },
+                            leadingIcon = { Icon(icon, null, Modifier.size(20.dp)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                        )
+                    }
+                }
             }
 
             HorizontalDivider()

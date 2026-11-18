@@ -842,4 +842,7 @@
     <string name="home_start_lesson">Начать урок</string>
     <string name="home_claim_bonus">Забрать</string>
     <string name="home_learning_shortcuts">Практика и инструменты</string>
+    <string name="settings_theme_light">Светлая</string>
+    <string name="settings_theme_dark">Тёмная</string>
+    <string name="settings_theme_system">Как в системе</string>
 </resources>

@@ -845,4 +845,7 @@
     <string name="home_start_lesson">Start lesson</string>
     <string name="home_claim_bonus">Claim</string>
     <string name="home_learning_shortcuts">Practice and tools</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_system">System</string>
 </resources>
