@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Tema de studiu</string>
+    <string name="learning_topic_mixed">Teme diverse</string>
+    <string name="learning_topic_custom">Tema ta</string>
+    <string name="learning_topic_save">Salvează</string>
+</resources>

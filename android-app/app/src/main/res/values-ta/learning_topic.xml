@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">கற்றல் தலைப்பு</string>
+    <string name="learning_topic_mixed">பலவகைத் தலைப்புகள்</string>
+    <string name="learning_topic_custom">உங்கள் சொந்தத் தலைப்பு</string>
+    <string name="learning_topic_save">சேமி</string>
+</resources>

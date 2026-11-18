@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">学習テーマ</string>
+    <string name="learning_topic_mixed">さまざまなテーマ</string>
+    <string name="learning_topic_custom">自分でテーマを設定</string>
+    <string name="learning_topic_save">保存</string>
+</resources>

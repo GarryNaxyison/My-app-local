@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Öğrenme konusu</string>
+    <string name="learning_topic_mixed">Karışık konular</string>
+    <string name="learning_topic_custom">Kendi konunuz</string>
+    <string name="learning_topic_save">Kaydet</string>
+</resources>

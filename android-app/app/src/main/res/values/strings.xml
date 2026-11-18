@@ -833,4 +833,12 @@
     <string name="tutor_note_saved">Saved to notes</string>
     <string name="tutor_note_save_failed">Could not save the phrase. Try again.</string>
     <string name="tutor_note_word_translation" translatable="false">%1$s — %2$s</string>
+    <string name="word_cards_export">Word cards (PDF)</string>
+    <string name="word_cards_layout">Choose an A4 layout for printing.</string>
+    <string name="word_cards_fold">Cut and fold</string>
+    <string name="word_cards_cut">Cut out</string>
+    <string name="word_cards_saved">Word cards saved.</string>
+    <string name="word_cards_failed">Could not save the cards. Try again.</string>
+    <string name="word_cards_fold_filename" translatable="false">NERIVA-fold-A4.pdf</string>
+    <string name="word_cards_cut_filename" translatable="false">NERIVA-cut-A4.pdf</string>
 </resources>

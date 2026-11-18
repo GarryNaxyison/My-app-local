@@ -38,6 +38,11 @@ class SessionViewModel : ViewModel() {
 
     fun refresh() = checkSession()
 
+    suspend fun updateLearningFocus(focus: String) {
+        val session = app.sessionRepo.updateSettings(learningFocus = focus.trim())
+        _state.value = SessionUiState(isLoading = false, isLoggedIn = session.authenticated, session = session)
+    }
+
     fun logout() {
         viewModelScope.launch {
             app.authRepo.logout()

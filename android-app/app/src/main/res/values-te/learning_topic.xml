@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">అభ్యాస అంశం</string>
+    <string name="learning_topic_mixed">వివిధ అంశాలు</string>
+    <string name="learning_topic_custom">మీ స్వంత అంశం</string>
+    <string name="learning_topic_save">సేవ్ చేయండి</string>
+</resources>

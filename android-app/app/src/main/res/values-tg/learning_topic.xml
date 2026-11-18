@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Мавзӯи омӯзиш</string>
+    <string name="learning_topic_mixed">Мавзӯъҳои гуногун</string>
+    <string name="learning_topic_custom">Мавзӯи худ</string>
+    <string name="learning_topic_save">Сабт кардан</string>
+</resources>

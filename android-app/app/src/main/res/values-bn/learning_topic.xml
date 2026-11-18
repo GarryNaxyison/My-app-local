@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">শেখার বিষয়</string>
+    <string name="learning_topic_mixed">বিভিন্ন বিষয়</string>
+    <string name="learning_topic_custom">নিজের বিষয়</string>
+    <string name="learning_topic_save">সংরক্ষণ করুন</string>
+</resources>

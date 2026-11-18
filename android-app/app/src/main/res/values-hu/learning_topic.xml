@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Tanulási téma</string>
+    <string name="learning_topic_mixed">Vegyes témák</string>
+    <string name="learning_topic_custom">Saját téma</string>
+    <string name="learning_topic_save">Mentés</string>
+</resources>

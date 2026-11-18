@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">학습 주제</string>
+    <string name="learning_topic_mixed">다양한 주제</string>
+    <string name="learning_topic_custom">직접 주제 입력</string>
+    <string name="learning_topic_save">저장</string>
+</resources>

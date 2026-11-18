@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Leerthema</string>
+    <string name="learning_topic_mixed">Afwisselende thema’s</string>
+    <string name="learning_topic_custom">Eigen thema</string>
+    <string name="learning_topic_save">Opslaan</string>
+</resources>

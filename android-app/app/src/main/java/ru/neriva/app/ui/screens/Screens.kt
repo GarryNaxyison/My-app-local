@@ -463,7 +463,7 @@ fun VocabularyScreen(navController: androidx.navigation.NavHostController) {
     var reportPending by remember { mutableStateOf(false) }
     var reportError by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(Unit) { try { words = repo.getList(1).items ?: emptyList() } catch (_: Exception) {} finally { loading = false } }
+    LaunchedEffect(Unit) { try { words = repo.getList(0).items ?: emptyList() } catch (_: Exception) {} finally { loading = false } }
 
     reportTarget?.let { word ->
         ru.neriva.app.ui.components.WordReportDialog(
@@ -495,6 +495,7 @@ fun VocabularyScreen(navController: androidx.navigation.NavHostController) {
     ScreenScaffold(stringResource(R.string.vocabulary), navController) { padding ->
         if (loading) { Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) { CircularProgressIndicator() } }
         else LazyColumn(Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+            if (words.isNotEmpty()) item { WordCardExport(repo) }
             items(words) { w ->
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
@@ -1319,19 +1320,7 @@ fun SettingsScreen(navController: androidx.navigation.NavHostController, onTheme
                 }
             }
 
-            // Learning focus
-            var focusText by remember { mutableStateOf("") }
-            Text(stringResource(R.string.learning_focus), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            OutlinedTextField(
-                value = focusText, onValueChange = { focusText = it },
-                label = { Text(stringResource(R.string.learning_focus_placeholder)) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Button(onClick = {
-                scope.launch {
-                    try { app.sessionRepo.updateSettings(learningFocus = focusText.ifBlank { null }); vm.refresh() } catch (_: Exception) {}
-                }
-            }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.save_settings)) }
+            user?.let { LearningTopicAction(it.learningFocus.orEmpty(), vm::updateLearningFocus, iconOnly = false) }
 
             HorizontalDivider()
 

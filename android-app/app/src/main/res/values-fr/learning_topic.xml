@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Thème d’apprentissage</string>
+    <string name="learning_topic_mixed">Thèmes variés</string>
+    <string name="learning_topic_custom">Votre propre thème</string>
+    <string name="learning_topic_save">Enregistrer</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">სასწავლო თემა</string>
+    <string name="learning_topic_mixed">სხვადასხვა თემა</string>
+    <string name="learning_topic_custom">საკუთარი თემა</string>
+    <string name="learning_topic_save">შენახვა</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">หัวข้อการเรียน</string>
+    <string name="learning_topic_mixed">หัวข้อหลากหลาย</string>
+    <string name="learning_topic_custom">หัวข้อของคุณเอง</string>
+    <string name="learning_topic_save">บันทึก</string>
+</resources>

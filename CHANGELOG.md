@@ -2,6 +2,7 @@
 
 ## 2026-11-18 — Android
 
+- В Android добавлены фирменный знак NERIVA, выбор темы на экране «Сегодня» и печатные карточки слов A4 в двух форматах.
 - The native app now includes Context, Pairs, and Build a Word. Context uses the shared exercise bank. The other games use personal vocabulary.
 - Tapping a word below the AI Tutor story saves its example or translation to Notes.
 

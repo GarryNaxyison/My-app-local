@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Θέμα μάθησης</string>
+    <string name="learning_topic_mixed">Διάφορα θέματα</string>
+    <string name="learning_topic_custom">Δικό σας θέμα</string>
+    <string name="learning_topic_save">Αποθήκευση</string>
+</resources>

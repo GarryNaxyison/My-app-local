@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Studieämne</string>
+    <string name="learning_topic_mixed">Blandade ämnen</string>
+    <string name="learning_topic_custom">Eget ämne</string>
+    <string name="learning_topic_save">Spara</string>
+</resources>

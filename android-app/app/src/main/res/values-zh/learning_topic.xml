@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">学习主题</string>
+    <string name="learning_topic_mixed">混合主题</string>
+    <string name="learning_topic_custom">自定义主题</string>
+    <string name="learning_topic_save">保存</string>
+</resources>

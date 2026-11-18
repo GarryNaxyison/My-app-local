@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Chủ đề học</string>
+    <string name="learning_topic_mixed">Chủ đề đa dạng</string>
+    <string name="learning_topic_custom">Chủ đề của bạn</string>
+    <string name="learning_topic_save">Lưu</string>
+</resources>

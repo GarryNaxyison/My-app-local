@@ -832,4 +832,10 @@
     <string name="game_translations">Переводы</string>
     <string name="tutor_note_saved">Сохранено в заметках</string>
     <string name="tutor_note_save_failed">Не удалось сохранить фразу. Попробуйте ещё раз.</string>
+    <string name="word_cards_export">Карточки слов (PDF)</string>
+    <string name="word_cards_layout">Выберите макет A4 для печати.</string>
+    <string name="word_cards_fold">Разрезать и сложить</string>
+    <string name="word_cards_cut">Вырезать</string>
+    <string name="word_cards_saved">Карточки сохранены.</string>
+    <string name="word_cards_failed">Не удалось сохранить карточки. Попробуйте ещё раз.</string>
 </resources>

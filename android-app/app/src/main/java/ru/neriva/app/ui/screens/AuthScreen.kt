@@ -1,6 +1,8 @@
 package ru.neriva.app.ui.screens
 
 import ru.neriva.app.R
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.res.stringResource
 
@@ -29,8 +31,6 @@ import kotlinx.coroutines.launch
 import ru.neriva.app.NERIVAApp
 import ru.neriva.app.ThemeManager
 import ru.neriva.app.ui.components.AnimatedBackground
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,15 +87,10 @@ fun AuthScreen(
             ) {
                 Spacer(Modifier.height(24.dp))
 
-                // Theme-aware hero image (light/dark variant) — mirrors web App.tsx:3675
-                val heroSuffix = if (darkTheme) "dark" else "light"
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data("https://neriva.ru/app/assets/auth-login-hero-$heroSuffix.png")
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "NERIVA hero",
-                    modifier = Modifier.size(120.dp),
+                Image(
+                    painter = painterResource(R.drawable.neriva_brand_symbol),
+                    contentDescription = null,
+                    modifier = Modifier.width(140.dp).aspectRatio(1024f / 569f),
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -182,17 +177,6 @@ fun AuthScreen(
                 ) {
                     if (isLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                     else Text(if (mode == "login") ru.neriva.app.NERIVAApp.instance.getString(R.string.auth_login) else ru.neriva.app.NERIVAApp.instance.getString(R.string.auth_create_account))
-                }
-
-                Spacer(Modifier.height(12.dp))
-                OutlinedButton(
-                    onClick = {
-                        app.encryptedPrefs.edit().putBoolean("logged_in", true).apply()
-                        onAuthSuccess()
-                    },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                ) {
-                    Text("Demo Mode (test/test)")
                 }
 
                 Spacer(Modifier.height(24.dp))

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Окуу темасы</string>
+    <string name="learning_topic_mixed">Ар түрдүү темалар</string>
+    <string name="learning_topic_custom">Өз темаңыз</string>
+    <string name="learning_topic_save">Сактоо</string>
+</resources>

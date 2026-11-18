@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Тема навчання</string>
+    <string name="learning_topic_mixed">Різні теми</string>
+    <string name="learning_topic_custom">Власна тема</string>
+    <string name="learning_topic_save">Зберегти</string>
+</resources>

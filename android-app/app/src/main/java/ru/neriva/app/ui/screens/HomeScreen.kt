@@ -1,6 +1,8 @@
 package ru.neriva.app.ui.screens
 
 import ru.neriva.app.R
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 
 import androidx.compose.ui.res.stringResource
 
@@ -41,8 +43,18 @@ fun HomeScreen(navController: androidx.navigation.NavHostController) {
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.today), fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(R.drawable.neriva_brand_symbol),
+                            contentDescription = null,
+                            modifier = Modifier.width(40.dp).aspectRatio(1024f / 569f),
+                        )
+                        Text(stringResource(R.string.today), fontWeight = FontWeight.SemiBold)
+                    }
+                },
                 actions = {
+                    user?.let { LearningTopicAction(it.learningFocus.orEmpty(), vm::updateLearningFocus) }
                     IconButton(onClick = { navController.navigate("bug-report") }) {
                         Icon(Icons.Default.BugReport, contentDescription = stringResource(R.string.send_report))
                     }

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="learning_topic_title">Paksa sa pag-aaral</string>
+    <string name="learning_topic_mixed">Iba’t ibang paksa</string>
+    <string name="learning_topic_custom">Sarili mong paksa</string>
+    <string name="learning_topic_save">I-save</string>
+</resources>
