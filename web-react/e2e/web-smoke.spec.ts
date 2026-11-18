@@ -2184,7 +2184,8 @@ test("tools spacing and free plan Russian copy stay compact and localized", asyn
 
 test("bug report paste keeps one clipboard image and no generic section text", async ({ page, isMobile }) => {
   await page.goto("/app/?view=home");
-  const reportButton = page.locator(isMobile ? ".mobile-report-button-v2" : ".v2-report-button");
+  const controls = page.locator(isMobile ? ".mobile-quick-controls-v2" : ".v2-topbar__actions");
+  const reportButton = controls.getByRole("button", { name: /Сообщить об ошибке|Report a bug/i });
   await expect(reportButton).toBeVisible();
   if (!isMobile) {
     await expect(reportButton).toHaveAccessibleName(ru("report_bug", "Сообщить об ошибке"));
@@ -3955,6 +3956,58 @@ test("learning topic stays accessible in the AI Tutor header in Arabic", async (
   await expect(dialog.getByRole("button", { name: learningTopicCopy.ar[1] })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+});
+
+test("Games opens from Today and plays context, pairs and spelling", async ({ page }, testInfo) => {
+  await page.route("**/api/games/context", (route) => route.fulfill({ json: { questions: [
+    { context: "Для поездки нужен ___.", options: ["ticket", "hotel", "train"], correct_index: 0, explanation: "Ticket означает билет." },
+    { context: "Место посадки — ___.", options: ["train", "platform", "ticket"], correct_index: 1, explanation: "Platform означает платформу." },
+    { context: "Со станции уходит ___.", options: ["platform", "ticket", "train"], correct_index: 2, explanation: "Train означает поезд." },
+  ] } }));
+  await page.route("**/api/vocabulary?*", (route) => route.fulfill({ json: { items: [
+    { id: "cat", word: "cat", translation: "кот" },
+    { id: "dog", word: "dog", translation: "пёс" },
+  ] } }));
+  await page.goto("/app/?view=home");
+  await page.locator(".home-study-goals").getByRole("button", { name: "Игры" }).click();
+  const games = page.locator(".learning-games");
+  await expect(games).toBeVisible();
+  await games.getByRole("button", { name: "Поездка" }).click();
+  await expect(games.locator(".learning-games__choices button")).toHaveCount(3);
+  await page.screenshot({ path: testInfo.outputPath("context-game.png"), animations: "disabled" });
+  await games.getByRole("button", { name: "hotel" }).click();
+  await expect(games.getByRole("status")).toContainText("Правильный вариант: ticket");
+  await games.getByRole("button", { name: "Дальше" }).click();
+  await expect(games.locator(".learning-games__question")).toContainText("2 / 3");
+  await games.getByRole("button", { name: /Пары/ }).click();
+  await games.getByRole("button", { name: "Начать игру" }).click();
+  await games.getByRole("button", { name: "cat", exact: true }).click();
+  await games.getByRole("button", { name: "кот", exact: true }).click();
+  await games.getByRole("button", { name: "dog", exact: true }).click();
+  await games.getByRole("button", { name: "пёс", exact: true }).click();
+  await expect(games.getByText("Раунд пройден")).toBeVisible();
+  await games.getByRole("button", { name: /Собери слово/ }).click();
+  await games.getByRole("button", { name: "Начать игру" }).click();
+  const word = (await games.locator(".learning-games__board > strong").innerText()).includes("кот") ? "cat" : "dog";
+  for (const letter of word) await games.getByRole("button", { name: letter, exact: true }).click();
+  await expect(games.locator(".learning-games__puzzle")).toHaveText(word);
+  await games.getByRole("button", { name: "Дальше" }).click();
+  await expect(games.locator(".learning-games__board > strong")).toContainText("2 / 2");
+  await openSection(page, "home");
+  const gamesMenu = page.locator('.learning-sidebar:visible button[data-view="games"]');
+  if (await gamesMenu.count()) await expect(gamesMenu.locator("svg")).toBeVisible();
+  await openSection(page, "games");
+  await expect(games).toBeVisible();
+});
+
+test("AI Tutor story vocabulary saves a phrase to notes", async ({ page }) => {
+  usePremiumSession();
+  await page.goto("/app/?view=tutor");
+  const word = page.locator(".tutor-review-list").getByRole("button", { name: /wake up/ });
+  const request = page.waitForRequest((item) => item.url().endsWith("/api/phrasebook") && item.method() === "POST");
+  await word.click();
+  expect((await request).postDataJSON()).toMatchObject({ phrase: expect.stringContaining("wake up"), source: "lesson" });
+  await expect(word).toBeDisabled();
 });
 
 test("AI Tutor introduces the lesson goal and marked learning route", async ({ page }, testInfo) => {

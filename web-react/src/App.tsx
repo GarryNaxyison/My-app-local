@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleHelp,
+  Gamepad2,
   CircleDollarSign,
   Clock,
   Download,
@@ -96,6 +97,7 @@ import { WordCardPrint } from "./components/WordCardPrint";
 import { TodayReview } from "./components/TodayReview";
 import { recordLearningEvent } from "./lib/learningEvents";
 import { TextPractice } from "./components/TextPractice";
+import { LearningGames } from "./components/LearningGames";
 import { TravelRoute } from "./components/TravelRoute";
 import { OfflineReview, saveOfflineCards, clearOfflineOwner, selectOfflineOwner, syncOfflineCards } from "./components/OfflineReview";
 import { MistakeTransfer } from "./components/MistakeTransfer";
@@ -567,6 +569,7 @@ const navItems: NavItem[] = [
   { id: "tutor", label: "AI Репетитор", shortLabel: "Tutor", group: "learn", description: "One guided lesson", icon: Sparkles, accent: "gold" },
   { id: "words", label: "Learn words", shortLabel: "Words", group: "words", description: "New vocabulary", icon: Brain, accent: "violet" },
   { id: "word-game", label: "Review game", shortLabel: "Review", group: "words", description: "Multiple choice", icon: Repeat2, accent: "blue" },
+  { id: "games", label: "Games", group: "words", description: "Context, matching and spelling", icon: Gamepad2, accent: "violet" },
   { id: "pronunciation", label: "Pronunciation", shortLabel: "Pronounce", group: "learn", description: "Voice heatmap", icon: Activity, accent: "blue" },
   { id: "shadowing", label: "Listening", shortLabel: "Listen", group: "learn", description: "Repeat and score", icon: Volume2, accent: "mint" },
   { id: "lesson", label: "Lesson", shortLabel: "Lesson", group: "learn", description: "AI micro lesson", icon: BookOpen, accent: "indigo" },
@@ -834,6 +837,7 @@ function navCopyKey(view: ViewId) {
     pronunciation: "pronunciation",
     words: "learn_words",
     "word-game": "word_game",
+    games: "games",
     spelling: "spelling",
     vocabulary: "vocabulary",
     phrasebook: "phrasebook",
@@ -5571,6 +5575,7 @@ function ViewRenderer(props: ViewRendererProps) {
   if (props.activeView === "tools") return <ToolsView {...props} />;
   if (props.activeView === "words") return <ChoiceTrainer mode="words" {...props} />;
   if (props.activeView === "word-game") return <ChoiceTrainer mode="word-game" {...props} />;
+  if (props.activeView === "games") return <LearningGames key={`${props.user.telegram_account?.id || props.session.account?.login}:${props.user.learning_language}:${props.user.interface_language}`} russian={languageCode(props.user.interface_language) === "ru"} learningLanguage={props.user.learning_language} openVocabulary={() => props.setView("vocabulary")} />;
   if (props.activeView === "spelling") return <SpellingView {...props} />;
   if (props.activeView === "level") return <LevelView {...props} />;
   if (props.activeView === "vocabulary") return <VocabularyView {...props} />;
@@ -5612,6 +5617,7 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
   const display = (value: unknown) => cleanAppText(value).trim();
   const tutorPremiumLocked = !user.premium;
   const [tutorDraft, setTutorDraft] = useState("");
+  const [savingStoryPhrase, setSavingStoryPhrase] = useState("");
   const [selectedChoice, setSelectedChoice] = useState("");
   const [wordReportOpen, setWordReportOpen] = useState(false);
   const [wordReportWord, setWordReportWord] = useState("");
@@ -6024,7 +6030,28 @@ function TutorView({ fixtureMode = false, user, session, aiTutorStep, aiTutorFee
           ) : null}
           {words.length && visibleTutorStep.kind === "story" ? (
             <div className="tutor-review-list">
-              {words.slice(0, 6).map((word) => <span key={word.id || word.target}>{display(word.target)} - {display(word.interface_translation)}</span>)}
+              {words.slice(0, 6).map((word) => {
+                const target = display(word.target);
+                const translation = display(word.interface_translation);
+                const example = display(word.example_sentence_target);
+                const phrase = example || target;
+                if (!target) return null;
+                const saved = isPhraseSaved(phrase);
+                return <button key={word.id || target} type="button" disabled={saved || Boolean(savingStoryPhrase)} onClick={async () => {
+                  setSavingStoryPhrase(phrase);
+                  try {
+                    await savePhrase(phrase, "lesson", {
+                      translation: example ? display(word.example_translation_interface) : translation,
+                      note: example ? [target, translation].filter(Boolean).join(" — ") : "",
+                    });
+                  } finally {
+                    setSavingStoryPhrase("");
+                  }
+                }}>
+                  {saved ? <Check size={13} aria-hidden="true" /> : <Bookmark size={13} aria-hidden="true" />}
+                  <span>{target}{translation ? ` — ${translation}` : ""}</span>
+                </button>;
+              })}
             </div>
           ) : null}
         </div>
@@ -6586,12 +6613,16 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
         </div>
         <img className="learning-start__art" src="/app/assets/neriva-symbol.png" alt="" />
       </section>
-      <nav className="v2-panel home-study-goals" aria-label={copy("study_goal", "Study goal")}>
+      <div className="v2-panel home-study-panel">
+      <nav className="home-study-goals" aria-label={copy("study_goal", "Study goal")}>
         <Button type="button" variant="outline" onClick={() => setView("roleplay")}>
           <MessageCircle size={16} aria-hidden="true" />{copy("study_goal_roleplay", "Practise a situation")}
         </Button>
         <Button type="button" variant="outline" disabled={busy === "mistakes"} onClick={() => void loadMistakes()}>
           <Search size={16} aria-hidden="true" />{copy("study_goal_mistakes", "Review mistakes")}
+        </Button>
+        <Button type="button" variant="outline" onClick={() => setView("games")}>
+          <Gamepad2 size={16} aria-hidden="true" />{copy("games", "Games")}
         </Button>
       </nav>
       {props.session?.authenticated && props.restartTutorLesson && props.startMistakePractice && (
@@ -6606,6 +6637,7 @@ function HomeView(props: Pick<ViewRendererProps, "user" | "copy" | "startLesson"
           startMistakePractice={props.startMistakePractice}
         />
       )}
+      </div>
       {props.session?.authenticated && props.openTravelRoleplay && user.learning_language === "en" && languageCode(user.interface_language) === "ru" && (
         <TravelRoute
           key={JSON.stringify([props.session.account?.login, user.telegram_account?.id])}

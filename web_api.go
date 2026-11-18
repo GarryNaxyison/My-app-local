@@ -217,6 +217,7 @@ func (api *webAPI) register(mux *http.ServeMux) {
 	mux.HandleFunc("/api/mistakes/practice/start", api.handleMistakePracticeStart)
 	mux.HandleFunc("/api/mistakes/practice/answer", api.handleMistakePracticeAnswer)
 	mux.HandleFunc("/api/mistakes/transfer", api.handleMistakeTransfer)
+	mux.HandleFunc("/api/games/context", api.handleContextGame)
 	mux.HandleFunc("/api/mistakes/delete", api.handleMistakeDelete)
 	mux.HandleFunc("/api/mistakes/clear", api.handleMistakesClear)
 	mux.HandleFunc("/api/tools/voice-text", api.handleToolVoiceText)

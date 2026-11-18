@@ -11,6 +11,7 @@ export type ViewId =
   | "pronunciation"
   | "words"
   | "word-game"
+  | "games"
   | "spelling"
   | "vocabulary"
   | "phrasebook"
@@ -127,7 +128,7 @@ export type AiTutorStep = {
     lesson_goal?: string;
     grammar_focus?: { name?: string; short_explanation_interface?: string; model_sentence_target?: string };
     story?: { title_interface?: string; story_title?: string; text_target?: string; audio_text_target?: string };
-    words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; audio_text_target?: string; example_audio_text_target?: string }>;
+    words?: Array<{ id?: string; target?: string; interface_translation?: string; example_sentence_target?: string; example_translation_interface?: string; audio_text_target?: string; example_audio_text_target?: string }>;
     comprehension_questions?: Array<{ id?: string; question_target?: string }>;
     production_task?: { instruction_interface?: string; required_word_count?: number; sentence_count?: string };
   };
