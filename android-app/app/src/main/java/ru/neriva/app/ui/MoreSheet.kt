@@ -77,6 +77,7 @@ private fun iconForScreen(viewId: String): ImageVector = when (viewId) {
     "shadowing" -> Icons.Default.RecordVoiceOver
     "spelling" -> Icons.Default.Spellcheck
     "word-game" -> Icons.Default.Games
+    "games" -> Icons.Default.SportsEsports
     "vocabulary" -> Icons.Default.MenuBook
     "phrasebook" -> Icons.Default.Bookmarks
     "offline" -> Icons.Default.WifiOff

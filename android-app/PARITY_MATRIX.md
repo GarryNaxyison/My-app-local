@@ -9,12 +9,13 @@ still needs an authenticated device run against the production-compatible API.
 | Sign in, registration | `auth` | `/api/auth/*`, session cookie | Unit: API base URL; manual/device pending |
 | Onboarding, settings | `onboarding`, `settings` | `/api/settings`, navigation layout | Interface selector limited to EN/RU; manual/device pending |
 | Home | `home` | `/api/session`, progress | Manual/device pending |
-| AI Tutor | `tutor` | `/api/ai-tutor/*` | Manual/device pending |
+| AI Tutor | `tutor` | `/api/ai-tutor/*`, `POST /api/phrasebook` for story examples | Manual/device pending |
 | Lesson | `lesson` | `/api/lesson/*` | Manual/device pending |
 | Practice | `practice` | `/api/practice` | Manual/device pending |
 | Roleplay | `roleplay`, `roleplay-scenarios` | roleplay API flow | Manual/device pending |
 | Shadowing | `shadowing` | `/api/shadowing/*` | Manual/device pending |
 | Pronunciation | `pronunciation` | `/api/pronunciation/*` | Manual/device pending |
+| Learning games | `games` | Shared `POST /api/games/context` and `GET /api/vocabulary` | Unit: round selection and Unicode letter tiles; device pending |
 | Words, word game, spelling | `words`, `word-game`, `spelling` | `/api/words/*`, `/api/word-game/*`, `/api/spelling/*` | Manual/device pending |
 | Vocabulary | `vocabulary` | `/api/vocabulary` | Manual/device pending |
 | Phrasebook | `phrasebook` | `GET`, `POST`, `DELETE /api/phrasebook` | Unit: refresh/save/delete; debug APK built |

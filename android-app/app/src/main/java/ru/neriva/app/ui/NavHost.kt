@@ -66,6 +66,7 @@ fun NavHost(onThemeChange: (ru.neriva.app.ThemeManager.ThemeMode) -> Unit = {}, 
         composable(Screen.Pronunciation.route) { MainScaffold(navController, Screen.Pronunciation.route) { PronunciationScreen(navController) } }
         composable(Screen.Words.route) { MainScaffold(navController, Screen.Words.route) { WordsScreen(navController) } }
         composable(Screen.WordGame.route) { MainScaffold(navController, Screen.WordGame.route) { WordGameScreen(navController) } }
+        composable(Screen.Games.route) { MainScaffold(navController, Screen.Games.route) { LearningGamesScreen(navController) } }
         composable(Screen.Spelling.route) { MainScaffold(navController, Screen.Spelling.route) { SpellingScreen(navController) } }
         composable(Screen.Vocabulary.route) { MainScaffold(navController, Screen.Vocabulary.route) { VocabularyScreen(navController) } }
         composable(Screen.Phrasebook.route) { MainScaffold(navController, Screen.Phrasebook.route) { PhrasebookScreen(navController) } }

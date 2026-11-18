@@ -16,7 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import ru.neriva.app.LanguageManager
 import ru.neriva.app.NERIVAApp
 import ru.neriva.app.data.model.AiTutorResponse
 import ru.neriva.app.data.repo.TutorRepository
@@ -30,6 +33,10 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
     var loading by remember { mutableStateOf(false) }
     var response by remember { mutableStateOf<AiTutorResponse?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val snackbar = remember { SnackbarHostState() }
+    val savedPhrases by app.phrasebookRepo.observeAll().collectAsState(initial = emptyList())
+    var savingPhrase by remember { mutableStateOf(false) }
     var answer by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
@@ -37,7 +44,7 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
         try { response = repo.start() } catch (e: Exception) { error = e.message } finally { loading = false }
     }
 
-    Scaffold(topBar = {
+    Scaffold(snackbarHost = { SnackbarHost(snackbar) }, topBar = {
         TopAppBar(
             title = { Text(stringResource(R.string.ai_tutor)) },
             navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, ru.neriva.app.NERIVAApp.instance.getString(R.string.back)) } }
@@ -66,11 +73,51 @@ fun TutorScreen(navController: androidx.navigation.NavHostController) {
                     if (lesson.words.isNotEmpty()) {
                         Text(stringResource(R.string.tutor_words), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                         lesson.words.forEach { w ->
-                            Card(modifier = Modifier.fillMaxWidth()) {
+                            val target = w.target?.trim().orEmpty()
+                            if (target.isEmpty()) return@forEach
+                            val translation = w.interfaceTranslation?.trim().orEmpty()
+                            val example = w.exampleSentenceTarget?.trim().orEmpty()
+                            val phrase = example.ifEmpty { target }
+                            val saved = savedPhrases.any { it.phrase.equals(phrase, ignoreCase = true) }
+                            Card(
+                                onClick = {
+                                    savingPhrase = true
+                                    scope.launch {
+                                        val message = try {
+                                            app.phrasebookRepo.save(
+                                                phrase = phrase,
+                                                translation = if (example.isEmpty()) translation else w.exampleTranslationInterface,
+                                                note = when {
+                                                    example.isEmpty() -> null
+                                                    translation.isEmpty() -> target
+                                                    else -> context.getString(R.string.tutor_note_word_translation, target, translation)
+                                                },
+                                                source = "lesson",
+                                                language = LanguageManager.getLearningLanguage(context),
+                                            )
+                                            R.string.tutor_note_saved
+                                        } catch (e: CancellationException) {
+                                            throw e
+                                        } catch (_: Exception) {
+                                            R.string.tutor_note_save_failed
+                                        } finally {
+                                            savingPhrase = false
+                                        }
+                                        snackbar.showSnackbar(context.getString(message))
+                                    }
+                                },
+                                enabled = !savingPhrase && !saved,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
                                 Column(Modifier.padding(12.dp)) {
-                                    Text(w.target ?: "", fontWeight = FontWeight.SemiBold)
-                                    Text(w.interfaceTranslation ?: "", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    w.exampleSentenceTarget?.let { Text("Example: $it", style = MaterialTheme.typography.bodySmall) }
+                                    Text(target, fontWeight = FontWeight.SemiBold)
+                                    if (translation.isNotEmpty()) Text(translation, style = MaterialTheme.typography.bodySmall)
+                                    if (example.isNotEmpty()) Text(example, style = MaterialTheme.typography.bodySmall)
+                                    Text(
+                                        stringResource(if (saved) R.string.tutor_note_saved else R.string.save_to_phrasebook),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
                                 }
                             }
                         }

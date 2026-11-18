@@ -126,6 +126,9 @@ interface NerivaApi {
     @POST("api/word-game/answer")
     suspend fun wordGameAnswer(@Body body: AnswerRequest): WordAnswerResponse
 
+    @POST("api/games/context")
+    suspend fun contextGame(@Body body: ContextGameRequest): ContextGameResponse
+
     // Spelling
     @POST("api/spelling/start")
     suspend fun spellingStart(): SpellingChallenge

@@ -47,6 +47,19 @@ Audio and image features upload through the same API contract as web. Payment
 screens hand off to the server-provided payment URL and return to a refreshed
 session state; card details are never handled in the app.
 
+## Learning Games and Tutor Notes
+
+- The Games tile opens Context, Pairs, and Build a Word in native Compose.
+- Context sends a preset or up to 1,200 Unicode characters of personal text to the shared context endpoint.
+  The server owns caching and privacy. A round presents three options per question, explains the correct answer,
+  and displays its final score.
+- Pairs and Build a Word use the personal vocabulary endpoint. A round includes up to five distinct
+  translated words. Spelling preserves combining marks and excludes phrases. An insufficient vocabulary
+  links to the vocabulary screen.
+- Selecting a tutor word saves the example and its translation to shared Notes. If no example exists,
+  it saves the word and its translation. Save state and errors are visible in the lesson.
+- Verify local round rules with unit tests, then complete each game and save a tutor example on a signed-in device.
+
 ## Testing
 
 - Unit tests cover API URL construction, cookie persistence, repository sync,

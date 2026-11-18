@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-18 — Android
+
+- The native app now includes Context, Pairs, and Build a Word. Context uses the shared exercise bank. The other games use personal vocabulary.
+- Tapping a word below the AI Tutor story saves its example or translation to Notes.
+
 ## 2026-11-18 — Учебные игры и быстрые действия
 
 - В меню появились «Контекст», «Пары» и «Собери слово». Контекстные задания генерируются по готовому или своему тексту и повторно используются из SQLite.

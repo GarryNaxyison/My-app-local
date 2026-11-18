@@ -32,7 +32,7 @@ import ru.neriva.app.data.model.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScreenScaffold(
+internal fun ScreenScaffold(
     title: String,
     navController: androidx.navigation.NavHostController,
     content: @Composable (PaddingValues) -> Unit

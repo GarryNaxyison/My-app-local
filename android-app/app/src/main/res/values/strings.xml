@@ -805,4 +805,32 @@
     <string name="xp_level">XP level</string>
     <string name="yes_clear">Yes, clear</string>
     <string name="you">You</string>
+    <string name="learning_games">Games</string>
+    <string name="game_context">Context</string>
+    <string name="game_pairs">Pairs</string>
+    <string name="game_build_word">Build a word</string>
+    <string name="game_context_prompt">Choose the word that fits</string>
+    <string name="game_travel">Travel</string>
+    <string name="game_restaurant">Restaurant</string>
+    <string name="game_work">Work</string>
+    <string name="game_own_text">Your own text (up to 1,200 characters)</string>
+    <string name="game_generate">Generate exercises</string>
+    <string name="game_load_error">Could not load the game. Try again.</string>
+    <string name="game_round_progress">%1$d of %2$d</string>
+    <string name="game_correct">Correct!</string>
+    <string name="game_try_again">Try again</string>
+    <string name="game_correct_word">Correct answer: %1$s</string>
+    <string name="game_continue">Continue</string>
+    <string name="game_score">Score: %1$d / %2$d</string>
+    <string name="game_spelling_prompt">Build the word from letters</string>
+    <string name="game_pairs_prompt">Match each word to its translation</string>
+    <string name="game_new_round">Start a new round</string>
+    <string name="game_not_enough_words">Add more words to your vocabulary to play.</string>
+    <string name="game_undo">Undo</string>
+    <string name="game_check">Check</string>
+    <string name="game_words">Words</string>
+    <string name="game_translations">Translations</string>
+    <string name="tutor_note_saved">Saved to notes</string>
+    <string name="tutor_note_save_failed">Could not save the phrase. Try again.</string>
+    <string name="tutor_note_word_translation" translatable="false">%1$s — %2$s</string>
 </resources>

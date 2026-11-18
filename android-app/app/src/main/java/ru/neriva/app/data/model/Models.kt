@@ -182,6 +182,7 @@ data class WordData(
     val target: String? = null,
     @SerialName("interface_translation") val interfaceTranslation: String? = null,
     @SerialName("example_sentence_target") val exampleSentenceTarget: String? = null,
+    @SerialName("example_translation_interface") val exampleTranslationInterface: String? = null,
     @SerialName("audio_text_target") val audioTextTarget: String? = null,
 )
 

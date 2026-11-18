@@ -15,6 +15,7 @@ sealed class Screen(val route: String, @StringRes val titleRes: Int, val viewId:
     data object Pronunciation : Screen("pronunciation", R.string.pronunciation)
     data object Words : Screen("words", R.string.learn_words)
     data object WordGame : Screen("word-game", R.string.word_game)
+    data object Games : Screen("games", R.string.learning_games)
     data object Spelling : Screen("spelling", R.string.spelling)
     data object Vocabulary : Screen("vocabulary", R.string.vocabulary)
     data object Phrasebook : Screen("phrasebook", R.string.phrasebook)
@@ -44,6 +45,7 @@ val bottomNavItems = listOf(
 )
 
 val moreNavItems = listOf(
+    Screen.Games,
     Screen.RoleplayScenarios,
     Screen.Pronunciation,
     Screen.Shadowing,

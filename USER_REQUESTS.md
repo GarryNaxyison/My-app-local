@@ -1,5 +1,9 @@
 # Пожелания владельца
 
+## 2026-11-18 — NERIVA for Android
+
+Bring the existing native application in line with the current web app, verify it on an Android emulator, and prepare the initial RuStore test release. Use local Android Studio MCP or the local Android toolchain without requiring an IDE account login.
+
 ## 2026-11-18 — Игры, контекст и быстрые заметки
 
 Добавить три учебные игры и отдельный пункт меню. Генерировать задания на выбор одного из трёх слов по контексту и переиспользовать готовые задания. Уплотнить экран «Сегодня». По нажатию на слова под историей AI Репетитора сохранять материал в заметки.
