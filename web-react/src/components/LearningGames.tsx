@@ -54,6 +54,8 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
   const [selected, setSelected] = useState<number | null>(null);
   const [contextScore, setContextScore] = useState(0);
   const [contextSource, setContextSource] = useState("");
+  const [lessonId, setLessonId] = useState("");
+  const [sourceBody, setSourceBody] = useState<{ preset: string } | { text: string } | null>(null);
   const [round, setRound] = useState<Round | null>(null);
   const [wordIndex, setWordIndex] = useState<number | null>(null);
   const [matched, setMatched] = useState<number[]>([]);
@@ -72,8 +74,10 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
     setBusy(true);
     setMessage("");
     try {
-      const result = await api<{ questions: ContextQuestion[] }>("/api/games/context", { method: "POST", body });
+      const result = await api<{ lesson_id: string; questions: ContextQuestion[] }>("/api/games/context", { method: "POST", body });
       setQuestions(result.questions);
+      setLessonId(result.lesson_id);
+      setSourceBody(body);
       setContextSource(label);
       setQuestion(0);
       setSelected(null);
@@ -83,6 +87,22 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function nextQuestion() {
+    if (busy) return;
+    if (question + 1 === questions.length && sourceBody && lessonId) {
+      setBusy(true);
+      setMessage("");
+      try {
+        await api("/api/games/context", { method: "POST", body: { ...sourceBody, completed_id: lessonId, complete_only: true } });
+      } catch {
+        setMessage(t("Не удалось сохранить результат. Нажмите «Дальше» ещё раз.", "Could not save progress. Press Next again."));
+        return;
+      } finally { setBusy(false); }
+    }
+    setQuestion(question + 1);
+    setSelected(null);
   }
 
   async function loadRound() {
@@ -138,7 +158,7 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
               <Button type="submit" disabled={busy || !text.trim()}>{t("Подготовить задания", "Prepare exercises")}</Button>
             </form>
           </details>
-          {current && <article className="learning-games__question">
+          {current && <article key={`${lessonId}-${question}`} className="learning-games__question">
             <header><strong>{contextSource}</strong><span>{question + 1} / {questions.length}</span></header>
             <p>{current.context}</p>
             <div className="learning-games__choices" lang={learningLanguage} dir="auto">
@@ -151,10 +171,14 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
             </div>
             {selected !== null && <>
               <p role="status"><strong>{selected === current.correct_index ? t("Верно. ", "Correct. ") : t("Правильный вариант: ", "Correct option: ") + current.options[current.correct_index] + ". "}</strong>{current.explanation}</p>
-              <Button type="button" onClick={() => { setQuestion(question + 1); setSelected(null); }}>{t("Дальше", "Next")} <ArrowRight size={16} /></Button>
+              <Button type="button" disabled={busy} onClick={() => void nextQuestion()}>{t("Дальше", "Next")} <ArrowRight size={16} /></Button>
             </>}
           </article>}
-          {questions.length > 0 && !current && <p role="status">{t("Результат", "Score")}: {contextScore} / {questions.length}</p>}
+          {questions.length > 0 && !current && <div className="learning-games__complete">
+            <Check size={36} aria-hidden="true" />
+            <p role="status">{t("Результат", "Score")}: {contextScore} / {questions.length}</p>
+            <Button type="button" disabled={busy || !sourceBody} onClick={() => sourceBody && void loadContext(sourceBody, contextSource)}>{t("Следующая игра", "Next game")} <ArrowRight size={18} /></Button>
+          </div>}
         </section>
       ) : (
         <section className="v2-panel learning-games__board" aria-busy={busy}>
@@ -166,6 +190,9 @@ export function LearningGames({ russian, learningLanguage, openVocabulary }: {
           {game === "pairs" && round && round.cards.length >= 2 && <>
             <strong>{matched.length} / {round.cards.length}</strong>
             <div className="learning-games__pairs">
+              <svg className="learning-games__connections" viewBox={`0 0 100 ${round.cards.length * 100}`} preserveAspectRatio="none" aria-hidden="true">
+                {matched.map(index => <path key={index} pathLength="1" d={`M 0 ${index * 100 + 50} C 45 ${index * 100 + 50}, 55 ${round.translations.indexOf(index) * 100 + 50}, 100 ${round.translations.indexOf(index) * 100 + 50}`} />)}
+              </svg>
               <div lang={learningLanguage}>{round.cards.map(({ word }, index) => <button type="button" key={word} aria-pressed={wordIndex === index} disabled={matched.includes(index)}
                 data-result={matched.includes(index) ? "correct" : undefined} onClick={() => { setWordIndex(index); setMessage(""); }}>{word}</button>)}</div>
               <div>{round.translations.map((index) => <button type="button" key={index} disabled={wordIndex === null || matched.includes(index)}

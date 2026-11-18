@@ -169,6 +169,11 @@ func (s *sqliteStore) init() error {
 			owner_id INTEGER NOT NULL,
 			lesson_json TEXT NOT NULL
 		)`,
+		`CREATE TABLE IF NOT EXISTS context_game_completions (
+   telegram_id INTEGER NOT NULL,
+   lesson_id TEXT NOT NULL,
+   PRIMARY KEY (telegram_id, lesson_id)
+  )`,
 		`CREATE INDEX IF NOT EXISTS idx_context_game_owner ON context_game_lessons(owner_id)`,
 		`CREATE TABLE IF NOT EXISTS mistake_transfers (
 			telegram_id INTEGER NOT NULL,
@@ -928,6 +933,9 @@ func (s *sqliteStore) deleteUserStateRows(userID int64) error {
 		return err
 	}
 	if _, err := s.db.Exec(`DELETE FROM learning_events WHERE telegram_id = ?`, userID); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM context_game_completions WHERE telegram_id = ?`, userID); err != nil {
 		return err
 	}
 	if _, err := s.db.Exec(`DELETE FROM context_game_lessons WHERE owner_id = ? AND owner_id <> 0`, userID); err != nil {

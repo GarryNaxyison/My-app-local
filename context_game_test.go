@@ -70,3 +70,57 @@ func TestContextGameRejectsDuplicateOptionsAndMissingAnswer(t *testing.T) {
 		}
 	}
 }
+
+func TestContextGameProgressionUsesBankBeforeGenerating(t *testing.T) {
+	api, store, cookie := newTestWebAPI(t)
+	calls := 0
+	api.bot.openrouter = newOpenRouterClient("test-key", "test-model", "", "", &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		calls++
+		lesson := strings.ReplaceAll(sampleContextLesson, "___", strings.Repeat("fresh ", calls)+"___")
+		body, _ := json.Marshal(map[string]any{"choices": []any{map[string]any{"message": map[string]string{"content": lesson}}}})
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(strings.NewReader(string(body)))}, nil
+	})})
+	first := requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel"})
+	id, _ := first["lesson_id"].(string)
+	if id == "" {
+		t.Fatal("missing lesson_id")
+	}
+	again := requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel"})
+	if again["lesson_id"] != id || calls != 1 {
+		t.Fatal("unfinished lesson should be reused")
+	}
+	requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel", "completed_id": id, "complete_only": true})
+	next := requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel"})
+	if next["lesson_id"] == id || calls != 2 {
+		t.Fatal("exhausted bank must generate a new lesson")
+	}
+	// Clearing only this user's history simulates a fresh learner with the same language and level.
+	if _, err := store.db.Exec("DELETE FROM context_game_completions"); err != nil {
+		t.Fatal(err)
+	}
+	fresh := requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel"})
+	if fresh["lesson_id"] != id || calls != 2 {
+		t.Fatal("fresh learner should consume the existing bank")
+	}
+	for i := 0; i < 2; i++ {
+		requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel", "completed_id": id, "complete_only": true})
+	}
+	fromBank := requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel"})
+	if fromBank["lesson_id"] != next["lesson_id"] || calls != 2 {
+		t.Fatal("reuse next saved round without a model call; completion must be idempotent")
+	}
+	status, _ := requestJSONRaw(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "work", "completed_id": id, "complete_only": true})
+	if status != http.StatusBadRequest {
+		t.Fatal("accepted completion from another topic")
+	}
+	requestJSON(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel", "completed_id": next["lesson_id"], "complete_only": true})
+	api.bot.openrouter = nil
+	status, _ = requestJSONRaw(t, api, cookie, http.MethodPost, "/api/games/context", map[string]any{"preset": "travel"})
+	if status != http.StatusServiceUnavailable {
+		t.Fatal("expected generation unavailable")
+	}
+	var completions int
+	if err := store.db.QueryRow("SELECT COUNT(*) FROM context_game_completions").Scan(&completions); err != nil || completions != 2 {
+		t.Fatalf("generation failure lost completion history: count=%d err=%v", completions, err)
+	}
+}

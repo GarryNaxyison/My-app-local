@@ -3959,11 +3959,17 @@ test("learning topic stays accessible in the AI Tutor header in Arabic", async (
 });
 
 test("Games opens from Today and plays context, pairs and spelling", async ({ page }, testInfo) => {
-  await page.route("**/api/games/context", (route) => route.fulfill({ json: { questions: [
+  const gameRequests: Record<string, unknown>[] = [];
+  await page.route("**/api/games/context", (route) => {
+    const body = route.request().postDataJSON();
+    gameRequests.push(body);
+    if (body.complete_only) return route.fulfill({ json: { completed: true } });
+    return route.fulfill({ json: { lesson_id: "travel-round", questions: [
     { context: "Для поездки нужен ___.", options: ["ticket", "hotel", "train"], correct_index: 0, explanation: "Ticket означает билет." },
     { context: "Место посадки — ___.", options: ["train", "platform", "ticket"], correct_index: 1, explanation: "Platform означает платформу." },
     { context: "Со станции уходит ___.", options: ["platform", "ticket", "train"], correct_index: 2, explanation: "Train означает поезд." },
-  ] } }));
+  ] } });
+  });
   await page.route("**/api/vocabulary?*", (route) => route.fulfill({ json: { items: [
     { id: "cat", word: "cat", translation: "кот" },
     { id: "dog", word: "dog", translation: "пёс" },
@@ -3979,10 +3985,20 @@ test("Games opens from Today and plays context, pairs and spelling", async ({ pa
   await expect(games.getByRole("status")).toContainText("Правильный вариант: ticket");
   await games.getByRole("button", { name: "Дальше" }).click();
   await expect(games.locator(".learning-games__question")).toContainText("2 / 3");
+  await games.getByRole("button", { name: "platform", exact: true }).click();
+  await games.getByRole("button", { name: "Дальше" }).click();
+  await games.getByRole("button", { name: "train", exact: true }).click();
+  await games.getByRole("button", { name: "Дальше" }).click();
+  await expect(games.getByRole("button", { name: "Следующая игра" })).toBeVisible();
+  expect(gameRequests[1]).toMatchObject({ preset: "travel", completed_id: "travel-round", complete_only: true });
+  await games.getByRole("button", { name: "Следующая игра" }).click();
+  await expect(games.locator(".learning-games__question")).toContainText("1 / 3");
+  expect(gameRequests).toHaveLength(3);
   await games.getByRole("button", { name: /Пары/ }).click();
   await games.getByRole("button", { name: "Начать игру" }).click();
   await games.getByRole("button", { name: "cat", exact: true }).click();
   await games.getByRole("button", { name: "кот", exact: true }).click();
+  await expect(games.locator(".learning-games__connections path")).toHaveCount(1);
   await games.getByRole("button", { name: "dog", exact: true }).click();
   await games.getByRole("button", { name: "пёс", exact: true }).click();
   await expect(games.getByText("Раунд пройден")).toBeVisible();
