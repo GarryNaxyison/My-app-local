@@ -1,5 +1,9 @@
 package ru.neriva.app.ui
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -31,6 +35,10 @@ fun NavHost(onThemeChange: (ru.neriva.app.ThemeManager.ThemeMode) -> Unit = {}, 
 
     NavHost(
         navController = navController,
+        enterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 24 } },
+        exitTransition = { fadeOut(tween(140)) },
+        popEnterTransition = { fadeIn(tween(220)) + slideInHorizontally(tween(220)) { -it / 24 } },
+        popExitTransition = { fadeOut(tween(140)) },
         startDestination = startRoute
     ) {
         composable(Screen.Auth.route) {
@@ -58,7 +66,7 @@ fun NavHost(onThemeChange: (ru.neriva.app.ThemeManager.ThemeMode) -> Unit = {}, 
         }
 
         composable(Screen.Home.route) { MainScaffold(navController, Screen.Home.route) { HomeScreen(navController) } }
-        composable(Screen.Tutor.route) { MainScaffold(navController, Screen.Tutor.route) { TutorScreen(navController) } }
+        composable(Screen.Tutor.route) { MainScaffold(navController, Screen.Tutor.route) { TutorScreen(navController, sessionState.session?.user?.learningFocus.orEmpty()) } }
         composable(Screen.Lesson.route) { MainScaffold(navController, Screen.Lesson.route) { LessonScreen(navController) } }
         composable(Screen.Practice.route) { MainScaffold(navController, Screen.Practice.route) { PracticeScreen(navController) } }
         composable(Screen.Roleplay.route) { MainScaffold(navController, Screen.Roleplay.route) { RoleplayScreen(navController) } }

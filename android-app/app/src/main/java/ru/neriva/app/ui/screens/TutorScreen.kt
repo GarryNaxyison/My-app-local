@@ -1,6 +1,10 @@
 package ru.neriva.app.ui.screens
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,6 +18,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -39,7 +47,7 @@ import ru.neriva.app.ui.components.NerivaAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TutorScreen(navController: NavHostController) {
+fun TutorScreen(navController: NavHostController, learningFocus: String = "") {
     val app = NERIVAApp.instance
     val repo = remember { TutorRepository(app.apiClient) }
     val scope = rememberCoroutineScope()
@@ -56,11 +64,19 @@ fun TutorScreen(navController: NavHostController) {
     var failed by remember { mutableStateOf(false) }
     var answer by rememberSaveable { mutableStateOf("") }
 
-    suspend fun request(input: String? = null) {
+    suspend fun request(input: String? = null, restart: Boolean = false, isChoice: Boolean = false) {
         loading = true
         failed = false
         try {
-            val result = if (input == null) repo.start() else repo.answer(input, sessionId)
+            val result = when {
+                restart -> repo.restart()
+                input != null -> repo.answer(input, sessionId, response?.nextStep?.stage?.ifBlank { null } ?: response?.currentStage.orEmpty(), isChoice)
+                else -> repo.start()
+            }
+            if (restart) {
+                sessionId = null
+                lesson = null
+            }
             sessionId = result.session?.id ?: sessionId
             response = result
             lesson = result.lesson ?: result.nextStep?.lesson ?: lesson
@@ -76,9 +92,9 @@ fun TutorScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) { request() }
 
-    fun submit(input: String) {
+    fun submit(input: String, isChoice: Boolean) {
         if (loading || input.isBlank()) return
-        scope.launch { request(input.trim()) }
+        scope.launch { request(input.trim(), isChoice = isChoice) }
     }
 
     fun saveWord(word: WordData) {
@@ -112,6 +128,13 @@ fun TutorScreen(navController: NavHostController) {
         }
     }
 
+    val scroll = rememberScrollState()
+    val complete = response?.let {
+        it.session?.status == "complete" || it.currentStage == "complete" ||
+            it.nextStep?.stage == "complete" || it.nextStep?.kind == "complete"
+    } == true
+    LaunchedEffect(complete) { if (complete) scroll.scrollTo(0) }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
@@ -127,7 +150,7 @@ fun TutorScreen(navController: NavHostController) {
         },
     ) { padding ->
         Box(
-            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()),
+            Modifier.fillMaxSize().padding(padding).verticalScroll(scroll),
             contentAlignment = Alignment.TopCenter,
         ) {
             Column(
@@ -145,13 +168,15 @@ fun TutorScreen(navController: NavHostController) {
                             NerivaAction(stringResource(R.string.retry), onClick = { scope.launch { request() } })
                         }
                     }
+                } else if (complete) {
+                    TutorCompletion(current, lesson, loading, failed) { scope.launch { request(restart = true) } }
                 } else {
                     val material = lesson
                     material?.let { TutorLessonCover(it) }
                     BoxWithConstraints(Modifier.fillMaxWidth()) {
                         val wide = maxWidth >= 680.dp && material != null
                         val reading: @Composable () -> Unit = {
-                            if (material != null) TutorReading(material, saved, savingPhrase, ::saveWord)
+                            if (material != null) TutorReading(material, tutorArtwork(learningFocus), saved, savingPhrase, ::saveWord)
                         }
                         val exercise: @Composable () -> Unit = {
                             TutorExercise(current, answer, { answer = it }, loading, failed, ::submit)
@@ -203,12 +228,20 @@ private fun TutorLessonCover(lesson: LessonData) {
 }
 
 @Composable
-private fun TutorReading(lesson: LessonData, saved: Set<String>, saving: Boolean, onSave: (WordData) -> Unit) {
+private fun TutorReading(lesson: LessonData, artwork: Int, saved: Set<String>, saving: Boolean, onSave: (WordData) -> Unit) {
     val colors = MaterialTheme.colorScheme
     lesson.story?.textTarget?.takeIf { it.isNotBlank() }?.let { story ->
-        TutorPanel {
-            TutorHeading(stringResource(R.string.tutor_step_story))
-            Text(story, style = MaterialTheme.typography.bodyLarge)
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Image(
+                painterResource(artwork), contentDescription = null,
+                modifier = Modifier.fillMaxWidth().heightIn(max = 214.dp).aspectRatio(1.9f)
+                    .clip(MaterialTheme.shapes.large),
+                contentScale = ContentScale.Crop,
+            )
+            TutorPanel {
+                TutorHeading(stringResource(R.string.tutor_step_story))
+                Text(story, style = MaterialTheme.typography.bodyLarge)
+            }
         }
     }
     if (lesson.words.any { !it.target.isNullOrBlank() }) {
@@ -255,56 +288,109 @@ private fun TutorExercise(
     onAnswerChange: (String) -> Unit,
     loading: Boolean,
     failed: Boolean,
-    onSubmit: (String) -> Unit,
+    onSubmit: (String, Boolean) -> Unit,
 ) {
     val step = response.nextStep
     val colors = MaterialTheme.colorScheme
     TutorPanel {
         TutorHeading(step?.title?.takeIf { it.isNotBlank() } ?: stringResource(R.string.tutor_user_turn))
-        val feedback = response.feedback
-        if (feedback != null && (feedback.ok == true || !feedback.message.isNullOrBlank())) {
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                color = if (feedback.ok == false) colors.errorContainer else colors.secondaryContainer,
-                contentColor = if (feedback.ok == false) colors.onErrorContainer else colors.onSecondaryContainer,
-                modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
-            ) {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    if (feedback.ok == true) Text(stringResource(R.string.correct), style = MaterialTheme.typography.titleMedium)
-                    feedback.message?.takeIf { it.isNotBlank() }?.let { Text(it) }
+        AnimatedContent(
+            targetState = response.feedback,
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "tutorFeedback",
+        ) { feedback ->
+            if (feedback != null && (feedback.ok != null || !feedback.message.isNullOrBlank())) {
+                val positive = feedback.ok == true
+                Surface(
+                    modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+                    shape = MaterialTheme.shapes.medium,
+                    color = if (positive) colors.primaryContainer else if (feedback.ok == false) colors.errorContainer else colors.surfaceVariant,
+                    contentColor = if (positive) colors.onPrimaryContainer else if (feedback.ok == false) colors.onErrorContainer else colors.onSurfaceVariant,
+                ) {
+                    Row(Modifier.padding(14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Icon(if (positive) Icons.Outlined.Check else Icons.Outlined.Refresh, null)
+                        Text(
+                            feedback.message?.takeIf { it.isNotBlank() }
+                                ?: stringResource(if (positive) R.string.correct else R.string.tutor_feedback_wrong),
+                        )
+                    }
                 }
             }
         }
-        step?.instruction?.takeIf { it.isNotBlank() }?.let { Text(it, color = colors.onSurfaceVariant) }
-        step?.question?.questionTarget?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
+        AnimatedContent(step, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tutorPrompt") { current ->
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val question = current?.question?.questionTarget
+                current?.instruction?.takeIf { it.isNotBlank() && it != question }?.let { Text(it, color = colors.onSurfaceVariant) }
+                question?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.headlineSmall) }
+            }
+        }
         step?.options.orEmpty().filter { !it.text.isNullOrBlank() }.forEachIndexed { index, option ->
             val value = option.text.orEmpty()
             NerivaAction(
                 label = value,
-                onClick = { onSubmit(value) },
+                onClick = { onSubmit(option.id?.takeIf { it.isNotBlank() } ?: value, true) },
                 enabled = !loading,
                 modifier = Modifier.fillMaxWidth(),
                 optionNumber = index + 1,
             )
         }
-        OutlinedTextField(
-            value = answer,
-            onValueChange = onAnswerChange,
-            label = { Text(stringResource(R.string.lesson_answer)) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !loading,
-            maxLines = 5,
-        )
-        NerivaAction(
-            label = stringResource(R.string.send),
-            onClick = { onSubmit(answer) },
-            enabled = !loading && answer.isNotBlank(),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (step?.kind in setOf("story", "word_learn")) {
+            NerivaAction(stringResource(R.string.tutor_continue), { onSubmit("continue", true) }, enabled = !loading, modifier = Modifier.fillMaxWidth())
+        } else if (step?.options.orEmpty().none { !it.text.isNullOrBlank() }) {
+            OutlinedTextField(
+                value = answer,
+                onValueChange = onAnswerChange,
+                label = { Text(stringResource(R.string.lesson_answer)) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !loading,
+                maxLines = 5,
+            )
+            NerivaAction(
+                label = stringResource(R.string.send),
+                onClick = { onSubmit(answer, false) },
+                enabled = !loading && answer.isNotBlank(),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         AnimatedVisibility(loading) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         if (failed) {
             Text(stringResource(R.string.try_again), color = colors.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
+    }
+}
+
+@Composable
+private fun tutorArtwork(focus: String): Int {
+    val topic = focus.trim()
+    return when {
+        topic.isEmpty() -> R.drawable.tutor_art_mixed
+        topic.equals(stringResource(R.string.roleplay_scenario_restaurant), true) -> R.drawable.tutor_art_restaurant
+        topic.equals(stringResource(R.string.roleplay_scenario_work), true) -> R.drawable.tutor_art_work
+        topic.equals(stringResource(R.string.roleplay_scenario_travel), true) -> R.drawable.tutor_art_travel
+        topic.equals(stringResource(R.string.roleplay_scenario_exam), true) -> R.drawable.tutor_art_exam
+        else -> R.drawable.tutor_art_custom
+    }
+}
+
+@Composable
+private fun TutorCompletion(
+    response: AiTutorResponse,
+    lesson: LessonData?,
+    loading: Boolean,
+    failed: Boolean,
+    onRestart: () -> Unit,
+) {
+    TutorPanel {
+        Icon(Icons.Outlined.EmojiEvents, null, Modifier.size(42.dp), tint = MaterialTheme.colorScheme.primary)
+        TutorHeading(stringResource(R.string.tutor_lesson_complete))
+        lesson?.title?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.titleLarge) }
+        response.feedback?.message?.takeIf { it.isNotBlank() }?.let { Text(it) }
+        (response.rewardXp ?: response.xp)?.takeIf { it > 0 }?.let {
+            Text("+$it XP", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+        }
+        NerivaAction(stringResource(R.string.tutor_restart), onRestart, enabled = !loading)
+        AnimatedVisibility(loading) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+        if (failed) Text(stringResource(R.string.try_again), color = MaterialTheme.colorScheme.error)
     }
 }
 

@@ -53,7 +53,7 @@ interface NerivaApi {
     suspend fun aiTutorRestart(): AiTutorResponse
 
     @POST("api/ai-tutor/answer")
-    suspend fun aiTutorAnswer(@Body body: AnswerRequest): AiTutorResponse
+    suspend fun aiTutorAnswer(@Body body: TutorAnswerRequest): AiTutorResponse
 
     @POST("api/ai-tutor/finish")
     suspend fun aiTutorFinish(): AiTutorResponse
@@ -276,6 +276,15 @@ data class NavigationLayoutRequest(
     @kotlinx.serialization.SerialName("mobile_pinned") val mobilePinned: List<String>? = null,
     @kotlinx.serialization.SerialName("mobile_more") val mobileMore: List<String>? = null,
     @kotlinx.serialization.SerialName("mobile_rail") val mobileRail: List<String>? = null,
+)
+
+@kotlinx.serialization.Serializable
+data class TutorAnswerRequest(
+    @kotlinx.serialization.SerialName("session_id") val sessionId: String?,
+    val stage: String,
+    val text: String,
+    val choice: String,
+    val answer: String,
 )
 
 @kotlinx.serialization.Serializable

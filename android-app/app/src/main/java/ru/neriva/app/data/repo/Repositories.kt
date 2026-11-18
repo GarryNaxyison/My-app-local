@@ -78,8 +78,8 @@ class TutorRepository(private val api: NerivaApi) {
     suspend fun start() = api.aiTutorStart()
     suspend fun session() = api.aiTutorSession()
     suspend fun restart() = api.aiTutorRestart()
-    suspend fun answer(answer: String, sessionId: String? = null, wordId: String? = null) =
-        api.aiTutorAnswer(AnswerRequest(answer, sessionId, wordId))
+    suspend fun answer(input: String, sessionId: String?, stage: String, isChoice: Boolean) =
+        api.aiTutorAnswer(TutorAnswerRequest(sessionId, stage, if (isChoice) "" else input, if (isChoice) input else "", input))
     suspend fun finish() = api.aiTutorFinish()
     suspend fun completed(page: Int = 1) = api.aiTutorCompleted(page)
 }
