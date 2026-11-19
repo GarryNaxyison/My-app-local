@@ -80,6 +80,10 @@ func (c *openRouterClient) completeWithModel(ctx context.Context, model string, 
 		"temperature": temperature,
 		"max_tokens":  maxTokens,
 	}
+	// Short tutor replies need the output budget for visible text, not reasoning.
+	if strings.HasPrefix(model, "openai/gpt-6") {
+		payload["reasoning"] = map[string]any{"enabled": false}
+	}
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

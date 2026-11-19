@@ -1210,11 +1210,9 @@ func (c *telegramClient) callMessageID(ctx context.Context, method string, paylo
 	defer resp.Body.Close()
 
 	var decoded struct {
-		OK     bool `json:"ok"`
-		Result struct {
-			MessageID int64 `json:"message_id"`
-		} `json:"result"`
-		Description string `json:"description"`
+		OK          bool            `json:"ok"`
+		Result      json.RawMessage `json:"result"`
+		Description string          `json:"description"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&decoded); err != nil {
 		return 0, err
@@ -1222,7 +1220,17 @@ func (c *telegramClient) callMessageID(ctx context.Context, method string, paylo
 	if !decoded.OK {
 		return 0, fmt.Errorf("telegram %s failed: %s", method, decoded.Description)
 	}
-	return decoded.Result.MessageID, nil
+	// Telegram methods such as answerCallbackQuery and deleteMessage return true.
+	if len(decoded.Result) == 0 || bytes.Equal(bytes.TrimSpace(decoded.Result), []byte("true")) {
+		return 0, nil
+	}
+	var message struct {
+		MessageID int64 `json:"message_id"`
+	}
+	if err := json.Unmarshal(decoded.Result, &message); err != nil {
+		return 0, err
+	}
+	return message.MessageID, nil
 }
 
 func (c *telegramClient) callMultipart(ctx context.Context, method string, contentType string, body io.Reader) error {
